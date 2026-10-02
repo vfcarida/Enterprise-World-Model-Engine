@@ -2,64 +2,67 @@
 
 This document outlines the phased development roadmap for the **Enterprise World Model Engine (EWM Engine)**.
 
-> **Canonical Contract:** See [docs/specs/spec-driven-development.md](docs/specs/spec-driven-development.md) for the authoritative v1 specification and authority chain governing this roadmap.
+> **Canonical Contract:** See [docs/specs/spec-driven-development.md](docs/specs/spec-driven-development.md) for the authoritative v1 specification and authority chain governing this roadmap. See [docs/stability-policy.md](docs/stability-policy.md) for SemVer 2.0.0 stability guarantees.
+
+---
 
 ## Maturity Framework
 
-To preserve scientific and engineering integrity, capabilities in EWM Engine are classified under explicit maturity levels:
+Capabilities in EWM Engine are classified under explicit maturity levels:
 
-- **Stable**: Fully tested, validated, deterministic, and covered by backward compatibility guarantees.
-- **Alpha**: Core interfaces defined and working; subject to API refinement based on community usage.
-- **Experimental**: Active proof-of-concept; interfaces may change significantly without deprecation cycles.
-- **Research / Exploration**: Formal hypotheses under theoretical or empirical investigation.
-- **Planned Adapter**: Planned integration with external ecosystems.
-
----
-
-## Current Status (v0.1.0 - Foundation)
-
-| Subsystem | Maturity Level | Notes |
-|---|---|---|
-| Core Simulation Engine | **Alpha** | Deterministic Monte Carlo rollout, scenario seeding, trajectory tracking |
-| World & State Model | **Alpha** | Immutable snapshot states, entities, resources, relationships |
-| Constraint Engine | **Alpha** | Pre-action and post-state verification with detailed violation provenance |
-| Pluggable Dynamics | **Alpha** | Deterministic, stochastic, and composite dynamics interfaces |
-| Scenario Branching | **Alpha** | Counterfactual branching from identical initial states |
-| Systemic Traces | **Alpha** | Directed dependency tracking with epistemic level tagging |
-| Scenario Comparison | **Alpha** | Quantile distributions, violation rates, delta summaries |
-| Reference Examples | **Alpha** | Minimal Supply World & CivicFlow Disaster Response |
-| Learned Dynamics Protocol | **Experimental** | Protocol definitions and minimal neural baseline integration |
-| Causal Identification | **Research** | Explicit epistemics separating prediction from interventional effects |
-| Agent Orchestrators | **Planned Adapter** | External adapters for LangGraph, AutoGen, CrewAI, and RLlib |
+- **Stable**: Frozen public contract (`1.x`), covered by backwards-compatibility guarantees, automated contract gates (`AC-024`), and deprecation lifecycles.
+- **Experimental**: Active research and development in `ewm_engine.experimental.*`; subject to API evolution across minor releases without deprecation cycles.
+- **Planned Adapter**: Planned external integration orbiting the core simulation kernel.
+- **Research / Exploration**: Theoretical formulation or empirical investigation.
 
 ---
 
-## Near-Term Roadmap (v0.2.0 - v0.4.0)
+## Current Status (v1.0.0 — Stable Contract)
 
-### 1. Extended Constraints & Solvers
-- **SMT / SAT Solver Adapters**: Optional integration with Z3/CVC5 for formal constraint verification and unreachable state detection.
-- **Operations Research Integrations**: Optional adapters for Google OR-Tools and mixed-integer linear programming (MILP).
-
-### 2. Receding Horizon & Online Simulation (MPC)
-- Continuous state re-grounding:
-  $$\text{Observe} \to \text{Simulate Short Horizon} \to \text{Select Action} \to \text{Re-ground} \to \text{Repeat}$$
-- Support for state estimation filtering under noisy or partially observed organizational telemetry.
-
-### 3. Declarative World Specification
-- Validated YAML/JSON schemas for declarative world definition, parsed strictly via typed models without code execution.
+| Subsystem | Maturity Level | Status / Notes |
+| :--- | :---: | :--- |
+| **Core Simulation Kernel** | **Stable** | Deterministic Monte Carlo rollout, seed spawning, bitwise reproducibility (AC-004, AC-009) |
+| **World & State Model** | **Stable** | Deeply immutable snapshot states, canonical JSON serializer, SHA-256 fingerprinting (AC-005, AC-010) |
+| **Constraint Engine** | **Stable** | Phase-aware (`PRE_ACTION`, `POST_TRANSITION`), normative action rejection and rollout invalidation (AC-006–AC-008) |
+| **Pluggable Dynamics** | **Stable** | Structural `DynamicsModel` protocol, composite and deterministic transfer implementations |
+| **Scenario Branching** | **Stable** | Safe branch isolation without mutable state cross-contamination (AC-005) |
+| **Systemic Traces** | **Stable** | Epistemic honesty with explicit `EvidenceLevel` tiers; directed dependency DAG export to Mermaid/NetworkX (AC-011) |
+| **Declarative Serialization** | **Stable** | Draft 2020-12 versioned JSON Schemas, safe YAML loader, and trusted closed `WorldFactory` registry (AC-002, AC-003, AC-018) |
+| **Scenario Evaluation** | **Stable** | Multi-quantile counterfactual comparisons (`compare_scenarios`) |
+| **Normative Acceptance** | **Stable** | Minimal Warehouse (AC-012) and CivicFlow regional flood response (AC-013) fixtures |
+| **Observability Layer** | **Stable** | Typed lifecycle hooks (`HookRegistry`, `HookEvent`) and programmatic `RunMetrics` |
+| **Command-Line Interface** | **Stable** | `ewm [example|validate|run|schema]` subcommands for execution and validation |
+| **Ecosystem Adapters** | **Alpha** | `CallableActorAdapter` (LangGraph/AutoGen) and `Z3ConstraintAdapter` (SMT) via `ewm-engine[solvers]` |
+| **Online Re-Grounding (MPC)** | **Experimental** | `RecedingHorizonSimulator` and `MPCDecisionRecord` in `ewm_engine.experimental` |
+| **Learned Dynamics** | **Experimental** | `LinearResidualDynamics` and `TransitionDataset` in `ewm_engine.experimental` |
 
 ---
 
-## Long-Term Research Agenda (v0.5.0+)
+## Near-Term Roadmap (v1.1.0 — Ecosystem & Scale)
+
+### 1. Operations Research (OR) Adapters
+- **Google OR-Tools Integration**: Adapter connecting linear and mixed-integer programming (MILP) dispatch policies as external interventional actors.
+- **SciPy Optimization Adapters**: Continuous resource optimization for multi-warehouse inventory allocation.
+
+### 2. Distributed Monte Carlo Execution
+- **Ray / Multiprocessing Parallelism**: High-throughput parallel rollouts across multi-core nodes while strictly preserving per-rollout `SeedSequence` determinism.
+- **Batch State Evaluations**: Vectorized constraint checking for massive topology simulations.
+
+### 3. OpenTelemetry & Telemetry Exporters
+- Zero-overhead OpenTelemetry span export from lifecycle hooks for production simulation observability.
+
+---
+
+## Long-Term Research Agenda (v2.0.0+)
 
 1. **Latent Dynamics & World Representations**:
-   - Recurrent State-Space Models (RSSM / Dreamer-like latent rollouts).
+   - Recurrent State-Space Models (RSSM / Dreamer-like latent rollouts) integrated as pluggable `DynamicsModel` adapters.
    - Joint Embedding Predictive Architectures (JEPA) for multi-scale organizational dynamics.
    - Graph Neural Networks (GNNs) for heterogeneous organizational relational graphs.
-2. **Causal Epistemics & Discovery**:
-   - Causal discovery over observational enterprise logs.
-   - Off-policy counterfactual evaluation with overlap and unconfoundedness diagnostics.
-3. **Out-of-Distribution (OOD) & Regime Shifts**:
-   - Automated detection when simulation trajectories enter ungrounded or epistemically unsupported state regimes.
-4. **Scalable Distributed Rollouts**:
-   - Ray / multi-node parallel Monte Carlo simulation for high-throughput scenario analysis.
+2. **Causal Epistemics & Off-Policy Evaluation**:
+   - Automated identification of unobserved confounders in observational enterprise event logs.
+   - Off-policy counterfactual evaluation with overlap and positivity diagnostics.
+3. **Out-of-Distribution (OOD) & Regime Shift Detection**:
+   - Epistemic uncertainty quantification detecting when simulation trajectories enter ungrounded state regimes.
+4. **Differentiable Constraints & Projectors**:
+   - Differentiable manifold projection for continuous control optimization.
