@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from ewm_engine.constraints.results import ConstraintResult, ConstraintSeverity
+from collections.abc import Sequence
+
+from ewm_engine.constraints.results import (
+    ConstraintPhase,
+    ConstraintResult,
+    ConstraintSeverity,
+)
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.types import ConstraintId, ResourceId
@@ -39,12 +45,20 @@ class ResourceCapacityConstraint:
     def description(self) -> str:
         return f"Ensures resource '{self.resource_id}' does not exceed maximum capacity."
 
-    def evaluate(self, state: WorldState, action: Action | None = None) -> ConstraintResult:
+    def evaluate(
+        self,
+        state: WorldState,
+        actions: Sequence[Action] = (),
+        *,
+        phase: ConstraintPhase = ConstraintPhase.POST_TRANSITION,
+    ) -> ConstraintResult:
         if self.resource_id not in state.resources:
             return ConstraintResult(
                 satisfied=True,
                 constraint_id=self.constraint_id,
+                constraint_version=self.version,
                 severity=self.severity,
+                phase=phase,
             )
 
         res = state.get_resource(self.resource_id)
@@ -55,11 +69,14 @@ class ResourceCapacityConstraint:
             constraint_id=self.constraint_id,
             constraint_version=self.version,
             severity=self.severity,
-            message=f"Resource '{self.resource_id}' level {res.current:.2f} within capacity {res.max_value:.2f}"
-            if satisfied
-            else f"Resource '{self.resource_id}' level {res.current:.2f} exceeded capacity {res.max_value:.2f}",
+            phase=phase,
+            message=(
+                f"Resource '{self.resource_id}' level {res.current:.2f} within capacity {res.max_value:.2f}"
+                if satisfied
+                else f"Resource '{self.resource_id}' level {res.current:.2f} exceeded capacity {res.max_value:.2f}"
+            ),
+            entity_ids=(res.entity_id,) if (not satisfied and res.entity_id) else (),
             violating_resources=(self.resource_id,) if not satisfied else (),
-            violating_entities=(res.entity_id,) if (not satisfied and res.entity_id) else (),
             violating_values={"current": res.current, "max_value": res.max_value}
             if not satisfied
             else {},
@@ -98,12 +115,20 @@ class ResourceNonNegativeConstraint:
     def description(self) -> str:
         return f"Ensures resource '{self.resource_id}' does not drop below min_value."
 
-    def evaluate(self, state: WorldState, action: Action | None = None) -> ConstraintResult:
+    def evaluate(
+        self,
+        state: WorldState,
+        actions: Sequence[Action] = (),
+        *,
+        phase: ConstraintPhase = ConstraintPhase.POST_TRANSITION,
+    ) -> ConstraintResult:
         if self.resource_id not in state.resources:
             return ConstraintResult(
                 satisfied=True,
                 constraint_id=self.constraint_id,
+                constraint_version=self.version,
                 severity=self.severity,
+                phase=phase,
             )
 
         res = state.get_resource(self.resource_id)
@@ -114,11 +139,14 @@ class ResourceNonNegativeConstraint:
             constraint_id=self.constraint_id,
             constraint_version=self.version,
             severity=self.severity,
-            message=f"Resource '{self.resource_id}' level {res.current:.2f} above lower bound {res.min_value:.2f}"
-            if satisfied
-            else f"Resource '{self.resource_id}' level {res.current:.2f} fell below minimum {res.min_value:.2f}",
+            phase=phase,
+            message=(
+                f"Resource '{self.resource_id}' level {res.current:.2f} above lower bound {res.min_value:.2f}"
+                if satisfied
+                else f"Resource '{self.resource_id}' level {res.current:.2f} fell below minimum {res.min_value:.2f}"
+            ),
+            entity_ids=(res.entity_id,) if (not satisfied and res.entity_id) else (),
             violating_resources=(self.resource_id,) if not satisfied else (),
-            violating_entities=(res.entity_id,) if (not satisfied and res.entity_id) else (),
             violating_values={"current": res.current, "min_value": res.min_value}
             if not satisfied
             else {},
@@ -155,35 +183,70 @@ class ActionTransferAvailabilityConstraint:
     def description(self) -> str:
         return "Ensures requested transfer quantity does not exceed available source stock."
 
-    def evaluate(self, state: WorldState, action: Action | None = None) -> ConstraintResult:
-        if action is None or action.type != self.action_type:
+    def evaluate(
+        self,
+        state: WorldState,
+        actions: Sequence[Action] = (),
+        *,
+        phase: ConstraintPhase = ConstraintPhase.PRE_ACTION,
+    ) -> ConstraintResult:
+        if phase != ConstraintPhase.PRE_ACTION:
             return ConstraintResult(
-                satisfied=True, constraint_id=self.constraint_id, severity=self.severity
-            )
-
-        src_id = str(action.get("source_resource"))
-        qty = float(action.get("quantity", 0.0))
-
-        if src_id not in state.resources:
-            return ConstraintResult(
-                satisfied=False,
+                satisfied=True,
                 constraint_id=self.constraint_id,
+                constraint_version=self.version,
                 severity=self.severity,
-                message=f"Source resource '{src_id}' not found in state.",
-                violating_values={"source_resource": src_id},
+                phase=phase,
             )
 
-        src_res = state.get_resource(src_id)
-        available = src_res.current - src_res.min_value
-        satisfied = available >= qty
+        target_actions = [a for a in actions if a.type == self.action_type]
+        if not target_actions:
+            return ConstraintResult(
+                satisfied=True,
+                constraint_id=self.constraint_id,
+                constraint_version=self.version,
+                severity=self.severity,
+                phase=phase,
+            )
+
+        for action in target_actions:
+            src_id = str(action.get("source_resource"))
+            qty = float(action.get("quantity", 0.0))
+
+            if src_id not in state.resources:
+                return ConstraintResult(
+                    satisfied=False,
+                    constraint_id=self.constraint_id,
+                    constraint_version=self.version,
+                    severity=self.severity,
+                    phase=phase,
+                    message=f"Source resource '{src_id}' not found in state.",
+                    violating_resources=(src_id,),
+                    violating_values={"source_resource": src_id},
+                    preceding_action_id=action.id,
+                )
+
+            src_res = state.get_resource(src_id)
+            available = src_res.current - src_res.min_value
+            if available < qty:
+                return ConstraintResult(
+                    satisfied=False,
+                    constraint_id=self.constraint_id,
+                    constraint_version=self.version,
+                    severity=self.severity,
+                    phase=phase,
+                    message=f"Insufficient stock: requested {qty} units but only {available} units available.",
+                    violating_resources=(src_id,),
+                    entity_ids=(src_res.entity_id,) if src_res.entity_id else (),
+                    violating_values={"requested": qty, "available": available},
+                    preceding_action_id=action.id,
+                )
 
         return ConstraintResult(
-            satisfied=satisfied,
+            satisfied=True,
             constraint_id=self.constraint_id,
+            constraint_version=self.version,
             severity=self.severity,
-            message=f"Requested {qty} units; available {available} units."
-            if satisfied
-            else f"Insufficient stock: requested {qty} units but only {available} units available.",
-            violating_resources=(src_id,) if not satisfied else (),
-            violating_values={"requested": qty, "available": available} if not satisfied else {},
+            phase=phase,
+            message="Requested transfer stock available.",
         )

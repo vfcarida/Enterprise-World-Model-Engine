@@ -64,15 +64,45 @@ class Trajectory:
         self.sample_id = sample_id
         self.seed = seed
         self.initial_state = initial_state
-        self.status: TrajectoryStatus = status
+        self._status: TrajectoryStatus = status
         self.steps: list[StepRecord] = []
         self.systemic_trace: SystemicTrace = systemic_trace or SystemicTrace()
         self._final_state: WorldState = initial_state
+        self._finalized: bool = False
 
-    def append_step(self, step_record: StepRecord, resulting_state: WorldState) -> None:
-        """Record an executed step."""
+    @property
+    def status(self) -> TrajectoryStatus:
+        """Terminal or execution status of the trajectory."""
+        return self._status
+
+    @status.setter
+    def status(self, val: TrajectoryStatus) -> None:
+        if self._finalized:
+            raise RuntimeError("Cannot modify status of a finalized Trajectory.")
+        self._status = val
+
+    def finalize(self) -> None:
+        """Lock the trajectory to make its status and state immutable after rollout completion."""
+        self._finalized = True
+
+    @property
+    def is_finalized(self) -> bool:
+        """Whether the trajectory has completed and been finalized."""
+        return self._finalized
+
+    def append_step(
+        self,
+        step_record: StepRecord,
+        resulting_state: WorldState,
+        status: TrajectoryStatus | None = None,
+    ) -> None:
+        """Record an executed step and optionally set/propagate terminal status."""
+        if self._finalized:
+            raise RuntimeError("Cannot append step to a finalized Trajectory.")
         self.steps.append(step_record)
         self._final_state = resulting_state
+        if status is not None:
+            self._status = status
 
     @property
     def final_state(self) -> WorldState:
@@ -118,11 +148,28 @@ class SimulationResult:
         self.metadata = metadata
         self.trajectories = trajectories
 
+    @property
+    def completed_count(self) -> int:
+        """Count of rollouts that completed their full horizon without fatal invariant violations."""
+        return sum(1 for t in self.trajectories if t.status == TrajectoryStatus.COMPLETED)
+
+    @property
+    def invalid_count(self) -> int:
+        """Count of rollouts invalidated prematurely due to hard post-transition violations."""
+        return sum(1 for t in self.trajectories if t.status == TrajectoryStatus.INVALID)
+
+    @property
+    def failed_count(self) -> int:
+        """Count of rollouts that failed due to dynamic or numerical execution errors."""
+        return sum(1 for t in self.trajectories if t.status == TrajectoryStatus.FAILED)
+
     def get_metric_distribution(self, metric_name: str) -> UncertaintyDistribution:
-        """Compute typed UncertaintyDistribution (mean, std, quantiles, CVaR) for a metric."""
+        """Compute typed UncertaintyDistribution (mean, std, quantiles, CVaR) for a metric across rollouts."""
         from ewm_engine.evaluation.uncertainty import summarize_distribution
 
-        values = [t.final_metric(metric_name) for t in self.trajectories]
+        values = [t.final_metric(metric_name) for t in self.trajectories if t.steps]
+        if not values:
+            values = [0.0]
         return summarize_distribution(values)
 
     def metric_distribution(self, metric_name: str) -> dict[str, float]:
@@ -133,10 +180,14 @@ class SimulationResult:
         return data
 
     def violation_rate(self) -> float:
-        """Fraction of rollout trajectories that suffered at least one constraint violation."""
+        """Fraction of rollout trajectories that suffered constraint violations or became invalid."""
         if not self.trajectories:
             return 0.0
-        violating = sum(1 for t in self.trajectories if t.total_violations > 0)
+        violating = sum(
+            1
+            for t in self.trajectories
+            if t.total_violations > 0 or t.status == TrajectoryStatus.INVALID
+        )
         return violating / len(self.trajectories)
 
     def compare(

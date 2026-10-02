@@ -5,7 +5,11 @@ from __future__ import annotations
 from collections.abc import Iterator, Sequence
 
 from ewm_engine.constraints.base import Constraint
-from ewm_engine.constraints.results import ConstraintResult, ConstraintSeverity
+from ewm_engine.constraints.results import (
+    ConstraintPhase,
+    ConstraintResult,
+    ConstraintSeverity,
+)
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.types import ConstraintId
@@ -54,13 +58,18 @@ class ConstraintRegistry:
         for action in actions:
             action_valid = True
             for constraint in self._constraints.values():
-                res = constraint.evaluate(state=state, action=action)
+                res = constraint.evaluate(
+                    state=state,
+                    actions=[action],
+                    phase=ConstraintPhase.PRE_ACTION,
+                )
                 if not res.satisfied:
                     all_results.append(
                         res.model_copy(
                             update={
                                 "step": state.step,
                                 "preceding_action_id": action.id,
+                                "phase": ConstraintPhase.PRE_ACTION,
                             }
                         )
                     )
@@ -82,7 +91,11 @@ class ConstraintRegistry:
         all_action_ids = [a.id for a in actions]
 
         for constraint in self._constraints.values():
-            res = constraint.evaluate(state=state, action=None)
+            res = constraint.evaluate(
+                state=state,
+                actions=actions,
+                phase=ConstraintPhase.POST_TRANSITION,
+            )
             if not res.satisfied:
                 matched_action_id: str | None = None
 
@@ -115,6 +128,7 @@ class ConstraintRegistry:
                         update={
                             "step": state.step,
                             "preceding_action_id": matched_action_id,
+                            "phase": ConstraintPhase.POST_TRANSITION,
                             "metadata": metadata,
                         }
                     )

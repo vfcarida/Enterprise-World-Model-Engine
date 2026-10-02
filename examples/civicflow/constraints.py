@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from ewm_engine.constraints.results import ConstraintResult, ConstraintSeverity
+from collections.abc import Sequence
+
+from ewm_engine.constraints.results import (
+    ConstraintPhase,
+    ConstraintResult,
+    ConstraintSeverity,
+)
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.types import ConstraintId
@@ -30,28 +36,53 @@ class RoadPassabilityConstraint:
     def description(self) -> str:
         return "Prevents relief dispatches across flooded roads (e.g. Causeway C1)."
 
-    def evaluate(self, state: WorldState, action: Action | None = None) -> ConstraintResult:
-        if action is None or action.type != "dispatch_relief":
+    def evaluate(
+        self,
+        state: WorldState,
+        actions: Sequence[Action] = (),
+        *,
+        phase: ConstraintPhase = ConstraintPhase.PRE_ACTION,
+    ) -> ConstraintResult:
+        if phase != ConstraintPhase.PRE_ACTION:
             return ConstraintResult(
-                satisfied=True, constraint_id=self.constraint_id, severity=self.severity
-            )
-
-        target_shelter = str(action.get("target_shelter"))
-        road_c1_status = state.memory.get("road_C1_status", "open")
-
-        # Shelter S2 access relies strictly on Causeway C1
-        if target_shelter == "shelter_s2" and road_c1_status == "closed":
-            return ConstraintResult(
-                satisfied=False,
+                satisfied=True,
                 constraint_id=self.constraint_id,
                 severity=self.severity,
-                message="Cannot dispatch to Shelter S2: Coastal Causeway C1 is inundated and closed.",
-                violating_entities=("shelter_s2",),
-                violating_values={"road_C1_status": "closed"},
+                phase=phase,
             )
 
+        target_actions = [a for a in actions if a.type == "dispatch_relief"]
+        if not target_actions:
+            return ConstraintResult(
+                satisfied=True,
+                constraint_id=self.constraint_id,
+                severity=self.severity,
+                phase=phase,
+            )
+
+        for action in target_actions:
+            target_shelter = str(action.get("target_shelter"))
+            road_c1_status = state.memory.get("road_C1_status", "open")
+
+            # Shelter S2 access relies strictly on Causeway C1
+            if target_shelter == "shelter_s2" and road_c1_status == "closed":
+                return ConstraintResult(
+                    satisfied=False,
+                    constraint_id=self.constraint_id,
+                    severity=self.severity,
+                    phase=phase,
+                    message="Cannot dispatch to Shelter S2: Coastal Causeway C1 is inundated and closed.",
+                    entity_ids=("shelter_s2",),
+                    violating_entities=("shelter_s2",),
+                    violating_values={"road_C1_status": "closed"},
+                    preceding_action_id=action.id,
+                )
+
         return ConstraintResult(
-            satisfied=True, constraint_id=self.constraint_id, severity=self.severity
+            satisfied=True,
+            constraint_id=self.constraint_id,
+            severity=self.severity,
+            phase=phase,
         )
 
 
@@ -78,7 +109,21 @@ class ShelterBedCapacityConstraint:
     def description(self) -> str:
         return f"Ensures occupancy in shelter '{self.shelter_id}' does not exceed bed capacity."
 
-    def evaluate(self, state: WorldState, action: Action | None = None) -> ConstraintResult:
+    def evaluate(
+        self,
+        state: WorldState,
+        actions: Sequence[Action] = (),
+        *,
+        phase: ConstraintPhase = ConstraintPhase.POST_TRANSITION,
+    ) -> ConstraintResult:
+        if phase != ConstraintPhase.POST_TRANSITION:
+            return ConstraintResult(
+                satisfied=True,
+                constraint_id=self.constraint_id,
+                severity=self.severity,
+                phase=phase,
+            )
+
         occupancy_res = state.get_resource(f"occupancy_{self.shelter_id}")
         satisfied = occupancy_res.current <= occupancy_res.max_value
 
@@ -86,9 +131,13 @@ class ShelterBedCapacityConstraint:
             satisfied=satisfied,
             constraint_id=self.constraint_id,
             severity=self.severity,
-            message=f"Occupancy {occupancy_res.current} within bed limit {occupancy_res.max_value}"
-            if satisfied
-            else f"Shelter {self.shelter_id} overcrowding: {occupancy_res.current} evacuees exceed {occupancy_res.max_value} beds.",
+            phase=phase,
+            message=(
+                f"Occupancy {occupancy_res.current} within bed limit {occupancy_res.max_value}"
+                if satisfied
+                else f"Shelter {self.shelter_id} overcrowding: {occupancy_res.current} evacuees exceed {occupancy_res.max_value} beds."
+            ),
+            entity_ids=(self.shelter_id,) if not satisfied else (),
             violating_entities=(self.shelter_id,) if not satisfied else (),
             violating_values={
                 "occupancy": occupancy_res.current,

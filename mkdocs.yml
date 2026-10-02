@@ -67,6 +67,7 @@ nav:
       - "ADR-005: Deterministic Reproducibility": adr/ADR-005-deterministic-reproducibility.md
       - "ADR-006: Python Specification Before DSL": adr/ADR-006-python-first-world-specification.md
       - "ADR-007: Public API Stable Surface Split": adr/ADR-007-public-api-stable-surface.md
+      - "ADR-008: Constraint Phase Semantics & Invalidation": adr/ADR-008-constraint-phase-semantics-and-rollout-invalidation.md
   - Examples:
       - Minimal Supply World: examples/minimal-world.md
       - "Flagship: CivicFlow Disaster Response": examples/civicflow.md

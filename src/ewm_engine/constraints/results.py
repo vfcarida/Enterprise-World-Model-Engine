@@ -59,9 +59,13 @@ class ConstraintResult(BaseModel):
         description="Lifecycle evaluation phase (PRE_ACTION or POST_TRANSITION).",
     )
     message: str = Field(default="", description="Descriptive explanation of evaluation outcome.")
-    violating_entities: tuple[EntityId, ...] = Field(
+    entity_ids: tuple[EntityId, ...] = Field(
         default_factory=tuple,
         description="Identifiers of entities involved in constraint breach.",
+    )
+    violating_entities: tuple[EntityId, ...] = Field(
+        default_factory=tuple,
+        description="Identifiers of entities involved in constraint breach (alias for entity_ids).",
     )
     violating_resources: tuple[ResourceId, ...] = Field(
         default_factory=tuple,
@@ -81,3 +85,9 @@ class ConstraintResult(BaseModel):
         default_factory=dict,
         description="Extensible audit metadata.",
     )
+
+    def model_post_init(self, __context: Any) -> None:
+        if not self.entity_ids and self.violating_entities:
+            object.__setattr__(self, "entity_ids", self.violating_entities)
+        elif not self.violating_entities and self.entity_ids:
+            object.__setattr__(self, "violating_entities", self.entity_ids)

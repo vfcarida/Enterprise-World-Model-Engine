@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Protocol, runtime_checkable
 
-from ewm_engine.constraints.results import ConstraintResult, ConstraintSeverity
+from ewm_engine.constraints.results import (
+    ConstraintPhase,
+    ConstraintResult,
+    ConstraintSeverity,
+)
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.types import ConstraintId
@@ -41,7 +46,9 @@ class Constraint(Protocol):
     def evaluate(
         self,
         state: WorldState,
-        action: Action | None = None,
+        actions: Sequence[Action] = (),
+        *,
+        phase: ConstraintPhase,
     ) -> ConstraintResult:
-        """Evaluate the constraint against a state and optional proposed action."""
+        """Evaluate the constraint against a state and optional actions within a specific lifecycle phase."""
         ...

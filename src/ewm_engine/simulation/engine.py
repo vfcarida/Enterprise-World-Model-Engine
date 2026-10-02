@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from ewm_engine.actors.base import ActorContext
+from ewm_engine.constraints.results import ConstraintSeverity
 from ewm_engine.core.actions import Action
 from ewm_engine.core.events import ExogenousEvent
 from ewm_engine.core.state import WorldState
@@ -16,7 +17,12 @@ from ewm_engine.provenance.evidence import EvidenceLevel
 from ewm_engine.provenance.metadata import SimulationMetadata
 from ewm_engine.provenance.trace import SystemicTrace
 from ewm_engine.simulation.scenario import Scenario
-from ewm_engine.simulation.trajectory import SimulationResult, StepRecord, Trajectory
+from ewm_engine.simulation.trajectory import (
+    SimulationResult,
+    StepRecord,
+    Trajectory,
+    TrajectoryStatus,
+)
 
 if TYPE_CHECKING:
     from ewm_engine.core.world import World
@@ -91,7 +97,7 @@ class SimulationEngine:
 
             # Step through horizon
             for step_idx in range(scenario.horizon):
-                step_record, current_state = self._execute_step(
+                step_record, current_state, is_invalid = self._execute_step(
                     world=world,
                     state=current_state,
                     step_idx=step_idx,
@@ -99,8 +105,15 @@ class SimulationEngine:
                     trace=trace,
                     scenario=scenario,
                 )
-                trajectory.append_step(step_record, current_state)
+                if is_invalid:
+                    trajectory.append_step(
+                        step_record, current_state, status=TrajectoryStatus.INVALID
+                    )
+                    break
+                else:
+                    trajectory.append_step(step_record, current_state)
 
+            trajectory.finalize()
             trajectories.append(trajectory)
 
         return SimulationResult(scenario=scenario, metadata=metadata, trajectories=trajectories)
@@ -113,7 +126,7 @@ class SimulationEngine:
         rng: np.random.Generator,
         trace: SystemicTrace,
         scenario: Scenario,
-    ) -> tuple[StepRecord, WorldState]:
+    ) -> tuple[StepRecord, WorldState, bool]:
         """Execute a single discrete simulation step."""
         # 1. Sample exogenous shocks
         events: list[ExogenousEvent] = []
@@ -229,6 +242,7 @@ class SimulationEngine:
             preceding_actions=accepted_actions,
         )
         all_violations = [*pre_results, *post_results]
+        is_invalid = world.constraints.has_hard_violations(post_results)
 
         for viol in pre_results:
             viol_node_id = f"viol_{viol.constraint_id}_step_{step_idx}"
@@ -278,8 +292,11 @@ class SimulationEngine:
                     evidence_level=EvidenceLevel.STRUCTURAL,
                 )
 
-        # 6. Advance step index and timestamp
-        final_next_state = raw_next_state.advance_time(1.0)
+        # 6. Advance step index and timestamp ONLY if not fatally invalid
+        if is_invalid:
+            final_next_state = raw_next_state
+        else:
+            final_next_state = raw_next_state.advance_time(1.0)
 
         # 7. Collect step metrics
         step_metrics: dict[str, float] = {}
@@ -292,6 +309,9 @@ class SimulationEngine:
                 step_metrics[f"mem_{k}"] = float(v)
 
         step_metrics["violations_count"] = float(len(all_violations))
+        step_metrics["hard_violations_count"] = float(
+            sum(1 for v in all_violations if v.severity == ConstraintSeverity.HARD)
+        )
         step_metrics["violations_penalty"] = world.constraints.total_penalty(all_violations)
 
         record = StepRecord(
@@ -306,4 +326,4 @@ class SimulationEngine:
             step_metrics=step_metrics,
         )
 
-        return record, final_next_state
+        return record, final_next_state, is_invalid

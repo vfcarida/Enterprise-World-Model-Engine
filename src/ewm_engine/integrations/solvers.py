@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import Any
 
 from ewm_engine.constraints.base import Constraint
-from ewm_engine.constraints.results import ConstraintResult, ConstraintSeverity
+from ewm_engine.constraints.results import (
+    ConstraintPhase,
+    ConstraintResult,
+    ConstraintSeverity,
+)
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.types import ConstraintId
@@ -56,7 +60,13 @@ class Z3ConstraintAdapter(Constraint):
     def description(self) -> str:
         return f"Formal Z3 SMT constraint verification: {self._constraint_id}"
 
-    def evaluate(self, state: WorldState, action: Action | None = None) -> ConstraintResult:
+    def evaluate(
+        self,
+        state: WorldState,
+        actions: Sequence[Action] = (),
+        *,
+        phase: ConstraintPhase = ConstraintPhase.POST_TRANSITION,
+    ) -> ConstraintResult:
         """Evaluate constraint via Z3 SMT solver."""
         if self._z3_module is None:
             raise SimulationConfigurationError(
@@ -64,12 +74,14 @@ class Z3ConstraintAdapter(Constraint):
                 "or `pip install ewm-engine[solvers]`."
             )
 
+        action = actions[0] if actions else None
         satisfied, message, violating_values = self._solver_fn(state, action, self._z3_module)
         return ConstraintResult(
             satisfied=satisfied,
             constraint_id=self.constraint_id,
             constraint_version=self.version,
             severity=self.severity,
+            phase=phase,
             message=message,
             violating_values=violating_values,
         )
