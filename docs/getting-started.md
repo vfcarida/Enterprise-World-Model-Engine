@@ -123,7 +123,7 @@ print(comparison.summary_table())
 
 ## Running from the CLI
 
-Run built-in reference simulations directly from your terminal:
+Run built-in reference simulations or execute custom declarative models directly from your terminal:
 
 ```bash
 # Run minimal two-warehouse inventory balancing
@@ -131,4 +131,16 @@ ewm example minimal
 
 # Run flagship CivicFlow flood response research simulation
 ewm example civicflow
+
+# Validate a declarative WorldSpec YAML or JSON file without executing code
+ewm validate path/to/world_spec.yaml
+
+# Run simulation directly from a declarative spec with custom horizon, samples, and output
+ewm run path/to/world_spec.yaml --horizon 15 --samples 10 --seed 42 --out results.json
+
+# List available committed JSON schemas
+ewm schema list
+
+# Inspect a specific schema definition
+ewm schema show world-state
 ```

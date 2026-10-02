@@ -62,6 +62,7 @@ nav:
       - "Stability Policy & SemVer Contract": stability-policy.md
       - "v1 Specification Contract": specs/spec-driven-development.md
       - "v1.0.0 Convergence Review": specs/v1-convergence.md
+      - "Repository Audit Report": audit/repository-audit-report.md
   - Architecture Decision Records (ADRs):
       - "ADR-001: Python-First Implementation": adr/ADR-001-python-first.md
       - "ADR-002: Pluggable Dynamics Protocol": adr/ADR-002-pluggable-dynamics.md
