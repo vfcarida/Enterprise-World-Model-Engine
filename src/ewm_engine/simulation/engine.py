@@ -147,16 +147,33 @@ class SimulationEngine:
             actions=proposed_actions,
         )
 
-        for act in accepted_actions:
+        for act in proposed_actions:
             act_node_id = f"action_{act.id}_step_{step_idx}"
-            trace.add_node(
-                node_id=act_node_id,
-                step=step_idx,
-                category="action",
-                label=f"Action: {act.type}",
-                evidence_level=EvidenceLevel.INTERVENTIONAL,
-                details=act.parameters,
-            )
+            if act in accepted_actions:
+                trace.add_node(
+                    node_id=act_node_id,
+                    step=step_idx,
+                    category="action",
+                    label=f"Action: {act.type}",
+                    evidence_level=EvidenceLevel.INTERVENTIONAL,
+                    details=act.parameters,
+                )
+                if scenario.intervention is not None and "initial_intervention" in trace.nodes:
+                    trace.add_edge(
+                        source="initial_intervention",
+                        target=act_node_id,
+                        relation="conditions",
+                        evidence_level=EvidenceLevel.INTERVENTIONAL,
+                    )
+            else:
+                trace.add_node(
+                    node_id=act_node_id,
+                    step=step_idx,
+                    category="action",
+                    label=f"Rejected Action: {act.type}",
+                    evidence_level=EvidenceLevel.INTERVENTIONAL,
+                    details=act.parameters,
+                )
 
         # 4. Dynamics transition
         if world.dynamics is not None:
@@ -176,6 +193,32 @@ class SimulationEngine:
             )
             raw_next_state = state
 
+        # Record state transition in systemic trace DAG if meaningful modifications occurred
+        trans_node_id = f"trans_step_{step_idx}"
+        if accepted_actions or events or trans_result.applied_changes:
+            trace.add_node(
+                node_id=trans_node_id,
+                step=step_idx,
+                category="state_change",
+                label=f"Dynamics Transition: {trans_result.model_name}",
+                evidence_level=trans_result.evidence_level,
+                details=trans_result.applied_changes,
+            )
+            for act in accepted_actions:
+                trace.add_edge(
+                    source=f"action_{act.id}_step_{step_idx}",
+                    target=trans_node_id,
+                    relation="drives",
+                    evidence_level=EvidenceLevel.INTERVENTIONAL,
+                )
+            for ev in events:
+                trace.add_edge(
+                    source=f"event_{ev.id}_step_{step_idx}",
+                    target=trans_node_id,
+                    relation="perturbs",
+                    evidence_level=EvidenceLevel.STRUCTURAL,
+                )
+
         # 5. Post-transition constraint validation on next state
         post_results = world.constraints.validate_state(
             state=raw_next_state,
@@ -183,7 +226,7 @@ class SimulationEngine:
         )
         all_violations = [*pre_results, *post_results]
 
-        for viol in all_violations:
+        for viol in pre_results:
             viol_node_id = f"viol_{viol.constraint_id}_step_{step_idx}"
             trace.add_node(
                 node_id=viol_node_id,
@@ -193,6 +236,43 @@ class SimulationEngine:
                 evidence_level=EvidenceLevel.STRUCTURAL,
                 details={"message": viol.message, "values": viol.violating_values},
             )
+            if viol.preceding_action_id:
+                pred_act_id = f"action_{viol.preceding_action_id}_step_{step_idx}"
+                if pred_act_id in trace.nodes:
+                    trace.add_edge(
+                        source=viol_node_id,
+                        target=pred_act_id,
+                        relation="rejects",
+                        evidence_level=EvidenceLevel.STRUCTURAL,
+                    )
+
+        for viol in post_results:
+            viol_node_id = f"viol_{viol.constraint_id}_step_{step_idx}"
+            trace.add_node(
+                node_id=viol_node_id,
+                step=step_idx,
+                category="violation",
+                label=f"Constraint Violation: {viol.constraint_id} ({viol.severity.value})",
+                evidence_level=EvidenceLevel.STRUCTURAL,
+                details={"message": viol.message, "values": viol.violating_values},
+            )
+            if (
+                viol.preceding_action_id
+                and f"action_{viol.preceding_action_id}_step_{step_idx}" in trace.nodes
+            ):
+                trace.add_edge(
+                    source=f"action_{viol.preceding_action_id}_step_{step_idx}",
+                    target=viol_node_id,
+                    relation="triggers_violation",
+                    evidence_level=EvidenceLevel.STRUCTURAL,
+                )
+            elif trans_node_id in trace.nodes:
+                trace.add_edge(
+                    source=trans_node_id,
+                    target=viol_node_id,
+                    relation="leads_to_violation",
+                    evidence_level=EvidenceLevel.STRUCTURAL,
+                )
 
         # 6. Advance step index and timestamp
         final_next_state = raw_next_state.advance_time(1.0)
