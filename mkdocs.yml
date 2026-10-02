@@ -58,6 +58,7 @@ nav:
       - State Management & Formalism: architecture/state-management.md
       - Simulation Lifecycle: architecture/simulation-lifecycle.md
       - Architecture Proposal: architecture/proposal.md
+      - "v1 Specification Contract": specs/spec-driven-development.md
   - Architecture Decision Records (ADRs):
       - "ADR-001: Python-First Implementation": adr/ADR-001-python-first.md
       - "ADR-002: Pluggable Dynamics Protocol": adr/ADR-002-pluggable-dynamics.md
@@ -65,6 +66,7 @@ nav:
       - "ADR-004: Zero Dependency on LLMs in Core": adr/ADR-004-no-llm-dependency.md
       - "ADR-005: Deterministic Reproducibility": adr/ADR-005-deterministic-reproducibility.md
       - "ADR-006: Python Specification Before DSL": adr/ADR-006-python-first-world-specification.md
+      - "ADR-007: Public API Stable Surface Split": adr/ADR-007-public-api-stable-surface.md
   - Examples:
       - Minimal Supply World: examples/minimal-world.md
       - "Flagship: CivicFlow Disaster Response": examples/civicflow.md
