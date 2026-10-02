@@ -63,8 +63,12 @@ To ensure high scientific credibility, architectural integrity, and reproducibil
 - Run the full test suite with coverage:
   ```bash
   pytest --cov=ewm_engine --cov-report=term-missing
-  ```
 - All new features must include unit tests and, where applicable, Hypothesis property tests (validating invariants like conservation of resources, determinism, or branch independence).
+- Run performance benchmark regression tests:
+  ```bash
+  pytest -m benchmark
+  python benchmarks/run_benchmarks.py
+  ```
 
 ---
 
