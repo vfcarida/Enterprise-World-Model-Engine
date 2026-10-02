@@ -105,4 +105,3 @@ def test_validate_state_multi_action_attribution(sample_world_state: WorldState)
     # Must be attributed to action_2 which touched stock_wh2, not action_1
     assert results[0].preceding_action_id == "act_wh2"
     assert results[0].metadata["preceding_action_ids"] == ["act_wh1", "act_wh2"]
-

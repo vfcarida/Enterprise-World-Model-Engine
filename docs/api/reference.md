@@ -49,8 +49,7 @@ def transition(
     actions: Sequence[Action],
     exogenous_events: Sequence[ExogenousEvent],
     rng: RandomGenerator,
-) -> TransitionResult:
-    ...
+) -> TransitionResult: ...
 ```
 
 ### `CompositeDynamics`
@@ -77,7 +76,53 @@ Sequentially pipes state through multiple modular dynamics models, aggregating a
 Specification for simulation experiments: horizon, samples, master random seed, and optional intervention.
 
 ### `SimulationResult`
-Stores rollout trajectories, cryptographic metadata fingerprint, and distribution aggregators.
+Stores rollout trajectories, cryptographic metadata fingerprint, distribution aggregators, and `get_metric_distribution(metric_name)`.
 
 ### `compare_scenarios(baseline, candidates, metrics)`
 Produces structured machine-readable comparison dictionaries and formatted summary tables.
+
+### `RecedingHorizonSimulator` (`ewm_engine.simulation.mpc`)
+Online Model Predictive Control (MPC) simulator performing closed-loop rolling horizon re-grounding:
+- Evaluates candidate interventions over a lookahead horizon.
+- Re-grounds to real-world observations at each decision step.
+- Emits structured `MPCDecisionRecord` audit trails.
+
+---
+
+## Declarative Specifications (`ewm_engine.core.spec`)
+
+### `WorldSpecification`
+Safe declarative schema parser for YAML, JSON, and Python dictionaries:
+- `from_yaml(path_or_str)`: Load specification from YAML string or file.
+- `from_json(path_or_str)`: Load specification from JSON string or file.
+- `build_state()`: Construct an immutable `WorldState`.
+- `build_world()`: Construct an operational `World` with state, dynamics, and constraints.
+
+---
+
+## Integrations & Adapters (`ewm_engine.integrations`)
+
+### `CallableActorAdapter`
+Wraps any Python callable, LangGraph workflow, AutoGen agent, or LLM agent into a standard EWM `Actor`:
+```python
+actor = CallableActorAdapter(actor_id="agent_planner", fn=my_llm_decision_fn)
+```
+
+### `Z3ConstraintAdapter`
+Bridges formal SMT verification via Microsoft Z3 into the EWM constraints pipeline with zero runtime crash if Z3 is not installed:
+```python
+adapter = Z3ConstraintAdapter(
+    constraint_id="smt_safety_rule",
+    solver_fn=my_smt_checker,
+    severity=ConstraintSeverity.HARD,
+)
+```
+
+---
+
+## Provenance & Traceability (`ewm_engine.provenance`)
+
+### `SystemicTrace`
+Causal lineage graph recording causal dependencies between interventions, actions, transitions, exogenous events, and constraint violations:
+- `add_dependency(source_id, target_id, relation)`: Records directed relationship edge.
+- `to_mermaid()`: Exports the execution trajectory to standard Mermaid flowchart markdown.

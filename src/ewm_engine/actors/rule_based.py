@@ -62,4 +62,3 @@ class ThresholdReplenishmentActor:
             order_quantity=self.order_quantity,
             action_type=self.action_type,
         )
-

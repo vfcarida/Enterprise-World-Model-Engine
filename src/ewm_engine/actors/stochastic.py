@@ -55,4 +55,3 @@ class StochasticActor:
             action_candidates=list(self.action_candidates),
             probabilities=list(self.probabilities),
         )
-

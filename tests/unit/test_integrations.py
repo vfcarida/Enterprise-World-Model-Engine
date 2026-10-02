@@ -49,7 +49,9 @@ def test_callable_actor_adapter(sample_world_state: WorldState) -> None:
 def test_z3_constraint_adapter_without_z3(sample_world_state: WorldState) -> None:
     """Verify Z3ConstraintAdapter handles missing or mock Z3 solver gracefully."""
 
-    def dummy_solver(state: WorldState, action: Action | None, z3_mod: object) -> tuple[bool, str, dict]:
+    def dummy_solver(
+        state: WorldState, action: Action | None, z3_mod: object
+    ) -> tuple[bool, str, dict]:
         return True, "Z3 satisfied", {}
 
     adapter = Z3ConstraintAdapter(constraint_id="z3_capacity", solver_fn=dummy_solver)

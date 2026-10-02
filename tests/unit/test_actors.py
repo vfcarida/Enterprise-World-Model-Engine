@@ -68,4 +68,3 @@ def test_threshold_replenishment_actor_missing_resource(sample_world_state: Worl
     ctx = ActorContext(step=0, timestamp=0.0, rng=rng)
     actions = actor.act(sample_world_state, ctx)
     assert actions == []
-

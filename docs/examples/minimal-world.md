@@ -51,16 +51,20 @@ state = WorldState(
 
 ### 2. Constraints and Dynamics
 ```python
-constraints = ConstraintRegistry([
-    ResourceCapacityConstraint(resource_id="stock_north"),
-    ResourceCapacityConstraint(resource_id="stock_south"),
-    ActionTransferAvailabilityConstraint(),
-])
+constraints = ConstraintRegistry(
+    [
+        ResourceCapacityConstraint(resource_id="stock_north"),
+        ResourceCapacityConstraint(resource_id="stock_south"),
+        ActionTransferAvailabilityConstraint(),
+    ]
+)
 
-dynamics = CompositeDynamics([
-    DeterministicTransferDynamics(),
-    StochasticDemandDynamics(resource_id="stock_south", mean_demand=18.0, std_demand=3.0),
-])
+dynamics = CompositeDynamics(
+    [
+        DeterministicTransferDynamics(),
+        StochasticDemandDynamics(resource_id="stock_south", mean_demand=18.0, std_demand=3.0),
+    ]
+)
 
 base_world = World(state=state, dynamics=dynamics, constraints=constraints)
 ```
@@ -68,7 +72,9 @@ base_world = World(state=state, dynamics=dynamics, constraints=constraints)
 ### 3. Simulating and Comparing Counterfactuals
 ```python
 # Baseline
-res_base = base_world.simulate(scenario=Scenario(name="Status Quo", horizon=10, samples=20, seed=42))
+res_base = base_world.simulate(
+    scenario=Scenario(name="Status Quo", horizon=10, samples=20, seed=42)
+)
 
 # Proactive Branch
 proactive_world = base_world.branch()
@@ -81,7 +87,9 @@ proactive_world.add_actor(
         order_quantity=40.0,
     )
 )
-res_proactive = proactive_world.simulate(scenario=Scenario(name="Proactive", horizon=10, samples=20, seed=42))
+res_proactive = proactive_world.simulate(
+    scenario=Scenario(name="Proactive", horizon=10, samples=20, seed=42)
+)
 
 # Compare
 comparison = compare_scenarios(baseline=res_base, candidates=[res_proactive])

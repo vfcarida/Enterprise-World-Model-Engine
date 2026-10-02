@@ -186,4 +186,3 @@ def test_world_initialization_signatures_and_simulate_alias(
     result = engine.simulate(world=world, scenario=scenario)
     assert len(result.trajectories) == 1
     assert len(result.trajectories[0].steps) == 2
-

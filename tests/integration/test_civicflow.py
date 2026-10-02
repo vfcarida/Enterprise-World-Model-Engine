@@ -13,7 +13,9 @@ def test_civicflow_simulation_execution() -> None:
     assert "Policy B (Proactive Regional)" in comparison.results_by_scenario
 
     # Verify Policy B achieves significant (>20%) reduction in unserved relief supplies
-    water_delta = comparison.deltas["Policy B (Proactive Regional)"]["mem_cumulative_unserved_water"]
+    water_delta = comparison.deltas["Policy B (Proactive Regional)"][
+        "mem_cumulative_unserved_water"
+    ]
     rations_delta = comparison.deltas["Policy B (Proactive Regional)"][
         "mem_cumulative_unserved_rations"
     ]

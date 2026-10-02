@@ -23,9 +23,13 @@ def test_receding_horizon_controller_intervention_selection(
     )
 
     # Candidate A: Small replenishment (20 units)
-    policy_a = Intervention(id="policy_small", description="Small transfer", parameters={"qty": 20.0})
+    policy_a = Intervention(
+        id="policy_small", description="Small transfer", parameters={"qty": 20.0}
+    )
     # Candidate B: Large replenishment (50 units)
-    policy_b = Intervention(id="policy_large", description="Large transfer", parameters={"qty": 50.0})
+    policy_b = Intervention(
+        id="policy_large", description="Large transfer", parameters={"qty": 50.0}
+    )
 
     sim = RecedingHorizonSimulator(
         lookahead_horizon=2,

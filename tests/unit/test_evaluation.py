@@ -179,4 +179,3 @@ def test_simulation_result_metric_distribution_unification(sample_world_state: W
     assert typed_dist.median == 20.0
     assert typed_dist.min_val == 10.0
     assert typed_dist.max_val == 30.0
-

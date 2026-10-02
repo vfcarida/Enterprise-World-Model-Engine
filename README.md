@@ -96,8 +96,16 @@ The following minimal example demonstrates defining a two-warehouse world, attac
 
 ```python
 from ewm_engine.core import World, WorldState, Entity, Relationship, Resource, Intervention
-from ewm_engine.constraints import ConstraintRegistry, ResourceCapacityConstraint, ActionTransferAvailabilityConstraint
-from ewm_engine.dynamics import CompositeDynamics, DeterministicTransferDynamics, StochasticDemandDynamics
+from ewm_engine.constraints import (
+    ConstraintRegistry,
+    ResourceCapacityConstraint,
+    ActionTransferAvailabilityConstraint,
+)
+from ewm_engine.dynamics import (
+    CompositeDynamics,
+    DeterministicTransferDynamics,
+    StochasticDemandDynamics,
+)
 from ewm_engine.actors import ThresholdReplenishmentActor
 from ewm_engine.simulation import Scenario
 from ewm_engine.evaluation import compare_scenarios
@@ -118,16 +126,20 @@ state = WorldState(
 )
 
 # 2. Constraints & Dynamics
-constraints = ConstraintRegistry([
-    ResourceCapacityConstraint(resource_id="stock_north"),
-    ResourceCapacityConstraint(resource_id="stock_south"),
-    ActionTransferAvailabilityConstraint(),
-])
+constraints = ConstraintRegistry(
+    [
+        ResourceCapacityConstraint(resource_id="stock_north"),
+        ResourceCapacityConstraint(resource_id="stock_south"),
+        ActionTransferAvailabilityConstraint(),
+    ]
+)
 
-dynamics = CompositeDynamics([
-    DeterministicTransferDynamics(),
-    StochasticDemandDynamics(resource_id="stock_south", mean_demand=18.0, std_demand=3.0),
-])
+dynamics = CompositeDynamics(
+    [
+        DeterministicTransferDynamics(),
+        StochasticDemandDynamics(resource_id="stock_south", mean_demand=18.0, std_demand=3.0),
+    ]
+)
 
 base_world = World(state=state, dynamics=dynamics, constraints=constraints)
 

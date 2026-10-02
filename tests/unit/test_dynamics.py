@@ -199,4 +199,3 @@ def test_learned_dynamics_ols_with_intercept_and_constant_x(
     assert model_const.is_fitted
     assert model_const.action_weight == 0.0
     assert round(model_const.bias, 4) == 11.0
-

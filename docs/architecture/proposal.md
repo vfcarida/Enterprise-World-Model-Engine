@@ -315,6 +315,7 @@ constraints.register(ActionTransferAvailabilityConstraint())
 from ewm_engine.actors import Actor, ActorContext
 from ewm_engine.core import Action
 
+
 class ThresholdReplenishmentActor(Actor):
     def __init__(self, target_resource: str, source_resource: str, threshold: float, amount: float):
         self.actor_id = "replenisher"
@@ -326,11 +327,17 @@ class ThresholdReplenishmentActor(Actor):
     def act(self, state: WorldState, context: ActorContext) -> list[Action]:
         res = state.get_resource(self.target)
         if res and res.current_value <= self.threshold:
-            return [Action(
-                action_type="transfer_resource",
-                actor_id=self.actor_id,
-                parameters={"source": self.source, "target": self.target, "amount": self.amount}
-            )]
+            return [
+                Action(
+                    action_type="transfer_resource",
+                    actor_id=self.actor_id,
+                    parameters={
+                        "source": self.source,
+                        "target": self.target,
+                        "amount": self.amount,
+                    },
+                )
+            ]
         return []
 ```
 
@@ -347,18 +354,22 @@ world = World(initial_state=state, dynamics=dynamics, constraints=constraints)
 world_a = branch_world(world)
 world_b = branch_world(world)
 
-world_b.add_actor(ThresholdReplenishmentActor("stock_south", "stock_north", threshold=40.0, amount=40.0))
+world_b.add_actor(
+    ThresholdReplenishmentActor("stock_south", "stock_north", threshold=40.0, amount=40.0)
+)
 
 # 3. Simulate Monte Carlo Rollouts
 engine = SimulationEngine()
-result_a = engine.simulate(Scenario(name="Status Quo", world=world_a, horizon=24, samples=100, seed=42))
-result_b = engine.simulate(Scenario(name="Proactive Policy", world=world_b, horizon=24, samples=100, seed=42))
+result_a = engine.simulate(
+    Scenario(name="Status Quo", world=world_a, horizon=24, samples=100, seed=42)
+)
+result_b = engine.simulate(
+    Scenario(name="Proactive Policy", world=world_b, horizon=24, samples=100, seed=42)
+)
 
 # 4. Compare Trajectory Distributions
 comparison = compare_scenarios(
-    baseline=result_a,
-    candidates=[result_b],
-    metrics=["resource_stock_south", "violations_count"]
+    baseline=result_a, candidates=[result_b], metrics=["resource_stock_south", "violations_count"]
 )
 print(comparison.summary_table())
 ```

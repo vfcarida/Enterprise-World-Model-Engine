@@ -125,4 +125,3 @@ def test_simulation_engine_creates_trace_edges(sample_world_state: WorldState) -
     # Ensure Mermaid includes dependency arrows
     mermaid_output = trace.to_mermaid()
     assert "-->|" in mermaid_output
-

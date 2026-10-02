@@ -142,9 +142,7 @@ class WorldSpecification(BaseModel):
             for e in self.entities
         ]
         relationships = [
-            Relationship(
-                source=r.source, target=r.target, type=r.type, attributes=r.attributes
-            )
+            Relationship(source=r.source, target=r.target, type=r.type, attributes=r.attributes)
             for r in self.relationships
         ]
         resources = [
@@ -182,7 +180,9 @@ class WorldSpecification(BaseModel):
             )
             if c_spec.type == "capacity":
                 if c_spec.resource_id is None:
-                    raise SimulationConfigurationError("Capacity constraint requires 'resource_id'.")
+                    raise SimulationConfigurationError(
+                        "Capacity constraint requires 'resource_id'."
+                    )
                 registry.register(
                     ResourceCapacityConstraint(
                         resource_id=c_spec.resource_id,
@@ -192,7 +192,9 @@ class WorldSpecification(BaseModel):
                 )
             elif c_spec.type == "non_negative":
                 if c_spec.resource_id is None:
-                    raise SimulationConfigurationError("NonNegative constraint requires 'resource_id'.")
+                    raise SimulationConfigurationError(
+                        "NonNegative constraint requires 'resource_id'."
+                    )
                 registry.register(
                     ResourceNonNegativeConstraint(
                         resource_id=c_spec.resource_id,
@@ -201,9 +203,7 @@ class WorldSpecification(BaseModel):
                     )
                 )
             elif c_spec.type == "transfer_availability":
-                registry.register(
-                    ActionTransferAvailabilityConstraint(severity=severity)
-                )
+                registry.register(ActionTransferAvailabilityConstraint(severity=severity))
             else:
                 raise SimulationConfigurationError(
                     f"Unknown constraint type in specification: '{c_spec.type}'"

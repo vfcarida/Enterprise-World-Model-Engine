@@ -163,4 +163,3 @@ def test_actor_state_isolation_on_branch(sample_world_state: WorldState) -> None
     # Modifying branched actor does not affect base actor
     branched.actors[0].reorder_point = 99.0
     assert actor.reorder_point == 40.0
-
