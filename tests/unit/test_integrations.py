@@ -51,7 +51,7 @@ def test_z3_constraint_adapter_without_z3(sample_world_state: WorldState) -> Non
 
     def dummy_solver(
         state: WorldState, action: Action | None, z3_mod: object
-    ) -> tuple[bool, str, dict]:
+    ) -> tuple[bool, str, dict[str, object]]:
         return True, "Z3 satisfied", {}
 
     adapter = Z3ConstraintAdapter(constraint_id="z3_capacity", solver_fn=dummy_solver)

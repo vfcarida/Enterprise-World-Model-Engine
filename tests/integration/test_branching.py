@@ -161,5 +161,6 @@ def test_actor_state_isolation_on_branch(sample_world_state: WorldState) -> None
     assert branched.actors[0] is not actor  # Isolated cloned object
 
     # Modifying branched actor does not affect base actor
+    assert isinstance(branched.actors[0], ThresholdReplenishmentActor)
     branched.actors[0].reorder_point = 99.0
     assert actor.reorder_point == 40.0
