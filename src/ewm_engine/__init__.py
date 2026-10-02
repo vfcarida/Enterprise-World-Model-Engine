@@ -37,7 +37,13 @@ from ewm_engine.evaluation import (
     summarize_distribution,
 )
 from ewm_engine.provenance import EvidenceLevel, SimulationMetadata, SystemicTrace
-from ewm_engine.simulation import Scenario, SimulationEngine, SimulationResult, Trajectory
+from ewm_engine.simulation import (
+    RecedingHorizonSimulator,
+    Scenario,
+    SimulationEngine,
+    SimulationResult,
+    Trajectory,
+)
 
 __version__ = "0.1.0"
 
@@ -56,6 +62,7 @@ __all__ = [
     "EvidenceLevel",
     "ExogenousEvent",
     "Intervention",
+    "RecedingHorizonSimulator",
     "Relationship",
     "Resource",
     "Scenario",
