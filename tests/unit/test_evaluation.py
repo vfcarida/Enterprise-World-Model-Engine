@@ -119,3 +119,64 @@ def test_scenario_comparison_summary(sample_world_state: WorldState) -> None:
     assert "Scenario Comparison" in table_text
     assert "PolicyA" in table_text
     assert "-30.00" in table_text
+
+
+def test_simulation_result_metric_distribution_unification(sample_world_state: WorldState) -> None:
+    """Verify SimulationResult metric distribution returns all quantiles and typed UncertaintyDistribution."""
+    scn = Scenario(name="TestScn", horizon=1, samples=3, seed=42)
+    meta = SimulationMetadata(
+        scenario_id="s1",
+        world_hash="",
+        dynamics_name="",
+        constraint_versions={},
+        random_seed=42,
+        horizon=1,
+        samples=3,
+    )
+    t1 = Trajectory(0, 42, sample_world_state)
+    t1.steps.append(
+        StepRecord(
+            step=0,
+            timestamp=0.0,
+            state_hash="",
+            transition_result=TransitionResult(next_state=sample_world_state),
+            step_metrics={"metric_x": 10.0},
+        )
+    )
+    t2 = Trajectory(1, 43, sample_world_state)
+    t2.steps.append(
+        StepRecord(
+            step=0,
+            timestamp=0.0,
+            state_hash="",
+            transition_result=TransitionResult(next_state=sample_world_state),
+            step_metrics={"metric_x": 20.0},
+        )
+    )
+    t3 = Trajectory(2, 44, sample_world_state)
+    t3.steps.append(
+        StepRecord(
+            step=0,
+            timestamp=0.0,
+            state_hash="",
+            transition_result=TransitionResult(next_state=sample_world_state),
+            step_metrics={"metric_x": 30.0},
+        )
+    )
+    res = SimulationResult(scenario=scn, metadata=meta, trajectories=[t1, t2, t3])
+
+    # Test dictionary output
+    dist_dict = res.metric_distribution("metric_x")
+    assert dist_dict["mean"] == 20.0
+    assert dist_dict["median"] == 20.0
+    assert dist_dict["p50"] == 20.0
+    assert "cvar_05" in dist_dict
+    assert "iqr" in dist_dict
+
+    # Test typed UncertaintyDistribution output
+    typed_dist = res.get_metric_distribution("metric_x")
+    assert typed_dist.mean == 20.0
+    assert typed_dist.median == 20.0
+    assert typed_dist.min_val == 10.0
+    assert typed_dist.max_val == 30.0
+

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
 
 from ewm_engine.constraints.results import ConstraintResult, ConstraintSeverity
@@ -18,6 +17,7 @@ from ewm_engine.simulation.scenario import Scenario
 
 if TYPE_CHECKING:
     from ewm_engine.evaluation.comparison import ScenarioComparison
+    from ewm_engine.evaluation.uncertainty import UncertaintyDistribution
 
 
 class StepRecord(BaseModel):
@@ -102,34 +102,19 @@ class SimulationResult:
         self.metadata = metadata
         self.trajectories = trajectories
 
-    def metric_distribution(self, metric_name: str) -> dict[str, float]:
-        """Compute statistical summary (mean, std, quantiles) for a metric across rollouts."""
-        values = [t.final_metric(metric_name) for t in self.trajectories]
-        if not values:
-            return {
-                "mean": 0.0,
-                "std": 0.0,
-                "p05": 0.0,
-                "p25": 0.0,
-                "p50": 0.0,
-                "p75": 0.0,
-                "p95": 0.0,
-                "min_val": 0.0,
-                "max_val": 0.0,
-            }
+    def get_metric_distribution(self, metric_name: str) -> UncertaintyDistribution:
+        """Compute typed UncertaintyDistribution (mean, std, quantiles, CVaR) for a metric."""
+        from ewm_engine.evaluation.uncertainty import summarize_distribution
 
-        arr = np.array(values, dtype=float)
-        return {
-            "mean": float(np.mean(arr)),
-            "std": float(np.std(arr)),
-            "p05": float(np.percentile(arr, 5)),
-            "p25": float(np.percentile(arr, 25)),
-            "p50": float(np.percentile(arr, 50)),
-            "p75": float(np.percentile(arr, 75)),
-            "p95": float(np.percentile(arr, 95)),
-            "min_val": float(np.min(arr)),
-            "max_val": float(np.max(arr)),
-        }
+        values = [t.final_metric(metric_name) for t in self.trajectories]
+        return summarize_distribution(values)
+
+    def metric_distribution(self, metric_name: str) -> dict[str, float]:
+        """Compute statistical summary dictionary for a metric across rollouts."""
+        dist = self.get_metric_distribution(metric_name)
+        data = dist.model_dump()
+        data["p50"] = dist.median
+        return data
 
     def violation_rate(self) -> float:
         """Fraction of rollout trajectories that suffered at least one constraint violation."""
