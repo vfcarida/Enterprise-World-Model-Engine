@@ -35,7 +35,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run Ruff Lint
-        run: uv run ruff check src tests examples
+        run: uv run ruff check src tests examples benchmarks
 
   format-check:
     name: Formatting Check (Ruff)
@@ -58,7 +58,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run Ruff Format Check
-        run: uv run ruff format --check src tests examples
+        run: uv run ruff format --check src tests examples benchmarks
 
   type-check:
     name: Type Check (Mypy Strict)
@@ -81,7 +81,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run Mypy
-        run: uv run mypy src tests
+        run: uv run mypy src tests examples benchmarks
 
   unit-tests:
     name: Unit Tests (${{ matrix.python-version }} on ${{ matrix.os }})
