@@ -1,0 +1,71 @@
+site_name: Enterprise World Model Engine
+site_description: An open-source framework for building executable, action-conditioned models of complex organizational dynamics.
+site_author: Enterprise World Model Engine Maintainers
+repo_url: https://github.com/vfcarida/Enterprise-World-Model-Engine
+repo_name: vfcarida/Enterprise-World-Model-Engine
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.arithmatex:
+      generic: true
+  - tables
+  - attr_list
+
+nav:
+  - Overview: index.md
+  - Getting Started: getting-started.md
+  - Concepts:
+      - What is a World Model?: concepts/world-models.md
+      - Causal Epistemology: concepts/causality.md
+      - Uncertainty & Rollouts: concepts/uncertainty.md
+      - First-Class Constraints: concepts/constraints.md
+      - Systemic Traces: concepts/systemic-traces.md
+  - Architecture:
+      - Architecture Overview: architecture/overview.md
+      - State Management & Formalism: architecture/state-management.md
+      - Simulation Lifecycle: architecture/simulation-lifecycle.md
+      - Architecture Proposal: architecture/proposal.md
+  - Architecture Decision Records (ADRs):
+      - "ADR-001: Python-First Implementation": adr/ADR-001-python-first.md
+      - "ADR-002: Pluggable Dynamics Protocol": adr/ADR-002-pluggable-dynamics.md
+      - "ADR-003: Explicit Constraints vs Neural Weights": adr/ADR-003-explicit-constraints.md
+      - "ADR-004: Zero Dependency on LLMs in Core": adr/ADR-004-no-llm-dependency.md
+      - "ADR-005: Deterministic Reproducibility": adr/ADR-005-deterministic-reproducibility.md
+      - "ADR-006: Python Specification Before DSL": adr/ADR-006-python-first-world-specification.md
+  - Examples:
+      - Minimal Supply World: examples/minimal-world.md
+      - "Flagship: CivicFlow Disaster Response": examples/civicflow.md
+  - API Reference: api/reference.md

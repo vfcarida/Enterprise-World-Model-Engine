@@ -109,8 +109,13 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["ewm_engine"]
 
+[tool.ruff.lint.per-file-ignores]
+"examples/*" = ["E402"]
+
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
+mypy_path = "src"
+explicit_package_bases = true
 strict = true
 warn_return_any = true
 warn_unused_configs = true
@@ -128,15 +133,11 @@ warn_unreachable = true
 module = "networkx.*"
 ignore_missing_imports = true
 
-[[tool.mypy.overrides]]
-module = "torch.*"
-ignore_missing_imports = true
-
 [tool.pytest.ini_options]
 minversion = "8.0"
 addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 markers = [
     "unit: fast unit tests",
     "integration: end-to-end integration tests",
