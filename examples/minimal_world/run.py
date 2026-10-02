@@ -25,11 +25,11 @@ from ewm_engine.core.world import World
 from ewm_engine.dynamics.composite import CompositeDynamics
 from ewm_engine.dynamics.deterministic import DeterministicTransferDynamics
 from ewm_engine.dynamics.stochastic import StochasticDemandDynamics
-from ewm_engine.evaluation.comparison import compare_scenarios
+from ewm_engine.evaluation.comparison import ScenarioComparison, compare_scenarios
 from ewm_engine.simulation.scenario import Scenario
 
 
-def run_minimal_world() -> None:
+def run_minimal_world() -> ScenarioComparison:
     # 1. Define initial state S_0
     state = WorldState(
         entities=[
@@ -126,6 +126,7 @@ def run_minimal_world() -> None:
     sample_trace = result_proactive.trajectories[0].systemic_trace
     print("=== Systemic Trace (Sample Trajectory 0) ===")
     print(sample_trace.to_mermaid())
+    return comparison
 
 
 if __name__ == "__main__":

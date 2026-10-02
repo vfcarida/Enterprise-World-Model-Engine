@@ -25,7 +25,7 @@ from ewm_engine.core.state import WorldState
 from ewm_engine.core.types import RandomGenerator
 from ewm_engine.core.world import World
 from ewm_engine.dynamics.composite import CompositeDynamics
-from ewm_engine.evaluation.comparison import compare_scenarios
+from ewm_engine.evaluation.comparison import ScenarioComparison, compare_scenarios
 from ewm_engine.simulation.branching import branch_world
 from ewm_engine.simulation.scenario import Scenario
 from examples.civicflow.constraints import (
@@ -63,7 +63,7 @@ class FloodSurgeEventSource(ExogenousEventSource):
         return []
 
 
-def run_civicflow_simulation() -> None:
+def run_civicflow_simulation() -> ScenarioComparison:
     print("=" * 80)
     print("CIVICFLOW: DISASTER RELIEF RESOURCE ALLOCATION WORLD MODEL")
     print("=" * 80)
@@ -151,6 +151,7 @@ def run_civicflow_simulation() -> None:
     print("\n=== CivicFlow Systemic Dependency Trace (Policy B - Trajectory 0) ===")
     sample_trace = result_b.trajectories[0].systemic_trace
     print(sample_trace.to_mermaid())
+    return comparison
 
 
 if __name__ == "__main__":
