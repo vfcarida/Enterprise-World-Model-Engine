@@ -83,13 +83,36 @@ class World:
 
         Modifications in the branched world do not affect the origin world.
         """
+        import copy
+
         base_state = state if state is not None else self.initial_state
+
+        cloned_actors: list[Actor] = []
+        for a in self.actors:
+            if hasattr(a, "clone") and callable(a.clone):
+                cloned_actors.append(a.clone())
+            else:
+                try:
+                    cloned_actors.append(copy.deepcopy(a))
+                except Exception:
+                    cloned_actors.append(a)
+
+        cloned_event_sources: list[ExogenousEventSource] = []
+        for es in self.event_sources:
+            if hasattr(es, "clone") and callable(es.clone):
+                cloned_event_sources.append(es.clone())
+            else:
+                try:
+                    cloned_event_sources.append(copy.deepcopy(es))
+                except Exception:
+                    cloned_event_sources.append(es)
+
         return World(
             state=base_state,
             dynamics=self.dynamics,
             constraints=self.constraints.clone(),
-            event_sources=list(self.event_sources),
-            actors=list(self.actors),
+            event_sources=cloned_event_sources,
+            actors=cloned_actors,
         )
 
     def simulate(

@@ -51,3 +51,15 @@ class ThresholdReplenishmentActor:
             )
             return [action]
         return []
+
+    def clone(self) -> ThresholdReplenishmentActor:
+        """Create an independent copy of this actor."""
+        return ThresholdReplenishmentActor(
+            actor_id=self.actor_id,
+            source_resource=self.source_resource,
+            target_resource=self.target_resource,
+            reorder_point=self.reorder_point,
+            order_quantity=self.order_quantity,
+            action_type=self.action_type,
+        )
+

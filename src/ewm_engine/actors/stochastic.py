@@ -47,3 +47,12 @@ class StochasticActor:
             }
         )
         return [instantiated]
+
+    def clone(self) -> StochasticActor:
+        """Create an independent copy of this stochastic actor."""
+        return StochasticActor(
+            actor_id=self.actor_id,
+            action_candidates=list(self.action_candidates),
+            probabilities=list(self.probabilities),
+        )
+

@@ -142,3 +142,25 @@ def test_acceptance_counterfactual_branching_and_comparison(sample_world_state: 
     table_report = comparison.summary_table()
     assert "=== Scenario Comparison (Baseline: ConservativePolicy) ===" in table_report
     assert "AggressivePolicy" in table_report
+
+
+def test_actor_state_isolation_on_branch(sample_world_state: WorldState) -> None:
+    """Verify that actors in a branched world are distinct instances from the original."""
+    actor = ThresholdReplenishmentActor(
+        actor_id="actor_base",
+        source_resource="stock_wh1",
+        target_resource="stock_wh2",
+        reorder_point=40.0,
+        order_quantity=20.0,
+    )
+    base_world = World(state=sample_world_state, actors=[actor])
+    branched = branch_world(base_world)
+
+    # Actor lists are distinct
+    assert len(branched.actors) == 1
+    assert branched.actors[0] is not actor  # Isolated cloned object
+
+    # Modifying branched actor does not affect base actor
+    branched.actors[0].reorder_point = 99.0
+    assert actor.reorder_point == 40.0
+
