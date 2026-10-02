@@ -10,7 +10,12 @@ from ewm_engine.simulation.mpc import (
     RecedingHorizonSimulator,
 )
 from ewm_engine.simulation.scenario import Scenario
-from ewm_engine.simulation.trajectory import SimulationResult, StepRecord, Trajectory
+from ewm_engine.simulation.trajectory import (
+    SimulationResult,
+    StepRecord,
+    Trajectory,
+    TrajectoryStatus,
+)
 
 __all__ = [
     "MPCDecisionRecord",
@@ -21,6 +26,7 @@ __all__ = [
     "SimulationResult",
     "StepRecord",
     "Trajectory",
+    "TrajectoryStatus",
     "branch_scenario",
     "branch_world",
 ]

@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from ewm_engine.constraints.base import Constraint
 from ewm_engine.constraints.registry import ConstraintRegistry
-from ewm_engine.constraints.results import ConstraintResult, ConstraintSeverity
+from ewm_engine.constraints.results import (
+    ConstraintPhase,
+    ConstraintResult,
+    ConstraintSeverity,
+)
 from ewm_engine.constraints.standard import (
     ActionTransferAvailabilityConstraint,
     ResourceCapacityConstraint,
@@ -14,6 +18,7 @@ from ewm_engine.constraints.standard import (
 __all__ = [
     "ActionTransferAvailabilityConstraint",
     "Constraint",
+    "ConstraintPhase",
     "ConstraintRegistry",
     "ConstraintResult",
     "ConstraintSeverity",

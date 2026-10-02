@@ -54,3 +54,7 @@ class SimulationMetadata(BaseModel):
         }
         encoded = json.dumps(fingerprint_dict, sort_keys=True).encode("utf-8")
         return hashlib.sha256(encoded).hexdigest()
+
+
+# Provenance is the canonical public alias for SimulationMetadata
+Provenance = SimulationMetadata

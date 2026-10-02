@@ -5,6 +5,16 @@ All notable changes to the Enterprise World Model Engine (EWM Engine) will be do
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Governance & Verification**: Formally vendored v1 specification contract in `docs/specs/spec-driven-development.md`, governance templates in `.github/`, and static import boundary tests in `tests/architecture/`.
+- **API Surface Refinements**: Added `ConstraintPhase` enum (`PRE_ACTION`, `POST_TRANSITION`), `TrajectoryStatus` enum (`COMPLETED`, `INVALID`, `FAILED`), and `Provenance` metadata alias.
+- **Experimental Namespace**: Created `ewm_engine.experimental` for research models (`RecedingHorizonSimulator`, `LinearResidualDynamics`, `Intervention`).
+
+### Changed
+- Reconciled root `ewm_engine.__all__` to the 22 canonical Stable symbols (ADR-007). Concrete dynamics, constraints, and actor classes remain importable from their respective submodules.
+
 ## [0.1.0] - 2026-10-02
 
 ### Added

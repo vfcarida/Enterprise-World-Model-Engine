@@ -1,5 +1,8 @@
 """Receding-horizon online simulation and Model Predictive Control (MPC) engine.
 
+[EXPERIMENTAL] This module is under active research and subject to breaking changes.
+For production workflows, see ewm_engine.experimental.RecedingHorizonSimulator.
+
 Implements the continuous re-grounding feedback loop:
     Observe -> Simulate Short Horizon -> Select Best Policy -> Apply Action -> Re-ground -> Repeat
 """

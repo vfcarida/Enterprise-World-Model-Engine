@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -36,6 +37,19 @@ class StepRecord(BaseModel):
     step_metrics: dict[str, float] = Field(default_factory=dict)
 
 
+class TrajectoryStatus(StrEnum):
+    """Terminal or execution status of an individual rollout trajectory.
+
+    - COMPLETED: Rollout completed full horizon without fatal invariant failure.
+    - INVALID: Rollout encountered fatal hard constraint violation; invalidated.
+    - FAILED: Rollout failed due to runtime numerical instability or dynamic error.
+    """
+
+    COMPLETED = "completed"
+    INVALID = "invalid"
+    FAILED = "failed"
+
+
 class Trajectory:
     """An individual rollout path generated during a Monte Carlo simulation run."""
 
@@ -45,10 +59,12 @@ class Trajectory:
         seed: int,
         initial_state: WorldState,
         systemic_trace: SystemicTrace | None = None,
+        status: TrajectoryStatus = TrajectoryStatus.COMPLETED,
     ) -> None:
         self.sample_id = sample_id
         self.seed = seed
         self.initial_state = initial_state
+        self.status: TrajectoryStatus = status
         self.steps: list[StepRecord] = []
         self.systemic_trace: SystemicTrace = systemic_trace or SystemicTrace()
         self._final_state: WorldState = initial_state

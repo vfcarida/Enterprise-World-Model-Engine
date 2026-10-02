@@ -1,4 +1,9 @@
-"""Machine learning extension interfaces and empirical dynamics protocols."""
+"""Machine learning extension interfaces and empirical dynamics protocols.
+
+[EXPERIMENTAL] Learned dynamics models and residual estimators are currently experimental.
+They require explicit verification against structural conservation laws before deployment.
+See ewm_engine.experimental for experimental re-exports.
+"""
 
 from __future__ import annotations
 

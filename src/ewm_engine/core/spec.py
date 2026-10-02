@@ -11,13 +11,6 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ewm_engine.constraints.registry import ConstraintRegistry
-from ewm_engine.constraints.results import ConstraintSeverity
-from ewm_engine.constraints.standard import (
-    ActionTransferAvailabilityConstraint,
-    ResourceCapacityConstraint,
-    ResourceNonNegativeConstraint,
-)
 from ewm_engine.core.entities import Entity, Relationship
 from ewm_engine.core.resources import Resource
 from ewm_engine.core.state import WorldState
@@ -169,6 +162,14 @@ class WorldSpecification(BaseModel):
 
     def build_world(self) -> World:
         """Compile the specification into an active, runnable World container."""
+        from ewm_engine.constraints.registry import ConstraintRegistry
+        from ewm_engine.constraints.results import ConstraintSeverity
+        from ewm_engine.constraints.standard import (
+            ActionTransferAvailabilityConstraint,
+            ResourceCapacityConstraint,
+            ResourceNonNegativeConstraint,
+        )
+
         initial_state = self.build_state()
         registry = ConstraintRegistry()
 

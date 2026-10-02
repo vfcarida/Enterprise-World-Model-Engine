@@ -23,6 +23,17 @@ class ConstraintSeverity(StrEnum):
     SOFT = "soft"
 
 
+class ConstraintPhase(StrEnum):
+    """Execution lifecycle phase at which constraint evaluation is performed.
+
+    - PRE_ACTION: Evaluated before action dispatch to validate operational feasibility.
+    - POST_TRANSITION: Evaluated after dynamics transition to check state invariants.
+    """
+
+    PRE_ACTION = "pre_action"
+    POST_TRANSITION = "post_transition"
+
+
 class ConstraintResult(BaseModel):
     """Detailed audit record produced when evaluating an operational constraint.
 
@@ -42,6 +53,10 @@ class ConstraintResult(BaseModel):
     severity: ConstraintSeverity = Field(
         default=ConstraintSeverity.HARD,
         description="Hard (fatal/invariable) or Soft (penalty).",
+    )
+    phase: ConstraintPhase = Field(
+        default=ConstraintPhase.POST_TRANSITION,
+        description="Lifecycle evaluation phase (PRE_ACTION or POST_TRANSITION).",
     )
     message: str = Field(default="", description="Descriptive explanation of evaluation outcome.")
     violating_entities: tuple[EntityId, ...] = Field(
