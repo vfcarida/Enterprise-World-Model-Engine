@@ -57,6 +57,7 @@ dev = [
     "ruff>=0.3.0",
     "mypy>=1.9.0",
     "networkx>=3.2",
+    "pyyaml>=6.0",
 ]
 all = [
     "networkx>=3.2",
@@ -131,7 +132,10 @@ warn_no_return = true
 warn_unreachable = true
 
 [[tool.mypy.overrides]]
-module = "networkx.*"
+module = [
+    "networkx.*",
+    "yaml.*",
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -145,6 +149,20 @@ markers = [
     "property: hypothesis property-based tests",
     "regression: golden output regression tests",
     "benchmark: performance benchmarks",
+    "contract: public API and contract tests",
+    "architecture: architecture boundary and dependency rule tests",
+    "security: security and safe serialization tests",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "hypothesis>=6.100.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.3.0",
+    "mypy>=1.9.0",
+    "networkx>=3.2",
+    "pyyaml>=6.0",
 ]
 
 [tool.coverage.run]

@@ -2,6 +2,8 @@
 
 This document outlines the phased development roadmap for the **Enterprise World Model Engine (EWM Engine)**.
 
+> **Canonical Contract:** See [docs/specs/spec-driven-development.md](docs/specs/spec-driven-development.md) for the authoritative v1 specification and authority chain governing this roadmap.
+
 ## Maturity Framework
 
 To preserve scientific and engineering integrity, capabilities in EWM Engine are classified under explicit maturity levels:

@@ -244,6 +244,24 @@ pip install "ewm-engine[dev]"
 pip install "ewm-engine[all]"
 ```
 
+### Development with uv (Recommended)
+
+EWM Engine standardizes development environments and CI on [`uv`](https://docs.astral.sh/uv/):
+
+```bash
+# Clone and synchronize virtual environment with exact locked dependencies
+git clone https://github.com/vfcarida/Enterprise-World-Model-Engine.git
+cd Enterprise-World-Model-Engine
+uv sync --extra dev
+
+# Run test suite
+uv run pytest -q
+
+# Format and strict type check
+uv run ruff check src tests && uv run ruff format --check src tests
+uv run mypy src tests
+```
+
 ---
 
 ## Project Roadmap & Maturity

@@ -17,20 +17,27 @@ This project is governed by the [Code of Conduct](CODE_OF_CONDUCT.md). By partic
 - Python 3.11 or higher
 - Git
 
-### Initializing Environment
+### Initializing Environment with uv (Recommended)
+We standardize developer environments and CI on [`uv`](https://docs.astral.sh/uv/):
 ```bash
 git clone https://github.com/vfcarida/Enterprise-World-Model-Engine.git
 cd Enterprise-World-Model-Engine
 
-# Create virtual environment
+# Sync virtual environment and all development dependencies reproducibly
+uv sync --extra dev
+
+# Run test suite
+uv run pytest -q
+
+# Run formatters and strict type checks
+uv run ruff check src tests && uv run ruff format --check src tests
+uv run mypy src tests
+```
+
+### Alternative Setup with standard pip
+```bash
 python -m venv .venv
-
-# Activate virtual environment (Linux/macOS)
-source .venv/bin/activate
-# Or on Windows (PowerShell):
-# .venv\Scripts\Activate.ps1
-
-# Install package in editable mode with development dependencies
+source .venv/bin/activate  # or .venv\Scripts\Activate.ps1 on Windows
 pip install -e ".[dev]"
 ```
 
