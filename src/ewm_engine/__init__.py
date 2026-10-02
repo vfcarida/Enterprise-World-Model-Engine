@@ -21,6 +21,7 @@ from ewm_engine.core import (
     Relationship,
     Resource,
     World,
+    WorldSpecification,
     WorldState,
 )
 from ewm_engine.dynamics import (
@@ -67,6 +68,7 @@ __all__ = [
     "Trajectory",
     "TransitionResult",
     "World",
+    "WorldSpecification",
     "WorldState",
     "__version__",
     "compare_scenarios",

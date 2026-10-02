@@ -6,6 +6,13 @@ from ewm_engine.core.actions import Action, Intervention
 from ewm_engine.core.entities import Entity, Relationship
 from ewm_engine.core.events import ExogenousEvent, ExogenousEventSource
 from ewm_engine.core.resources import Resource
+from ewm_engine.core.spec import (
+    ConstraintSpec,
+    EntitySpec,
+    RelationshipSpec,
+    ResourceSpec,
+    WorldSpecification,
+)
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.types import (
     ActionId,
@@ -26,8 +33,10 @@ __all__ = [
     "ActionId",
     "ActorId",
     "ConstraintId",
+    "ConstraintSpec",
     "Entity",
     "EntityId",
+    "EntitySpec",
     "EventId",
     "ExogenousEvent",
     "ExogenousEventSource",
@@ -35,10 +44,13 @@ __all__ = [
     "RandomGenerator",
     "Relationship",
     "RelationshipId",
+    "RelationshipSpec",
     "Resource",
     "ResourceId",
+    "ResourceSpec",
     "ScenarioId",
     "TrajectoryId",
     "World",
+    "WorldSpecification",
     "WorldState",
 ]
