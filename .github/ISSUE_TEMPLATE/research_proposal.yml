@@ -1,0 +1,28 @@
+name: Research Proposal
+description: Propose an experiment, benchmark, or theoretical direction for EWM Engine
+labels: ["research"]
+body:
+  - type: markdown
+    attributes:
+      value: We welcome scientific proposals on world-model dynamics, causal evaluation, or uncertainty quantification.
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Research Hypothesis
+      description: What is the formal scientific or engineering hypothesis?
+    validations:
+      required: true
+  - type: textarea
+    id: theoretical_basis
+    attributes:
+      label: Theoretical Basis / Literature References
+      description: Primary literature, relevant papers, or operational frameworks.
+    validations:
+      required: true
+  - type: textarea
+    id: methodology
+    attributes:
+      label: Proposed Methodology & Benchmark
+      description: How should this hypothesis be evaluated within EWM Engine?
+    validations:
+      required: true
