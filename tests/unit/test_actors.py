@@ -53,3 +53,19 @@ def test_stochastic_actor_choice(sample_world_state: WorldState) -> None:
     assert len(actions) == 1
     assert actions[0].type == "act_a"
     assert actions[0].actor_id == "stochastic_agent"
+
+
+def test_threshold_replenishment_actor_missing_resource(sample_world_state: WorldState) -> None:
+    """Verify actor returns empty list when target resource does not exist in state."""
+    actor = ThresholdReplenishmentActor(
+        actor_id="actor_safe",
+        source_resource="stock_wh1",
+        target_resource="non_existent_stock",
+        reorder_point=40.0,
+        order_quantity=50.0,
+    )
+    rng = np.random.default_rng(42)
+    ctx = ActorContext(step=0, timestamp=0.0, rng=rng)
+    actions = actor.act(sample_world_state, ctx)
+    assert actions == []
+

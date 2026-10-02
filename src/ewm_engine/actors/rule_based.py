@@ -34,7 +34,9 @@ class ThresholdReplenishmentActor:
         return self._actor_id
 
     def act(self, state: WorldState, context: ActorContext) -> Sequence[Action]:
-        target_res = state.get_resource(self.target_resource)
+        target_res = state.resources.get(self.target_resource)
+        if target_res is None:
+            return []
         if target_res.current <= self.reorder_point:
             action = Action(
                 id=f"replenish_{self.target_resource}_{context.step}",
