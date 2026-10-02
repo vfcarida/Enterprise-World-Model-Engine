@@ -59,7 +59,7 @@ def test_systemic_trace_dag_and_mermaid() -> None:
         evidence_level=EvidenceLevel.STRUCTURAL,
     )
     trace.add_edge("policy_change", "stock_depletion", relation="mitigates")
-    trace.add_edge("demand_shock", "stock_depletion", relation="causes")
+    trace.add_edge("demand_shock", "stock_depletion", relation="drives")
 
     assert len(trace.nodes) == 3
     assert len(trace.edges) == 2
@@ -67,12 +67,17 @@ def test_systemic_trace_dag_and_mermaid() -> None:
     mermaid_str = trace.to_mermaid()
     assert "flowchart TD" in mermaid_str
     assert "Intervention: Expedited Replenishment" in mermaid_str
-    assert '-->|"causes"|' in mermaid_str
+    assert '-->|"drives"|' in mermaid_str
 
-    # Test NetworkX export
-    nx_graph = trace.to_networkx()
-    assert nx_graph.number_of_nodes() == 3
-    assert nx_graph.number_of_edges() == 2
+    # Test NetworkX export (guarded if networkx is not installed)
+    try:
+        import networkx as _nx  # noqa: F401
+
+        nx_graph = trace.to_networkx()
+        assert nx_graph.number_of_nodes() == 3
+        assert nx_graph.number_of_edges() == 2
+    except ImportError:
+        pass
 
 
 def test_simulation_engine_creates_trace_edges(sample_world_state: WorldState) -> None:

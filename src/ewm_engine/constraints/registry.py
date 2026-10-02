@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
 
 from ewm_engine.constraints.base import Constraint
 from ewm_engine.constraints.results import (
@@ -45,6 +45,8 @@ class ConstraintRegistry:
         self,
         state: WorldState,
         actions: Sequence[Action],
+        *,
+        on_evaluation: Callable[[ConstraintResult, ConstraintPhase], None] | None = None,
     ) -> tuple[list[Action], list[ConstraintResult]]:
         """Pre-transition validation of proposed actions.
 
@@ -63,6 +65,8 @@ class ConstraintRegistry:
                     actions=[action],
                     phase=ConstraintPhase.PRE_ACTION,
                 )
+                if on_evaluation is not None:
+                    on_evaluation(res, ConstraintPhase.PRE_ACTION)
                 if not res.satisfied:
                     all_results.append(
                         res.model_copy(
@@ -84,6 +88,8 @@ class ConstraintRegistry:
         self,
         state: WorldState,
         preceding_actions: Sequence[Action] | None = None,
+        *,
+        on_evaluation: Callable[[ConstraintResult, ConstraintPhase], None] | None = None,
     ) -> list[ConstraintResult]:
         """Post-transition validation of the evolved world state."""
         results: list[ConstraintResult] = []
@@ -96,6 +102,8 @@ class ConstraintRegistry:
                 actions=actions,
                 phase=ConstraintPhase.POST_TRANSITION,
             )
+            if on_evaluation is not None:
+                on_evaluation(res, ConstraintPhase.POST_TRANSITION)
             if not res.satisfied:
                 matched_action_id: str | None = None
 

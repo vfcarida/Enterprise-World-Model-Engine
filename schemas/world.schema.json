@@ -1,0 +1,266 @@
+{
+  "$defs": {
+    "ComponentSpec": {
+      "additionalProperties": false,
+      "description": "Specification schema for a modular runtime component (dynamics, constraint, or event source).\n\nRefers to components exclusively via registered type IDs and parameters, never importable paths.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Whether this component is active.",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional unique identifier.",
+          "title": "Id"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "description": "Configuration parameters passed to the component factory.",
+          "title": "Parameters",
+          "type": "object"
+        },
+        "type": {
+          "description": "Registered type identifier in ComponentRegistry.",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "ComponentSpec",
+      "type": "object"
+    },
+    "EntitySpec": {
+      "additionalProperties": false,
+      "description": "Specification schema for an entity.",
+      "properties": {
+        "attributes": {
+          "additionalProperties": true,
+          "title": "Attributes",
+          "type": "object"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "type": {
+          "default": "entity",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "EntitySpec",
+      "type": "object"
+    },
+    "RelationshipSpec": {
+      "additionalProperties": false,
+      "description": "Specification schema for an entity relationship.",
+      "properties": {
+        "attributes": {
+          "additionalProperties": true,
+          "title": "Attributes",
+          "type": "object"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "type"
+      ],
+      "title": "RelationshipSpec",
+      "type": "object"
+    },
+    "ResourceSpec": {
+      "additionalProperties": false,
+      "description": "Specification schema for a measurable resource.",
+      "properties": {
+        "current": {
+          "default": 0.0,
+          "title": "Current",
+          "type": "number"
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entity Id"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "max_value": {
+          "default": Infinity,
+          "title": "Max Value",
+          "type": "number"
+        },
+        "min_value": {
+          "default": 0.0,
+          "title": "Min Value",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "unit": {
+          "default": "units",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "ResourceSpec",
+      "type": "object"
+    },
+    "WorldMetadataSpec": {
+      "additionalProperties": false,
+      "description": "Metadata specification schema.",
+      "properties": {
+        "context": {
+          "additionalProperties": true,
+          "title": "Context",
+          "type": "object"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "memory": {
+          "additionalProperties": true,
+          "title": "Memory",
+          "type": "object"
+        },
+        "name": {
+          "default": "EnterpriseWorld",
+          "title": "Name",
+          "type": "string"
+        },
+        "step": {
+          "default": 0,
+          "title": "Step",
+          "type": "integer"
+        },
+        "timestamp": {
+          "default": 0.0,
+          "title": "Timestamp",
+          "type": "number"
+        }
+      },
+      "title": "WorldMetadataSpec",
+      "type": "object"
+    }
+  },
+  "$id": "https://ewm-engine.org/schemas/v1/world.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Root declarative specification for an Enterprise World Model.\n\nProvides safe, non-executable serialization and deserialization from YAML and JSON.",
+  "properties": {
+    "constraints": {
+      "description": "Active constraint component specifications.",
+      "items": {
+        "$ref": "#/$defs/ComponentSpec"
+      },
+      "title": "Constraints",
+      "type": "array"
+    },
+    "dynamics": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ComponentSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Active dynamics model component specification."
+    },
+    "entities": {
+      "items": {
+        "$ref": "#/$defs/EntitySpec"
+      },
+      "title": "Entities",
+      "type": "array"
+    },
+    "event_sources": {
+      "description": "Active exogenous event sources specifications.",
+      "items": {
+        "$ref": "#/$defs/ComponentSpec"
+      },
+      "title": "Event Sources",
+      "type": "array"
+    },
+    "relationships": {
+      "items": {
+        "$ref": "#/$defs/RelationshipSpec"
+      },
+      "title": "Relationships",
+      "type": "array"
+    },
+    "resources": {
+      "items": {
+        "$ref": "#/$defs/ResourceSpec"
+      },
+      "title": "Resources",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Semantic schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "world": {
+      "$ref": "#/$defs/WorldMetadataSpec"
+    }
+  },
+  "title": "WorldSpec",
+  "type": "object"
+}

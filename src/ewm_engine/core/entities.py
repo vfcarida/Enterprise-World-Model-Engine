@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -31,6 +32,17 @@ class Entity(BaseModel):
         description="Categorical tags for grouping and querying entities.",
     )
 
+    def __init__(self, **kwargs: Any) -> None:
+        if "attributes" in kwargs and kwargs["attributes"] is not None:
+            kwargs["attributes"] = copy.deepcopy(kwargs["attributes"])
+        super().__init__(**kwargs)
+
+    def __getattribute__(self, name: str) -> Any:
+        val = super().__getattribute__(name)
+        if name == "attributes" and isinstance(val, dict):
+            return copy.deepcopy(val)
+        return val
+
     def get(self, key: str, default: Any = None) -> Any:
         """Safely fetch an attribute value."""
         return self.attributes.get(key, default)
@@ -52,6 +64,17 @@ class Relationship(BaseModel):
         default_factory=dict,
         description="Attributes associated with this relation (e.g., distance, bandwidth).",
     )
+
+    def __init__(self, **kwargs: Any) -> None:
+        if "attributes" in kwargs and kwargs["attributes"] is not None:
+            kwargs["attributes"] = copy.deepcopy(kwargs["attributes"])
+        super().__init__(**kwargs)
+
+    def __getattribute__(self, name: str) -> Any:
+        val = super().__getattribute__(name)
+        if name == "attributes" and isinstance(val, dict):
+            return copy.deepcopy(val)
+        return val
 
     @property
     def key(self) -> tuple[EntityId, EntityId, str]:

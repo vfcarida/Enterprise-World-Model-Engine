@@ -1,21 +1,45 @@
-"""Deterministic Monte Carlo simulation execution engine."""
+"""Deterministic Monte Carlo simulation execution engine.
+
+Reproducibility Contract (AC-004):
+    Same logical initial state + scenario specification + component versions + master seed
+    produces the exact same built-in logical trajectory across platforms and runs.
+
+    Caveat: Neural/GPU/ML adapters carry an explicit caveat that floating-point non-determinism
+    across heterogeneous hardware architectures is outside this bitwise guarantee.
+"""
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+import time
+from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 from ewm_engine.actors.base import ActorContext
-from ewm_engine.constraints.results import ConstraintSeverity
+from ewm_engine.constraints.results import (
+    ConstraintPhase,
+    ConstraintResult,
+    ConstraintSeverity,
+)
 from ewm_engine.core.actions import Action
 from ewm_engine.core.events import ExogenousEvent
 from ewm_engine.core.state import WorldState
 from ewm_engine.dynamics.base import TransitionResult
+from ewm_engine.exceptions import SimulationConfigurationError
+from ewm_engine.hooks.protocol import (
+    ConstraintEvaluated,
+    Hook,
+    HookRegistry,
+    RolloutCompleted,
+    SimulationFinished,
+    SimulationStarted,
+    StepCompleted,
+)
 from ewm_engine.provenance.evidence import EvidenceLevel
-from ewm_engine.provenance.metadata import SimulationMetadata
+from ewm_engine.provenance.metadata import ComponentVersion, Provenance
 from ewm_engine.provenance.trace import SystemicTrace
+from ewm_engine.simulation.metrics import RunMetrics
 from ewm_engine.simulation.scenario import Scenario
 from ewm_engine.simulation.trajectory import (
     SimulationResult,
@@ -35,27 +59,108 @@ class SimulationEngine:
     state dynamics, and systemic trace collection.
     """
 
-    def simulate(self, world: World, scenario: Scenario) -> SimulationResult:
-        """Alias for `run`, simulating rollouts for the specified world and scenario."""
-        return self.run(world=world, scenario=scenario)
+    def __init__(self, hooks: HookRegistry | Sequence[Hook] | None = None) -> None:
+        self.hooks = hooks if isinstance(hooks, HookRegistry) else HookRegistry(hooks)
 
-    def run(self, world: World, scenario: Scenario) -> SimulationResult:
+    def simulate(
+        self,
+        world: World,
+        scenario: Scenario,
+        hooks: HookRegistry | Sequence[Hook] | None = None,
+    ) -> SimulationResult:
+        """Alias for `run`, simulating rollouts for the specified world and scenario."""
+        return self.run(world=world, scenario=scenario, hooks=hooks)
+
+    def run(
+        self,
+        world: World,
+        scenario: Scenario,
+        hooks: HookRegistry | Sequence[Hook] | None = None,
+    ) -> SimulationResult:
         """Execute simulation rollouts for the specified world and scenario."""
+        if scenario.samples < 1:
+            raise SimulationConfigurationError(
+                f"Scenario samples must be >= 1, got {scenario.samples}"
+            )
+        if scenario.horizon < 1:
+            raise SimulationConfigurationError(
+                f"Scenario horizon must be >= 1, got {scenario.horizon}"
+            )
+
+        start_time = time.perf_counter()
+        active_hooks = (
+            hooks
+            if isinstance(hooks, HookRegistry)
+            else HookRegistry(hooks)
+            if hooks is not None
+            else self.hooks
+        )
+
+        active_hooks.emit(
+            SimulationStarted(
+                scenario_id=scenario.scenario_id,
+                horizon=scenario.horizon,
+                samples=scenario.samples,
+                seed=scenario.seed,
+                initial_state_fingerprint=world.initial_state.fingerprint,
+                scenario=scenario,
+            )
+        )
+
+        total_constraint_evaluations = 0
+        total_hard_violations = 0
+        total_soft_violations = 0
+        total_dynamics_transitions = 0
+
         # 1. Prepare deterministic seed sequence
         seed_seq = np.random.SeedSequence(scenario.seed)
         child_seeds = seed_seq.spawn(scenario.samples)
 
-        # 2. Assemble immutable simulation metadata
-        metadata = SimulationMetadata(
-            scenario_id=scenario.scenario_id,
-            world_hash=world.initial_state.state_hash,
-            dynamics_name=getattr(world.dynamics, "name", "None"),
-            constraint_versions={c.constraint_id: c.version for c in world.constraints},
-            random_seed=scenario.seed,
+        # 2. Assemble immutable simulation provenance
+        components: list[ComponentVersion] = []
+        if world.dynamics is not None:
+            dyn_name = getattr(world.dynamics, "name", world.dynamics.__class__.__name__)
+            dyn_ver = getattr(world.dynamics, "version", "1.0.0")
+            components.append(ComponentVersion(component_id=dyn_name, component_version=dyn_ver))
+            sub_models = getattr(world.dynamics, "models", None)
+            if sub_models and isinstance(sub_models, Sequence):
+                for sub in sub_models:
+                    sub_id = getattr(sub, "name", sub.__class__.__name__)
+                    sub_ver = getattr(sub, "version", "1.0.0")
+                    components.append(
+                        ComponentVersion(component_id=sub_id, component_version=sub_ver)
+                    )
+
+        for src in world.event_sources:
+            src_id = getattr(src, "name", src.__class__.__name__)
+            src_ver = getattr(src, "version", "1.0.0")
+            components.append(ComponentVersion(component_id=src_id, component_version=src_ver))
+
+        for actor in world.actors:
+            actor_id = getattr(actor, "actor_id", actor.__class__.__name__)
+            actor_ver = getattr(actor, "version", "1.0.0")
+            components.append(ComponentVersion(component_id=actor_id, component_version=actor_ver))
+
+        constraint_versions = tuple(
+            ComponentVersion(component_id=c.constraint_id, component_version=c.version)
+            for c in world.constraints
+        )
+
+        provenance = Provenance(
+            engine_version="0.1.0",
+            scenario_fingerprint=scenario.fingerprint,
+            initial_state_fingerprint=world.initial_state.fingerprint,
+            seed=scenario.seed,
             horizon=scenario.horizon,
             samples=scenario.samples,
-            intervention_id=scenario.intervention.id if scenario.intervention else None,
-            custom_metadata=scenario.metadata,
+            components=tuple(components),
+            constraint_versions=constraint_versions,
+            runtime_metadata={
+                "scenario_id": scenario.scenario_id,
+                "scenario_name": scenario.name,
+                "intervention_id": scenario.intervention.id if scenario.intervention else None,
+                **scenario.metadata,
+            },
         )
 
         trajectories: list[Trajectory] = []
@@ -78,16 +183,7 @@ class SimulationEngine:
                     details=scenario.intervention.parameters,
                 )
 
-            if hasattr(child_seed, "entropy") and isinstance(child_seed.entropy, int):
-                seed_val = child_seed.entropy
-            elif (
-                hasattr(child_seed, "entropy")
-                and isinstance(child_seed.entropy, Sequence)
-                and len(child_seed.entropy) > 0
-            ):
-                seed_val = int(child_seed.entropy[0])
-            else:
-                seed_val = scenario.seed + sample_idx
+            seed_val = int(child_seed.generate_state(1, dtype=np.uint32)[0])
             trajectory = Trajectory(
                 sample_id=sample_idx,
                 seed=seed_val,
@@ -97,6 +193,37 @@ class SimulationEngine:
 
             # Step through horizon
             for step_idx in range(scenario.horizon):
+                curr_sample = sample_idx
+                curr_step = step_idx
+
+                def _on_eval(
+                    res: ConstraintResult,
+                    phase: ConstraintPhase,
+                    _s: int = curr_sample,
+                    _st: int = curr_step,
+                ) -> None:
+                    nonlocal \
+                        total_constraint_evaluations, \
+                        total_hard_violations, \
+                        total_soft_violations
+                    total_constraint_evaluations += 1
+                    if not res.satisfied:
+                        if res.severity == ConstraintSeverity.HARD:
+                            total_hard_violations += 1
+                        else:
+                            total_soft_violations += 1
+                    active_hooks.emit(
+                        ConstraintEvaluated(
+                            rollout_idx=_s,
+                            step=_st,
+                            phase=phase,
+                            constraint_id=res.constraint_id,
+                            severity=res.severity,
+                            satisfied=res.satisfied,
+                            result=res,
+                        )
+                    )
+
                 step_record, current_state, is_invalid = self._execute_step(
                     world=world,
                     state=current_state,
@@ -104,19 +231,110 @@ class SimulationEngine:
                     rng=rng,
                     trace=trace,
                     scenario=scenario,
+                    on_constraint_eval=_on_eval,
                 )
+                total_dynamics_transitions += 1
+
                 if is_invalid:
                     trajectory.append_step(
                         step_record, current_state, status=TrajectoryStatus.INVALID
                     )
+                    active_hooks.emit(
+                        StepCompleted(
+                            rollout_idx=sample_idx,
+                            step=step_idx,
+                            state_hash=step_record.state_hash,
+                            record=step_record,
+                            is_invalid=True,
+                        )
+                    )
                     break
                 else:
                     trajectory.append_step(step_record, current_state)
+                    active_hooks.emit(
+                        StepCompleted(
+                            rollout_idx=sample_idx,
+                            step=step_idx,
+                            state_hash=step_record.state_hash,
+                            record=step_record,
+                            is_invalid=False,
+                        )
+                    )
 
             trajectory.finalize()
             trajectories.append(trajectory)
+            active_hooks.emit(
+                RolloutCompleted(
+                    rollout_idx=sample_idx,
+                    sample_id=sample_idx,
+                    status=trajectory.status,
+                    step_count=len(trajectory.steps),
+                    trajectory=trajectory,
+                )
+            )
 
-        return SimulationResult(scenario=scenario, metadata=metadata, trajectories=trajectories)
+        duration = time.perf_counter() - start_time
+        completed_count = sum(1 for t in trajectories if t.status == TrajectoryStatus.COMPLETED)
+        invalid_count = sum(1 for t in trajectories if t.status == TrajectoryStatus.INVALID)
+        step_count = sum(len(t.steps) for t in trajectories)
+        trace_edge_count = sum(len(t.systemic_trace.edges) for t in trajectories)
+
+        run_metrics = RunMetrics(
+            simulation_duration_seconds=duration,
+            rollout_count=len(trajectories),
+            completed_rollout_count=completed_count,
+            invalid_rollout_count=invalid_count,
+            step_count=step_count,
+            constraint_evaluation_count=total_constraint_evaluations,
+            hard_violation_count=total_hard_violations,
+            soft_violation_count=total_soft_violations,
+            dynamics_transition_count=total_dynamics_transitions,
+            trace_edge_count=trace_edge_count,
+        )
+
+        provenance_metadata = dict(provenance.runtime_metadata)
+        provenance_metadata["metrics"] = run_metrics.model_dump()
+        provenance_metadata["run_metrics"] = run_metrics.model_dump()
+        provenance = provenance.model_copy(update={"runtime_metadata": provenance_metadata})
+
+        result = SimulationResult(
+            scenario=scenario,
+            provenance=provenance,
+            trajectories=trajectories,
+            run_metrics=run_metrics,
+        )
+
+        active_hooks.emit(
+            SimulationFinished(
+                result=result,
+                run_metrics=run_metrics,
+                duration_seconds=duration,
+            )
+        )
+
+        return result
+
+    def verify_determinism(self, world: World, scenario: Scenario) -> bool:
+        """Execute two independent runs of the scenario and verify logical bitwise determinism.
+
+        Contract (AC-004):
+            Same logical initial state + scenario + component versions + seed => same built-in trajectory.
+        """
+        res1 = self.run(world=world, scenario=scenario)
+        res2 = self.run(world=world, scenario=scenario)
+        if len(res1.trajectories) != len(res2.trajectories):
+            return False
+        for t1, t2 in zip(res1.trajectories, res2.trajectories, strict=True):
+            if t1.seed != t2.seed or t1.status != t2.status:
+                return False
+            if t1.final_state.fingerprint != t2.final_state.fingerprint:
+                return False
+            if len(t1.steps) != len(t2.steps):
+                return False
+            for s1, s2 in zip(t1.steps, t2.steps, strict=True):
+                if s1.state_hash != s2.state_hash or s1.step_metrics != s2.step_metrics:
+                    return False
+        return True
 
     def _execute_step(
         self,
@@ -126,6 +344,7 @@ class SimulationEngine:
         rng: np.random.Generator,
         trace: SystemicTrace,
         scenario: Scenario,
+        on_constraint_eval: Callable[[ConstraintResult, ConstraintPhase], None] | None = None,
     ) -> tuple[StepRecord, WorldState, bool]:
         """Execute a single discrete simulation step."""
         # 1. Sample exogenous shocks
@@ -154,6 +373,10 @@ class SimulationEngine:
         )
 
         proposed_actions: list[Action] = []
+        for sa in scenario.scheduled_actions:
+            if sa.step == step_idx:
+                proposed_actions.append(sa.action)
+
         for actor in world.actors:
             for act in actor.act(state=state, context=context):
                 proposed_actions.append(act)
@@ -162,6 +385,7 @@ class SimulationEngine:
         accepted_actions, pre_results = world.constraints.validate_actions(
             state=state,
             actions=proposed_actions,
+            on_evaluation=on_constraint_eval,
         )
 
         for act in proposed_actions:
@@ -179,6 +403,7 @@ class SimulationEngine:
                     trace.add_edge(
                         source="initial_intervention",
                         target=act_node_id,
+                        step=step_idx,
                         relation="conditions",
                         evidence_level=EvidenceLevel.INTERVENTIONAL,
                     )
@@ -222,16 +447,22 @@ class SimulationEngine:
                 details=trans_result.applied_changes,
             )
             for act in accepted_actions:
+                rel = str(
+                    act.parameters.get("trace_relation")
+                    or ("reroutes" if "reroute" in act.type else "drives")
+                )
                 trace.add_edge(
                     source=f"action_{act.id}_step_{step_idx}",
                     target=trans_node_id,
-                    relation="drives",
+                    step=step_idx,
+                    relation=rel,
                     evidence_level=EvidenceLevel.INTERVENTIONAL,
                 )
             for ev in events:
                 trace.add_edge(
                     source=f"event_{ev.id}_step_{step_idx}",
                     target=trans_node_id,
+                    step=step_idx,
                     relation="perturbs",
                     evidence_level=EvidenceLevel.STRUCTURAL,
                 )
@@ -240,6 +471,7 @@ class SimulationEngine:
         post_results = world.constraints.validate_state(
             state=raw_next_state,
             preceding_actions=accepted_actions,
+            on_evaluation=on_constraint_eval,
         )
         all_violations = [*pre_results, *post_results]
         is_invalid = world.constraints.has_hard_violations(post_results)
@@ -260,6 +492,7 @@ class SimulationEngine:
                     trace.add_edge(
                         source=viol_node_id,
                         target=pred_act_id,
+                        step=step_idx,
                         relation="rejects",
                         evidence_level=EvidenceLevel.STRUCTURAL,
                     )
@@ -281,6 +514,7 @@ class SimulationEngine:
                 trace.add_edge(
                     source=f"action_{viol.preceding_action_id}_step_{step_idx}",
                     target=viol_node_id,
+                    step=step_idx,
                     relation="triggers_violation",
                     evidence_level=EvidenceLevel.STRUCTURAL,
                 )
@@ -288,6 +522,7 @@ class SimulationEngine:
                 trace.add_edge(
                     source=trans_node_id,
                     target=viol_node_id,
+                    step=step_idx,
                     relation="leads_to_violation",
                     evidence_level=EvidenceLevel.STRUCTURAL,
                 )
@@ -307,6 +542,8 @@ class SimulationEngine:
         for k, v in final_next_state.memory.items():
             if isinstance(v, (int, float)):
                 step_metrics[f"mem_{k}"] = float(v)
+                if k not in step_metrics:
+                    step_metrics[k] = float(v)
 
         step_metrics["violations_count"] = float(len(all_violations))
         step_metrics["hard_violations_count"] = float(

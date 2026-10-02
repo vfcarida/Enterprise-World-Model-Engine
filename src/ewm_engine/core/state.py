@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
+import copy
+import math
 from collections.abc import Mapping, Sequence
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from ewm_engine.core._canonical import canonical_sha256
 from ewm_engine.core.entities import Entity, Relationship
 from ewm_engine.core.resources import Resource
 from ewm_engine.core.types import EntityId, ResourceId
@@ -32,6 +33,7 @@ class WorldState(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
+    schema_version: str = Field(default="1.0.0", description="Semantic schema version.")
     entities: dict[EntityId, Entity] = Field(
         default_factory=dict,
         description="Active participating entities keyed by EntityId.",
@@ -69,19 +71,31 @@ class WorldState(BaseModel):
         context: Mapping[str, Any] | None = None,
         timestamp: float = 0.0,
         step: int = 0,
+        schema_version: str = "1.0.0",
         **kwargs: Any,
     ) -> None:
         super().__init__(
-            entities=entities,
-            relationships=relationships,
-            resources=resources,
-            memory=dict(memory or {}),
-            active_rules=dict(active_rules or {}),
-            context=dict(context or {}),
+            schema_version=schema_version,
+            entities=copy.deepcopy(entities),
+            relationships=copy.deepcopy(relationships),
+            resources=copy.deepcopy(resources),
+            memory=copy.deepcopy(dict(memory or {})),
+            active_rules=copy.deepcopy(dict(active_rules or {})),
+            context=copy.deepcopy(dict(context or {})),
             timestamp=timestamp,
             step=step,
-            **kwargs,
+            **{k: copy.deepcopy(v) for k, v in kwargs.items()},
         )
+
+    def __getattribute__(self, name: str) -> Any:
+        val = super().__getattribute__(name)
+        if name in ("memory", "active_rules", "context", "entities", "resources") and isinstance(
+            val, dict
+        ):
+            return copy.deepcopy(val)
+        if name == "relationships" and isinstance(val, tuple):
+            return copy.deepcopy(val)
+        return val
 
     @field_validator("entities", mode="before")
     @classmethod
@@ -129,7 +143,7 @@ class WorldState(BaseModel):
         """Deterministic cryptographic SHA-256 fingerprint of the normalized state."""
         canonical_dict = {
             "step": self.step,
-            "timestamp": round(self.timestamp, 6),
+            "timestamp": self.timestamp,
             "entities": sorted(
                 [
                     {"id": e.id, "type": e.type, "attributes": e.attributes}
@@ -153,9 +167,9 @@ class WorldState(BaseModel):
                 [
                     {
                         "id": r.id,
-                        "current": round(r.current, 6),
+                        "current": r.current,
                         "min": r.min_value,
-                        "max": r.max_value,
+                        "max": None if math.isinf(r.max_value) else r.max_value,
                     }
                     for r in self.resources.values()
                 ],
@@ -165,8 +179,12 @@ class WorldState(BaseModel):
             "active_rules": self.active_rules,
             "context": self.context,
         }
-        encoded = json.dumps(canonical_dict, sort_keys=True, default=str).encode("utf-8")
-        return hashlib.sha256(encoded).hexdigest()
+        return canonical_sha256(canonical_dict)
+
+    @property
+    def fingerprint(self) -> str:
+        """Alias for state_hash conforming to canonical fingerprinting specification."""
+        return self.state_hash
 
     def get_entity(self, entity_id: EntityId) -> Entity:
         """Fetch an entity by ID or raise InvalidWorldStateError."""

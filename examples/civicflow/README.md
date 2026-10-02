@@ -1,7 +1,7 @@
 # CivicFlow: Flagship Public Demo
 
 > **RESEARCH & EDUCATIONAL DISCLAIMER**  
-> *CivicFlow is a computational simulation developed strictly for algorithmic research, simulation engineering, and socio-technical world modeling. It does NOT constitute an operational emergency-response system, decision-support medical tool, or certified disaster management deployment.*
+> *CivicFlow is a computational simulation developed strictly for algorithmic research, simulation engineering, and socio-technical world modeling. It is **not an operational emergency-response system**, decision-support medical tool, or certified disaster management deployment. The numerical outcomes and policy comparison deltas are normative **only** for the synthetic `tiny_flood_v1` benchmark fixture — never claim real-world superiority of a policy. The simulation models logistical commodity allocation only, with no medical-treatment decisions.*
 
 ---
 

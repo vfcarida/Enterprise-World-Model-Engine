@@ -6,6 +6,8 @@ and learning the dynamics of complex organizational and socio-technical systems.
 
 from __future__ import annotations
 
+import logging
+
 from ewm_engine.constraints import (
     Constraint,
     ConstraintPhase,
@@ -32,7 +34,10 @@ from ewm_engine.simulation import (
     TrajectoryStatus,
 )
 
-__version__ = "0.1.0"
+# Ensure library root logger has a NullHandler to prevent unhandled log warnings
+logging.getLogger("ewm_engine").addHandler(logging.NullHandler())
+
+__version__ = "1.0.0"
 
 __all__ = [
     "Action",

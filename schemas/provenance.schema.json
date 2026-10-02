@@ -1,0 +1,102 @@
+{
+  "$defs": {
+    "ComponentVersion": {
+      "additionalProperties": false,
+      "description": "Specification of a participating simulation component and its semantic version.",
+      "properties": {
+        "component_id": {
+          "description": "Unique identifier or class name of the component.",
+          "title": "Component Id",
+          "type": "string"
+        },
+        "component_version": {
+          "default": "1.0.0",
+          "description": "Semantic version string.",
+          "title": "Component Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "component_id"
+      ],
+      "title": "ComponentVersion",
+      "type": "object"
+    }
+  },
+  "$id": "https://ewm-engine.org/schemas/v1/provenance.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Immutable audit record and cryptographic provenance for simulation rollouts.",
+  "properties": {
+    "components": {
+      "description": "Active participating engine, dynamics, and event components with versions.",
+      "items": {
+        "$ref": "#/$defs/ComponentVersion"
+      },
+      "title": "Components",
+      "type": "array"
+    },
+    "constraint_versions": {
+      "description": "Active constraint rules and their semantic versions.",
+      "items": {
+        "$ref": "#/$defs/ComponentVersion"
+      },
+      "title": "Constraint Versions",
+      "type": "array"
+    },
+    "engine_version": {
+      "default": "0.1.0",
+      "description": "EWM Engine semantic release version.",
+      "title": "Engine Version",
+      "type": "string"
+    },
+    "horizon": {
+      "description": "Temporal rollout horizon (number of steps).",
+      "title": "Horizon",
+      "type": "integer"
+    },
+    "initial_state_fingerprint": {
+      "description": "Deterministic canonical SHA-256 fingerprint of the initial baseline world state.",
+      "title": "Initial State Fingerprint",
+      "type": "string"
+    },
+    "runtime_metadata": {
+      "additionalProperties": true,
+      "description": "Additional execution, host, or experiment tracking metadata.",
+      "title": "Runtime Metadata",
+      "type": "object"
+    },
+    "samples": {
+      "description": "Number of Monte Carlo rollout samples.",
+      "title": "Samples",
+      "type": "integer"
+    },
+    "scenario_fingerprint": {
+      "description": "Deterministic canonical SHA-256 fingerprint of the scenario configuration.",
+      "title": "Scenario Fingerprint",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Semantic schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "seed": {
+      "description": "Master random seed for the simulation rollout.",
+      "title": "Seed",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "horizon",
+    "initial_state_fingerprint",
+    "samples",
+    "scenario_fingerprint",
+    "schema_version",
+    "seed"
+  ],
+  "title": "Provenance",
+  "type": "object"
+}

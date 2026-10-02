@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Protocol
 
@@ -35,6 +36,17 @@ class ExogenousEvent(BaseModel):
         default=1.0, description="Normalized or absolute event severity measure."
     )
     description: str = Field(default="", description="Descriptive context for the event.")
+
+    def __init__(self, **kwargs: Any) -> None:
+        if "parameters" in kwargs and kwargs["parameters"] is not None:
+            kwargs["parameters"] = copy.deepcopy(kwargs["parameters"])
+        super().__init__(**kwargs)
+
+    def __getattribute__(self, name: str) -> Any:
+        val = super().__getattribute__(name)
+        if name == "parameters" and isinstance(val, dict):
+            return copy.deepcopy(val)
+        return val
 
     def get(self, key: str, default: Any = None) -> Any:
         """Safely fetch an event parameter value."""

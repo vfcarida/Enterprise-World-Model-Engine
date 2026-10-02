@@ -30,7 +30,15 @@ def test_import_ewm_engine_does_not_pull_heavy_dependencies() -> None:
 @pytest.mark.contract
 def test_no_top_level_optional_imports_in_core_modules() -> None:
     """AC-019: Statically assert that no core source module contains top-level imports of optional dependencies."""
-    core_packages = ["core", "constraints", "dynamics", "provenance", "simulation", "evaluation"]
+    core_packages = [
+        "core",
+        "constraints",
+        "dynamics",
+        "provenance",
+        "simulation",
+        "evaluation",
+        "serialization",
+    ]
 
     for pkg in core_packages:
         pkg_dir = SRC_ROOT / pkg
@@ -53,3 +61,37 @@ def test_no_top_level_optional_imports_in_core_modules() -> None:
                             pytest.fail(
                                 f"Forbidden top-level from-import '{mod}' in core module {py_file}:{node.lineno}"
                             )
+
+
+@pytest.mark.contract
+def test_world_spec_and_factory_require_no_heavy_dependencies() -> None:
+    """AC-019: Assert that parsing WorldSpec and instantiating WorldFactory requires no ML/solver/LLM."""
+    import sys
+
+    from ewm_engine.core.spec import WorldFactory
+
+    spec_yaml = """
+    world:
+      name: "DepCheckWorld"
+    entities:
+      - id: "e1"
+        type: "node"
+    resources:
+      - id: "r1"
+        current: 10.0
+    constraints:
+      - type: "capacity"
+        parameters:
+          resource_id: "r1"
+    dynamics:
+      type: "transfer"
+      parameters:
+        action_type: "transfer_resource"
+    """
+    factory = WorldFactory()
+    world = factory.create_from_yaml(spec_yaml)
+    assert world is not None
+    assert world.initial_state.get_resource("r1").current == 10.0
+
+    for heavy_dep in OPTIONAL_HEAVY_DEPS:
+        assert heavy_dep not in sys.modules

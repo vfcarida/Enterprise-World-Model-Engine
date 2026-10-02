@@ -113,3 +113,58 @@ class DeterministicTransferDynamics:
             evidence_level=EvidenceLevel.STRUCTURAL,
             model_name=self.name,
         )
+
+
+class DeterministicDemandDynamics:
+    """Models deterministic demand consuming from a resource.
+
+    Guarantees structural evidence and tracks served vs unserved demand in state memory.
+    """
+
+    def __init__(
+        self,
+        resource_id: str,
+        demand: float,
+        name: str = "DeterministicDemandDynamics",
+        evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL,
+    ) -> None:
+        self.resource_id = resource_id
+        self.demand = max(0.0, float(demand))
+        self.name = name
+        self.evidence_level = evidence_level
+
+    def transition(
+        self,
+        state: WorldState,
+        actions: Sequence[Action],
+        exogenous_events: Sequence[ExogenousEvent],
+        rng: RandomGenerator,
+    ) -> TransitionResult:
+        current_res = state.get_resource(self.resource_id)
+        available_stock = max(0.0, current_res.current - current_res.min_value)
+
+        served = min(self.demand, available_stock)
+        unserved = self.demand - served
+
+        next_state = state.update_resource(self.resource_id, delta=-served)
+        prior_served = float(state.memory.get("served_demand", 0.0))
+        prior_unserved = float(state.memory.get("unserved_demand", 0.0))
+
+        next_state = next_state.with_memory("served_demand", prior_served + served)
+        next_state = next_state.with_memory("unserved_demand", prior_unserved + unserved)
+        next_state = next_state.with_memory(f"served_{self.resource_id}", prior_served + served)
+        next_state = next_state.with_memory(
+            f"unserved_{self.resource_id}", prior_unserved + unserved
+        )
+
+        return TransitionResult(
+            next_state=next_state,
+            applied_changes={
+                "resource_id": self.resource_id,
+                "demand": self.demand,
+                "served_demand": served,
+                "unserved_demand": unserved,
+            },
+            evidence_level=self.evidence_level,
+            model_name=self.name,
+        )

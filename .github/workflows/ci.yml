@@ -10,76 +10,355 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   lint:
-    name: Lint & Format Check
+    name: Lint Check (Ruff)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: "3.11"
-      - name: Install Ruff
-        run: pip install ruff
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
       - name: Run Ruff Lint
-        run: ruff check src tests examples
+        run: uv run ruff check src tests examples
+
+  format-check:
+    name: Formatting Check (Ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
       - name: Run Ruff Format Check
-        run: ruff format --check src tests examples
+        run: uv run ruff format --check src tests examples
 
   type-check:
-    name: Strict Type Checking
+    name: Type Check (Mypy Strict)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: "3.11"
-          cache: "pip"
-      - name: Install Package & Dev Dependencies
-        run: pip install -e ".[dev]"
-      - name: Run Mypy
-        run: mypy src tests
 
-  test:
-    name: Tests (${{ matrix.python-version }} on ${{ matrix.os }})
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Mypy
+        run: uv run mypy src tests
+
+  unit-tests:
+    name: Unit Tests (${{ matrix.python-version }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
-      - name: Install Package & Dev Dependencies
-        run: pip install -e ".[dev]"
-      - name: Run Pytest with Coverage
-        run: pytest --cov=ewm_engine --cov-report=xml --cov-report=term-missing
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Unit Tests with Coverage
+        run: uv run pytest tests/unit --cov=ewm_engine --cov-report=xml --cov-report=term-missing
+
+      - name: Enforce Coverage Quality Gate (>=85% overall, >=90% core areas)
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        run: uv run python scripts/check_coverage.py
+
+      - name: Verify Core Installs Without Extras (AC-019 Gate)
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        run: |
+          uv venv /tmp/clean_core_env
+          uv pip install --python /tmp/clean_core_env/bin/python .
+          /tmp/clean_core_env/bin/python -c "import ewm_engine; from ewm_engine import World, WorldState; print('Core install OK:', ewm_engine.__version__)"
+
       - name: Upload Coverage Artifact
-        if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: coverage-report
           path: coverage.xml
 
-  package-build:
-    name: Package Build Verification
+  property-tests:
+    name: Property-Based Tests (Hypothesis)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: "3.11"
-      - name: Install Build Tools
-        run: pip install build twine
-      - name: Build Wheel & Source Distribution
-        run: python -m build
-      - name: Verify Package Metadata
-        run: twine check dist/*
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Property Tests
+        run: uv run pytest tests/property
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Integration Tests
+        run: uv run pytest tests/integration
+
+  contract-tests:
+    name: Contract & Packaging Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Contract Tests
+        run: uv run pytest tests/contract
+
+  security-tests:
+    name: Security Tests & Credential Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Security Tests
+        run: uv run pytest tests/security
+
+  example-tests:
+    name: Acceptance Example Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Example Tests
+        run: uv run pytest tests/examples
+
+  architecture-tests:
+    name: Architecture & Import Boundary Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Architecture Tests
+        run: uv run pytest tests/architecture
+
+  package-build:
+    name: Package Build & Wheel Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.11"
+
+      - name: Install build & dev dependencies
+        run: uv sync --extra dev
+
+      - name: Build distributions with python -m build
+        run: uv run python -m build
+
+      - name: Verify package metadata with twine check
+        run: uv run twine check dist/*
+
+      - name: Run wheel installation & quickstart smoke test (AC-016/021)
+        run: uv run pytest tests/contract/test_packaging.py -k test_wheel_install_and_quickstart_smoke
+
+  docs-build:
+    name: Documentation Build (Strict Mode)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.11"
+
+      - name: Install documentation dependencies
+        run: uv sync --extra docs
+
+      - name: Build Documentation (Strict)
+        run: uv run mkdocs build --strict
+
+  ci-gates:
+    name: All CI Quality Gates Passed
+    if: always()
+    needs:
+      - lint
+      - format-check
+      - type-check
+      - unit-tests
+      - property-tests
+      - integration-tests
+      - contract-tests
+      - security-tests
+      - example-tests
+      - architecture-tests
+      - package-build
+      - docs-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate Gates
+        run: |
+          failures=()
+          for job in lint format-check type-check unit-tests property-tests integration-tests contract-tests security-tests example-tests architecture-tests package-build docs-build; do
+            result="${{ needs.lint.result }}" # template
+          done
+          echo "Checking status of all required quality gates..."
+          if [[ "${{ needs.lint.result }}" != "success" ]]; then failures+=("lint"); fi
+          if [[ "${{ needs.format-check.result }}" != "success" ]]; then failures+=("format-check"); fi
+          if [[ "${{ needs.type-check.result }}" != "success" ]]; then failures+=("type-check"); fi
+          if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then failures+=("unit-tests"); fi
+          if [[ "${{ needs.property-tests.result }}" != "success" ]]; then failures+=("property-tests"); fi
+          if [[ "${{ needs.integration-tests.result }}" != "success" ]]; then failures+=("integration-tests"); fi
+          if [[ "${{ needs.contract-tests.result }}" != "success" ]]; then failures+=("contract-tests"); fi
+          if [[ "${{ needs.security-tests.result }}" != "success" ]]; then failures+=("security-tests"); fi
+          if [[ "${{ needs.example-tests.result }}" != "success" ]]; then failures+=("example-tests"); fi
+          if [[ "${{ needs.architecture-tests.result }}" != "success" ]]; then failures+=("architecture-tests"); fi
+          if [[ "${{ needs.package-build.result }}" != "success" ]]; then failures+=("package-build"); fi
+          if [[ "${{ needs.docs-build.result }}" != "success" ]]; then failures+=("docs-build"); fi
+
+          if [ ${#failures[@]} -ne 0 ]; then
+            echo "CI Gate Check FAILED! Failed jobs: ${failures[*]}"
+            exit 1
+          fi
+          echo "All 12 CI quality gates passed successfully."

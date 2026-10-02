@@ -3,17 +3,18 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
 from ewm_engine.constraints.results import ConstraintResult, ConstraintSeverity
 from ewm_engine.core.actions import Action
 from ewm_engine.core.events import ExogenousEvent
 from ewm_engine.core.state import WorldState
 from ewm_engine.dynamics.base import TransitionResult
-from ewm_engine.provenance.metadata import SimulationMetadata
+from ewm_engine.provenance.metadata import Provenance
 from ewm_engine.provenance.trace import SystemicTrace
+from ewm_engine.simulation.metrics import RunMetrics
 from ewm_engine.simulation.scenario import Scenario
 
 if TYPE_CHECKING:
@@ -50,8 +51,41 @@ class TrajectoryStatus(StrEnum):
     FAILED = "failed"
 
 
-class Trajectory:
+class Trajectory(BaseModel):
     """An individual rollout path generated during a Monte Carlo simulation run."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: str = Field(default="1.0.0", description="Semantic schema version.")
+    sample_id: int = Field(description="Sample identifier.")
+    seed: int = Field(description="RNG seed used for this rollout.")
+    initial_state: WorldState = Field(description="Starting world state.")
+    status: TrajectoryStatus = Field(
+        default=TrajectoryStatus.COMPLETED,
+        description="Terminal or execution status of the trajectory.",
+    )
+    steps: list[StepRecord] = Field(
+        default_factory=list,
+        description="Sequence of executed simulation steps.",
+    )
+    systemic_trace: SystemicTrace = Field(
+        default_factory=SystemicTrace,
+        description="Systemic dependency and causal trace graph.",
+    )
+    final_state: WorldState = Field(
+        description="The final state reached at the end of the trajectory.",
+    )
+
+    _finalized: bool = PrivateAttr(default=False)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _set_default_final_state(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "final_state" not in data or data["final_state"] is None:
+                if "initial_state" in data:
+                    data["final_state"] = data["initial_state"]
+        return data
 
     def __init__(
         self,
@@ -60,30 +94,31 @@ class Trajectory:
         initial_state: WorldState,
         systemic_trace: SystemicTrace | None = None,
         status: TrajectoryStatus = TrajectoryStatus.COMPLETED,
+        steps: list[StepRecord] | None = None,
+        final_state: WorldState | None = None,
+        schema_version: str = "1.0.0",
+        **kwargs: Any,
     ) -> None:
-        self.sample_id = sample_id
-        self.seed = seed
-        self.initial_state = initial_state
-        self._status: TrajectoryStatus = status
-        self.steps: list[StepRecord] = []
-        self.systemic_trace: SystemicTrace = systemic_trace or SystemicTrace()
-        self._final_state: WorldState = initial_state
-        self._finalized: bool = False
+        super().__init__(
+            schema_version=schema_version,
+            sample_id=sample_id,
+            seed=seed,
+            initial_state=initial_state,
+            systemic_trace=systemic_trace if systemic_trace is not None else SystemicTrace(),
+            status=status,
+            steps=steps or [],
+            final_state=final_state if final_state is not None else initial_state,
+            **kwargs,
+        )
 
-    @property
-    def status(self) -> TrajectoryStatus:
-        """Terminal or execution status of the trajectory."""
-        return self._status
-
-    @status.setter
-    def status(self, val: TrajectoryStatus) -> None:
-        if self._finalized:
-            raise RuntimeError("Cannot modify status of a finalized Trajectory.")
-        self._status = val
+    def __setattr__(self, name: str, value: Any) -> None:
+        if getattr(self, "_finalized", False) and name in {"status", "steps", "final_state"}:
+            raise RuntimeError(f"Cannot modify {name} of a finalized Trajectory.")
+        super().__setattr__(name, value)
 
     def finalize(self) -> None:
         """Lock the trajectory to make its status and state immutable after rollout completion."""
-        self._finalized = True
+        object.__setattr__(self, "_finalized", True)
 
     @property
     def is_finalized(self) -> bool:
@@ -100,14 +135,9 @@ class Trajectory:
         if self._finalized:
             raise RuntimeError("Cannot append step to a finalized Trajectory.")
         self.steps.append(step_record)
-        self._final_state = resulting_state
+        object.__setattr__(self, "final_state", resulting_state)
         if status is not None:
-            self._status = status
-
-    @property
-    def final_state(self) -> WorldState:
-        """The final state reached at the end of the trajectory."""
-        return self._final_state
+            object.__setattr__(self, "status", status)
 
     @property
     def total_violations(self) -> int:
@@ -141,12 +171,52 @@ class SimulationResult:
     def __init__(
         self,
         scenario: Scenario,
-        metadata: SimulationMetadata,
-        trajectories: list[Trajectory],
+        provenance: Provenance | None = None,
+        trajectories: list[Trajectory] | None = None,
+        *,
+        metadata: Provenance | None = None,
+        run_metrics: RunMetrics | None = None,
     ) -> None:
         self.scenario = scenario
-        self.metadata = metadata
-        self.trajectories = trajectories
+        actual_provenance = provenance if provenance is not None else metadata
+        if actual_provenance is None:
+            raise ValueError(
+                "SimulationResult requires a valid Provenance or SimulationMetadata instance."
+            )
+        self.provenance: Provenance = actual_provenance
+        self.metadata: Provenance = actual_provenance
+        self.trajectories: list[Trajectory] = trajectories or []
+        if run_metrics is not None:
+            self.run_metrics: RunMetrics = run_metrics
+        else:
+            hard_violations = sum(
+                sum(1 for v in s.constraint_violations if v.severity == ConstraintSeverity.HARD)
+                for t in self.trajectories
+                for s in t.steps
+            )
+            soft_violations = sum(
+                sum(1 for v in s.constraint_violations if v.severity == ConstraintSeverity.SOFT)
+                for t in self.trajectories
+                for s in t.steps
+            )
+            dyn_transitions = sum(
+                sum(1 for s in t.steps if s.transition_result is not None)
+                for t in self.trajectories
+            )
+            total_edges = sum(len(t.systemic_trace.edges) for t in self.trajectories)
+            total_steps = sum(len(t.steps) for t in self.trajectories)
+            self.run_metrics = RunMetrics(
+                simulation_duration_seconds=0.0,
+                rollout_count=len(self.trajectories),
+                completed_rollout_count=self.completed_count,
+                invalid_rollout_count=self.invalid_count,
+                step_count=total_steps,
+                constraint_evaluation_count=hard_violations + soft_violations,
+                hard_violation_count=hard_violations,
+                soft_violation_count=soft_violations,
+                dynamics_transition_count=dyn_transitions,
+                trace_edge_count=total_edges,
+            )
 
     @property
     def completed_count(self) -> int:

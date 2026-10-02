@@ -1,7 +1,8 @@
 # CivicFlow Flagship Simulation Walkthrough
 
-> **RESEARCH DISCLAIMER**  
-> CivicFlow is an academic and computational research simulation. It is NOT certified for operational emergency-management deployment.
+> **RESEARCH & EDUCATIONAL DISCLAIMER**  
+> CivicFlow is an academic and computational research simulation. It is **not an operational emergency-response system** and is not certified for operational emergency-management deployment.
+> The numerical outcomes and policy comparisons are normative **only** for the synthetic `tiny_flood_v1` benchmark fixture; they do not establish real-world policy superiority. The model addresses logistical allocation only, with no medical-treatment decisions.
 
 ---
 

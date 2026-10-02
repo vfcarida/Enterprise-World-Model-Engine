@@ -1,0 +1,202 @@
+{
+  "$defs": {
+    "Entity": {
+      "additionalProperties": false,
+      "description": "Represents an autonomous, structural, or physical object participating in the world.\n\nEntities represent actors, physical facilities, geographic regions, vehicles,\nsuppliers, or any discrete organizational participant.",
+      "properties": {
+        "attributes": {
+          "additionalProperties": true,
+          "description": "Immutable property map associated with this entity.",
+          "title": "Attributes",
+          "type": "object"
+        },
+        "id": {
+          "description": "Unique entity identifier.",
+          "title": "Id",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Categorical tags for grouping and querying entities.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "type": {
+          "description": "Domain-specific entity classification (e.g., 'warehouse', 'hospital').",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "Entity",
+      "type": "object"
+    },
+    "Relationship": {
+      "additionalProperties": false,
+      "description": "Represents a directed, typed relational edge between two entities.\n\nModels structural, logistical, dependency, or jurisdictional relations\n(e.g., 'supplies', 'depends_on', 'connected_to', 'serves').",
+      "properties": {
+        "attributes": {
+          "additionalProperties": true,
+          "description": "Attributes associated with this relation (e.g., distance, bandwidth).",
+          "title": "Attributes",
+          "type": "object"
+        },
+        "source": {
+          "description": "Source entity identifier.",
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "description": "Target entity identifier.",
+          "title": "Target",
+          "type": "string"
+        },
+        "type": {
+          "description": "Relation type identifier.",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "type"
+      ],
+      "title": "Relationship",
+      "type": "object"
+    },
+    "Resource": {
+      "additionalProperties": false,
+      "description": "Represents a finite, bounded, or measurable quantity in the enterprise.\n\nModels physical stock, vehicle fleets, operational budgets, bed capacities,\nworkforce hours, or bandwidth.",
+      "properties": {
+        "current": {
+          "description": "Current quantity or stock of the resource.",
+          "title": "Current",
+          "type": "number"
+        },
+        "description": {
+          "default": "",
+          "description": "Descriptive metadata for the resource.",
+          "title": "Description",
+          "type": "string"
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional entity ID owning or hosting this resource.",
+          "title": "Entity Id"
+        },
+        "id": {
+          "description": "Unique identifier for the resource.",
+          "title": "Id",
+          "type": "string"
+        },
+        "max_value": {
+          "default": Infinity,
+          "description": "Maximum capacity or upper bound limit.",
+          "title": "Max Value",
+          "type": "number"
+        },
+        "min_value": {
+          "default": 0.0,
+          "description": "Minimum allowable lower bound.",
+          "title": "Min Value",
+          "type": "number"
+        },
+        "unit": {
+          "default": "",
+          "description": "Measurement unit (e.g., 'units', 'liters', 'hours').",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "current"
+      ],
+      "title": "Resource",
+      "type": "object"
+    }
+  },
+  "$id": "https://ewm-engine.org/schemas/v1/world-state.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Canonical representation of the enterprise or ecosystem state at a point in time.\n\nFormal Conceptual Representation:\n    S_t = (G_t, R_t, M_t, \\Gamma_t, C_t)\nwhere:\n    G_t = Entities and typed relationships\n    R_t = Measurable finite resources and capacities\n    M_t = Temporal memory and operational history\n    \\Gamma_t = Active operational rules and policy parameters\n    C_t = Exogenous and environmental context\n\nWorldState is immutable (frozen=True), branchable, serializable, and auditable.",
+  "properties": {
+    "active_rules": {
+      "additionalProperties": true,
+      "description": "Active policy parameters, operational thresholds, and rule flags.",
+      "title": "Active Rules",
+      "type": "object"
+    },
+    "context": {
+      "additionalProperties": true,
+      "description": "Environmental, economic, or meteorological context variables.",
+      "title": "Context",
+      "type": "object"
+    },
+    "entities": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Entity"
+      },
+      "description": "Active participating entities keyed by EntityId.",
+      "title": "Entities",
+      "type": "object"
+    },
+    "memory": {
+      "additionalProperties": true,
+      "description": "Relevant temporal memory, running statistics, or history lags.",
+      "title": "Memory",
+      "type": "object"
+    },
+    "relationships": {
+      "description": "Immutable sequence of directed relational edges between entities.",
+      "items": {
+        "$ref": "#/$defs/Relationship"
+      },
+      "title": "Relationships",
+      "type": "array"
+    },
+    "resources": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Resource"
+      },
+      "description": "Finite or measurable resources keyed by ResourceId.",
+      "title": "Resources",
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Semantic schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "step": {
+      "default": 0,
+      "description": "Discrete simulation step index.",
+      "title": "Step",
+      "type": "integer"
+    },
+    "timestamp": {
+      "default": 0.0,
+      "description": "Continuous simulation time.",
+      "title": "Timestamp",
+      "type": "number"
+    }
+  },
+  "title": "WorldState",
+  "type": "object"
+}

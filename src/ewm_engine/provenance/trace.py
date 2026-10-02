@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ewm_engine.provenance.evidence import EvidenceLevel
 
@@ -37,11 +37,23 @@ class TraceEdge(BaseModel):
 
     source: str = Field(description="Origin node ID.")
     target: str = Field(description="Destination node ID.")
+    step: int = Field(default=0, description="Simulation step at which this edge occurred.")
     relation: str = Field(default="influences", description="Nature of relationship.")
     evidence_level: EvidenceLevel = Field(
-        default=EvidenceLevel.STRUCTURAL,
+        default=EvidenceLevel.ASSUMED,
         description="Epistemic standing of this dependency link.",
     )
+
+    @field_validator("relation")
+    @classmethod
+    def _reject_causes_relation(cls, v: str) -> str:
+        if v.strip().lower() == "causes":
+            raise ValueError(
+                "TraceEdge relation 'causes' is forbidden. EWM Engine systemic traces capture "
+                "mechanistic dependencies, not unverified causal claims. Use descriptive structural "
+                "relations (e.g. 'influences', 'drives', 'perturbs', 'conditions', 'rejects', 'leads_to_violation')."
+            )
+        return v
 
 
 class SystemicTrace(BaseModel):
@@ -80,13 +92,28 @@ class SystemicTrace(BaseModel):
         self,
         source: str,
         target: str,
+        step: int | None = None,
         relation: str = "influences",
-        evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL,
+        evidence_level: EvidenceLevel = EvidenceLevel.ASSUMED,
     ) -> TraceEdge:
-        """Record a directed dependency edge in the systemic trace."""
+        """Record a directed dependency edge in the systemic trace.
+
+        Validates that both source and target reference existing nodes in the trace.
+        """
+        if source not in self.nodes:
+            raise ValueError(
+                f"Cannot add trace edge: source node '{source}' does not exist in systemic trace."
+            )
+        if target not in self.nodes:
+            raise ValueError(
+                f"Cannot add trace edge: target node '{target}' does not exist in systemic trace."
+            )
+
+        edge_step = step if step is not None else self.nodes[target].step
         edge = TraceEdge(
             source=source,
             target=target,
+            step=edge_step,
             relation=relation,
             evidence_level=evidence_level,
         )
@@ -130,6 +157,7 @@ class SystemicTrace(BaseModel):
             graph.add_edge(
                 edge.source,
                 edge.target,
+                step=edge.step,
                 relation=edge.relation,
                 evidence_level=edge.evidence_level.value,
             )

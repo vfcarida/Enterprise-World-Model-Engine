@@ -77,8 +77,23 @@ To ensure high scientific credibility, architectural integrity, and reproducibil
 
 ---
 
-## 5. Submitting Pull Requests
+## 5. Stability Policy & API Change Proposals
+
+EWM Engine adheres strictly to Semantic Versioning (SemVer 2.0.0) across the `1.x` release series. See [docs/stability-policy.md](docs/stability-policy.md) for full policy details.
+
+If you propose to:
+- Add a new symbol to `ewm_engine.__all__`,
+- Modify public method parameters or signatures,
+- Deprecate an existing capability, or
+- Modify persisted model fields or serialization schemas:
+
+You **must** submit an **API Change Proposal (ACP)** using the template at [`.github/API_CHANGE_PROPOSAL.md`](.github/API_CHANGE_PROPOSAL.md) and receive maintainer approval before implementation. Automated contract tests (`tests/contract/test_api_compatibility.py`, AC-024) enforce that unauthorized API drift fails in CI.
+
+---
+
+## 6. Submitting Pull Requests
 
 1. Fork the repository and create your feature branch: `git checkout -b feature/my-feature`.
 2. Ensure all tests, lint checks, and type checks pass.
 3. Submit a Pull Request targeting the `main` branch using the provided [Pull Request Template](.github/PULL_REQUEST_TEMPLATE.md).
+

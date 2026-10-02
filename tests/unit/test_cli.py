@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from ewm_engine import __version__
 from ewm_engine.cli.main import main
 
 
@@ -13,7 +14,7 @@ def test_cli_version(capsys: pytest.CaptureFixture[str]) -> None:
         main(["--version"])
     assert excinfo.value.code == 0
     captured = capsys.readouterr()
-    assert "ewm-engine 0.1.0" in captured.out
+    assert f"ewm-engine {__version__}" in captured.out
 
 
 def test_cli_help(capsys: pytest.CaptureFixture[str]) -> None:

@@ -59,3 +59,11 @@ class BranchingError(EWMError):
 
 class ProvenanceError(EWMError):
     """Raised when provenance tracking or causal evidence metadata is inconsistent."""
+
+
+class SerializationError(SimulationConfigurationError):
+    """Raised when serialization or deserialization fails."""
+
+
+class SerializationSecurityError(SerializationError):
+    """Raised when an unsafe serialization or deserialization operation is detected."""

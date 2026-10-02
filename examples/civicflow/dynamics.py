@@ -15,8 +15,13 @@ from ewm_engine.provenance.evidence import EvidenceLevel
 class FloodHydrologyDynamics:
     """Models rainfall accumulation, river stage rise, and road inundation thresholds."""
 
-    def __init__(self, name: str = "FloodHydrologyDynamics") -> None:
+    def __init__(
+        self,
+        name: str = "FloodHydrologyDynamics",
+        evidence_level: EvidenceLevel = EvidenceLevel.PREDICTIVE,
+    ) -> None:
         self.name = name
+        self.evidence_level = evidence_level
 
     def transition(
         self,
@@ -30,13 +35,13 @@ class FloodHydrologyDynamics:
 
         # 1. Process exogenous weather shocks
         for ev in exogenous_events:
-            if ev.type == "rainfall_surge":
+            if ev.type in ("rainfall_surge", "rainfall_increase"):
                 surge_delta = float(ev.get("rain_increase_mm_h", 10.0))
                 current_rain += surge_delta
 
         # Stochastic fluctuation around rainfall rate
         actual_rain = max(0.0, current_rain + float(rng.normal(0.0, 2.0)))
-        # Hydrological runoff relation: delta river = 0.04 * rain - base_discharge
+        # Hydrological runoff relation: delta river = 0.035 * rain - base_discharge
         river_delta = (0.035 * actual_rain) - 0.2
         next_river = max(1.5, current_river + river_delta)
 
@@ -56,7 +61,7 @@ class FloodHydrologyDynamics:
                 "river_stage_m": next_river,
                 "road_C1_status": road_status,
             },
-            evidence_level=EvidenceLevel.STRUCTURAL,
+            evidence_level=self.evidence_level,
             diagnostics={"inundated": c1_closed},
             model_name=self.name,
         )
@@ -65,8 +70,13 @@ class FloodHydrologyDynamics:
 class DisasterReliefLogisticsDynamics:
     """Models supply transfers, road connectivity, evacuee consumption, and unmet demand."""
 
-    def __init__(self, name: str = "DisasterReliefLogisticsDynamics") -> None:
+    def __init__(
+        self,
+        name: str = "DisasterReliefLogisticsDynamics",
+        evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL,
+    ) -> None:
         self.name = name
+        self.evidence_level = evidence_level
 
     def transition(
         self,
@@ -81,24 +91,53 @@ class DisasterReliefLogisticsDynamics:
         total_water_moved = 0.0
         road_c1_status = current_state.memory.get("road_C1_status", "open")
 
-        # 1. Process supply dispatch actions
+        # 0. Process exogenous demand shocks
+        for ev in exogenous_events:
+            if ev.type == "demand_shock":
+                shlt = str(ev.get("shelter_id", "shelter_s2"))
+                evac_increase = float(ev.get("evacuees", 20.0))
+                occ_id = f"occupancy_{shlt}"
+                if occ_id in current_state.resources:
+                    current_state = current_state.update_resource(occ_id, delta=evac_increase)
+
+        # 1. Process supply dispatch, reroute, and transfer actions
         for act in actions:
-            if act.type != "dispatch_relief":
+            if act.type == "open_shelter":
                 continue
 
-            depot = str(act.get("source_depot"))
-            shelter = str(act.get("target_shelter"))
+            if act.type not in (
+                "dispatch_relief",
+                "dispatch_vehicle",
+                "reroute_delivery",
+                "transfer_supply",
+            ):
+                continue
+
+            depot = str(act.get("source_depot", "depot_valley"))
+            shelter = str(act.get("target_shelter", "shelter_s1"))
             rations = max(0.0, float(act.get("rations", 0.0)))
             water = max(0.0, float(act.get("water", 0.0)))
 
-            # If targeting shelter_s2 via coastal route and road C1 is closed, dispatch fails
-            if shelter == "shelter_s2" and road_c1_status == "closed":
+            # If targeting shelter_s2 via coastal route and road C1 is closed (and not rerouting), dispatch fails
+            if (
+                shelter == "shelter_s2"
+                and road_c1_status == "closed"
+                and act.type != "reroute_delivery"
+            ):
                 continue
 
             depot_rat_id = f"rations_{depot}"
             depot_wat_id = f"water_{depot}"
             shlt_rat_id = f"rations_{shelter}"
             shlt_wat_id = f"water_{shelter}"
+
+            if (
+                depot_rat_id not in current_state.resources
+                or depot_wat_id not in current_state.resources
+                or shlt_rat_id not in current_state.resources
+                or shlt_wat_id not in current_state.resources
+            ):
+                continue
 
             depot_rat = current_state.get_resource(depot_rat_id)
             depot_wat = current_state.get_resource(depot_wat_id)
@@ -123,7 +162,10 @@ class DisasterReliefLogisticsDynamics:
         total_step_unmet_water = 0.0
 
         for s_idx in ["s1", "s2", "s3"]:
-            occupancy = current_state.get_resource(f"occupancy_shelter_{s_idx}").current
+            occ_res = current_state.resources.get(f"occupancy_shelter_{s_idx}")
+            if occ_res is None:
+                continue
+            occupancy = occ_res.current
             dem_rations = occupancy * float(
                 current_state.active_rules.get("ration_per_evacuee_per_step", 1.0)
             )
@@ -153,12 +195,17 @@ class DisasterReliefLogisticsDynamics:
         prior_unmet_rat = float(current_state.memory.get("cumulative_unserved_rations", 0.0))
         prior_unmet_wat = float(current_state.memory.get("cumulative_unserved_water", 0.0))
 
+        cumulative_unserved_rations = prior_unmet_rat + total_step_unmet_rations
+        cumulative_unserved_water = prior_unmet_wat + total_step_unmet_water
+        total_unserved_demand = cumulative_unserved_rations + cumulative_unserved_water
+
         current_state = current_state.with_memory(
-            "cumulative_unserved_rations", prior_unmet_rat + total_step_unmet_rations
+            "cumulative_unserved_rations", cumulative_unserved_rations
         )
         current_state = current_state.with_memory(
-            "cumulative_unserved_water", prior_unmet_wat + total_step_unmet_water
+            "cumulative_unserved_water", cumulative_unserved_water
         )
+        current_state = current_state.with_memory("unserved_demand", total_unserved_demand)
 
         return TransitionResult(
             next_state=current_state,
@@ -168,7 +215,8 @@ class DisasterReliefLogisticsDynamics:
                 "water_moved": total_water_moved,
                 "step_unserved_rations": total_step_unmet_rations,
                 "step_unserved_water": total_step_unmet_water,
+                "unserved_demand": total_unserved_demand,
             },
-            evidence_level=EvidenceLevel.STRUCTURAL,
+            evidence_level=self.evidence_level,
             model_name=self.name,
         )

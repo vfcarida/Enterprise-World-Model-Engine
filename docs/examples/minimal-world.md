@@ -19,7 +19,7 @@ flowchart LR
         DEMAND["Stochastic Demand N(18, 3)"]
     end
 
-    subgraph Branching["Counterfactual Branching"]
+    subgraph Branching["Scenario Branching"]
         BASE["Policy: Status Quo (No Transfers)"]
         PRO["Policy: Proactive Threshold Transfer"]
     end
@@ -69,7 +69,7 @@ dynamics = CompositeDynamics(
 base_world = World(state=state, dynamics=dynamics, constraints=constraints)
 ```
 
-### 3. Simulating and Comparing Counterfactuals
+### 3. Simulating and Comparing Scenario Branches
 ```python
 # Baseline
 res_base = base_world.simulate(

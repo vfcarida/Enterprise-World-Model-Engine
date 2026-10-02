@@ -27,8 +27,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     example_parser = subparsers.add_parser("example", help="Run a reference simulation example")
     example_parser.add_argument(
         "name",
-        choices=["minimal", "civicflow"],
-        help="Name of example to run ('minimal' or 'civicflow')",
+        choices=["minimal", "minimal_warehouse", "minimal_world", "civicflow"],
+        help="Name of example to run ('minimal', 'minimal_warehouse', 'civicflow')",
     )
 
     args = parser.parse_args(argv)
@@ -43,16 +43,25 @@ def main(argv: Sequence[str] | None = None) -> int:
         if str(cwd) not in sys.path:
             sys.path.insert(0, str(cwd))
 
-        if args.name == "minimal":
+        if args.name in ("minimal", "minimal_warehouse"):
+            from examples.minimal_warehouse.run import run_minimal_warehouse
+
+            sys.stdout.write("Running Minimal Warehouse Example...\n\n")
+            sys.stdout.flush()
+            run_minimal_warehouse()
+            return 0
+        elif args.name == "minimal_world":
             from examples.minimal_world.run import run_minimal_world
 
-            print("Running Minimal Supply World Example...\n")
+            sys.stdout.write("Running Minimal Supply World Example...\n\n")
+            sys.stdout.flush()
             run_minimal_world()
             return 0
         elif args.name == "civicflow":
             from examples.civicflow.run import run_civicflow_simulation
 
-            print("Running CivicFlow Flood Response Example...\n")
+            sys.stdout.write("Running CivicFlow Flood Response Example...\n\n")
+            sys.stdout.flush()
             run_civicflow_simulation()
             return 0
 

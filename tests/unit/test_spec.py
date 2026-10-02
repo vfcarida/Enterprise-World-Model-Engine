@@ -48,13 +48,16 @@ resources:
 
 constraints:
   - type: "capacity"
-    resource_id: "pallets_alpha"
-    severity: "hard"
+    parameters:
+      resource_id: "pallets_alpha"
+      severity: "hard"
   - type: "non_negative"
-    resource_id: "pallets_beta"
-    severity: "hard"
+    parameters:
+      resource_id: "pallets_beta"
+      severity: "hard"
   - type: "transfer_availability"
-    severity: "hard"
+    parameters:
+      severity: "hard"
 """
 
 
@@ -109,7 +112,8 @@ def test_world_specification_errors() -> None:
     bad_constraint_yaml = """
     constraints:
       - type: "quantum_entanglement"
-        resource_id: "r1"
+        parameters:
+          resource_id: "r1"
     """
     bad_spec = WorldSpecification.from_yaml(bad_constraint_yaml)
     with pytest.raises(SimulationConfigurationError, match="Unknown constraint type"):

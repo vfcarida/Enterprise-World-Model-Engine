@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from pydantic import ValidationError
 
@@ -186,3 +188,119 @@ def test_world_initialization_signatures_and_simulate_alias(
     result = engine.simulate(world=world, scenario=scenario)
     assert len(result.trajectories) == 1
     assert len(result.trajectories[0].steps) == 2
+
+
+def test_world_methods_and_branching(sample_world_state: WorldState) -> None:
+    """Test World validation, builders, snapshot, branching, and direct simulate."""
+    from ewm_engine.constraints.standard import ResourceCapacityConstraint
+    from ewm_engine.core.actions import Intervention
+    from ewm_engine.core.world import World
+
+    # 1. Invalid initialization without state
+    with pytest.raises(InvalidWorldStateError):
+        World(state=None, initial_state=None)
+
+    world = World(state=sample_world_state)
+    assert world.snapshot().state_hash == sample_world_state.state_hash
+
+    # 2. Add constraint, event source, actor
+    c = ResourceCapacityConstraint(resource_id="iron_ore")
+    world.add_constraint(c)
+    assert len(world.constraints) == 1
+
+    class SimpleEventSource:
+        name = "SimpleEventSource"
+        version = "1.0.0"
+
+        def sample(self, state: Any, step: int, rng: Any) -> list[ExogenousEvent]:
+            return []
+
+    ev_src = SimpleEventSource()
+    world.add_event_source(ev_src)
+    assert len(world.event_sources) == 1
+
+    class SimpleActor:
+        actor_id = "test_actor"
+        version = "1.0.0"
+
+        def act(self, state: Any, context: Any) -> list[Action]:
+            return []
+
+    actor = SimpleActor()
+    world.add_actor(actor)
+    assert len(world.actors) == 1
+
+    # 3. Branching
+    branched = world.branch()
+    assert branched.initial_state.state_hash == world.initial_state.state_hash
+    assert len(branched.event_sources) == 1
+    assert len(branched.actors) == 1
+
+    # 4. Direct simulate without scenario (default scenario created)
+    res_default = world.simulate(horizon=1, samples=1, seed=99)
+    assert len(res_default.trajectories) == 1
+
+    # 5. Direct simulate with intervention
+    interv = Intervention(id="boost", description="boost stock")
+    res_interv = world.simulate(intervention=interv, horizon=1, samples=1, seed=99)
+    assert res_interv.scenario.intervention is not None
+    assert res_interv.scenario.intervention.id == "boost"
+
+
+def test_world_state_builders_and_relationship_queries(sample_world_state: WorldState) -> None:
+    """Test WorldState immutable builder methods and relationship filtering."""
+    # with_entity
+    new_ent = Entity(id="new_node", type="hub")
+    s2 = sample_world_state.with_entity(new_ent)
+    assert "new_node" in s2.entities
+    assert "new_node" not in sample_world_state.entities
+
+    # with_relationship
+    new_rel = Relationship(source="new_node", target="factory_alpha", type="connects")
+    s3 = s2.with_relationship(new_rel)
+    assert len(s3.relationships) == len(sample_world_state.relationships) + 1
+
+    # get_relationships filtering
+    rels_by_src = s3.get_relationships(source="new_node")
+    assert len(rels_by_src) == 1
+    assert rels_by_src[0].type == "connects"
+
+    rels_by_tgt = s3.get_relationships(target="factory_alpha")
+    assert len(rels_by_tgt) >= 1
+
+    rels_by_type = s3.get_relationships(type="supplies")
+    assert all(r.type == "supplies" for r in rels_by_type)
+
+    # with_memory and with_context
+    s4 = s3.with_memory("last_run", 1234).with_context("mode", "strict")
+    assert s4.memory["last_run"] == 1234
+    assert s4.context["mode"] == "strict"
+    assert "last_run" not in sample_world_state.memory
+
+
+def test_resource_edge_cases_and_clamping() -> None:
+    """Test Resource utilization and delta bounds clamping."""
+    # Infinite max value
+    r_inf = Resource(id="unbounded", current=50.0, max_value=float("inf"))
+    assert r_inf.utilization == 0.0
+    assert r_inf.available_capacity == float("inf")
+
+    # Degenerate bounds (capacity <= 0.0)
+    r_zero = Resource(id="fixed", current=10.0, min_value=10.0, max_value=10.0)
+    assert r_zero.utilization == 1.0
+
+    # with_delta with clamp
+    r_clamped = Resource(id="bounded", current=90.0, min_value=0.0, max_value=100.0)
+    r_over = r_clamped.with_delta(50.0, clamp=True)
+    assert r_over.current == 100.0
+
+    # with_delta enforce_bounds
+    with pytest.raises(ResourceBoundsError):
+        r_clamped.with_delta(50.0, enforce_bounds=True)
+
+    # with_value with clamp and bounds
+    r_val_clamped = r_clamped.with_value(150.0, clamp=True)
+    assert r_val_clamped.current == 100.0
+
+    with pytest.raises(ResourceBoundsError):
+        r_clamped.with_value(150.0, enforce_bounds=True)

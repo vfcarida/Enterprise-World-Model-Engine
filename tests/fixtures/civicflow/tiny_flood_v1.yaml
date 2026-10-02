@@ -1,0 +1,217 @@
+schema_version: "1.0.0"
+
+world:
+  name: "tiny_flood_v1"
+  description: "Synthetic CivicFlow Flood Acceptance Fixture (AC-013). RESEARCH ONLY."
+  step: 0
+  timestamp: 0.0
+  memory:
+    river_stage_meters: 3.2
+    rainfall_rate_mm_h: 15.0
+    road_C1_status: "open"
+    cumulative_unserved_rations: 0.0
+    cumulative_unserved_water: 0.0
+    unserved_demand: 0.0
+  context:
+    weather_warning: "level_3_flood_watch"
+    disclaimer: "RESEARCH ONLY - NOT CERTIFIED FOR OPERATIONAL EMERGENCY RESPONSE"
+
+entities:
+  # Regions
+  - id: "region_upland"
+    type: "region"
+    attributes:
+      elevation_m: 120.0
+      risk_tier: "low"
+  - id: "region_valley"
+    type: "region"
+    attributes:
+      elevation_m: 45.0
+      risk_tier: "high"
+  - id: "region_coastal"
+    type: "region"
+    attributes:
+      elevation_m: 8.0
+      risk_tier: "critical"
+
+  # Roads
+  - id: "road_H1"
+    type: "road"
+    attributes:
+      status: "open"
+      elevation: "high"
+  - id: "road_A1"
+    type: "road"
+    attributes:
+      status: "open"
+      elevation: "medium"
+  - id: "road_C1"
+    type: "road"
+    attributes:
+      status: "open"
+      elevation: "low"
+      flood_prone: true
+  - id: "road_R3"
+    type: "road"
+    attributes:
+      status: "open"
+      elevation: "high"
+
+  # Warehouses
+  - id: "depot_central"
+    type: "warehouse"
+    attributes:
+      zone: "region_upland"
+  - id: "depot_valley"
+    type: "warehouse"
+    attributes:
+      zone: "region_valley"
+
+  # Shelters
+  - id: "shelter_s1"
+    type: "shelter"
+    attributes:
+      zone: "region_valley"
+      max_beds: 150.0
+  - id: "shelter_s2"
+    type: "shelter"
+    attributes:
+      zone: "region_coastal"
+      max_beds: 200.0
+  - id: "shelter_s3"
+    type: "shelter"
+    attributes:
+      zone: "region_coastal"
+      max_beds: 100.0
+
+  # Vehicle Fleet
+  - id: "fleet_alpha"
+    type: "vehicle"
+    attributes:
+      truck_capacity_tons: 5.0
+
+  # Supplies
+  - id: "supply_rations"
+    type: "supply"
+    attributes:
+      unit: "ration_packs"
+  - id: "supply_water"
+    type: "supply"
+    attributes:
+      unit: "water_liters"
+
+relationships:
+  - source: "depot_central"
+    target: "depot_valley"
+    type: "corridor"
+    attributes:
+      road_id: "H1"
+      distance_km: 35.0
+  - source: "depot_valley"
+    target: "shelter_s1"
+    type: "corridor"
+    attributes:
+      road_id: "A1"
+      distance_km: 10.0
+  - source: "depot_valley"
+    target: "shelter_s2"
+    type: "corridor"
+    attributes:
+      road_id: "C1"
+      distance_km: 25.0
+  - source: "depot_central"
+    target: "shelter_s3"
+    type: "corridor"
+    attributes:
+      road_id: "R3"
+      distance_km: 60.0
+
+resources:
+  - id: "rations_depot_central"
+    entity_id: "depot_central"
+    current: 1000.0
+    min_value: 0.0
+    max_value: 2000.0
+    unit: "ration_packs"
+  - id: "water_depot_central"
+    entity_id: "depot_central"
+    current: 1500.0
+    min_value: 0.0
+    max_value: 3000.0
+    unit: "water_liters"
+  - id: "rations_depot_valley"
+    entity_id: "depot_valley"
+    current: 300.0
+    min_value: 0.0
+    max_value: 600.0
+    unit: "ration_packs"
+  - id: "water_depot_valley"
+    entity_id: "depot_valley"
+    current: 400.0
+    min_value: 0.0
+    max_value: 800.0
+    unit: "water_liters"
+
+  - id: "rations_shelter_s1"
+    entity_id: "shelter_s1"
+    current: 50.0
+    min_value: 0.0
+    max_value: 500.0
+    unit: "ration_packs"
+  - id: "water_shelter_s1"
+    entity_id: "shelter_s1"
+    current: 80.0
+    min_value: 0.0
+    max_value: 1000.0
+    unit: "water_liters"
+  - id: "occupancy_shelter_s1"
+    entity_id: "shelter_s1"
+    current: 60.0
+    min_value: 0.0
+    max_value: 150.0
+    unit: "evacuees"
+
+  - id: "rations_shelter_s2"
+    entity_id: "shelter_s2"
+    current: 40.0
+    min_value: 0.0
+    max_value: 600.0
+    unit: "ration_packs"
+  - id: "water_shelter_s2"
+    entity_id: "shelter_s2"
+    current: 60.0
+    min_value: 0.0
+    max_value: 1200.0
+    unit: "water_liters"
+  - id: "occupancy_shelter_s2"
+    entity_id: "shelter_s2"
+    current: 110.0
+    min_value: 0.0
+    max_value: 200.0
+    unit: "evacuees"
+
+  - id: "rations_shelter_s3"
+    entity_id: "shelter_s3"
+    current: 20.0
+    min_value: 0.0
+    max_value: 300.0
+    unit: "ration_packs"
+  - id: "water_shelter_s3"
+    entity_id: "shelter_s3"
+    current: 30.0
+    min_value: 0.0
+    max_value: 600.0
+    unit: "water_liters"
+  - id: "occupancy_shelter_s3"
+    entity_id: "shelter_s3"
+    current: 50.0
+    min_value: 0.0
+    max_value: 100.0
+    unit: "evacuees"
+
+  - id: "available_trucks"
+    entity_id: "fleet_alpha"
+    current: 12.0
+    min_value: 0.0
+    max_value: 12.0
+    unit: "trucks"

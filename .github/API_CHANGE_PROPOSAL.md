@@ -1,87 +1,65 @@
-# API Change Proposal (ACP-001): Constraint Protocol Phase Signature & Invalidation Semantics
+# API Change Proposal (ACP-XXX): [Descriptive Title]
 
-- **Target Release:** v0.2.0 (pre-1.0)
-- **Author:** Maintainer Team (@maintainer)
-- **Status:** Approved
-- **Impact Level:** Breaking (Pre-1.0 Refactoring)
-- **Related Spec:** `docs/specs/spec-driven-development.md` (Constraints section)
-- **Related ADR:** `docs/adr/ADR-008-constraint-phase-semantics-and-rollout-invalidation.md`
-- **Acceptance Criteria:** AC-006, AC-007, AC-008
+- **Target Release:** [e.g. v1.1.0 / v2.0.0]
+- **Author:** [Name / GitHub Handle]
+- **Status:** [Draft | Under Review | Approved | Rejected | Implemented]
+- **Impact Level:** [Non-breaking enhancement | Deprecation | Breaking change (2.0.0+ only)]
+- **Related Spec:** [Path to specification section in docs/specs/ or ewm.md]
+- **Related ADR:** [docs/adr/ADR-XXX-... if applicable]
+- **Acceptance Criteria:** [e.g. AC-024, etc.]
 
 ---
 
 ## 1. Summary
-Update the public `Constraint` protocol method `evaluate` to accept `actions: Sequence[Action] = ()` and keyword-only `phase: ConstraintPhase`. Add `phase: ConstraintPhase` and `entity_ids: tuple[str, ...]` to `ConstraintResult`. Implement normative rollout termination on post-transition hard constraint violations, marking rollouts as `TrajectoryStatus.INVALID`.
+[A concise 1-2 paragraph description of the proposed API change, deprecation, or extension.]
 
-## 2. Motivation
-The authoritative v1 specification (`docs/specs/spec-driven-development.md`) requires:
-1. Operational distinction between `PRE_ACTION` (action feasibility validation) and `POST_TRANSITION` (state invariant evaluation).
-2. Four normative outcomes:
-   - `HARD + PRE_ACTION + violated` → reject action before transition.
-   - `SOFT + PRE_ACTION + violated` → record result, continue.
-   - `HARD + POST_TRANSITION + violated` → mark rollout `TrajectoryStatus.INVALID`, abort rollout, do not repair or fabricate state.
-   - `SOFT + POST_TRANSITION + violated` → record result, continue.
-3. Strict prohibition of silent projection of invalid states to valid manifolds within the core.
+## 2. Motivation & Use Case
+[Why is this change necessary? What problem does it solve for users or the engine? Note any spec requirements or invariants addressed.]
 
-## 3. Proposed API Diff
+## 3. Proposed API Surface Diff
 ```python
 # Before
-class Constraint(Protocol):
-    def evaluate(
-        self,
-        state: WorldState,
-        action: Action | None = None,
-    ) -> ConstraintResult: ...
+class Example:
+    def existing_method(self, arg1: str) -> None:
+        ...
 
 # After
-class Constraint(Protocol):
-    def evaluate(
+class Example:
+    def existing_method(
         self,
-        state: WorldState,
-        actions: Sequence[Action] = (),
-        *,
-        phase: ConstraintPhase,
-    ) -> ConstraintResult: ...
+        arg1: str,
+        new_optional_param: int = 0,  # Rule: new params in 1.x minor MUST be optional with default
+    ) -> None:
+        ...
 ```
 
-In `ConstraintResult`:
-```python
-# Added fields
-phase: ConstraintPhase = Field(default=ConstraintPhase.POST_TRANSITION)
-entity_ids: tuple[EntityId, ...] = Field(default_factory=tuple)
-```
+### Affected Symbols in `ewm_engine.__all__`
+- [ ] No change to `__all__`
+- [ ] New public symbol proposed: `[SymbolName]` (Classified as: Stable | Experimental)
+- [ ] Deprecated symbol: `[SymbolName]` (Requires ≥1 minor and ≥90 days notice before removal)
 
-In `Trajectory`:
-```python
-# Trajectory status transition and locking
-trajectory.status: TrajectoryStatus  # Mutable during rollout, read-only after finalize()
-trajectory.finalize() -> None
-```
+### Schema Changes (if applicable)
+- Schema file(s): `schemas/[name].schema.json`
+- Invariant check: Any new fields must be optional with default values; existing fields cannot be removed in `1.x`.
 
 ## 4. Backwards Compatibility & Migration Strategy
-- **Is this a breaking change?** Yes, for custom implementations of `Constraint`. Because the project is currently pre-1.0 (v0.1.0 -> v0.2.0), breaking changes are permitted under SemVer 2.0.0 section 4, with explicit documentation and migration guidance.
-- **Migration Strategy:**
-  - Implementers of `Constraint` should update their `evaluate` method to accept `actions: Sequence[Action] = (), *, phase: ConstraintPhase`.
-  - Built-in constraints (`ResourceCapacityConstraint`, `ResourceNonNegativeConstraint`, `ActionTransferAvailabilityConstraint`) provide default values for `phase` so direct single-argument evaluation continues to function for ad-hoc checks.
-  - Consumers checking `res.violating_entities` continue to work via bidirectional attribute synchronization with `res.entity_ids`.
+- **Is this a breaking change?** (Note: Breaking changes to Stable symbols are prohibited in 1.x per [Stability Policy](docs/stability-policy.md)).
+- **Deprecation lifecycle:** (If deprecating, specify deprecation warning, documentation in CHANGELOG, and expected removal target).
+- **Migration instructions:** [Step-by-step guidance for callers migrating to the updated API].
 
 ## 5. Affected Files & Tests
-- Protocol: `src/ewm_engine/constraints/base.py`
-- Models: `src/ewm_engine/constraints/results.py`
-- Built-in constraints: `src/ewm_engine/constraints/standard.py`, `src/ewm_engine/integrations/solvers.py`, `examples/civicflow/constraints.py`
-- Registry: `src/ewm_engine/constraints/registry.py`
-- Engine: `src/ewm_engine/simulation/engine.py`
-- Trajectory: `src/ewm_engine/simulation/trajectory.py`
-- Tests:
-  - `tests/unit/test_constraints.py`
-  - `tests/integration/test_hard_constraints.py` (AC-006)
-  - `tests/integration/test_soft_constraints.py` (AC-007)
-  - `tests/integration/test_post_transition_violation.py` (AC-008)
+- Public API / Interface:
+- Implementation:
+- Schemas:
+- Enforcing tests:
+  - Contract test: `tests/contract/test_api_compatibility.py`
+  - Integration / Unit tests:
 
-## 6. Checklist
-- [x] Added/updated contract and unit tests in `tests/unit/test_constraints.py`
-- [x] Added integration tests for AC-006, AC-007, AC-008
-- [x] Confirmed `ewm_engine.__all__` includes `ConstraintPhase`, `ConstraintSeverity`, `ConstraintResult`, `TrajectoryStatus`
-- [x] Added `docs/adr/ADR-008-constraint-phase-semantics-and-rollout-invalidation.md`
-- [x] Type checking passes with 0 errors in strict mode (`uv run mypy src tests`)
-- [x] Linter and formatter pass with 0 errors (`uv run ruff check src tests`)
+## 6. Review & Approval Checklist
+- [ ] Reviewed against `docs/stability-policy.md` invariants.
+- [ ] Contract snapshot updated in `tests/contract/test_api_compatibility.py` (if approved).
+- [ ] Deprecation warning emitted at runtime using `warnings.warn(..., DeprecationWarning, stacklevel=2)` (if deprecating).
+- [ ] CHANGELOG entry drafted under `## [Unreleased]`.
+- [ ] Documentation updated in `docs/`.
+- [ ] CI quality gates pass (`mypy`, `ruff`, `pytest`, `coverage`, `packaging`).
+- [ ] Approved by core maintainers.

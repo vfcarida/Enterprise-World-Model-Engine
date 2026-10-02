@@ -1,0 +1,72 @@
+schema_version: "1.0.0"
+
+world:
+  name: "minimal_warehouse"
+  description: "Minimal Warehouse Acceptance Fixture (AC-012)"
+  step: 0
+  timestamp: 0.0
+
+entities:
+  - id: "warehouse_a"
+    type: "warehouse"
+    attributes:
+      capacity: 150.0
+  - id: "warehouse_b"
+    type: "warehouse"
+    attributes:
+      capacity: 150.0
+
+relationships:
+  - source: "warehouse_a"
+    target: "warehouse_b"
+    type: "connected_to"
+    attributes:
+      distance_km: 10.0
+
+resources:
+  - id: "warehouse_a"
+    entity_id: "warehouse_a"
+    current: 100.0
+    min_value: 0.0
+    max_value: 150.0
+    unit: "units"
+  - id: "warehouse_b"
+    entity_id: "warehouse_b"
+    current: 20.0
+    min_value: 0.0
+    max_value: 150.0
+    unit: "units"
+
+dynamics:
+  type: "composite"
+  parameters:
+    name: "WarehouseDynamics"
+    models:
+      - type: "deterministic_transfer"
+        parameters:
+          action_type: "transfer_resource"
+          name: "TransferDynamics"
+      - type: "deterministic_demand"
+        parameters:
+          resource_id: "warehouse_b"
+          demand: 50.0
+          name: "WarehouseDemandDynamics"
+
+constraints:
+  - type: "capacity"
+    parameters:
+      resource_id: "warehouse_a"
+  - type: "capacity"
+    parameters:
+      resource_id: "warehouse_b"
+  - type: "non_negative"
+    parameters:
+      resource_id: "warehouse_a"
+  - type: "non_negative"
+    parameters:
+      resource_id: "warehouse_b"
+  - type: "transfer_availability"
+    parameters:
+      constraint_id: "available_inventory"
+      action_type: "transfer_resource"
+      severity: "hard"

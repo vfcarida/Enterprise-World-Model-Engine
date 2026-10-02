@@ -5,27 +5,63 @@ All notable changes to the Enterprise World Model Engine (EWM Engine) will be do
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2026-10-02
+
+Establish the official v1.0.0 Stable Contract according to the authoritative project specification (`docs/specs/spec-driven-development.md`). All 24 Acceptance Criteria (AC-001 through AC-024) and the full Definition of Done are satisfied.
 
 ### Added
-- **Governance & Verification**: Formally vendored v1 specification contract in `docs/specs/spec-driven-development.md`, governance templates in `.github/`, and static import boundary tests in `tests/architecture/`.
-- **API Surface Refinements**: Added `ConstraintPhase` enum (`PRE_ACTION`, `POST_TRANSITION`), `TrajectoryStatus` enum (`COMPLETED`, `INVALID`, `FAILED`), and `Provenance` metadata alias.
-- **Experimental Namespace**: Created `ewm_engine.experimental` for research models (`RecedingHorizonSimulator`, `LinearResidualDynamics`, `Intervention`).
+- **Public API Stability & Contract Gate (AC-001, AC-024)**: Locked the 22 canonical Stable symbols in `ewm_engine.__all__` and added `tests/contract/test_api_compatibility.py` to prevent unintentional drift.
+- **Phase-Aware Constraint Semantics (AC-006, AC-007, AC-008)**:
+  - Added `ConstraintPhase` enum (`PRE_ACTION`, `POST_TRANSITION`) and `TrajectoryStatus` (`COMPLETED`, `INVALID`, `FAILED`).
+  - Added normative semantics: `HARD + PRE_ACTION` rejects invalid actions pre-transition; `HARD + POST_TRANSITION` invalidates the rollout (`TrajectoryStatus.INVALID`) without state fabrication.
+- **Deep State Immutability & Canonical Fingerprinting (AC-005, AC-010)**:
+  - Deep defensive copying for `WorldState` collections and dictionaries.
+  - RFC 8785 canonical JSON serializer with deterministic sorting, float normalization, and rejection of NaN/Infinity values.
+  - Cryptographic SHA-256 fingerprinting on `WorldState`, `Scenario`, and `Provenance`.
+- **Systemic Trace & Epistemic Honesty (AC-010, AC-011)**:
+  - Explicit `EvidenceLevel` classification (`STRUCTURAL`, `INTERVENTIONAL`, `QUASI_CAUSAL`, `PREDICTIVE`, `ASSUMED`).
+  - Directed dependency trace exporting to Mermaid and NetworkX without unverified `causes` labels.
+- **Safe Serialization & Trusted Component Registry (AC-002, AC-003, AC-018)**:
+  - Draft 2020-12 versioned JSON Schemas committed under `schemas/`.
+  - Safe YAML parser rejecting `!!python/object` and unsafe tags.
+  - `WorldSpec`, `ComponentSpec`, and `WorldFactory` with trusted closed registry failing closed against unregistered types.
+- **Deterministic Monte Carlo & Reproducibility (AC-004, AC-009)**:
+  - `numpy.random.SeedSequence(seed).spawn(samples)` deriving isolated pseudo-random streams per rollout.
+  - Bitwise reproducibility invariant across runs and operating systems.
+- **Normative Acceptance Scenarios (AC-012, AC-013, AC-014)**:
+  - `examples/minimal_warehouse/`: Minimal normative inventory transfer fixture.
+  - `examples/civicflow/`: Flagship disaster relief logistics simulation with flood hydrology and causeway closures.
+- **Observability Layer & Lifecycle Hooks (M8)**:
+  - `Hook` protocol and `HookRegistry` emitting typed events (`SimulationStarted`, `ConstraintEvaluated`, `StepCompleted`, `RolloutCompleted`, `SimulationFinished`).
+  - Programmatic `RunMetrics` attached to `SimulationResult` and `Provenance`.
+- **CI/CD Quality Gates & Supply-Chain Hardening (AC-015, AC-016, AC-017, AC-022, AC-023)**:
+  - 12 visible CI gates in GitHub Actions standardized on `uv`.
+  - Matrix testing on `{Ubuntu, macOS, Windows} × {Python 3.11, 3.12}`.
+  - Test coverage quality gates: $\ge 85\%$ overall and $\ge 90\%$ in core packages via `scripts/check_coverage.py`.
+  - 100% of third-party actions pinned to immutable commit SHAs with version comments.
+  - PyPI publishing via OIDC Trusted Publishing with zero stored secrets.
+  - Automated pre-merge secret scanning test (`test_no_credentials.py`).
+  - Packaging contract verifying `py.typed` and clean virtualenv wheel installation smoke test.
+- **Documentation & Scientific Framing (AC-014, AC-021, AC-022)**:
+  - Complete rewrite of `README.md` with an executable 5-minute Quickstart.
+  - Conceptual docs on causality ($P(Y \mid X) \neq P(Y \mid \text{do}(X))$), uncertainty distributions, world model academic lineage, and systemic traces.
+  - SemVer stability policy in `docs/stability-policy.md`.
+  - v1 convergence review in `docs/specs/v1-convergence.md`.
 
-### Changed
-- Reconciled root `ewm_engine.__all__` to the 22 canonical Stable symbols (ADR-007). Concrete dynamics, constraints, and actor classes remain importable from their respective submodules.
+### Changed (Pre-1.0 Breaking Refactorings)
+- Reconciled `ewm_engine.__all__` to the 22 canonical Stable symbols (ADR-007). Concrete models remain importable from subpackages.
+- Relocated experimental research models (`Intervention`, `LearnedDynamics`, `LinearResidualDynamics`, `RecedingHorizonSimulator`) to `ewm_engine.experimental.*`.
+- Updated `Constraint.evaluate` method signature to accept `actions: Sequence[Action] = ()` and keyword-only `phase: ConstraintPhase`.
+- Renamed internal `SimulationMetadata` to `Provenance`.
+
+### Security
+- Added automated adversarial deserialization test suite verifying rejection of arbitrary code execution payloads (AC-018).
+- Added pre-merge credential scan asserting zero committed AWS keys, GitHub tokens, PyPI tokens, or private keys (AC-023).
+
+---
 
 ## [0.1.0] - 2026-10-02
 
 ### Added
-- **Core Domain Primitives**: `World`, `WorldState`, `Entity`, `Relationship`, `Resource`, `Action`, `Intervention`, `ExogenousEvent`.
-- **Pluggable Dynamics Engine**: `DynamicsModel` protocol, `DeterministicDynamics`, `StochasticDynamics`, `CompositeDynamics`, and `LearnedDynamics` experimental interface.
-- **First-Class Constraints Engine**: `Constraint` protocol, `ConstraintRegistry`, hard and soft constraint validation, and constraint violation provenance tracking.
-- **Actor & Agent Interface**: `Actor` protocol, `RuleBasedActor`, and `StochasticActor`.
-- **Deterministic Monte Carlo Simulation**: `SimulationEngine`, `Scenario`, `Trajectory`, reproducible random seed spawning.
-- **Scenario Branching & Comparison**: Snapshot branching from identical initial states, counterfactual evaluation, distribution quantiles, and automated metric deltas.
-- **Systemic Traces & Epistemic Honesty**: Causal/dependency graph capture with explicit `EvidenceLevel` categorization (`STRUCTURAL`, `INTERVENTIONAL`, `QUASI_CAUSAL`, `PREDICTIVE`, `ASSUMED`).
-- **Reference Examples**:
-  - `minimal_world`: Two-warehouse inventory balancing with capacity constraints.
-  - `civicflow`: Multi-region flood-response disaster logistics research simulation.
-- **CLI & Governance**: Minimal `ewm` CLI entrypoint, complete test suite, strict static typing, and open-source documentation.
+- Initial public alpha release of Enterprise World Model Engine.
+- Basic simulation loop, prototype dynamics, constraint validation, and CLI commands.

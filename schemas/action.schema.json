@@ -1,0 +1,63 @@
+{
+  "$id": "https://ewm-engine.org/schemas/v1/action.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "An operation proposed or executed by an actor within the world.\n\nActions represent operational steps: transferring inventory, dispatching a vehicle,\nchanging a price, reallocating staff, or issuing a notification.",
+  "properties": {
+    "actor_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional identifier of the actor initiating this action.",
+      "title": "Actor Id"
+    },
+    "id": {
+      "description": "Unique action instance identifier.",
+      "title": "Id",
+      "type": "string"
+    },
+    "parameters": {
+      "additionalProperties": true,
+      "description": "Action payload containing target entities, quantities, and parameters.",
+      "title": "Parameters",
+      "type": "object"
+    },
+    "priority": {
+      "default": 0,
+      "description": "Execution priority for tie-breaking.",
+      "title": "Priority",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Semantic schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "timestamp": {
+      "default": 0.0,
+      "description": "Simulation timestamp at action proposal.",
+      "title": "Timestamp",
+      "type": "number"
+    },
+    "type": {
+      "description": "Action category or schema type identifier.",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "schema_version",
+    "type"
+  ],
+  "title": "Action",
+  "type": "object"
+}

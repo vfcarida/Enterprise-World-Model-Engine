@@ -4,7 +4,7 @@ authors:
   - family-names: "Carida"
     given-names: "Vinicius"
 title: "Enterprise World Model Engine: A General-Purpose Framework for Modeling, Simulating, and Evaluating Organizational Dynamics"
-version: 0.1.0
+version: 1.0.0
 date-released: 2026-10-02
 url: "https://github.com/vfcarida/Enterprise-World-Model-Engine"
 repository-code: "https://github.com/vfcarida/Enterprise-World-Model-Engine"

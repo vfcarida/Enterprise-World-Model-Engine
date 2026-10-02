@@ -58,7 +58,10 @@ nav:
       - State Management & Formalism: architecture/state-management.md
       - Simulation Lifecycle: architecture/simulation-lifecycle.md
       - Architecture Proposal: architecture/proposal.md
+      - Observability & Lifecycle Hooks: architecture/observability.md
+      - "Stability Policy & SemVer Contract": stability-policy.md
       - "v1 Specification Contract": specs/spec-driven-development.md
+      - "v1.0.0 Convergence Review": specs/v1-convergence.md
   - Architecture Decision Records (ADRs):
       - "ADR-001: Python-First Implementation": adr/ADR-001-python-first.md
       - "ADR-002: Pluggable Dynamics Protocol": adr/ADR-002-pluggable-dynamics.md
@@ -68,7 +71,15 @@ nav:
       - "ADR-006: Python Specification Before DSL": adr/ADR-006-python-first-world-specification.md
       - "ADR-007: Public API Stable Surface Split": adr/ADR-007-public-api-stable-surface.md
       - "ADR-008: Constraint Phase Semantics & Invalidation": adr/ADR-008-constraint-phase-semantics-and-rollout-invalidation.md
+      - "ADR-009: State Immutability & Canonical Fingerprint": adr/ADR-009-state-immutability-and-canonical-fingerprint.md
+      - "ADR-010: Systemic Trace Epistemic Honesty": adr/ADR-010-systemic-trace-epistemic-honesty.md
+      - "ADR-011: Safe Serialization Contract & Trusted Registry": adr/ADR-011-safe-serialization-contract-and-trusted-registry.md
+      - "ADR-012: Determinism Invariant & Branch Isolation": adr/ADR-012-determinism-reproducibility-and-branch-isolation.md
+      - "ADR-013: Observability Layer & Lifecycle Hooks": adr/ADR-013-observability-and-lifecycle-hooks.md
+      - "ADR-014: CI/CD Quality Gates & Supply-Chain Security": adr/ADR-014-ci-cd-quality-gates-and-supply-chain-security.md
+      - "ADR-015: SemVer Stability Policy & v1.0.0 Release": adr/ADR-015-semver-stability-policy-and-v1-release.md
   - Examples:
+      - "Minimal Warehouse (Normative Fixture)": examples/minimal-warehouse.md
       - Minimal Supply World: examples/minimal-world.md
       - "Flagship: CivicFlow Disaster Response": examples/civicflow.md
   - API Reference: api/reference.md
