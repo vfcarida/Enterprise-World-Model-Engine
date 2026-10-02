@@ -57,7 +57,10 @@ def test_z3_constraint_adapter_without_z3(sample_world_state: WorldState) -> Non
     adapter = Z3ConstraintAdapter(constraint_id="z3_capacity", solver_fn=dummy_solver)
 
     if adapter._z3_module is None:
-        with pytest.raises(SimulationConfigurationError, match="z3-solver is not installed"):
+        with pytest.raises(
+            SimulationConfigurationError,
+            match=r"z3-solver is not installed.*ewm-engine\[solvers\]",
+        ):
             adapter.evaluate(sample_world_state)
     else:
         res = adapter.evaluate(sample_world_state)

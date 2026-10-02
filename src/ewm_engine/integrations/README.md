@@ -23,8 +23,27 @@ To preserve minimal core dependencies, scientific neutrality, and deterministic 
          def optimize(self, state: WorldState) -> Sequence[Action]: ...
      ```
 
-## Planned Adapters
+## Installation of Optional Integration Extras
+
+Ecosystem adapters can be installed as optional extras:
+
+```bash
+# Install formal SMT solver adapters (Z3)
+pip install ewm-engine[solvers]
+
+# Install graph and NetworkX visualization support
+pip install ewm-engine[graphs]
+
+# Install deep learning and PyTorch dynamics
+pip install ewm-engine[ml]
+
+# Install all optional dependencies
+pip install ewm-engine[all]
+```
+
+## Available & Planned Adapters
+- `ewm_engine.integrations.solvers.Z3ConstraintAdapter`: SMT symbolic verification of state transitions and invariant reachability.
+- `ewm_engine.integrations.agents.CallableActorAdapter`: Generic adapter wrapping arbitrary agent functions into the `Actor` protocol.
 - `ewm_engine.integrations.langgraph`: Stateful actor adapter translating LangGraph agent thoughts into typed `Action` proposals.
 - `ewm_engine.integrations.autogen`: Multi-agent conversation adapter allowing AutoGen group chats to query the world model counterfactually before finalizing operational decisions.
-- `ewm_engine.integrations.z3`: SMT symbolic verification of state transitions and invariant reachability.
 - `ewm_engine.integrations.ortools`: Mixed-integer linear programming (MILP) flow optimizer for supply chain and logistics dispatch.
