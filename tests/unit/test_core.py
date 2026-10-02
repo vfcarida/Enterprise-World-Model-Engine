@@ -165,3 +165,25 @@ def test_world_state_serialization_round_trip(sample_world_state: WorldState) ->
     assert reconstructed.timestamp == sample_world_state.timestamp
     assert len(reconstructed.entities) == len(sample_world_state.entities)
     assert len(reconstructed.resources) == len(sample_world_state.resources)
+
+
+def test_world_initialization_signatures_and_simulate_alias(
+    sample_world_state: WorldState,
+) -> None:
+    """Verify that World accepts 'initial_state' and 'exogenous_events', and engine.simulate works."""
+    from ewm_engine.core.world import World
+    from ewm_engine.simulation.engine import SimulationEngine
+    from ewm_engine.simulation.scenario import Scenario
+
+    # Test initial_state kwarg
+    world = World(initial_state=sample_world_state)
+    assert world.initial_state.state_hash == sample_world_state.state_hash
+    assert len(world.event_sources) == 0
+
+    # Test simulation via engine.simulate alias
+    scenario = Scenario(name="SimulateAliasTest", horizon=2, samples=1, seed=42)
+    engine = SimulationEngine()
+    result = engine.simulate(world=world, scenario=scenario)
+    assert len(result.trajectories) == 1
+    assert len(result.trajectories[0].steps) == 2
+

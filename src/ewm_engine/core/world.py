@@ -27,15 +27,25 @@ class World:
 
     def __init__(
         self,
-        state: WorldState,
+        state: WorldState | None = None,
         dynamics: DynamicsModel | None = None,
         constraints: ConstraintRegistry | Sequence[Constraint] | None = None,
         event_sources: Sequence[ExogenousEventSource] | None = None,
         actors: Sequence[Actor] | None = None,
+        *,
+        initial_state: WorldState | None = None,
+        exogenous_events: Sequence[ExogenousEventSource] | None = None,
     ) -> None:
         from ewm_engine.constraints.registry import ConstraintRegistry
+        from ewm_engine.exceptions import InvalidWorldStateError
 
-        self.initial_state = state
+        resolved_state = state if state is not None else initial_state
+        if resolved_state is None:
+            raise InvalidWorldStateError(
+                "World requires a valid initial state (pass 'state' or 'initial_state')."
+            )
+
+        self.initial_state = resolved_state
         self.dynamics = dynamics
 
         if constraints is None:
@@ -45,7 +55,8 @@ class World:
         else:
             self.constraints = ConstraintRegistry(list(constraints))
 
-        self.event_sources: list[ExogenousEventSource] = list(event_sources or [])
+        resolved_events = event_sources if event_sources is not None else exogenous_events
+        self.event_sources: list[ExogenousEventSource] = list(resolved_events or [])
         self.actors: list[Actor] = list(actors or [])
 
     def add_actor(self, actor: Actor) -> World:

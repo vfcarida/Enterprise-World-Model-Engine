@@ -29,6 +29,10 @@ class SimulationEngine:
     state dynamics, and systemic trace collection.
     """
 
+    def simulate(self, world: World, scenario: Scenario) -> SimulationResult:
+        """Alias for `run`, simulating rollouts for the specified world and scenario."""
+        return self.run(world=world, scenario=scenario)
+
     def run(self, world: World, scenario: Scenario) -> SimulationResult:
         """Execute simulation rollouts for the specified world and scenario."""
         # 1. Prepare deterministic seed sequence
