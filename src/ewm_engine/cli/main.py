@@ -34,6 +34,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "example":
+        from pathlib import Path
+
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
+        cwd = Path.cwd()
+        if str(cwd) not in sys.path:
+            sys.path.insert(0, str(cwd))
+
         if args.name == "minimal":
             from examples.minimal_world.run import run_minimal_world
 

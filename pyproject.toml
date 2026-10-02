@@ -73,6 +73,7 @@ all = [
 
 [project.scripts]
 ewm = "ewm_engine.cli.main:main"
+ewm-engine = "ewm_engine.cli.main:main"
 
 [project.urls]
 Homepage = "https://github.com/vfcarida/Enterprise-World-Model-Engine"
