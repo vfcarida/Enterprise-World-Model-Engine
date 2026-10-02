@@ -75,7 +75,9 @@ class LinearResidualDynamics:
         self.is_fitted: bool = False
 
     def fit(self, dataset: TransitionDataset) -> None:
-        """Fit simple linear weights via least-squares or empirical averages."""
+        """Fit linear parameters (weight, bias) via closed-form ordinary least squares."""
+        import numpy as np
+
         if len(dataset) == 0:
             return
 
@@ -83,6 +85,11 @@ class LinearResidualDynamics:
         action_vals: list[float] = []
 
         for sample in dataset:
+            if (
+                self.target_resource not in sample.state.resources
+                or self.target_resource not in sample.next_state.resources
+            ):
+                continue
             curr_val = sample.state.get_resource(self.target_resource).current
             next_val = sample.next_state.get_resource(self.target_resource).current
             delta = next_val - curr_val
@@ -95,10 +102,23 @@ class LinearResidualDynamics:
             deltas.append(delta)
             action_vals.append(act_val)
 
-        if sum(action_vals) != 0:
-            self.action_weight = sum(deltas) / sum(action_vals)
+        if not deltas:
+            return
+
+        x = np.array(action_vals, dtype=float)
+        y = np.array(deltas, dtype=float)
+
+        x_mean = float(np.mean(x))
+        y_mean = float(np.mean(y))
+        x_var = float(np.var(x))
+
+        if x_var > 1e-12:
+            cov_xy = float(np.mean((x - x_mean) * (y - y_mean)))
+            self.action_weight = cov_xy / x_var
+            self.bias = y_mean - (self.action_weight * x_mean)
         else:
-            self.bias = sum(deltas) / len(deltas)
+            self.action_weight = 0.0
+            self.bias = y_mean
 
         self.is_fitted = True
 

@@ -144,3 +144,59 @@ def test_learned_dynamics_baseline(sample_world_state: WorldState) -> None:
     # Expected delta = 2.0 * 15 = 30 -> 100 + 30 = 130
     assert result.next_state.get_resource("stock_wh1").current == 130.0
     assert result.evidence_level == EvidenceLevel.PREDICTIVE
+
+
+def test_learned_dynamics_ols_with_intercept_and_constant_x(
+    sample_world_state: WorldState,
+) -> None:
+    """Test LinearResidualDynamics with non-zero intercept and constant x fallback."""
+    # Data following y = 3 * x + 5:
+    # x=1 -> y=8
+    # x=2 -> y=11
+    # x=3 -> y=14
+    dataset = TransitionDataset(
+        [
+            TransitionSample(
+                state=sample_world_state,
+                actions=(Action(id="a1", type="x_act", parameters={"value": 1.0}),),
+                next_state=sample_world_state.update_resource("stock_wh1", delta=8.0),
+            ),
+            TransitionSample(
+                state=sample_world_state,
+                actions=(Action(id="a2", type="x_act", parameters={"value": 2.0}),),
+                next_state=sample_world_state.update_resource("stock_wh1", delta=11.0),
+            ),
+            TransitionSample(
+                state=sample_world_state,
+                actions=(Action(id="a3", type="x_act", parameters={"value": 3.0}),),
+                next_state=sample_world_state.update_resource("stock_wh1", delta=14.0),
+            ),
+        ]
+    )
+    model = LinearResidualDynamics(target_resource="stock_wh1", action_type="x_act")
+    model.fit(dataset)
+    assert model.is_fitted
+    assert round(model.action_weight, 4) == 3.0
+    assert round(model.bias, 4) == 5.0
+
+    # Constant x dataset fallback: x=0, y=10
+    dataset_const = TransitionDataset(
+        [
+            TransitionSample(
+                state=sample_world_state,
+                actions=(Action(id="c1", type="x_act", parameters={"value": 0.0}),),
+                next_state=sample_world_state.update_resource("stock_wh1", delta=10.0),
+            ),
+            TransitionSample(
+                state=sample_world_state,
+                actions=(Action(id="c2", type="x_act", parameters={"value": 0.0}),),
+                next_state=sample_world_state.update_resource("stock_wh1", delta=12.0),
+            ),
+        ]
+    )
+    model_const = LinearResidualDynamics(target_resource="stock_wh1", action_type="x_act")
+    model_const.fit(dataset_const)
+    assert model_const.is_fitted
+    assert model_const.action_weight == 0.0
+    assert round(model_const.bias, 4) == 11.0
+
