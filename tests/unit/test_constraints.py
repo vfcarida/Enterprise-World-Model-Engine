@@ -75,3 +75,34 @@ def test_action_pre_validation_in_registry(sample_world_state: WorldState) -> No
     assert len(results) == 1
     assert not results[0].satisfied
     assert results[0].preceding_action_id == "act_excessive"
+
+
+def test_validate_state_multi_action_attribution(sample_world_state: WorldState) -> None:
+    """Verify that validate_state attributes violations to the specific action touching the resource."""
+    registry = ConstraintRegistry(
+        [
+            ResourceCapacityConstraint(resource_id="stock_wh2"),
+        ]
+    )
+
+    action_1 = Action(
+        id="act_wh1",
+        type="transfer_resource",
+        parameters={"target_resource": "stock_wh1", "quantity": 10.0},
+    )
+    action_2 = Action(
+        id="act_wh2",
+        type="transfer_resource",
+        parameters={"target_resource": "stock_wh2", "quantity": 300.0},
+    )
+
+    # State where stock_wh2 exceeds capacity
+    overflow_state = sample_world_state.update_resource("stock_wh2", new_value=250.0, clamp=False)
+    results = registry.validate_state(overflow_state, preceding_actions=[action_1, action_2])
+
+    assert len(results) == 1
+    assert not results[0].satisfied
+    # Must be attributed to action_2 which touched stock_wh2, not action_1
+    assert results[0].preceding_action_id == "act_wh2"
+    assert results[0].metadata["preceding_action_ids"] == ["act_wh1", "act_wh2"]
+

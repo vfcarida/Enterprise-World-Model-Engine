@@ -78,16 +78,44 @@ class ConstraintRegistry:
     ) -> list[ConstraintResult]:
         """Post-transition validation of the evolved world state."""
         results: list[ConstraintResult] = []
-        action_id = preceding_actions[0].id if preceding_actions else None
+        actions = list(preceding_actions or [])
+        all_action_ids = [a.id for a in actions]
 
         for constraint in self._constraints.values():
             res = constraint.evaluate(state=state, action=None)
             if not res.satisfied:
+                matched_action_id: str | None = None
+
+                # 1. Match action touching violating resources
+                if res.violating_resources and actions:
+                    for a in reversed(actions):
+                        params_str = str(list(a.parameters.values()))
+                        if any(r_id in params_str for r_id in res.violating_resources):
+                            matched_action_id = a.id
+                            break
+
+                # 2. Match action touching violating entities
+                if matched_action_id is None and res.violating_entities and actions:
+                    for a in reversed(actions):
+                        params_str = str(list(a.parameters.values()))
+                        if any(e_id in params_str for e_id in res.violating_entities):
+                            matched_action_id = a.id
+                            break
+
+                # 3. Fallback to first action if actions exist
+                if matched_action_id is None and actions:
+                    matched_action_id = actions[0].id
+
+                metadata = dict(res.metadata)
+                if all_action_ids:
+                    metadata["preceding_action_ids"] = all_action_ids
+
                 results.append(
                     res.model_copy(
                         update={
                             "step": state.step,
-                            "preceding_action_id": action_id,
+                            "preceding_action_id": matched_action_id,
+                            "metadata": metadata,
                         }
                     )
                 )
