@@ -41,6 +41,15 @@ source .venv/bin/activate  # or .venv\Scripts\Activate.ps1 on Windows
 pip install -e ".[dev]"
 ```
 
+### Pre-commit Hooks
+Install the automated git hooks to automatically check formatting, linting, and typing before committing:
+```bash
+pip install pre-commit
+pre-commit install
+# Run manually against all files:
+pre-commit run --all-files
+```
+
 ---
 
 ## 3. Engineering Guidelines & Quality Gates
