@@ -4,26 +4,29 @@
 
 [![CI](https://github.com/vfcarida/Enterprise-World-Model-Engine/actions/workflows/ci.yml/badge.svg)](https://github.com/vfcarida/Enterprise-World-Model-Engine/actions/workflows/ci.yml)
 [![Docs](https://github.com/vfcarida/Enterprise-World-Model-Engine/actions/workflows/docs.yml/badge.svg)](https://vfcarida.github.io/Enterprise-World-Model-Engine/)
+[![Version: 1.0.0](https://img.shields.io/badge/version-1.0.0-emerald.svg)](pyproject.toml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](pyproject.toml)
-[![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)](ROADMAP.md)
+[![Python 3.11 | 3.12](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](pyproject.toml)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Quality: Zero-LLM Core](https://img.shields.io/badge/core-zero--LLM%20%7C%20deterministic-purple.svg)](docs/adr/ADR-004-no-llm-in-simulation-core.md)
 
 ---
 
 ## Why It Exists
 
 Modern enterprise analytics and artificial intelligence are heavily optimized for answering:
-> *"What has happened?"* (Reporting)  
+> *"What has happened?"* (Reporting & BI)  
 > *"What is likely to happen next?"* (Observational Forecasting)
 
 However, leadership teams, operations researchers, and autonomous agent systems routinely confront a more difficult operational question:
-> *"What could happen if we do this instead of that?"* (Intervention Simulation)
+> *"What could happen if we do this instead of that?"* (Intervention Simulation & Counterfactual Evaluation)
 
-Standard statistical learning and supervised machine learning learn conditional associations ($P(Y \mid X)$). When an organization changes a policy, reallocates critical inventory, or enacts an intervention, it alters the data-generating process. Observational correlations collapse under structural shifts due to unobserved confounding.
+Standard statistical learning and supervised machine learning learn conditional associations ($P(Y \mid X)$). When an organization changes an operational policy, reallocates critical inventory, or enacts an intervention, it alters the data-generating process. Observational correlations collapse under structural shifts due to unobserved confounding and policy feedback.
 
 Meanwhile, pure large language models (LLMs) lack an explicit, conservation-preserving representation of enterprise state. They hallucinate quantities, violate physical and accounting balance equations, and cannot reliably simulate forward dynamics over time.
 
-**Enterprise World Model Engine (EWM Engine)** exists to provide a domain-independent, action-conditioned, uncertainty-aware simulation kernel. It evaluates the downstream consequences of candidate decisions across stochastic futures before committing resources to reality.
+**Enterprise World Model Engine (EWM Engine)** exists to provide a domain-independent, action-conditioned, uncertainty-aware simulation kernel. It evaluates the downstream consequences of candidate decisions across stochastic futures before committing capital or operational resources to reality.
 
 ---
 
@@ -36,17 +39,53 @@ An **Enterprise World Model** is an action-conditioned, uncertainty-aware execut
 Enterprise systems operate under rigid physical, accounting, and legal boundaries alongside uncertain human and market behaviors. EWM Engine enforces an explicit architectural separation:
 
 $$\begin{aligned}
-\textbf{Known Structural Knowledge} &\quad\longleftrightarrow\quad \text{Hard capacity limits, conservation laws, legal rules, invariants} \\
+\textbf{Known Structural Knowledge} &\quad\longleftrightarrow\quad \text{Hard capacity limits, conservation laws, legal rules, balance equations} \\
 \textbf{Learned \& Stochastic Dynamics} &\quad\longleftrightarrow\quad \text{Customer behavior, demand surges, transit delays, weather shocks}
 \end{aligned}$$
 
 Forcing known physical and accounting equations into opaque neural network weights produces hallucinated states and physically impossible transitions. EWM Engine keeps structural rules explicit, verifiable, and audited.
 
+### Formal Mathematical Specification
+
+Formally, an enterprise world model at discrete step $t$ is defined as a tuple:
+
+$$S_t = (G_t, R_t, M_t, \Gamma_t, C_t)$$
+
+- **$G_t = (V_t, E_t)$**: Directed organizational topology graph containing typed entities ($V_t$) and relationships ($E_t$).
+- **$R_t \in \mathbb{R}^d$**: Finite bounded resource vector with invariant domain $[R_{\min}, R_{\max}]$ preserving physical/accounting conservation laws.
+- **$M_t$**: Temporal context and execution metadata (step, wall-clock time, SHA-256 state fingerprint).
+- **$\Gamma_t$**: Inspectable Systemic Trace DAG recording causal dependencies with calibrated epistemic evidence levels.
+- **$C_t$**: Active operational constraints partitioned into pre-action preconditions ($\mathcal{V}_{\text{pre}}$) and post-transition state invariants ($\mathcal{V}_{\text{post}}$).
+
+State forward evolution under candidate action vector $A_t$ and exogenous shock vector $E_t \sim \mathcal{D}_{\text{exog}}$ is governed by:
+
+$$A_t^{\text{valid}} = \mathcal{V}_{\text{pre}}(S_t, A_t)$$
+
+$$S_{t+1} \sim \mathcal{T}(S_t, A_t^{\text{valid}}, E_t)$$
+
+$$\text{Status}(S_{t+1}) = \begin{cases} \text{VALID}, & \text{if } \mathcal{V}_{\text{post}}(S_{t+1}) = \emptyset \\ \text{INVALID}, & \text{if } \exists c \in \mathcal{V}_{\text{post}}(S_{t+1}) \text{ with severity } \text{HARD} \end{cases}$$
+
+---
+
+## Architectural Comparison
+
+How does EWM Engine compare to traditional simulators, reinforcement learning toolkits, and LLM frameworks?
+
+| Capability | EWM Engine | Gymnasium (RL) | SimPy / Arena (DES) | LangGraph / CrewAI | Latent World Models (DreamerV3) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Primary Focus** | Enterprise decision evaluation under uncertainty | Agent benchmark training | Queuing & process simulation | LLM workflow orchestration | Continuous latent planning |
+| **State Representation** | Explicit typed graph + bounded resources ($S_t$) | Flat numeric tensor observation | Arbitrary Python objects / queues | String/JSON agent message state | High-dimensional latent vector ($z_t$) |
+| **Conservation Laws** | Mathematically enforced by invariants | Left to reward shaping | Custom imperatively written rules | None (prone to hallucinations) | Approximated via neural loss |
+| **Constraint Phases** | Explicit Pre-Action & Post-Transition gates | Reward penalty or termination | Imperative conditionals | LLM prompt instructions | None (latent transition) |
+| **Branching Isolation** | $O(1)$ isolated snapshot branches (AC-005) | Requires environment reset | Mutable global memory | State history cloning | Parallel latent recurrent steps |
+| **Epistemic Trace** | Calibrated `EvidenceLevel` dependency DAG | None | None | LLM message history | Black-box neural activations |
+| **Simulation Core** | Zero-LLM, strictly deterministic PRNG | Environment-dependent | Deterministic / Stochastic | Non-deterministic LLM calls | Neural network inference |
+
 ---
 
 ## What It Is NOT
 
-To maintain architectural focus, EWM Engine is **not**:
+To maintain architectural focus and scientific integrity, EWM Engine is **not**:
 
 - **NOT a Chatbot or Agent Orchestrator**: It is not LangChain, AutoGen, CrewAI, or LangGraph. External agents interface with EWM Engine as decision actors.
 - **NOT an RL-Only Discrete Gym**: While it supports policy rollouts, it is an enterprise state and evaluation kernel, not just a reinforcement learning benchmark wrapper.
@@ -336,13 +375,13 @@ git clone https://github.com/vfcarida/Enterprise-World-Model-Engine.git
 cd Enterprise-World-Model-Engine
 uv sync --extra dev
 
-# Run full test suite
+# Run full test suite (154 passing tests)
 uv run pytest -q
 
 # Format and strict type check
-uv run ruff check src tests examples
-uv run ruff format --check src tests examples
-uv run mypy src tests
+uv run ruff check src tests examples benchmarks
+uv run ruff format --check src tests examples benchmarks
+uv run mypy src tests examples benchmarks
 
 # Verify test coverage quality gates (>=85% overall, >=90% core areas)
 uv run python scripts/check_coverage.py
@@ -375,14 +414,15 @@ EWM Engine adheres strictly to [Semantic Versioning (SemVer 2.0.0)](https://semv
 
 | Subsystem | Maturity Status | Architectural Scope |
 | :--- | :--- | :--- |
-| **Core Simulation & Branching** | Alpha | Immutable states, snapshot branching, scenario fingerprinting |
-| **Constraint Engine** | Alpha | Pre-action and post-transition verification with full audit provenance |
-| **Pluggable Dynamics** | Alpha | Deterministic, stochastic, and composite dynamic models |
-| **Systemic Traces** | Alpha | Directed dependency graph generation with Mermaid and NetworkX export |
-| **Learned Dynamics Protocol** | Experimental | Protocol interfaces and linear empirical regression baselines |
-| **Causal Epistemics & Evaluation** | Research | Structural vs. interventional vs. observational evidence levels |
-| **SMT Solvers & Optimizers** | Planned Adapter | Optional Z3 and Google OR-Tools constraint satisfaction |
-| **LLM Agent Frameworks** | Planned Adapter | External adapters for LangGraph, AutoGen, and CrewAI |
+| **Core Simulation & Branching** | **Stable (v1.0.0)** | Immutable states, snapshot branching, scenario fingerprinting |
+| **Constraint Engine** | **Stable (v1.0.0)** | Pre-action and post-transition verification with full audit provenance |
+| **Pluggable Dynamics** | **Stable (v1.0.0)** | Deterministic, stochastic, and composite dynamic models |
+| **Systemic Traces** | **Stable (v1.0.0)** | Directed dependency graph generation with Mermaid and NetworkX export |
+| **Causal Epistemics & Evaluation** | **Stable (v1.0.0)** | Structural vs. interventional vs. observational evidence levels |
+| **Learned Dynamics Protocol** | **Beta (v1.0.0)** | Protocol interfaces and linear empirical regression baselines |
+| **Gymnasium / RL Adapters** | Planned (v1.1.0) | Standard Gym environment wrappers for policy training |
+| **SMT Solvers & Optimizers** | Planned (v1.1.0) | Optional Z3 and Google OR-Tools constraint satisfaction |
+| **Distributed Monte Carlo** | Planned (v1.2.0) | Ray and Celery distributed execution backends |
 
 See [ROADMAP.md](ROADMAP.md) for detailed release milestones.
 
@@ -404,7 +444,7 @@ If you use EWM Engine in academic research, benchmark evaluation, or technical p
   title = {Enterprise World Model Engine: An Open Framework for Modeling, Simulating, and Evaluating Organizational Dynamics},
   year = {2026},
   url = {https://github.com/vfcarida/Enterprise-World-Model-Engine},
-  version = {0.1.0}
+  version = {1.0.0}
 }
 ```
 
