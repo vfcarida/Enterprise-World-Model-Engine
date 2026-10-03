@@ -244,6 +244,9 @@ jobs:
       - name: Run Example Tests
         run: uv run pytest tests/examples
 
+      - name: Run Benchmark Regression Guard
+        run: uv run pytest tests/benchmark -m benchmark
+
   architecture-tests:
     name: Architecture & Import Boundary Tests
     runs-on: ubuntu-latest
