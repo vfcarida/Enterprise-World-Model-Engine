@@ -42,6 +42,12 @@ Establish the official v1.0.0 Stable Contract according to the authoritative pro
   - PyPI publishing via OIDC Trusted Publishing with zero stored secrets.
   - Automated pre-merge secret scanning test (`test_no_credentials.py`).
   - Packaging contract verifying `py.typed` and clean virtualenv wheel installation smoke test.
+- **Ecosystem & Machine Learning Adapters (v1.0.0+)**:
+  - Added `EnterpriseGymEnv` in `ewm_engine.integrations.gym`: standard Gymnasium reinforcement learning environment wrapper with phase-aware constraint penalties.
+  - Added `ORToolsAllocationAdapter` in `ewm_engine.integrations.ortools`: Google OR-Tools optimization adapter for linear programming and network flow allocation.
+  - Added `SystemicTrace.to_html()` and `render_trace_html` in `ewm_engine.provenance.html_visualizer`: zero-dependency, self-contained interactive HTML/SVG graph visualizer with dark mode, node inspection, and step timeline filtering.
+  - Added `WorldSimulationStateMachine` in `tests/property/test_stateful_simulation.py`: Hypothesis model-based state machine property testing verifying mass conservation and branch isolation across arbitrary interleavings.
+  - Added `--html-trace` option to `ewm run` CLI command to export interactive HTML trace visualizers.
 - **Documentation & Scientific Framing (AC-014, AC-021, AC-022)**:
   - Complete rewrite of `README.md` with an executable 5-minute Quickstart.
   - Conceptual docs on causality ($P(Y \mid X) \neq P(Y \mid \text{do}(X))$), uncertainty distributions, world model academic lineage, and systemic traces.
