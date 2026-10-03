@@ -59,3 +59,32 @@ Every edge in the trace adheres to the strict `TraceEdge` schema:
 - `relation`: Descriptive interaction type (`drives`, `affects`, `triggers`, `violates`).
 - `evidence_level`: Epistemic classification (`EvidenceLevel`).
 - `metadata`: Key-value audit attributes and transition parameters.
+
+---
+
+## Interactive HTML Visualizer
+
+Systemic traces can be rendered directly into a **100% self-contained, offline-ready HTML5/SVG interactive application** with zero external dependencies:
+
+```python
+# Generate standalone interactive HTML
+html_content = trace.to_html(title="Disaster Logistics Dependency Trace")
+
+with open("trace_report.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+```
+
+### Visualizer Features
+- **Chronological Columns**: Nodes arranged by simulation step ($t=0, t=1, \dots$).
+- **Evidence Level Color-Coding**: Color tokens mapped to `STRUCTURAL` (blue), `INTERVENTIONAL` (emerald), `QUASI_CAUSAL` (amber), `PREDICTIVE` (purple), and `ASSUMED` (gray).
+- **Interactive Node Inspector**: Clicking any node opens a side panel detailing its category, quantitative attributes, and connected dependencies.
+- **Connection Highlighting**: Hovering over or clicking a node highlights active causal paths and dims unrelated nodes.
+- **Timeline Step Filtering**: Filter visible elements dynamically up to step $k$.
+
+### Exporting from the CLI
+You can also generate interactive traces directly from the command line:
+
+```bash
+ewm run specs/warehouse.yaml --horizon 5 --samples 1 --html-trace report.html
+```
+

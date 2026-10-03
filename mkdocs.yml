@@ -79,6 +79,11 @@ nav:
       - "ADR-013: Observability Layer & Lifecycle Hooks": adr/ADR-013-observability-and-lifecycle-hooks.md
       - "ADR-014: CI/CD Quality Gates & Supply-Chain Security": adr/ADR-014-ci-cd-quality-gates-and-supply-chain-security.md
       - "ADR-015: SemVer Stability Policy & v1.0.0 Release": adr/ADR-015-semver-stability-policy-and-v1-release.md
+  - Integrations & Ecosystem:
+      - Overview: integrations/overview.md
+      - Reinforcement Learning (Gymnasium): integrations/gymnasium.md
+      - Operations Research (Google OR-Tools): integrations/or-tools.md
+      - Formal SMT Verification (Z3): integrations/z3-smt.md
   - Examples:
       - "Minimal Warehouse (Normative Fixture)": examples/minimal-warehouse.md
       - Minimal Supply World: examples/minimal-world.md
