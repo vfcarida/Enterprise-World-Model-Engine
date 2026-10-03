@@ -108,6 +108,7 @@ resources:
     spec_file = tmp_path / "run_spec.yaml"
     spec_file.write_text(spec_content, encoding="utf-8")
     out_file = tmp_path / "out_results.json"
+    html_file = tmp_path / "out_trace.html"
 
     exit_code = main(
         [
@@ -121,6 +122,8 @@ resources:
             "99",
             "--out",
             str(out_file),
+            "--html-trace",
+            str(html_file),
         ]
     )
     assert exit_code == 0
@@ -128,10 +131,15 @@ resources:
     assert "Simulation Run Complete" in captured.out
     assert "Trajectories Total:     2" in captured.out
     assert out_file.exists()
+    assert html_file.exists()
 
     data = json.loads(out_file.read_text(encoding="utf-8"))
     assert "trajectories" in data
     assert len(data["trajectories"]) == 2
+
+    html_text = html_file.read_text(encoding="utf-8")
+    assert "<!DOCTYPE html>" in html_text
+    assert "CLIRunWorld Trace" in html_text
 
 
 def test_cli_schema_list(capsys: pytest.CaptureFixture[str]) -> None:

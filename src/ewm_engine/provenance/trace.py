@@ -162,3 +162,16 @@ class SystemicTrace(BaseModel):
                 evidence_level=edge.evidence_level.value,
             )
         return graph
+
+    def to_html(self, title: str = "Systemic Trace Dependency Graph") -> str:
+        """Export trace as a self-contained, offline-ready interactive HTML visualizer.
+
+        Args:
+            title: Title displayed in the visualizer header.
+
+        Returns:
+            Complete HTML5 document string with embedded SVG, dark theme, and node inspection.
+        """
+        from ewm_engine.provenance.html_visualizer import render_trace_html
+
+        return render_trace_html(self, title=title)

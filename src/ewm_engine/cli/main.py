@@ -89,6 +89,7 @@ def _run_spec(
     samples: int = 1,
     seed: int = 42,
     output_path: str | None = None,
+    html_trace_path: str | None = None,
 ) -> int:
     """Run simulation directly from a declarative specification."""
     path = Path(path_str)
@@ -145,6 +146,15 @@ def _run_spec(
             }
             out_p.write_text(json.dumps(results_data, indent=2, default=str), encoding="utf-8")
             sys.stdout.write(f"\nResults successfully written to: {out_p}\n")
+
+        if html_trace_path and result.trajectories:
+            html_p = Path(html_trace_path)
+            html_p.parent.mkdir(parents=True, exist_ok=True)
+            html_p.write_text(
+                result.trajectories[0].systemic_trace.to_html(title=f"{spec.world.name} Trace"),
+                encoding="utf-8",
+            )
+            sys.stdout.write(f"Interactive trace visualizer successfully written to: {html_p}\n")
 
         return 0
     except (SimulationConfigurationError, Exception) as err:
@@ -230,6 +240,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     run_parser.add_argument(
         "--out", type=str, default=None, help="Optional output JSON path for results"
     )
+    run_parser.add_argument(
+        "--html-trace",
+        type=str,
+        default=None,
+        help="Optional output HTML path for interactive systemic trace visualizer",
+    )
 
     # 4. `ewm schema [list|show <name>]`
     schema_parser = subparsers.add_parser("schema", help="Inspect committed JSON Schemas")
@@ -251,6 +267,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             samples=args.samples,
             seed=args.seed,
             output_path=args.out,
+            html_trace_path=args.html_trace,
         )
     elif args.command == "schema":
         return _handle_schema(args.action, args.name)
