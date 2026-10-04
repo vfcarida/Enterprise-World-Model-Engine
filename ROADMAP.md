@@ -32,7 +32,7 @@ Capabilities in EWM Engine are classified under explicit maturity levels:
 | **Normative Acceptance** | **Stable** | Minimal Warehouse (AC-012) and CivicFlow regional flood response (AC-013) fixtures |
 | **Observability Layer** | **Stable** | Typed lifecycle hooks (`HookRegistry`, `HookEvent`) and programmatic `RunMetrics` |
 | **Command-Line Interface** | **Stable** | `ewm [example|validate|run|schema]` subcommands for execution and validation |
-| **Ecosystem Adapters** | **Alpha** | `CallableActorAdapter` (LangGraph/AutoGen) and `Z3ConstraintAdapter` (SMT) via `ewm-engine[solvers]` |
+| **Ecosystem Adapters** | **Alpha** | `CallableActorAdapter` (LangGraph/AutoGen), `Z3ConstraintAdapter` (SMT), `EnterpriseGymEnv` (RL), and `ORToolsAllocationAdapter` (OR) |
 | **Online Re-Grounding (MPC)** | **Experimental** | `RecedingHorizonSimulator` and `MPCDecisionRecord` in `ewm_engine.experimental` |
 | **Learned Dynamics** | **Experimental** | `LinearResidualDynamics` and `TransitionDataset` in `ewm_engine.experimental` |
 

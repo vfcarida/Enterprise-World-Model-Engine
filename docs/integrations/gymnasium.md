@@ -8,12 +8,17 @@ This enables modern reinforcement learning libraries (such as Stable-Baselines3,
 
 ## Key Features
 
-- **Standard API**: Implements `reset(seed=..., options=...)` and `step(action)`.
-- **Vectorized Observations**: Automatically maps numeric bounded resources into continuous observation spaces (`spaces.Box`), or accepts a custom `observation_fn: Callable[[WorldState], np.ndarray]`.
-- **Action Spaces**: Supports discrete action indexes (`spaces.Discrete`) mapped to concrete `Action` definitions, or continuous parameter spaces mapped via a custom `action_mapping` function.
+- **Standard API**: Subclasses `gymnasium.Env` when installed, implementing `reset(seed=..., options=...)`, `step(action)`, `render()`, and `close()`.
+- **Vectorized Observations**: Automatically maps numeric bounded resources into continuous observation spaces (`spaces.Box`) with resource `min_value` and `max_value` limits, or accepts a custom `observation_fn: Callable[[WorldState], np.ndarray]`.
+- **Flexible Action Spaces**: Supports discrete action indexes (`spaces.Discrete`) mapped to candidate `Action` definitions, custom callable mappers `Callable[[Any], Action | None]`, or explicit `action_space` / `observation_space` instances.
 - **Constraint-Aware Rewards**: Incorporates hard and soft constraint violations into policy feedback:
-  - If an action violates a `HARD` pre-action constraint, the action is rejected and a violation penalty is subtracted from reward.
+  - If an action violates a `HARD` pre-action constraint, the action is rejected and `violation_penalty` is subtracted from reward.
+  - Soft constraint violations subtract `soft_violation_penalty` from reward without prematurely terminating the rollout.
   - If configured with `terminate_on_hard_violation=True`, encountering an invalid state terminates the episode with a structured violation report in `info`.
+- **Multiple Render Modes**: Configured via `render_mode`:
+  - `"ansi"`: Returns formatted textual representation of current resource levels and step progression.
+  - `"human"`: Prints the ANSI representation to `sys.stdout`.
+  - `"html"`: Generates and returns a self-contained interactive SVG/HTML systemic dependency trace visualizer.
 
 ---
 

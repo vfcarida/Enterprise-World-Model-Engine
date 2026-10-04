@@ -420,8 +420,8 @@ EWM Engine adheres strictly to [Semantic Versioning (SemVer 2.0.0)](https://semv
 | **Systemic Traces** | **Stable (v1.0.0)** | Directed dependency graph generation with Mermaid and NetworkX export |
 | **Causal Epistemics & Evaluation** | **Stable (v1.0.0)** | Structural vs. interventional vs. observational evidence levels |
 | **Learned Dynamics Protocol** | **Beta (v1.0.0)** | Protocol interfaces and linear empirical regression baselines |
-| **Gymnasium / RL Adapters** | Planned (v1.1.0) | Standard Gym environment wrappers for policy training |
-| **SMT Solvers & Optimizers** | Planned (v1.1.0) | Optional Z3 and Google OR-Tools constraint satisfaction |
+| **Gymnasium / RL Adapters** | **Alpha (v1.0.0+)** | Standard Gym environment wrappers (`gymnasium.Env`) for policy training |
+| **SMT Solvers & Optimizers** | **Alpha (v1.0.0+)** | Optional Z3 SMT and Google OR-Tools constraint satisfaction |
 | **Distributed Monte Carlo** | Planned (v1.2.0) | Ray and Celery distributed execution backends |
 
 See [ROADMAP.md](ROADMAP.md) for detailed release milestones.

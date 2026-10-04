@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import importlib
+import sys
 from collections.abc import Callable, Sequence
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 
@@ -26,18 +27,30 @@ except ImportError:
     _spaces_mod = None
     _HAS_GYMNASIUM = False
 
+if _HAS_GYMNASIUM and hasattr(_gym_mod, "Env"):
+    _EnvBase: type[Any] = _gym_mod.Env
+else:
+    _EnvBase = object
 
-class EnterpriseGymEnv:
+
+class EnterpriseGymEnv(_EnvBase):  # type: ignore[misc]
     """Reinforcement learning environment adapter wrapping an EWM Engine World.
 
     Complies with the Gymnasium Env interface:
     `reset() -> (observation, info)`
     `step(action) -> (observation, reward, terminated, truncated, info)`
+    `render() -> str | None`
+    `close() -> None`
 
     Enables standard RL libraries (Stable-Baselines3, CleanRL, Ray RLlib, etc.)
     to train policies directly inside enterprise simulation worlds with explicit
     pre-action and post-transition constraint verification.
     """
+
+    metadata: ClassVar[dict[str, Any]] = {
+        "render_modes": ["ansi", "human", "html"],
+        "render_fps": 10,
+    }
 
     def __init__(
         self,
@@ -51,8 +64,12 @@ class EnterpriseGymEnv:
             | None
         ) = None,
         violation_penalty: float = 100.0,
+        soft_violation_penalty: float = 10.0,
         terminate_on_hard_violation: bool = True,
         strict_gymnasium: bool = False,
+        render_mode: str | None = None,
+        observation_space: Any = None,
+        action_space: Any = None,
         seed: int = 42,
     ) -> None:
         """Initialize the enterprise gym environment.
@@ -66,8 +83,12 @@ class EnterpriseGymEnv:
                 or a callable converting raw agent action (int or array) to an EWM Action.
             reward_fn: Custom reward function (prev_state, action, next_state, violations) -> float.
             violation_penalty: Penalty subtracted from reward for each hard constraint violation.
+            soft_violation_penalty: Penalty subtracted from reward for each soft constraint violation.
             terminate_on_hard_violation: If True, halts episode when a hard invariant is breached.
             strict_gymnasium: If True, raises SimulationConfigurationError immediately if gymnasium is missing.
+            render_mode: Render mode ("ansi", "human", "html", or None).
+            observation_space: Optional explicit Gymnasium space overriding auto-inference.
+            action_space: Optional explicit Gymnasium space overriding auto-inference.
             seed: Initial pseudo-random number generator seed.
         """
         if strict_gymnasium and not _HAS_GYMNASIUM:
@@ -76,12 +97,22 @@ class EnterpriseGymEnv:
                 "Install with `pip install gymnasium` or `pip install ewm-engine[ml]`."
             )
 
+        if render_mode is not None and render_mode not in self.metadata["render_modes"]:
+            raise ValueError(
+                f"Unsupported render_mode '{render_mode}'. Supported modes: {self.metadata['render_modes']}"
+            )
+
+        if _HAS_GYMNASIUM and _EnvBase is not object:
+            super().__init__()
+
         self._world = world
         self._current_state: WorldState = world.initial_state
         self._max_steps = max_steps
         self._step_idx = 0
         self._violation_penalty = violation_penalty
+        self._soft_violation_penalty = soft_violation_penalty
         self._terminate_on_hard_violation = terminate_on_hard_violation
+        self.render_mode = render_mode
         self._rng = np.random.default_rng(seed)
         self._trace = SystemicTrace()
         self._engine = SimulationEngine()
@@ -91,6 +122,7 @@ class EnterpriseGymEnv:
             self._obs_fn = observation_fn
             sample_obs = self._obs_fn(self._current_state)
             obs_dim = sample_obs.shape[0]
+            self._res_ids: list[str] = []
         else:
             self._res_ids = list(
                 observation_resources
@@ -107,15 +139,38 @@ class EnterpriseGymEnv:
         self._reward_fn = reward_fn or self._default_reward_fn
 
         # Setup spaces if gymnasium is installed
-        if _HAS_GYMNASIUM and _spaces_mod is not None:
-            self.observation_space: Any = _spaces_mod.Box(
-                low=-np.inf,
-                high=np.inf,
-                shape=(obs_dim,),
-                dtype=np.float32,
-            )
+        if observation_space is not None:
+            self.observation_space: Any = observation_space
+        elif _HAS_GYMNASIUM and _spaces_mod is not None:
+            if observation_fn is not None:
+                self.observation_space = _spaces_mod.Box(
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=(obs_dim,),
+                    dtype=np.float32,
+                )
+            else:
+                lows = []
+                highs = []
+                for rid in self._res_ids:
+                    res = self._world.initial_state.get_resource(rid)
+                    min_v = float(res.min_value) if res is not None else -np.inf
+                    max_v = float(res.max_value) if res is not None else np.inf
+                    lows.append(min_v)
+                    highs.append(max_v)
+                self.observation_space = _spaces_mod.Box(
+                    low=np.array(lows, dtype=np.float32),
+                    high=np.array(highs, dtype=np.float32),
+                    dtype=np.float32,
+                )
+        else:
+            self.observation_space = None
+
+        if action_space is not None:
+            self.action_space: Any = action_space
+        elif _HAS_GYMNASIUM and _spaces_mod is not None:
             if isinstance(action_mapping, (list, tuple)):
-                self.action_space: Any = _spaces_mod.Discrete(len(action_mapping))
+                self.action_space = _spaces_mod.Discrete(len(action_mapping))
             else:
                 self.action_space = _spaces_mod.Box(
                     low=-1.0,
@@ -124,7 +179,6 @@ class EnterpriseGymEnv:
                     dtype=np.float32,
                 )
         else:
-            self.observation_space = None
             self.action_space = None
 
     def _default_observation_fn(self, state: WorldState) -> np.ndarray:
@@ -144,7 +198,9 @@ class EnterpriseGymEnv:
         reward = 0.0
         # Penalize hard constraint breaches
         hard_count = sum(1 for v in violations if v.severity == ConstraintSeverity.HARD)
+        soft_count = sum(1 for v in violations if v.severity == ConstraintSeverity.SOFT)
         reward -= hard_count * self._violation_penalty
+        reward -= soft_count * self._soft_violation_penalty
         return reward
 
     def reset(
@@ -221,10 +277,47 @@ class EnterpriseGymEnv:
             "actions_accepted": len(step_record.actions_accepted),
             "violations_count": len(violations),
             "hard_violations": sum(1 for v in violations if v.severity == ConstraintSeverity.HARD),
+            "soft_violations": sum(1 for v in violations if v.severity == ConstraintSeverity.SOFT),
             "fingerprint": next_state.fingerprint,
             "is_invalid": is_invalid,
         }
         return obs, reward, terminated, truncated, info
+
+    def render(self) -> str | None:
+        """Render the environment state according to configured render_mode."""
+        if self.render_mode is None:
+            return None
+
+        if self.render_mode == "ansi":
+            return self._render_ansi()
+        elif self.render_mode == "human":
+            sys.stdout.write(self._render_ansi() + "\n")
+            sys.stdout.flush()
+            return None
+        elif self.render_mode == "html":
+            world_name = getattr(self._world, "name", "EnterpriseWorld")
+            return self._trace.to_html(title=f"{world_name} Trace")
+        else:
+            raise NotImplementedError(
+                f"Unsupported render_mode '{self.render_mode}'. Supported modes: {self.metadata['render_modes']}"
+            )
+
+    def _render_ansi(self) -> str:
+        lines = [
+            f"--- EWM Engine Gym Step {self._step_idx}/{self._max_steps} ---",
+            f"State Fingerprint: {self._current_state.fingerprint[:16]}...",
+            "Resources:",
+        ]
+        for rid in self._res_ids:
+            res = self._current_state.get_resource(rid)
+            val = f"{res.current:.2f}" if res is not None else "N/A"
+            bounds = f" [{res.min_value}..{res.max_value}]" if res is not None else ""
+            lines.append(f"  {rid}: {val}{bounds}")
+        return "\n".join(lines)
+
+    def close(self) -> None:
+        """Clean up any active simulation resources or visualizers."""
+        pass
 
     @property
     def current_state(self) -> WorldState:

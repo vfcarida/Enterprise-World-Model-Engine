@@ -47,6 +47,10 @@ solvers = [
 ]
 ml = [
     "torch>=2.2.0",
+    "gymnasium>=0.29.0",
+]
+rl = [
+    "gymnasium>=0.29.0",
 ]
 docs = [
     "mkdocs>=1.5.0",
@@ -68,6 +72,7 @@ all = [
     "networkx>=3.2",
     "z3-solver>=4.12.0",
     "torch>=2.2.0",
+    "gymnasium>=0.29.0",
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.5.0",
     "mkdocstrings[python]>=0.24.0",
