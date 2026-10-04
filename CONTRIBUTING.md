@@ -60,12 +60,12 @@ To ensure high scientific credibility, architectural integrity, and reproducibil
 - **Strict Typing**: All public code must have explicit type annotations. Do not use unconstrained `dict`, `list`, or `Any` where typed domain models (`WorldState`, `Entity`, `Resource`, `Action`, `Constraint`) apply.
 - **Ruff**: Enforces formatting and linting.
   ```bash
-  ruff check src tests examples
-  ruff format --check src tests examples
+  ruff check src tests examples benchmarks
+  ruff format --check src tests examples benchmarks
   ```
 - **Mypy**: Must pass with zero errors in strict mode:
   ```bash
-  mypy src tests
+  mypy src tests examples benchmarks
   ```
 
 ### Testing
