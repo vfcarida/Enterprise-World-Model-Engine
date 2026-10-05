@@ -20,8 +20,8 @@
 ```python
 # Before
 class Example:
-    def existing_method(self, arg1: str) -> None:
-        ...
+    def existing_method(self, arg1: str) -> None: ...
+
 
 # After
 class Example:
@@ -29,8 +29,7 @@ class Example:
         self,
         arg1: str,
         new_optional_param: int = 0,  # Rule: new params in 1.x minor MUST be optional with default
-    ) -> None:
-        ...
+    ) -> None: ...
 ```
 
 ### Affected Symbols in `ewm_engine.__all__`

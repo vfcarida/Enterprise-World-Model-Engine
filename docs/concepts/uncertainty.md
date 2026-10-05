@@ -87,3 +87,35 @@ flowchart TD
 ```
 
 By coupling anticipatory forward simulation over a short window with continuous empirical re-grounding at each discrete decision step, organizations prevent simulation drift while retaining forward visibility.
+
+---
+
+## Counterfactual Comparison & Multi-Objective Evaluation (v1.1)
+
+Evaluating candidate interventions against a baseline requires more than simple point deltas. EWM Engine provides statistical uncertainty quantification and multi-criteria decision analysis:
+
+### 1. Bootstrap Confidence Intervals on Deltas
+
+When comparing candidate policies $\pi_{cand}$ against baseline $\pi_{base}$, raw deltas ($\Delta = \mu_{cand} - \mu_{base}$) are subject to Monte Carlo sampling variance. `compare_scenarios` computes non-parametric percentile bootstrap confidence intervals:
+
+$$\Delta^*_b = \bar{X}^*_{cand, b} - \bar{X}^*_{base, b}, \quad b = 1, \dots, B$$
+
+- **Bootstrap CI**: Reports empirical $[(1-\alpha)/2, 1-(1-\alpha)/2]$ percentile bounds (e.g. 95% CI) without assuming Gaussian or symmetric metric distributions.
+- **Empirical Significance**: Tests whether the confidence interval strictly excludes zero, reporting two-tailed empirical p-values and an `is_significant` flag.
+
+> [!IMPORTANT]
+> **Epistemic Honesty on Simulation Significance**:  
+> Significance flags in EWM Engine measure whether a metric difference is distinguishable from zero **under the simulation model's internal stochasticity** ($P_{model}$). They **do not** prove real-world empirical causal significance ($P(Y \mid \text{do}(X))$). Real-world inference requires empirical identification, observational re-grounding, and unobserved confounder validation.
+
+### 2. Multi-Objective Optimization & Pareto Frontiers
+
+In enterprise socio-technical systems, interventions involve inherent trade-offs (e.g., holding inventory costs vs. stockout rates vs. constraint violations).
+
+- **Objective Specifications**: Each metric can be configured with an `ObjectiveDirection` (`MINIMIZE` or `MAXIMIZE`) and an optional preference weight.
+- **Pareto Dominance**: A scenario $A$ dominates scenario $B$ ($A \succ B$) if it is at least as good in all objectives and strictly better in at least one.
+- **Non-Dominated Frontier**: The engine extracts the non-dominated set and tracks explicit pairwise dominance relationships.
+
+> [!NOTE]
+> **The Anti-Winner Guardrail**:  
+> Unless explicit, normalized decision-maker preference weights are supplied, EWM Engine **refuses to declare an automated "winner"** among non-dominated scenarios. Instead, it surfaces the Pareto frontier and trade-offs so stakeholders can perform principled Multi-Criteria Decision Analysis (MCDA).
+

@@ -23,8 +23,7 @@ We introduce `ewm_engine.hooks.protocol.Hook` as a runtime-checkable Protocol de
 ```python
 @runtime_checkable
 class Hook(Protocol):
-    def on_event(self, event: HookEvent) -> None:
-        ...
+    def on_event(self, event: HookEvent) -> None: ...
 ```
 Any object providing `on_event(event: HookEvent) -> None`, or any single-argument callable function, can be registered with a `HookRegistry`.
 

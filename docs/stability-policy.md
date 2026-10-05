@@ -9,10 +9,36 @@ This document codifies the Semantic Versioning (SemVer 2.0.0) stability guarante
 The normative **Stable Public API Surface** is defined exclusively by the symbols exported from the root `ewm_engine` module via `ewm_engine.__all__`:
 
 ```python
-Action, Constraint, ConstraintPhase, ConstraintResult, ConstraintSeverity,
-DynamicsModel, Entity, EvidenceLevel, ExogenousEvent, Provenance, Relationship,
-Resource, Scenario, SimulationEngine, SimulationResult, TraceEdge, Trajectory,
-TrajectoryStatus, TransitionResult, World, WorldState, compare_scenarios,
+(
+    Action,
+    Constraint,
+    ConstraintPhase,
+    ConstraintResult,
+    ConstraintSeverity,
+)
+(
+    DynamicsModel,
+    Entity,
+    EvidenceLevel,
+    ExogenousEvent,
+    Provenance,
+    Relationship,
+)
+(
+    Resource,
+    Scenario,
+    SimulationEngine,
+    SimulationResult,
+    TraceEdge,
+    Trajectory,
+)
+(
+    TrajectoryStatus,
+    TransitionResult,
+    World,
+    WorldState,
+    compare_scenarios,
+)
 __version__
 ```
 
@@ -75,7 +101,7 @@ In the event of a critical security vulnerability (such as an arbitrary code exe
 
 Any proposed modification, deprecation, or addition to the Stable Public API surface must follow the formal API Change Proposal workflow:
 
-1. **Submit Proposal**: Author drafts an API Change Proposal using the template at [`.github/API_CHANGE_PROPOSAL.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/.github/API_CHANGE_PROPOSAL.md).
+1. **Submit Proposal**: Author drafts an API Change Proposal using the template at [`.github/API_CHANGE_PROPOSAL.md`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/.github/API_CHANGE_PROPOSAL.md).
 2. **Architecture Decision Record**: If the change introduces new structural concepts or protocols, an accompanying ADR must be placed in `docs/adr/`.
 3. **Review and Consensus**: Maintainers review the proposal against the Definition of Done and backward-compatibility gates.
 4. **Contract Test Enforcement (AC-024)**: Any approved API change must update the committed public API snapshot in `tests/contract/test_public_api.py` and `tests/contract/test_api_compatibility.py` with an explicit reference to the approved ACP. Unapproved API drift automatically fails CI.

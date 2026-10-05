@@ -142,3 +142,66 @@ def test_spec_parser_does_not_perform_arbitrary_dynamic_imports() -> None:
                     f"Security/architecture violation in {spec_file}:{node.lineno} - "
                     "Dynamic 'importlib.import_module' is forbidden in specification parser."
                 )
+
+
+@pytest.mark.architecture
+def test_core_and_simulation_do_not_import_opentelemetry() -> None:
+    """Core, simulation, constraints, and dynamics MUST NOT import opentelemetry."""
+    checked_dirs = [
+        SRC_ROOT / "core",
+        SRC_ROOT / "simulation",
+        SRC_ROOT / "constraints",
+        SRC_ROOT / "dynamics",
+        SRC_ROOT / "hooks",
+        SRC_ROOT / "provenance",
+    ]
+    for d in checked_dirs:
+        for py_file in d.rglob("*.py"):
+            imports = _extract_imports(py_file, include_function_level=True)
+            for line_no, mod_name in imports:
+                if mod_name == "opentelemetry" or mod_name.startswith("opentelemetry."):
+                    pytest.fail(
+                        f"Architecture boundary violation in {py_file}:{line_no} - "
+                        f"'{d.name}' must not depend on OpenTelemetry (found import '{mod_name}')"
+                    )
+
+
+@pytest.mark.architecture
+def test_otel_adapter_does_not_import_opentelemetry_sdk() -> None:
+    """integrations.otel MUST NOT import opentelemetry.sdk in library code (API-only contract)."""
+    otel_file = SRC_ROOT / "integrations" / "otel.py"
+    if not otel_file.exists():
+        pytest.fail(f"Expected adapter file {otel_file} does not exist.")
+
+    imports = _extract_imports(otel_file, include_function_level=True)
+    for line_no, mod_name in imports:
+        if mod_name == "opentelemetry.sdk" or mod_name.startswith("opentelemetry.sdk."):
+            pytest.fail(
+                f"OpenTelemetry API-only constraint violated in {otel_file}:{line_no} - "
+                f"Library code must depend only on 'opentelemetry-api', never SDK (found '{mod_name}')"
+            )
+
+
+@pytest.mark.architecture
+def test_core_and_simulation_do_not_import_solvers_or_planners() -> None:
+    """Core, simulation, constraints, dynamics, provenance, and evaluation MUST NOT import z3, ortools, or scipy."""
+    checked_dirs = [
+        SRC_ROOT / "core",
+        SRC_ROOT / "simulation",
+        SRC_ROOT / "constraints",
+        SRC_ROOT / "dynamics",
+        SRC_ROOT / "hooks",
+        SRC_ROOT / "provenance",
+        SRC_ROOT / "evaluation",
+    ]
+    forbidden_prefixes = ("z3", "ortools", "scipy")
+    for d in checked_dirs:
+        for py_file in d.rglob("*.py"):
+            imports = _extract_imports(py_file, include_function_level=True)
+            for line_no, mod_name in imports:
+                for prefix in forbidden_prefixes:
+                    if mod_name == prefix or mod_name.startswith(f"{prefix}."):
+                        pytest.fail(
+                            f"Architecture boundary violation in {py_file}:{line_no} - "
+                            f"'{d.name}' must not depend on '{prefix}' (found import '{mod_name}')"
+                        )

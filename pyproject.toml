@@ -44,6 +44,12 @@ graphs = [
 ]
 solvers = [
     "z3-solver>=4.12.0",
+    "ortools>=9.8.0",
+    "scipy>=1.11.0",
+]
+or = [
+    "ortools>=9.8.0",
+    "scipy>=1.11.0",
 ]
 ml = [
     "torch>=2.2.0",
@@ -67,12 +73,23 @@ dev = [
     "pyyaml>=6.0",
     "build>=1.1.0",
     "twine>=5.0.0",
+    "opentelemetry-sdk>=1.25.0",
+]
+distributed = [
+    "ray>=2.9.0",
+]
+otel = [
+    "opentelemetry-api>=1.25.0",
 ]
 all = [
     "networkx>=3.2",
     "z3-solver>=4.12.0",
+    "ortools>=9.8.0",
+    "scipy>=1.11.0",
     "torch>=2.2.0",
     "gymnasium>=0.29.0",
+    "ray>=2.9.0",
+    "opentelemetry-api>=1.25.0",
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.5.0",
     "mkdocstrings[python]>=0.24.0",
@@ -148,6 +165,7 @@ warn_unreachable = true
 module = [
     "networkx.*",
     "yaml.*",
+    "z3.*",
 ]
 ignore_missing_imports = true
 

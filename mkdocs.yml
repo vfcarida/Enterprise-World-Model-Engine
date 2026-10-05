@@ -51,6 +51,7 @@ nav:
       - What is a World Model?: concepts/world-models.md
       - Causal Epistemology: concepts/causality.md
       - Uncertainty & Rollouts: concepts/uncertainty.md
+      - "Decision-Grade Evaluation": concepts/evaluation.md
       - First-Class Constraints: concepts/constraints.md
       - Systemic Traces: concepts/systemic-traces.md
   - Architecture:
@@ -61,8 +62,15 @@ nav:
       - Observability & Lifecycle Hooks: architecture/observability.md
       - "Stability Policy & SemVer Contract": stability-policy.md
       - "v1 Specification Contract": specs/spec-driven-development.md
+      - "FEAT-001: Evaluation Upgrade": specs/features/FEAT-001-evaluation-upgrade.md
+      - "FEAT-002: Distributed Monte Carlo": specs/features/FEAT-002-distributed-monte-carlo.md
       - "v1.0.0 Convergence Review": specs/v1-convergence.md
       - "Repository Audit Report": audit/repository-audit-report.md
+      - "v1.1 Baseline Verification Report": audit/v1-1-baseline-report.md
+      - "Verified Baseline & Dev Setup (P01)": dev/baseline.md
+  - User Guides:
+      - "Scaling Out Monte Carlo Simulations": guides/scale-out.md
+      - "OpenTelemetry Observability": guides/observability-otel.md
   - Architecture Decision Records (ADRs):
       - "ADR-001: Python-First Implementation": adr/ADR-001-python-first.md
       - "ADR-002: Pluggable Dynamics Protocol": adr/ADR-002-pluggable-dynamics.md
@@ -79,13 +87,19 @@ nav:
       - "ADR-013: Observability Layer & Lifecycle Hooks": adr/ADR-013-observability-and-lifecycle-hooks.md
       - "ADR-014: CI/CD Quality Gates & Supply-Chain Security": adr/ADR-014-ci-cd-quality-gates-and-supply-chain-security.md
       - "ADR-015: SemVer Stability Policy & v1.0.0 Release": adr/ADR-015-semver-stability-policy-and-v1-release.md
+      - "ADR-016: Evaluation Upgrade & Pareto Analysis": adr/ADR-016-evaluation-upgrade-bootstrap-cis-and-pareto.md
+      - "ADR-017: Distributed Monte Carlo & Determinism": adr/ADR-017-distributed-monte-carlo-execution-and-determinism.md
+      - "ADR-018: Solver & Planner Protocols with Resource Limits": adr/ADR-018-solver-and-planner-protocols-and-resource-limits.md
   - Integrations & Ecosystem:
       - Overview: integrations/overview.md
-      - Reinforcement Learning (Gymnasium): integrations/gymnasium.md
       - Operations Research (Google OR-Tools): integrations/or-tools.md
+      - Continuous Optimization (SciPy): integrations/scipy.md
       - Formal SMT Verification (Z3): integrations/z3-smt.md
+      - Reinforcement Learning (Gymnasium): integrations/gymnasium.md
+      - "Agent Evaluation ('Engine != Agent')": integrations/agent-evaluation.md
   - Examples:
       - "Minimal Warehouse (Normative Fixture)": examples/minimal-warehouse.md
       - Minimal Supply World: examples/minimal-world.md
       - "Flagship: CivicFlow Disaster Response": examples/civicflow.md
+      - "Agent Evaluation & OR Auditability": examples/agent-evaluation.md
   - API Reference: api/reference.md

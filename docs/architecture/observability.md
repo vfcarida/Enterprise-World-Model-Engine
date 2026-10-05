@@ -48,10 +48,12 @@ To observe a simulation, implement the `Hook` protocol or supply a callable:
 ```python
 from ewm_engine.hooks import HookEvent, HookRegistry, SimulationFinished
 
+
 class ProgressReporter:
     def on_event(self, event: HookEvent) -> None:
         if isinstance(event, SimulationFinished):
             print(f"Simulation completed in {event.duration_seconds:.3f}s")
+
 
 # Register with the simulation engine
 registry = HookRegistry([ProgressReporter()])
@@ -97,8 +99,15 @@ All metrics contain strictly operational counters and timing information. No con
 
 ---
 
-## OpenTelemetry Future Adapter Architecture
+## OpenTelemetry Adapter Architecture
 
-EWM Engine does **not** bundle OpenTelemetry SDK or exporter dependencies into its core kernel. Instead:
-- An OpenTelemetry integration is planned as a future optional package (`ewm-engine-otel`).
-- Host applications wishing to integrate OpenTelemetry today can simply implement a `Hook` that translates `HookEvent` instances into OpenTelemetry spans, events, and metrics counters.
+EWM Engine provides first-class OpenTelemetry support via `ewm_engine.integrations.otel.OpenTelemetryHook` (available under the `[otel]` optional extra).
+
+### Design Boundary (API-Only)
+- **Zero SDK Coupling**: Library code depends strictly on `opentelemetry-api` (`>=1.25.0`) and never on `opentelemetry-sdk` or exporters.
+- **Host Control**: The host application initializes the TracerProvider, MeterProvider, and export destinations (OTLP, Jaeger, Prometheus, Console).
+- **Span Hierarchy**: Dispatches a 3-level span hierarchy (`ewm.simulation` -> `ewm.rollout` -> `ewm.step`) with constraint events.
+- **RunMetrics Instruments**: Automatically records execution durations, rollout counts, step totals, and constraint evaluations.
+- **Safety by Default**: Raw state payloads, memory dictionaries, and secrets are strictly excluded from span attributes unless explicitly enabled via `include_state_attributes=True`.
+
+For full setup examples and SDK configurations, see the [OpenTelemetry Observability Guide](../guides/observability-otel.md).

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ewm_engine.core.actions import Intervention
 from ewm_engine.core.events import ExogenousEventSource
@@ -122,6 +122,7 @@ class World:
         horizon: int = 10,
         samples: int = 1,
         seed: int = 42,
+        executor: Any = None,
     ) -> SimulationResult:
         """Execute a forward Monte Carlo simulation of this world under a given scenario.
 
@@ -142,5 +143,5 @@ class World:
         elif intervention is not None and scenario.intervention is None:
             scenario = scenario.with_intervention(intervention)
 
-        engine = SimulationEngine()
+        engine = SimulationEngine(executor=executor)
         return engine.run(world=self, scenario=scenario)

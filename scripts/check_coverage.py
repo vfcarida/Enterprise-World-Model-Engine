@@ -98,7 +98,6 @@ def main() -> int:
                 summary = file_data.get("summary", {})
                 num_stmts = summary.get("num_statements", 0)
                 cov_lines = summary.get("covered_lines", 0)
-                num_branches = summary.get("num_branches", 0)
                 cov_branches = summary.get("covered_branches", 0)
                 missing_branches = summary.get("missing_branches", 0)
 
@@ -144,7 +143,10 @@ def main() -> int:
     print("=" * 70)
 
     if failed:
-        print("\nERROR: Quality gate check failed. One or more coverage thresholds were breached.\n", file=sys.stderr)
+        print(
+            "\nERROR: Quality gate check failed. One or more coverage thresholds were breached.\n",
+            file=sys.stderr,
+        )
         return 1
 
     print("\nSUCCESS: All overall and core-area coverage quality gates passed.\n")

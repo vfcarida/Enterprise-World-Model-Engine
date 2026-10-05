@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from ewm_engine import (
@@ -254,3 +256,160 @@ def test_minimal_world_backward_compatibility() -> None:
     comparison = run_minimal_world()
     assert comparison is not None
     assert comparison.baseline_name is not None
+
+
+@pytest.mark.example
+def test_documented_ortools_cpsat_planner_example_executes() -> None:
+    """Ensure documented OR-Tools CP-SAT discrete allocation planner snippet executes."""
+    from ewm_engine.integrations.ortools import CPSATAllocationPlanner
+
+    state = WorldState(
+        resources=[
+            Resource(id="depot_1", current=100.0, min_value=0.0, max_value=200.0),
+            Resource(id="depot_2", current=80.0, min_value=0.0, max_value=200.0),
+            Resource(id="clinic_north", current=0.0, min_value=0.0, max_value=100.0),
+            Resource(id="clinic_south", current=0.0, min_value=0.0, max_value=100.0),
+        ]
+    )
+
+    planner = CPSATAllocationPlanner(
+        actor_id="cpsat_logistics",
+        sources=["depot_1", "depot_2"],
+        destinations=["clinic_north", "clinic_south"],
+        demands={"clinic_north": 50, "clinic_south": 40},
+        capacities={
+            ("depot_1", "clinic_north"): 60,
+            ("depot_2", "clinic_south"): 50,
+        },
+        costs={
+            ("depot_1", "clinic_north"): 2,
+            ("depot_2", "clinic_south"): 3,
+        },
+        time_limit_seconds=5.0,
+    )
+
+    actions = planner.propose(state=state)
+    assert len(actions) == 2
+    assert planner.last_result is not None
+    assert planner.last_result.satisfied
+
+
+@pytest.mark.example
+def test_documented_scipy_allocation_planner_example_executes() -> None:
+    """Ensure documented SciPy continuous allocation planner snippet executes."""
+    from ewm_engine.integrations.scipy_planner import SciPyAllocationPlanner
+
+    state = WorldState(
+        resources=[
+            Resource(id="treasury_reserve", current=250.0, min_value=0.0, max_value=1000.0),
+            Resource(id="region_north", current=10.0, min_value=0.0, max_value=500.0),
+            Resource(id="region_south", current=5.0, min_value=0.0, max_value=500.0),
+        ]
+    )
+
+    planner = SciPyAllocationPlanner(
+        actor_id="scipy_budget_allocator",
+        sources=["treasury_reserve"],
+        destinations=["region_north", "region_south"],
+        demands={"region_north": 75.5, "region_south": 60.0},
+        costs={
+            ("treasury_reserve", "region_north"): 1.1,
+            ("treasury_reserve", "region_south"): 1.4,
+        },
+        capacities={
+            ("treasury_reserve", "region_north"): 100.0,
+            ("treasury_reserve", "region_south"): 80.0,
+        },
+        time_limit_seconds=5.0,
+        method="highs",
+    )
+
+    actions = planner.propose(state=state)
+    assert len(actions) == 2
+    assert planner.last_result is not None
+    assert planner.last_result.satisfied
+
+
+@pytest.mark.example
+def test_documented_z3_smt_constraint_example_executes() -> None:
+    """Ensure documented Z3 SMT constraint adapter snippet executes."""
+    from ewm_engine.constraints.results import ConstraintSeverity
+    from ewm_engine.integrations.solvers import Z3ConstraintAdapter
+
+    def verify_budget_bounds(
+        state: WorldState, action: Action | None, z3: Any, timeout_ms: int = 5000
+    ) -> tuple[bool, str, dict[str, Any]]:
+        solver = z3.Solver()
+        solver.set("timeout", timeout_ms)
+        cash = z3.Real("cash")
+        spend = z3.Real("spend")
+        p_nonneg = z3.Bool("p_non_negative_cash")
+        current_cash = state.get_resource("cash").current
+        solver.add(cash == current_cash)
+        spend_qty = action.parameters.get("amount", 0.0) if action else 0.0
+        solver.add(spend == spend_qty)
+        solver.assert_and_track(cash - spend < 0, p_nonneg)
+        check_result = solver.check()
+        if check_result == z3.sat:
+            return False, "Symbolic invariant violated", {"deficit": True}
+        elif check_result == z3.unsat:
+            return True, "Symbolic invariant proven", {}
+        return False, "Timed out", {"timed_out": True}
+
+    constraint = Z3ConstraintAdapter(
+        constraint_id="symbolic_cash_reserve",
+        solver_fn=verify_budget_bounds,
+        severity=ConstraintSeverity.HARD,
+        timeout_ms=3000,
+    )
+
+    state = WorldState(
+        resources=[Resource(id="cash", current=100.0, min_value=0.0, max_value=500.0)]
+    )
+
+    res = constraint.check(state=state)
+    assert res.satisfied
+
+
+@pytest.mark.example
+def test_documented_gymnasium_snippet_executes() -> None:
+    """Ensure documented Gymnasium integration snippet executes."""
+    from ewm_engine.integrations.gym import EnterpriseGymEnv
+
+    state = WorldState(
+        resources=[
+            Resource(id="stock_north", current=100.0, min_value=0.0, max_value=200.0),
+            Resource(id="stock_south", current=20.0, min_value=0.0, max_value=200.0),
+        ]
+    )
+    world = World(
+        state=state,
+        dynamics=DeterministicTransferDynamics(),
+        constraints=[
+            ResourceCapacityConstraint(resource_id="stock_north"),
+            ResourceCapacityConstraint(resource_id="stock_south"),
+            ActionTransferAvailabilityConstraint(),
+        ],
+    )
+    candidate_actions = [
+        Action(id="noop", type="no_operation"),
+        Action(
+            id="transfer_10",
+            type="transfer_resource",
+            parameters={
+                "source_resource": "stock_north",
+                "target_resource": "stock_south",
+                "quantity": 10.0,
+            },
+        ),
+    ]
+    env = EnterpriseGymEnv(
+        world=world,
+        max_steps=5,
+        action_mapping=candidate_actions,
+        violation_penalty=50.0,
+    )
+    _obs, info = env.reset(seed=42)
+    _obs, _reward, terminated, _truncated, info = env.step(1)
+    assert not terminated
+    assert info["violations_count"] == 0

@@ -33,6 +33,7 @@ class Constraint(Protocol):
         action: Action | None = None,
     ) -> ConstraintResult: ...
 
+
 # After
 class Constraint(Protocol):
     def evaluate(

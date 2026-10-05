@@ -5,6 +5,47 @@ All notable changes to the Enterprise World Model Engine (EWM Engine) will be do
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - Unreleased
+
+### Added
+- **Graduate Adapters (Alpha → Beta) + OR Planners + Agent Evaluation (ADR-018, P05)**:
+  - Formalized public `ConstraintSolver` (`check(*, state, actions, time_limit_seconds) -> SolverResult`) and `ActionPlanner` (`propose(*, state, objective, time_limit_seconds) -> Sequence[Action]`) protocols with structured `SolverResult` and `SolverStatus` in `ewm_engine.integrations.protocols`.
+  - Added Architectural Decision Record `ADR-018: Solver and Planner Protocols & Resource Limits`.
+  - Enforced mandatory finite time limits across all mathematical solvers and planners (default 5.0s / 5000ms), ensuring no unbounded solver execution path.
+  - Implemented Google OR-Tools CP-SAT discrete allocation planner (`CPSATAllocationPlanner`) as an interventional `Actor` and `ActionPlanner` with unsat core / infeasibility certificate extraction.
+  - Implemented continuous linear programming allocation planner (`SciPyAllocationPlanner`) powered by the SciPy HiGHS solver backend.
+  - Hardened `Z3ConstraintAdapter` to implement `ConstraintSolver` and `Constraint`, enforcing `timeout_ms` and extracting unsatisfiable cores.
+  - Hardened `ORToolsAllocationAdapter` to enforce solve time limits and implement `ConstraintSolver.check`.
+  - Made `CallableActorAdapter` conform to `ActionPlanner` protocol as well as `Actor`.
+  - Added agent-evaluation example in `examples/agent_evaluation/` inspired by Gaia2 / ARE (arXiv:2509.17158), proving the "engine != agent" thesis with verifiable state-based scoring and OR unsat core auditability.
+  - Added optional dependency group `or = ["ortools>=9.8.0", "scipy>=1.11.0"]` and updated `solvers` extra in `pyproject.toml`.
+  - Graduated all adapters to Beta maturity with explicit banners in `docs/integrations/` and automated tests in CI.
+- **OpenTelemetry Observability Adapter (P04)**:
+  - Added API-only OpenTelemetry adapter (`OpenTelemetryHook`) in `ewm_engine.integrations.otel`, mapping lifecycle events (`SimulationStarted`, `StepCompleted`, `ConstraintEvaluated`, `RolloutCompleted`, `SimulationFinished`) to hierarchical spans (`simulation` -> `rollout` -> `step`).
+  - Implemented OpenTelemetry metric instruments mapping `RunMetrics` counters and histograms (`ewm.simulation.duration`, `ewm.rollouts.total`, `ewm.steps.total`, `ewm.constraints.evaluations`, `ewm.dynamics.transitions`, etc.).
+  - Added safe default attributes preventing leakage of sensitive enterprise state, memory payloads, or PII (opt-in via `include_state_attributes=True`).
+  - Added optional dependency group `otel = ["opentelemetry-api>=1.25.0"]` in `pyproject.toml`, preserving zero core coupling (library never imports SDK).
+  - Added unit test suite in `tests/unit/test_otel_adapter.py` asserting span tree shapes and metric emissions via in-memory exporters.
+  - Added architecture import-boundary tests guaranteeing core and simulation never import OpenTelemetry and the adapter never imports SDK.
+  - Added comprehensive user guide in `docs/guides/observability-otel.md` and updated `docs/architecture/observability.md`.
+- **Distributed Monte Carlo with Determinism Preserved (FEAT-002, ADR-017, P03)**:
+  - Added `RolloutExecutor` protocol in `ewm_engine.simulation.executors` with three backends: `SerialExecutor` (default reference), `MultiprocessingExecutor` (multi-core process pool via stdlib `concurrent.futures`), and `RayExecutor` (cluster scale-out via Ray).
+  - Guaranteed strict bitwise determinism invariant: `distributed_result.logical == serial_result.logical` across trajectory statuses, seeds, state hashes, metrics, and systemic traces.
+  - Implemented deterministic per-rollout RNG spawning via `np.random.SeedSequence(scenario.seed).spawn(scenario.samples)` and deterministic result reassembly in strict ascending `sample_id` order.
+  - Added optional dependency group `distributed = ["ray>=2.9.0"]` in `pyproject.toml` and included it in `all`.
+  - Added comprehensive property and equivalence test suite in `tests/property/test_distributed_determinism.py`.
+  - Added scale-out user guide in `docs/guides/scale-out.md`.
+  - Added scale-out throughput speedup benchmarks in `benchmarks/run_benchmarks.py`.
+- **Evaluation Upgrade & Bootstrap Uncertainty (FEAT-001, ADR-016, P02)**:
+  - Added non-parametric percentile bootstrap confidence intervals (`compute_bootstrap_ci`, `compute_bootstrap_delta`, `BootstrapDelta`, `BootstrapConfidenceInterval`) in `ewm_engine.evaluation.uncertainty`.
+  - Added empirical hypothesis testing and `is_significant` flags on counterfactual deltas with epistemic guardrails distinguishing simulation variance from real-world causality.
+  - Added multi-objective Pareto analysis (`ObjectiveSpec`, `ObjectiveDirection`, `ParetoFrontier`, `compute_pareto_frontier`) in `ewm_engine.evaluation.pareto`.
+  - Added epistemic anti-winner guardrail refusing automated winner declaration without user-specified preference weights.
+  - Enhanced `compare_scenarios` and `ScenarioComparison` with bootstrap delta intervals, significance markers in `summary_table()`, and multi-objective Pareto frontier sections while maintaining 100% backwards compatibility (AC-024).
+
+### Fixed
+- Fixed machine-specific absolute `file:///c:/Users/...` link in `docs/stability-policy.md` to use relative repository path.
+
 ## [1.0.0] - 2026-10-02
 
 Establish the official v1.0.0 Stable Contract according to the authoritative project specification (`docs/specs/spec-driven-development.md`). All 24 Acceptance Criteria (AC-001 through AC-024) and the full Definition of Done are satisfied.

@@ -117,3 +117,66 @@ def test_minimal_warehouse_acceptance_scenario() -> None:
     assert violations[0].severity == ConstraintSeverity.HARD
     assert violations[0].satisfied is False
     assert "Insufficient stock" in violations[0].message
+
+
+@pytest.mark.example
+def test_minimal_warehouse_decision_evaluation() -> None:
+    """Verify decision-grade scenario evaluation on Minimal Warehouse counterfactuals."""
+    from ewm_engine.evaluation.comparison import compare_scenarios
+    from ewm_engine.evaluation.pareto import ObjectiveDirection
+
+    world = create_warehouse_world()
+
+    base_scn = Scenario(name="Baseline", horizon=1, samples=3, seed=42)
+    res_base = world.simulate(scenario=base_scn)
+
+    act_transfer = Action(
+        id="transfer_30",
+        type="transfer_resource",
+        parameters={
+            "source_resource": "warehouse_a",
+            "target_resource": "warehouse_b",
+            "quantity": 30.0,
+        },
+    )
+    transfer_scn = Scenario(
+        name="Intervention",
+        horizon=1,
+        samples=3,
+        seed=42,
+        scheduled_actions=(ScheduledAction(step=0, action=act_transfer),),
+    )
+    res_transfer = world.simulate(scenario=transfer_scn)
+
+    comparison = compare_scenarios(
+        baseline=res_base,
+        candidates=[res_transfer],
+        metrics=["served_demand", "unserved_demand"],
+        objectives={
+            "served_demand": ObjectiveDirection.MAXIMIZE,
+            "unserved_demand": ObjectiveDirection.MINIMIZE,
+        },
+        objective=lambda m: m["served_demand"] - 2.0 * m["unserved_demand"],
+    )
+
+    # Unserved demand delta is -30.0 (improvement)
+    delta_unserved = comparison.bootstrap_deltas["Intervention"]["unserved_demand"]
+    assert delta_unserved.absolute_delta == -30.0
+    assert delta_unserved.is_significant
+
+    # Served demand delta is +30.0 (improvement)
+    delta_served = comparison.bootstrap_deltas["Intervention"]["served_demand"]
+    assert delta_served.absolute_delta == 30.0
+    assert delta_served.is_significant
+
+    # Pareto analysis: Intervention dominates Baseline
+    assert comparison.pareto_frontier is not None
+    assert comparison.pareto_frontier.frontier == ["Intervention"]
+    assert (
+        "Intervention" in comparison.pareto_frontier.dominates["Intervention"]
+        or "Baseline" in comparison.pareto_frontier.dominated_by
+    )
+
+    # User objective ranks Intervention above Baseline
+    assert comparison.rankings is not None
+    assert comparison.rankings[0][0] == "Intervention"

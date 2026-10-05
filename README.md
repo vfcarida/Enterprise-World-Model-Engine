@@ -288,7 +288,11 @@ invalid_action_scenario = Scenario(
             action=Action(
                 id="act_overflow",
                 type="transfer_resource",
-                parameters={"source_resource": "stock_a", "target_resource": "stock_b", "quantity": 150.0},
+                parameters={
+                    "source_resource": "stock_a",
+                    "target_resource": "stock_b",
+                    "quantity": 150.0,
+                },
             ),
         ),
     ),
@@ -418,13 +422,20 @@ EWM Engine adheres strictly to [Semantic Versioning (SemVer 2.0.0)](https://semv
 | **Constraint Engine** | **Stable (v1.0.0)** | Pre-action and post-transition verification with full audit provenance |
 | **Pluggable Dynamics** | **Stable (v1.0.0)** | Deterministic, stochastic, and composite dynamic models |
 | **Systemic Traces** | **Stable (v1.0.0)** | Directed dependency graph generation with Mermaid and NetworkX export |
-| **Causal Epistemics & Evaluation** | **Stable (v1.0.0)** | Structural vs. interventional vs. observational evidence levels |
+| **Scenario Evaluation & Bootstrap** | **Stable (v1.1.0)** | Bootstrap CIs on deltas, significance flags, Pareto frontiers |
 | **Learned Dynamics Protocol** | **Beta (v1.0.0)** | Protocol interfaces and linear empirical regression baselines |
 | **Gymnasium / RL Adapters** | **Alpha (v1.0.0+)** | Standard Gym environment wrappers (`gymnasium.Env`) for policy training |
 | **SMT Solvers & Optimizers** | **Alpha (v1.0.0+)** | Optional Z3 SMT and Google OR-Tools constraint satisfaction |
-| **Distributed Monte Carlo** | Planned (v1.2.0) | Ray and Celery distributed execution backends |
+| **Distributed Monte Carlo** | Planned (v1.1.0) | High-throughput parallel execution preserving `SeedSequence` determinism |
+| **OpenTelemetry Telemetry** | Planned (v1.1.0) | Zero-overhead OpenTelemetry span export from lifecycle hooks |
+| **Durability & Replay (T1, T2)** | Planned (v1.2.0) | Event-sourced `TraceLog`, `EventStore`, and fingerprint `ResultStore` |
+| **Trajectory Verification (T3)** | Planned (v1.3.0) | Oracle-graph DAG verifier (CORE) and STL robustness monitoring (EXTRA) |
+| **Experimentation Suite (T4)** | Planned (v1.4.0) | DoE/sweep harness, backtesting, sensitivity (SALib), and calibration |
+| **Platform Interop & Viz (T5–T9)** | Planned (v1.5.0) | Co-sim (FMI/SimPy), multi-agent mediator, ReportModel, REST serving |
+| **Learned Depth & OOD (v1.6+)** | Research (v1.6+) | Neural learned dynamics, planning controller, OOD/regime shift |
+| **World Spec Language & Graphs** | Research (v2.0+) | Heterogeneous temporal relational graphs and declarative DSL |
 
-See [ROADMAP.md](ROADMAP.md) for detailed release milestones.
+See [ROADMAP.md](ROADMAP.md) and [01_EXPANDED_ROADMAP.md](01_EXPANDED_ROADMAP.md) for detailed release milestones and research grounding.
 
 ---
 

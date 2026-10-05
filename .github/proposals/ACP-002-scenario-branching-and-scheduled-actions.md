@@ -22,12 +22,17 @@ The authoritative v1 specification requires:
 ## 3. Proposed API Diff
 ```python
 class ScheduledAction(BaseModel):
-    step: int = Field(ge=0, description="0-indexed simulation time step at which action is triggered")
+    step: int = Field(
+        ge=0, description="0-indexed simulation time step at which action is triggered"
+    )
     action: Action = Field(description="Action to execute")
+
 
 class Scenario(BaseModel):
     # Added fields
-    initial_state: WorldState | None = Field(default=None, description="Optional pinned initial world state")
+    initial_state: WorldState | None = Field(
+        default=None, description="Optional pinned initial world state"
+    )
     scheduled_actions: tuple[ScheduledAction, ...] = Field(default_factory=tuple)
 
     def branch(

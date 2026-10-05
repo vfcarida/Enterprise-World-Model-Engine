@@ -41,6 +41,7 @@ venv.bak/
 .coverage.*
 htmlcov/
 coverage.xml
+coverage.json
 .hypothesis/
 .mypy_cache/
 .ruff_cache/
