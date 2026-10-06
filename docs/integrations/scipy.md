@@ -3,7 +3,7 @@
 > [!NOTE]
 > **Maturity**: Beta. Implements formal `ActionPlanner` and `Actor` protocols with enforced finite time limits. Requires `ewm-engine[or]`.
 
-The `SciPyAllocationPlanner` integrates [SciPy Linear Programming](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html) (using the modern **HiGHS** simplex and interior-point solvers) to solve continuous optimal allocation and min-cost flow problems over an EWM [`WorldState`](../api/reference.md).
+The `SciPyAllocationPlanner` integrates [SciPy Linear Programming](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html) (using the modern **HiGHS** simplex and interior-point solvers) to solve continuous optimal allocation and min-cost flow problems over an EWM [`WorldState`](../reference/api/core.md).
 
 ---
 
@@ -66,7 +66,7 @@ print(f"Solve Time: {planner.last_result.solve_time_seconds:.5f}s")
 
 ## Integrating into Simulation Rollouts
 
-Because `SciPyAllocationPlanner` implements [`Actor`](../api/reference.md), it can be placed directly in a `World`:
+Because `SciPyAllocationPlanner` implements [`Actor`](../reference/api/core.md), it can be placed directly in a `World`:
 
 ```python
 from ewm_engine.core.world import World

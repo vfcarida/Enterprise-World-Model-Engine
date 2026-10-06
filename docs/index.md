@@ -32,16 +32,18 @@ $$\begin{aligned}
 
 ```mermaid
 flowchart LR
-    OBS["Observations"] --> STATE["World State S_t"]
-    RULES["Rules & Constraints"] --> STATE
-    EVENTS["Exogenous Events"] --> ENGINE["Dynamics Engine"]
+    accTitle: Enterprise World Model Engine Dataflow Pipeline
+    accDescr: End-to-end dataflow showing state observations and rules initializing the world state, feeding through the dynamics engine with actions and exogenous events to project future state distributions.
+    OBS[/"Observations"/] --> STATE["World State S_t"]
+    RULES{{"Rules & Constraints"}} --> STATE
+    EVENTS>Exogenous Events] --> ENGINE[["Dynamics Engine"]]
     STATE --> ENGINE
-    ACTION["Action / Intervention"] --> ENGINE
-    ENGINE --> FUTURE["Future State Distribution"]
-    FUTURE --> VERIFY["Constraint Verification"]
-    VERIFY --> EVAL["Scenario Evaluation"]
-    EVAL --> TRACE["Systemic Trace"]
-    AGENTS["Agents / Policies"] --> ACTION
+    ACTION(["Action / Intervention"]) --> ENGINE
+    ENGINE --> FUTURE[("Future State Distribution")]
+    FUTURE --> VERIFY{"Constraint Verification"}
+    VERIFY --> EVAL[["Scenario Evaluation"]]
+    EVAL --> TRACE[/"Systemic Trace"/]
+    AGENTS{{"Agents / Policies"}} --> ACTION
     EVAL --> AGENTS
 ```
 

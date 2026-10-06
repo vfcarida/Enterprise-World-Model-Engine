@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - Unreleased
 
 ### Added
+- **Documentation Architecture (Diátaxis) & Automated API Reference (ADR-030, R02)**:
+  - Authored Architecture Decision Record [`ADR-030`](docs/adr/ADR-030-documentation-stack-mkdocs-material-diataxis.md) establishing MkDocs Material, `mkdocstrings[python]` (Griffe), and `mike` under the Diátaxis taxonomy.
+  - Restructured documentation site into the four canonical Diátaxis quadrants: **Tutorials** (learning-oriented), **How-To Guides** (problem-oriented), **Reference** (information-oriented), and **Explanation** (understanding-oriented).
+  - Replaced hand-written static `docs/api/reference.md` with an automated 15-module API reference suite generated directly from source code docstrings and type annotations via `mkdocstrings`.
+  - Configured Google docstring format convention via Ruff `pydocstyle` (`convention = "google"`) in `pyproject.toml`.
+  - Created executed example gallery (`docs/tutorials/gallery.md`) featuring CivicFlow disaster response, two-warehouse inventory reallocation, and SciPy HiGHS continuous allocation with real executed tables and accessible Mermaid traces.
+  - Implemented automated documentation code snippet test gate (`scripts/test_doc_snippets.py`) validating that all documented Python blocks execute cleanly without drift.
+  - Added documentation accessibility and heading hierarchy advisory linter (`scripts/check_a11y.py`).
+  - Configured `mike` versioning provider in `mkdocs.yml` defaulting to `stable` with support for `latest` development builds.
 - **Reference-Grade README & Visual Identity Overhaul (R01)**:
   - Authored theme-adaptive vector logo identity (`assets/logo.svg`, `assets/logo-light.svg`, `assets/logo-dark.svg`) rendered via `<picture>` with `prefers-color-scheme` support and fixed dimensions to prevent layout reflow.
   - Created scriptable VHS terminal recording (`assets/demo.tape`) and generated lightweight inline demo GIF (`assets/demo.gif`) illustrating `ewm example civicflow`.

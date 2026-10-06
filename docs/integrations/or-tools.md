@@ -12,7 +12,7 @@ EWM Engine integrates [Google OR-Tools](https://developers.google.com/optimizati
 
 ## 1. Discrete Allocation Planner: `CPSATAllocationPlanner`
 
-The `CPSATAllocationPlanner` acts as an interventional decision [`Actor`](../api/reference.md) and [`ActionPlanner`](overview.md). It proposes candidate actions to the simulation engine, which are strictly validated through the engine's constraint pipeline.
+The `CPSATAllocationPlanner` acts as an interventional decision [`Actor`](../reference/api/core.md) and [`ActionPlanner`](overview.md). It proposes candidate actions to the simulation engine, which are strictly validated through the engine's constraint pipeline.
 
 ### Runnable Example: Optimal Warehouse Dispatch
 

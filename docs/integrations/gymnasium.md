@@ -3,7 +3,7 @@
 > [!NOTE]
 > **Maturity**: Beta. Stable in v1.1. Adapts `World` into standard Gymnasium (`gymnasium.Env`) environments with phase-aware constraint enforcement. Requires `ewm-engine[rl]`.
 
-The `EnterpriseGymEnv` adapter bridges an EWM Engine [`World`](../api/reference.md) to the standard [Gymnasium (OpenAI Gym)](https://gymnasium.farama.org/) interface (`gymnasium.Env`).
+The `EnterpriseGymEnv` adapter bridges an EWM Engine [`World`](../reference/api/core.md) to the standard [Gymnasium (OpenAI Gym)](https://gymnasium.farama.org/) interface (`gymnasium.Env`).
 
 This enables modern reinforcement learning libraries (such as Stable-Baselines3, CleanRL, or Ray RLlib) to train policies directly inside enterprise simulation environments with **first-class, phase-aware constraint enforcement**.
 
