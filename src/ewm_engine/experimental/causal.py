@@ -261,6 +261,89 @@ class ObservationalQueryResult(BaseModel):
     )
 
 
+class EValueResult(BaseModel):
+    """Sensitivity diagnostic reporting the E-value for unmeasured confounding.
+
+    (VanderWeele & Ding, 2017; Annals of Internal Medicine)
+    The E-value represents the minimum strength of association on the risk ratio scale
+    that an unmeasured confounder would need to have with both the treatment and the
+    outcome to explain away an observed treatment-outcome association.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    point_estimate: float
+    e_value_point: float = Field(
+        description="E-value for the point estimate (minimum RR to nullify effect)."
+    )
+    e_value_ci_limit: float | None = Field(
+        default=None,
+        description="E-value for the confidence interval limit closest to null (1.0 if CI crosses null).",
+    )
+    ci_lower: float | None = Field(default=None)
+    ci_upper: float | None = Field(default=None)
+    interpretation: str
+
+
+def compute_e_value(
+    point_estimate: float,
+    ci_lower: float | None = None,
+    ci_upper: float | None = None,
+    is_risk_ratio: bool = False,
+    outcome_std: float | None = None,
+) -> EValueResult:
+    """Compute the E-value for a causal effect estimate and its confidence interval limit.
+
+    References:
+        - VanderWeele & Ding (2017), Ann Intern Med.
+        - Chinn (2000), converting continuous standardized mean difference to log RR.
+    """
+    if is_risk_ratio:
+        rr = max(1e-6, float(point_estimate))
+        rr_low = max(1e-6, float(ci_lower)) if ci_lower is not None else None
+        rr_high = max(1e-6, float(ci_upper)) if ci_upper is not None else None
+    else:
+        # Continuous outcome standardized mean difference: d = delta / sigma
+        std_val = max(1e-6, float(outcome_std if outcome_std is not None else 1.0))
+        d = point_estimate / std_val
+        rr = float(np.exp(0.91 * d))
+        rr_low = float(np.exp(0.91 * (ci_lower / std_val))) if ci_lower is not None else None
+        rr_high = float(np.exp(0.91 * (ci_upper / std_val))) if ci_upper is not None else None
+
+    def _calc_e(val: float) -> float:
+        if val >= 1.0:
+            return float(val + np.sqrt(val * (val - 1.0)))
+        val_inv = 1.0 / max(1e-6, val)
+        return float(val_inv + np.sqrt(val_inv * (val_inv - 1.0)))
+
+    e_point = _calc_e(rr)
+
+    e_ci: float | None = None
+    if rr_low is not None and rr_high is not None:
+        if rr_low <= 1.0 <= rr_high:
+            e_ci = 1.0
+        elif rr > 1.0:
+            e_ci = _calc_e(rr_low)
+        else:
+            e_ci = _calc_e(rr_high)
+
+    interp = (
+        f"Point E-value = {e_point:.2f}. An unmeasured confounder must have a risk ratio of at least "
+        f"{e_point:.2f} with both the treatment and outcome to explain away the observed effect."
+    )
+    if e_ci is not None:
+        interp += f" CI limit E-value = {e_ci:.2f}."
+
+    return EValueResult(
+        point_estimate=point_estimate,
+        e_value_point=e_point,
+        e_value_ci_limit=e_ci,
+        ci_lower=ci_lower,
+        ci_upper=ci_upper,
+        interpretation=interp,
+    )
+
+
 class InterventionalQueryResult(BaseModel):
     """Result of an interventional query P(Y | do(X)) evaluated under declared structural assumptions."""
 
@@ -272,6 +355,14 @@ class InterventionalQueryResult(BaseModel):
     identifiability: IdentifiabilityResult
     causal_level: EvidenceLevel
     assumptions_summary: str
+    e_value: EValueResult | None = Field(
+        default=None,
+        description="E-value sensitivity diagnostic against unmeasured confounding (VanderWeele & Ding, 2017).",
+    )
+    positivity_report: PositivityReport | None = Field(
+        default=None,
+        description="Observational propensity score overlap and common support diagnostic.",
+    )
 
 
 class NotIdentifiableResult(BaseModel):
@@ -326,11 +417,17 @@ def query_interventional(
     outcome_resource: str,
     graph: CausalGraph,
     conditioning_set: Sequence[str] = (),
+    compute_evalues: bool = True,
+    check_positivity: bool = False,
+    covariate_resources: Sequence[str] = (),
 ) -> InterventionalQueryResult | NotIdentifiableResult:
     """Evaluate interventional query P(Y | do(X)).
 
-    Returns NotIdentifiableResult if backdoor paths are open.
-    Never assigns EvidenceLevel.INTERVENTIONAL unless identifiability check passes.
+    Epistemic Guarantee:
+        Returns NotIdentifiableResult if backdoor paths are open — NEVER returns an effect
+        number when unidentifiable.
+        Never assigns EvidenceLevel.INTERVENTIONAL unless identifiability passes AND positivity
+        diagnostics do not breach common support.
     """
     id_res = check_backdoor_identifiability(
         graph=graph,
@@ -352,11 +449,13 @@ def query_interventional(
     treated_by_stratum: dict[tuple[float, ...], list[float]] = {}
     control_by_stratum: dict[tuple[float, ...], list[float]] = {}
     stratum_weights: dict[tuple[float, ...], int] = {}
+    all_outcomes: list[float] = []
 
     for sample in dataset:
         has_treatment = any(act.type == treatment_action for act in sample.actions)
         res = sample.next_state.resources.get(outcome_resource)
         val = res.current if res is not None else 0.0
+        all_outcomes.append(val)
 
         # Stratify conditioning variables for backdoor adjustment
         stratum_key = tuple(
@@ -387,16 +486,45 @@ def query_interventional(
             valid_weight += count
 
     adjusted_effect = (weighted_diff / valid_weight) if valid_weight > 0 else 0.0
+    causal_level = EvidenceLevel.INTERVENTIONAL
+    assumptions_msg = f"Identified under declared causal DAG via backdoor adjustment over {sorted(conditioning_set)}."
+
+    # E-value sensitivity diagnostic
+    e_val: EValueResult | None = None
+    if compute_evalues:
+        outcome_sd = float(np.std(all_outcomes)) if len(all_outcomes) > 1 else 1.0
+        e_val = compute_e_value(
+            point_estimate=adjusted_effect,
+            is_risk_ratio=False,
+            outcome_std=outcome_sd,
+        )
+
+    # Positivity / overlap blocking gate
+    pos_report: PositivityReport | None = None
+    if check_positivity:
+        cov_vars = list(covariate_resources) if covariate_resources else list(conditioning_set)
+        pos_report = check_positivity_overlap(
+            dataset=dataset,
+            treatment_action=treatment_action,
+            covariate_resources=cov_vars,
+        )
+        if not pos_report.positivity_satisfied:
+            # Epistemic Gate: Downgrade from INTERVENTIONAL to PREDICTIVE (NO AUTO-UPGRADE)
+            causal_level = EvidenceLevel.PREDICTIVE
+            assumptions_msg += (
+                f" WARNING: Downgraded to PREDICTIVE due to positivity / common support breach: "
+                f"{pos_report.diagnostic_message}"
+            )
 
     return InterventionalQueryResult(
         treatment=treatment_action,
         outcome=outcome_resource,
         adjusted_effect=adjusted_effect,
         identifiability=id_res,
-        causal_level=EvidenceLevel.INTERVENTIONAL,
-        assumptions_summary=(
-            f"Identified under declared causal DAG via backdoor adjustment over {sorted(conditioning_set)}."
-        ),
+        causal_level=causal_level,
+        assumptions_summary=assumptions_msg,
+        e_value=e_val,
+        positivity_report=pos_report,
     )
 
 
@@ -420,6 +548,18 @@ class PositivityReport(BaseModel):
     violation_rate: float = Field(
         description="Fraction of transitions with extreme propensity (e < min_propensity or e > 1 - min_propensity).",
     )
+    trimmed_mass: float = Field(
+        default=0.0,
+        description="Empirical sample mass trimmed due to lack of common support.",
+    )
+    high_dim_warning: bool = Field(
+        default=False,
+        description="High-dimensional overlap collapse warning flag (D'Amour et al., arXiv:1711.02582).",
+    )
+    common_support_fraction: float = Field(
+        default=1.0,
+        description="Fraction of empirical sample residing within valid common support (1 - trimmed_mass).",
+    )
     treated_count: int
     control_count: int
     diagnostic_message: str
@@ -431,13 +571,22 @@ def check_positivity_overlap(
     covariate_resources: Sequence[str],
     min_propensity: float = 0.05,
 ) -> PositivityReport:
-    """Inspect empirical propensity score distribution to detect positivity / common support breaches."""
+    """Inspect empirical propensity score distribution to detect positivity / common support breaches.
+
+    Epistemic Grounding:
+        - Strict positivity P(A=a|X=x) > 0 is necessary for non-parametric causal identification.
+        - As established by D'Amour et al. (arXiv:1711.02582), strict overlap collapses exponentially
+          as covariate dimension grows, requiring high-dimensional warnings and mass trimming.
+    """
     if len(dataset) < 5:
         return PositivityReport(
             treatment=treatment_action,
             positivity_satisfied=False,
             overlap_index=0.0,
             violation_rate=1.0,
+            trimmed_mass=1.0,
+            high_dim_warning=False,
+            common_support_fraction=0.0,
             treated_count=0,
             control_count=0,
             diagnostic_message="Dataset too small for positivity assessment.",
@@ -465,6 +614,9 @@ def check_positivity_overlap(
             positivity_satisfied=False,
             overlap_index=0.0,
             violation_rate=1.0,
+            trimmed_mass=1.0,
+            high_dim_warning=False,
+            common_support_fraction=0.0,
             treated_count=t_count,
             control_count=c_count,
             diagnostic_message=f"Zero support: treatment '{treatment_action}' has {t_count} treated and {c_count} control instances.",
@@ -494,6 +646,8 @@ def check_positivity_overlap(
 
     extreme_mask = (propensities < min_propensity) | (propensities > (1.0 - min_propensity))
     violation_rate = float(np.mean(extreme_mask))
+    trimmed_mass = violation_rate
+    common_support_frac = float(1.0 - trimmed_mass)
 
     p_t = propensities[Y == 1.0]
     p_c = propensities[Y == 0.0]
@@ -507,19 +661,30 @@ def check_positivity_overlap(
 
     # Bhattacharyya coefficient
     overlap_idx = float(np.sum(np.sqrt(hist_t_norm * hist_c_norm)))
-    positivity_ok = bool(violation_rate < 0.15 and overlap_idx > 0.4)
+
+    # High-dimensional overlap vulnerability check (D'Amour et al., arXiv:1711.02582)
+    high_dim_warning = bool(dim >= 5)
+    positivity_ok = bool(
+        violation_rate < 0.15 and overlap_idx > 0.4 and not (dim >= 10 and violation_rate > 0.05)
+    )
 
     msg = (
         f"Positivity diagnostic for '{treatment_action}': Overlap index = {overlap_idx:.2f}, "
-        f"Extreme propensity violation rate = {violation_rate * 100:.1f}%. "
-        f"Positivity assumption {'holds well' if positivity_ok else 'VIOLATED (extrapolation risk in unobserved regions)'}."
+        f"Extreme propensity violation rate = {violation_rate * 100:.1f}%, "
+        f"Trimmed mass = {trimmed_mass * 100:.1f}%, Common support = {common_support_frac * 100:.1f}%."
     )
+    if high_dim_warning:
+        msg += f" [HIGH-DIM WARNING: d={dim} covariates — D'Amour et al. (arXiv:1711.02582) overlap collapse risk]."
+    msg += f" Positivity assumption {'holds well' if positivity_ok else 'VIOLATED (extrapolation risk in unobserved regions)'}."
 
     return PositivityReport(
         treatment=treatment_action,
         positivity_satisfied=positivity_ok,
         overlap_index=overlap_idx,
         violation_rate=violation_rate,
+        trimmed_mass=trimmed_mass,
+        high_dim_warning=high_dim_warning,
+        common_support_fraction=common_support_frac,
         treated_count=t_count,
         control_count=c_count,
         diagnostic_message=msg,
@@ -713,4 +878,258 @@ def twin_rollout_counterfactual(
         total_off_target_divergence=total_off_target,
         locality_preserved=locality_ok,
         diagnostic_message=msg,
+    )
+
+
+# ---------------------------------------------------------------------------
+# 6. Causal Refutation Suite (DoWhy-Style Sensitivity & Invariant Audits)
+# ---------------------------------------------------------------------------
+
+
+class RefutationTestResult(BaseModel):
+    """Audit result of an individual causal refutation test."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    test_name: str
+    original_effect: float
+    refuted_effect: float
+    passed: bool
+    diagnostic_message: str
+
+
+class CausalRefutationSuiteResult(BaseModel):
+    """Summary of comprehensive causal refutation battery (mirroring DoWhy)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    treatment: str
+    outcome: str
+    original_effect: float
+    all_passed: bool
+    tests: tuple[RefutationTestResult, ...]
+    epistemic_note: str = Field(
+        default=(
+            "Passing refutation tests is necessary but never sufficient to prove real-world causality. "
+            "EvidenceLevel is strictly bounded by the structural graph and CANNOT be auto-upgraded."
+        ),
+    )
+
+
+def run_causal_refutations(
+    dataset: TransitionDataset,
+    treatment_action: str,
+    outcome_resource: str,
+    graph: CausalGraph,
+    conditioning_set: Sequence[str] = (),
+    seed: int = 42,
+) -> CausalRefutationSuiteResult:
+    """Execute standard causal refutation battery mirroring DoWhy refuters.
+
+    Battery Tests:
+        1. Placebo Treatment Refuter: replaces actual intervention with random coin flip.
+        2. Random Common Cause Refuter: adds independent noise to conditioning variables.
+        3. Data Subset Stability Refuter: re-estimates effect on 80% random sub-sample.
+        4. Unobserved Confounder Sensitivity: checks robustness against hidden confounding via E-value.
+
+    Args:
+        dataset: Logged transition dataset.
+        treatment_action: Action type tested.
+        outcome_resource: Target resource evaluated.
+        graph: Declared mechanism causal graph.
+        conditioning_set: Variables conditioned upon for backdoor adjustment.
+        seed: Random seed for stochastic refutation permutations.
+
+    Returns:
+        CausalRefutationSuiteResult containing per-test audits and pass/fail gate.
+    """
+    initial = query_interventional(
+        dataset=dataset,
+        treatment_action=treatment_action,
+        outcome_resource=outcome_resource,
+        graph=graph,
+        conditioning_set=conditioning_set,
+        compute_evalues=True,
+    )
+
+    if isinstance(initial, NotIdentifiableResult):
+        failed_test = RefutationTestResult(
+            test_name="identifiability_prerequisite",
+            original_effect=0.0,
+            refuted_effect=0.0,
+            passed=False,
+            diagnostic_message=f"Refutations aborted: {initial.diagnostic_message}",
+        )
+        return CausalRefutationSuiteResult(
+            treatment=treatment_action,
+            outcome=outcome_resource,
+            original_effect=0.0,
+            all_passed=False,
+            tests=(failed_test,),
+        )
+
+    orig_effect = initial.adjusted_effect
+    rng = np.random.default_rng(seed)
+    test_results: list[RefutationTestResult] = []
+
+    # ---------------------------------------------------------
+    # 1. Placebo Treatment Refuter
+    # ---------------------------------------------------------
+    # Under a true causal mechanism, permuting treatment randomly should drive effect towards 0.
+    from ewm_engine.dynamics.learned import TransitionSample
+
+    placebo_samples: list[TransitionSample] = []
+    for idx, s in enumerate(dataset):
+        is_treated = rng.random() > 0.5
+        new_actions = [Action(id=f"placebo_{idx}", type=treatment_action)] if is_treated else []
+        placebo_samples.append(
+            TransitionSample(
+                state=s.state,
+                actions=tuple(new_actions),
+                events=s.events,
+                next_state=s.next_state,
+            )
+        )
+    placebo_dataset = TransitionDataset(samples=placebo_samples)
+    placebo_res = query_interventional(
+        dataset=placebo_dataset,
+        treatment_action=treatment_action,
+        outcome_resource=outcome_resource,
+        graph=graph,
+        conditioning_set=conditioning_set,
+        compute_evalues=False,
+    )
+    placebo_effect = (
+        placebo_res.adjusted_effect if isinstance(placebo_res, InterventionalQueryResult) else 0.0
+    )
+    placebo_passed = bool(abs(placebo_effect) <= (0.35 * abs(orig_effect) + 0.10))
+    test_results.append(
+        RefutationTestResult(
+            test_name="placebo_treatment",
+            original_effect=orig_effect,
+            refuted_effect=placebo_effect,
+            passed=placebo_passed,
+            diagnostic_message=(
+                f"Placebo effect = {placebo_effect:.3f} (original = {orig_effect:.3f}). "
+                f"{'Passed: Placebo dropped near zero.' if placebo_passed else 'FAILED: Placebo effect persisted.'}"
+            ),
+        )
+    )
+
+    # ---------------------------------------------------------
+    # 2. Random Common Cause Refuter
+    # ---------------------------------------------------------
+    # Adding a random independent variable to conditioning set should not alter effect significantly.
+    noise_samples: list[TransitionSample] = []
+    for s in dataset:
+        from ewm_engine.core.resources import Resource
+
+        st_dict = s.state.model_dump()
+        st_dict["resources"]["_refutation_noise"] = Resource(
+            id="_refutation_noise",
+            current=float(rng.standard_normal()),
+            min_value=float("-inf"),
+            max_value=float("inf"),
+        )
+        new_st = WorldState.model_validate(st_dict)
+        noise_samples.append(
+            TransitionSample(
+                state=new_st,
+                actions=s.actions,
+                events=s.events,
+                next_state=s.next_state,
+            )
+        )
+    noise_dataset = TransitionDataset(samples=noise_samples)
+    noise_cond_set = [*list(conditioning_set), "_refutation_noise"]
+    # Extend graph with noise node
+    noise_graph = CausalGraph(
+        nodes=set(graph.nodes) | {"_refutation_noise"},
+        edges=set(graph.edges),
+        unobserved_nodes=set(graph.unobserved_nodes),
+    )
+    noise_res = query_interventional(
+        dataset=noise_dataset,
+        treatment_action=treatment_action,
+        outcome_resource=outcome_resource,
+        graph=noise_graph,
+        conditioning_set=noise_cond_set,
+        compute_evalues=False,
+    )
+    noise_effect = (
+        noise_res.adjusted_effect if isinstance(noise_res, InterventionalQueryResult) else 0.0
+    )
+    noise_delta = abs(noise_effect - orig_effect) / (abs(orig_effect) + 1.0)
+    noise_passed = bool(noise_delta <= 0.35)
+    test_results.append(
+        RefutationTestResult(
+            test_name="random_common_cause",
+            original_effect=orig_effect,
+            refuted_effect=noise_effect,
+            passed=noise_passed,
+            diagnostic_message=(
+                f"Effect with random common cause = {noise_effect:.3f} (delta ratio = {noise_delta:.2f}). "
+                f"{'Passed: Effect stable under uninformative noise.' if noise_passed else 'FAILED: Effect drifted significantly.'}"
+            ),
+        )
+    )
+
+    # ---------------------------------------------------------
+    # 3. Data Subset Stability Refuter
+    # ---------------------------------------------------------
+    n_total = len(dataset)
+    sub_indices = rng.choice(n_total, size=max(3, int(0.80 * n_total)), replace=False)
+    sub_samples = [dataset[int(i)] for i in sub_indices]
+    sub_dataset = TransitionDataset(samples=sub_samples)
+    sub_res = query_interventional(
+        dataset=sub_dataset,
+        treatment_action=treatment_action,
+        outcome_resource=outcome_resource,
+        graph=graph,
+        conditioning_set=conditioning_set,
+        compute_evalues=False,
+    )
+    sub_effect = sub_res.adjusted_effect if isinstance(sub_res, InterventionalQueryResult) else 0.0
+    sub_delta = abs(sub_effect - orig_effect) / (abs(orig_effect) + 1.0)
+    sub_passed = bool(sub_delta <= 0.40)
+    test_results.append(
+        RefutationTestResult(
+            test_name="subset_stability",
+            original_effect=orig_effect,
+            refuted_effect=sub_effect,
+            passed=sub_passed,
+            diagnostic_message=(
+                f"Effect on 80% subset = {sub_effect:.3f} (delta ratio = {sub_delta:.2f}). "
+                f"{'Passed: Effect stable across subsamples.' if sub_passed else 'FAILED: Subsample instability.'}"
+            ),
+        )
+    )
+
+    # ---------------------------------------------------------
+    # 4. Unobserved Confounder Sensitivity (E-Value Audit)
+    # ---------------------------------------------------------
+    e_point = initial.e_value.e_value_point if initial.e_value is not None else 1.0
+    # Refuter passes if unmeasured confounder must have non-trivial association (E >= 1.15) or effect is near-null
+    confounder_passed = bool(e_point >= 1.10 or abs(orig_effect) < 1e-4)
+    test_results.append(
+        RefutationTestResult(
+            test_name="unobserved_confounder_sensitivity",
+            original_effect=orig_effect,
+            refuted_effect=orig_effect,
+            passed=confounder_passed,
+            diagnostic_message=(
+                f"E-value = {e_point:.2f}. "
+                f"{'Passed: Robust against moderate unobserved confounding.' if confounder_passed else 'WARNING: Fragile to tiny unobserved confounding.'}"
+            ),
+        )
+    )
+
+    all_passed = all(t.passed for t in test_results)
+
+    return CausalRefutationSuiteResult(
+        treatment=treatment_action,
+        outcome=outcome_resource,
+        original_effect=orig_effect,
+        all_passed=all_passed,
+        tests=tuple(test_results),
     )

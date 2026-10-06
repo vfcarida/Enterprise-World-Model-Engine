@@ -137,8 +137,29 @@ class RolloutDivergenceResult(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    horizon: int = Field(ge=1)
+    horizon: int = Field(ge=0)
     step_divergences: list[float] = Field(description="L2 state divergence at each step.")
+    error_curve: list[float] = Field(
+        default_factory=list, description="Step-by-step rollout error curve err(h)."
+    )
+    compounding_error_ratios: list[float] = Field(
+        default_factory=list,
+        description="Compounding ratio err(h) / (h * err(1)) quantifying super-linear drift (Talvitie 2014).",
+    )
+    mean_compounding_ratio: float = Field(default=1.0, ge=0.0)
+    max_compounding_ratio: float = Field(default=1.0, ge=0.0)
+    latent_error_curve: list[float] | None = Field(
+        default=None,
+        description="Latent-space error curve for representation models (GNN/residual).",
+    )
+    observation_error_curve: list[float] | None = Field(
+        default=None, description="Observation-space error curve."
+    )
+    recommended_planning_horizon: int = Field(
+        default=1,
+        ge=0,
+        description="Max reliable planning horizon before super-linear compounding drift.",
+    )
     mean_divergence: float = Field(ge=0.0)
     final_divergence: float = Field(ge=0.0)
     max_divergence: float = Field(ge=0.0)
@@ -186,8 +207,12 @@ class DynamicsEvaluationReport(BaseModel):
     rollout: RolloutDivergenceResult | None = None
     calibration: CalibrationResult | None = None
     interventional: InterventionalShiftResult | None = None
+    calibrated_gate_passed: bool = Field(
+        default=True,
+        description="True if model passes probabilistic calibration gate (accurate AND not overconfident).",
+    )
     overall_valid: bool = Field(
-        description="Consistency gate: True only if invariants pass AND numeric error is within bounds."
+        description="Consistency gate: True only if invariants pass, calibration passes, AND error is bounded.",
     )
 
     def summary_table(self) -> str:
@@ -469,14 +494,68 @@ def evaluate_rollout_divergence(
     else:
         drift_rate = 0.0
 
+    err1 = step_divergences[0] if step_divergences else 0.0
+    base_err = err1 if err1 > 1e-6 else 1e-6
+    compounding_ratios = [
+        round(float(err / (step_idx * base_err)), 4)
+        for step_idx, err in enumerate(step_divergences, start=1)
+    ]
+    mean_comp_ratio = float(np.mean(compounding_ratios)) if compounding_ratios else 1.0
+    max_comp_ratio = float(np.max(compounding_ratios)) if compounding_ratios else 1.0
+    reliable_h = select_reliable_horizon(step_divergences, max_compounding_ratio=2.0)
+
     return RolloutDivergenceResult(
         horizon=horizon,
         step_divergences=step_divergences,
+        error_curve=step_divergences,
+        compounding_error_ratios=compounding_ratios,
+        mean_compounding_ratio=round(mean_comp_ratio, 4),
+        max_compounding_ratio=round(max_comp_ratio, 4),
+        observation_error_curve=step_divergences,
+        recommended_planning_horizon=reliable_h,
         mean_divergence=round(mean_div, 6),
         final_divergence=round(final_div, 6),
         max_divergence=round(max_div, 6),
         drift_rate=round(drift_rate, 6),
     )
+
+
+def select_reliable_horizon(
+    error_curve: Sequence[float],
+    max_compounding_ratio: float = 2.0,
+    max_error_threshold: float | None = None,
+) -> int:
+    """Select the maximal planning horizon h* where compounding drift remains bounded (Talvitie 2014).
+
+    Identifies the horizon step where error compounding accelerates super-linearly
+    beyond the linear accumulation threshold, providing a safety bound for MPC / planning.
+    """
+    if not error_curve:
+        return 0
+    err1 = float(error_curve[0])
+    base_err = err1 if err1 > 1e-6 else 1e-6
+    reliable_h = 1
+    for step_idx, err in enumerate(error_curve, start=1):
+        ratio = float(err) / (step_idx * base_err)
+        if ratio > max_compounding_ratio:
+            break
+        if max_error_threshold is not None and err > max_error_threshold:
+            break
+        reliable_h = step_idx
+    return reliable_h
+
+
+def evaluate_calibrated_dynamics_gate(
+    calibration: CalibrationResult,
+    min_coverage: float = 0.80,
+    max_crps: float = 50.0,
+) -> bool:
+    """Verify that predictive dynamics are well-calibrated (accurate AND not overconfident).
+
+    An accurate-but-overconfident model whose empirical coverage falls below min_coverage
+    fails the consistency gate.
+    """
+    return bool(calibration.coverage >= min_coverage and calibration.crps <= max_crps)
 
 
 def evaluate_stochastic_calibration(
