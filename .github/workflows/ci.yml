@@ -352,6 +352,52 @@ jobs:
       - name: Build Documentation (Strict)
         run: uv run mkdocs build --strict
 
+  memory-gates:
+    name: Deterministic Memory & Leak Gates (memray)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Deterministic Memory Gates with memray
+        run: uv run pytest tests/performance/test_memory_gates.py --memray -v
+
+  numerical-tests:
+    name: Numerical Reproducibility & Differential Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Numerical Tests
+        run: uv run pytest tests/numerical/ -v
+
   ci-gates:
     name: All CI Quality Gates Passed
     if: always()
@@ -368,12 +414,14 @@ jobs:
       - architecture-tests
       - package-build
       - docs-build
+      - memory-gates
+      - numerical-tests
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate Gates
         run: |
           failures=()
-          for job in lint format-check type-check unit-tests property-tests integration-tests contract-tests security-tests example-tests architecture-tests package-build docs-build; do
+          for job in lint format-check type-check unit-tests property-tests integration-tests contract-tests security-tests example-tests architecture-tests package-build docs-build memory-gates numerical-tests; do
             result="${{ needs.lint.result }}" # template
           done
           echo "Checking status of all required quality gates..."
@@ -389,9 +437,11 @@ jobs:
           if [[ "${{ needs.architecture-tests.result }}" != "success" ]]; then failures+=("architecture-tests"); fi
           if [[ "${{ needs.package-build.result }}" != "success" ]]; then failures+=("package-build"); fi
           if [[ "${{ needs.docs-build.result }}" != "success" ]]; then failures+=("docs-build"); fi
+          if [[ "${{ needs.memory-gates.result }}" != "success" ]]; then failures+=("memory-gates"); fi
+          if [[ "${{ needs.numerical-tests.result }}" != "success" ]]; then failures+=("numerical-tests"); fi
 
           if [ ${#failures[@]} -ne 0 ]; then
             echo "CI Gate Check FAILED! Failed jobs: ${failures[*]}"
             exit 1
           fi
-          echo "All 12 CI quality gates passed successfully."
+          echo "All 14 CI quality gates passed successfully."

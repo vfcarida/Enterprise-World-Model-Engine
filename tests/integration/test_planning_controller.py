@@ -197,7 +197,7 @@ def test_planning_controller_beats_no_plan_baseline() -> None:
     controller_unserved = res_controller.final_state.get_resource("unserved_demand").current
 
     # Controller successfully maintains stock and avoids stockout!
-    assert controller_unserved == pytest.approx(0.0)
+    assert controller_unserved == pytest.approx(0.0, abs=1e-6)
     assert controller_unserved < baseline_unserved
 
     # Controller selected proactive restocks

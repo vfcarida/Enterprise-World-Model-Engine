@@ -63,3 +63,7 @@ Thumbs.db
 
 # Experiment Tracking Runs
 .ewm_runs/
+
+# Benchmarking & Performance
+.asv/
+.benchmarks/

@@ -9,6 +9,7 @@ In accordance with R03 testing rigor:
 from __future__ import annotations
 
 from typing import Any
+
 import pytest
 
 from ewm_engine.cards.models import ScenarioCard

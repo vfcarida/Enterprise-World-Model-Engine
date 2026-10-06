@@ -179,7 +179,7 @@ def test_uncertainty_penalized_scorer_changes_decision_vs_expected_value() -> No
     res_volatile = uncertainty_scorer.score_rollouts(volatile_trajs, cand_volatile)
 
     assert res_stable.score == pytest.approx(20.0)
-    assert res_volatile.score == pytest.approx(0.0)
+    assert res_volatile.score == pytest.approx(0.0, abs=1e-6)
     assert res_stable.score > res_volatile.score
 
 

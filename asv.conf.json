@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/airspeed-velocity/asv/main/asv/schema.json",
+  "version": 1,
+  "project": "ewm_engine",
+  "project_url": "https://github.com/vfcarida/Enterprise-World-Model-Engine",
+  "repo": ".",
+  "branches": ["main"],
+  "environment_type": "virtualenv",
+  "show_commit_url": "https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/",
+  "pythons": ["3.12"],
+  "benchmark_dir": "benchmarks",
+  "results_dir": ".asv/results",
+  "html_dir": ".asv/html"
+}

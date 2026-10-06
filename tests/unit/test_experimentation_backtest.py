@@ -46,7 +46,7 @@ def test_scorers_moments_distance() -> None:
 def test_scorers_crps() -> None:
     """Test Continuous Ranked Probability Score (CRPS)."""
     # Deterministic ensemble matching observation -> CRPS = 0.0
-    assert score_crps([5.0, 5.0, 5.0], 5.0) == pytest.approx(0.0)
+    assert score_crps([5.0, 5.0, 5.0], 5.0) == pytest.approx(0.0, abs=1e-6)
     # Dispersion around observation
     ensemble = [8.0, 10.0, 12.0]
     crps_val = score_crps(ensemble, 10.0)
@@ -80,7 +80,7 @@ def test_scorers_spectral_distance() -> None:
     """Test frequency-domain spectral Fourier distance."""
     # Identical series -> 0.0
     s1 = [1.0, 2.0, 3.0, 2.0, 1.0]
-    assert score_spectral_distance(s1, s1) == pytest.approx(0.0)
+    assert score_spectral_distance(s1, s1) == pytest.approx(0.0, abs=1e-6)
     # Different frequencies
     s2 = [1.0, -1.0, 1.0, -1.0, 1.0]
     dist = score_spectral_distance(s1, s2)

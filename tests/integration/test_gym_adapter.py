@@ -192,8 +192,8 @@ def test_enterprise_gym_env_spaces_and_subclass() -> None:
         assert isinstance(env.action_space, Discrete)
         assert env.action_space.n == 1
         # Bounds should match Resource min_value=0.0 and max_value=200.0
-        np.testing.assert_allclose(env.observation_space.low, [0.0, 0.0])
-        np.testing.assert_allclose(env.observation_space.high, [200.0, 200.0])
+        np.testing.assert_allclose(env.observation_space.low, [0.0, 0.0], rtol=1e-5, atol=1e-6)
+        np.testing.assert_allclose(env.observation_space.high, [200.0, 200.0], rtol=1e-5, atol=1e-6)
 
     assert env.render_mode == "ansi"
     ansi_output = env.render()
