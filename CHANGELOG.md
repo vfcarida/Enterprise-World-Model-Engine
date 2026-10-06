@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - Unreleased
 
 ### Added
+- **Reference-Grade README & Visual Identity Overhaul (R01)**:
+  - Authored theme-adaptive vector logo identity (`assets/logo.svg`, `assets/logo-light.svg`, `assets/logo-dark.svg`) rendered via `<picture>` with `prefers-color-scheme` support and fixed dimensions to prevent layout reflow.
+  - Created scriptable VHS terminal recording (`assets/demo.tape`) and generated lightweight inline demo GIF (`assets/demo.gif`) illustrating `ewm example civicflow`.
+  - Tightened README hero section to Astral/FastAPI reference standard with Ruff-style category/differentiator formula and pipe-separated quick-links.
+  - Standardized all badges to modern `flat` style (PyPI version, Python versions, Pepy downloads, gated coverage, mypy strict, Ruff endpoint, DOI/Zenodo placeholder, and resolved link to `ADR-004-no-llm-dependency.md`).
+  - Unified project roadmap into a single non-contradicting maturity table strictly aligned with `ROADMAP.md`.
+  - Removed static hardcoded test counts in favor of dynamic CI and coverage test gates.
+  - Added "Research Adopters & Citations" scaffold inviting community contributions and academic benchmarking citations.
+  - Verified and tested all README Python code snippets through `scripts/test_readme_snippets.py`.
+  - Added accessibility annotations (`accTitle`, `accDescr`) and descriptive prose to all Mermaid architecture diagrams.
 - **Interop, Co-Simulation, Multi-Agent, Reporting, Serving, and Experiment Trackers (ADR-029, FEAT-007, ACP-008, P16 - Core + Extras `[fmi]`, `[simpy]`, `[mesa]`, `[sd]`, `[game]`, `[cli]`, `[viz]`, `[viz-export]`, `[serve]`, `[config]`, `[trackers]`, `[interop]`, Horizon v1.5 / Ecosystem Completeness)**:
   - Implemented **Sub-track 1 — Co-Simulation & Model Exchange (Track T5, Core & Adapters)** in `ewm_engine.cosim`:
     - Zero-dependency master scheduling loop `CoSimMaster` executing fixed-step master simulation loops with zero-order-hold (ZOH) interpolation.

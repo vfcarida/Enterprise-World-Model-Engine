@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 130" width="680" height="130" fill="none">
+  <defs>
+    <linearGradient id="primary-grad-light" x1="10" y1="10" x2="110" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="accent-grad-light" x1="30" y1="20" x2="110" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <filter id="shadow-light" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#4f46e5" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Geometric Symbol: Enterprise State Lattice & Forward Branching Projection -->
+  <g transform="translate(15, 10)">
+    <!-- Background subtle orbital ring -->
+    <circle cx="55" cy="55" r="50" stroke="#e0e7ff" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <circle cx="55" cy="55" r="38" stroke="#c7d2fe" stroke-width="1" stroke-opacity="0.6"/>
+
+    <!-- Branching edges -->
+    <path d="M 32 55 L 55 30 L 85 40" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 55 30 L 78 78" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/>
+    <path d="M 32 55 L 55 80 L 85 70" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 55 80 L 55 30" stroke="#818cf8" stroke-width="2" stroke-dasharray="3 3"/>
+    <path d="M 85 40 L 98 55 L 85 70" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Forward Simulation Wavefront / Consequence Cone -->
+    <path d="M 55 55 L 98 25 M 55 55 L 102 55 M 55 55 L 98 85" stroke="#a5b4fc" stroke-width="1.2" stroke-dasharray="2 3"/>
+
+    <!-- Central State Nodes -->
+    <!-- S_0 Base Node -->
+    <circle cx="32" cy="55" r="7" fill="url(#primary-grad-light)" filter="url(#shadow-light)"/>
+    <circle cx="32" cy="55" r="3" fill="#ffffff"/>
+
+    <!-- Transition Nodes -->
+    <circle cx="55" cy="30" r="5.5" fill="#4f46e5"/>
+    <circle cx="55" cy="80" r="5.5" fill="#0284c7"/>
+    <circle cx="78" cy="78" r="4" fill="#6366f1"/>
+
+    <!-- Future Consequence State Nodes (S_{t+H}) -->
+    <circle cx="85" cy="40" r="6" fill="url(#accent-grad-light)" filter="url(#shadow-light)"/>
+    <circle cx="85" cy="70" r="6" fill="url(#primary-grad-light)" filter="url(#shadow-light)"/>
+    <circle cx="98" cy="55" r="5" fill="#06b6d4"/>
+  </g>
+
+  <!-- Typography: Clean, Modern, Academic & Enterprise -->
+  <g transform="translate(150, 0)">
+    <!-- Wordmark -->
+    <text x="0" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif" font-weight="800" font-size="34" letter-spacing="-0.03em" fill="#0f172a">
+      ENTERPRISE WORLD MODEL
+    </text>
+    
+    <!-- ENGINE Badge / Label -->
+    <g transform="translate(488, 25)">
+      <rect x="0" y="0" width="76" height="28" rx="6" fill="#e0e7ff" stroke="#c7d2fe" stroke-width="1"/>
+      <text x="38" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif" font-weight="700" font-size="13" letter-spacing="0.08em" fill="#4338ca" text-anchor="middle">
+        ENGINE
+      </text>
+    </g>
+
+    <!-- Subtitle / Mathematical Differentiator -->
+    <text x="2" y="82" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif" font-weight="500" font-size="14.5" letter-spacing="0.01em" fill="#475569">
+      Action-Conditioned Counterfactual Simulation &amp; Epistemic Evaluation
+    </text>
+
+    <!-- Technical Monospace Micro-bar -->
+    <text x="2" y="104" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-weight="500" font-size="11.5" letter-spacing="0.02em" fill="#64748b">
+      S(t+1) ~ T(S(t), do(A(t)), E(t)) · Bitwise Reproducible · Zero-LLM Kernel
+    </text>
+  </g>
+</svg>
