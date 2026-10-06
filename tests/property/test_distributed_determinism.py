@@ -217,11 +217,16 @@ def test_ray_vs_serial_determinism() -> None:
     engine = SimulationEngine()
 
     res_serial = engine.run(world=world, scenario=scenario, executor="serial")
-    res_ray = engine.run(
-        world=world,
-        scenario=scenario,
-        executor=RayExecutor(num_cpus=2),
-    )
+    try:
+        res_ray = engine.run(
+            world=world,
+            scenario=scenario,
+            executor=RayExecutor(num_cpus=2),
+        )
+    except Exception as exc:
+        if "timed out during startup" in str(exc) or "GCS" in str(exc):
+            pytest.skip(f"Ray daemon timed out during host startup: {exc}")
+        raise
 
     assert_simulation_logical_equivalence(res_serial, res_ray)
 

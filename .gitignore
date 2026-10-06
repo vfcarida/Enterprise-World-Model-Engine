@@ -45,6 +45,8 @@ coverage.json
 .hypothesis/
 .mypy_cache/
 .ruff_cache/
+.mutmut-cache/
+mutation_summary.json
 
 # Documentation
 site/

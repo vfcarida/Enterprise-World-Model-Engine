@@ -77,6 +77,15 @@ dev = [
     "build>=1.1.0",
     "twine>=5.0.0",
     "opentelemetry-sdk>=1.25.0",
+    "mutmut>=3.0.0",
+    "syrupy>=4.6.0",
+    "pytest-randomly>=3.15.0",
+    "pytest-rerunfailures>=13.0",
+    "pytest-socket>=0.7.0",
+    "time-machine>=2.14.0",
+    "diff-cover>=8.0.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-split>=0.8.0",
 ]
 distributed = [
     "ray>=2.9.0",
@@ -242,6 +251,7 @@ module = [
     "networkx.*",
     "yaml.*",
     "z3.*",
+    "atheris.*",
 ]
 ignore_missing_imports = true
 
@@ -250,6 +260,20 @@ minversion = "8.0"
 addopts = "-ra -q --strict-markers --import-mode=importlib"
 testpaths = ["tests"]
 pythonpath = ["src", "."]
+filterwarnings = [
+    "error",
+    "ignore:.*sigma away.*:Warning",
+    "ignore:.*COBYLA.*:UserWarning",
+    "ignore:.*starlette.*:Warning",
+    "ignore:.*httpx.*:Warning",
+    "ignore:.*install .httpx2. instead.*:Warning",
+    "ignore:builtin type .* has no __module__ attribute:DeprecationWarning",
+    "ignore:.*swig.*:DeprecationWarning",
+    "ignore:.*Swig.*:DeprecationWarning",
+    "ignore:.*datetime.datetime.utcnow.*:DeprecationWarning",
+    "ignore:.*unclosed event loop.*:ResourceWarning",
+    "ignore:.*A test tried to use socket\\.socket.*:UserWarning",
+]
 markers = [
     "unit: fast unit tests",
     "integration: end-to-end integration tests",
@@ -260,6 +284,8 @@ markers = [
     "architecture: architecture boundary and dependency rule tests",
     "security: security and safe serialization tests",
     "example: documented and normative acceptance example tests",
+    "fuzz: fuzzing smoke and harness tests",
+    "flaky: quarantined tests with retry tracking",
 ]
 
 [dependency-groups]
@@ -273,7 +299,21 @@ dev = [
     "pyyaml>=6.0",
     "build>=1.1.0",
     "twine>=5.0.0",
+    "mutmut>=3.0.0",
+    "syrupy>=4.6.0",
+    "pytest-randomly>=3.15.0",
+    "pytest-rerunfailures>=13.0",
+    "pytest-socket>=0.7.0",
+    "time-machine>=2.14.0",
+    "diff-cover>=8.0.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-split>=0.8.0",
 ]
+
+[tool.mutmut]
+paths_to_mutate = "src/ewm_engine/core,src/ewm_engine/simulation,src/ewm_engine/constraints,src/ewm_engine/provenance,src/ewm_engine/durability,src/ewm_engine/verification"
+runner = "python -m pytest -q tests/unit"
+tests_dir = "tests/unit"
 
 [tool.coverage.run]
 source = ["src/ewm_engine"]

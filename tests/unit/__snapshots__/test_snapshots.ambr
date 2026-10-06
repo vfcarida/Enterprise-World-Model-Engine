@@ -1,0 +1,76 @@
+# serializer version: 1
+# name: test_scenario_card_markdown_snapshot
+  '''
+  # Scenario Card: `scen_supply_chain_stress_01`
+  
+  > [!NOTE]
+  > **Maturity Level:** `PRODUCTION` | **Horizon:** `52 steps` | **Rollouts:** `100`
+  
+  ### Cryptographic Provenance
+  - **Artifact Fingerprint (SHA-256):** `sha256:a1b2c3d4e5f67890abcdef1234567890`
+  - **Schema Version:** `1.0.0`
+  
+  ### Description
+  Stress testing supply chain lead times under sudden logistics bottlenecks.
+  
+  ### Applied Interventions
+  - `Capacity expansion +200`
+  - `Expedited shipping rule`
+  
+  ### Scenario Assumptions
+  - Supplier capacity is fixed at 1000 units/week
+  - Lead times increase by 30% under stress
+  
+  ### Environmental Context
+  | Parameter | Value |
+  |---|---|
+  | `demand_shock` | `1.4` |
+  | `interest_rate` | `0.05` |
+  
+  ### Scenario Metrics
+  | Metric | Value |
+  |---|---|
+  | `mean_service_level` | **0.88** |
+  | `shortage_cost_usd` | **125000.0** |
+  
+  ### Out-of-Scope Conditions
+  - Long-term macro recession
+  
+  ### Limitations
+  - Assumes deterministic port clearance times
+  
+  '''
+# ---
+# name: test_scenario_card_yaml_snapshot
+  '''
+  schema_version: 1.0.0
+  card_type: scenario
+  artifact_fingerprint: sha256:9876543210fedcba9876543210fedcba
+  maturity: beta
+  scenario_id: scen_baseline_growth
+  description: Baseline revenue projection for Q4.
+  horizon: 12
+  samples: 50
+  seed: 1234
+  interventions: []
+  assumptions:
+  - Inflation rate steady at 3.0%
+  out_of_scope: []
+  environmental_context:
+    inflation: 0.03
+  metrics:
+    expected_margin: 0.24
+  limitations: []
+  
+  '''
+# ---
+# name: test_systemic_trace_mermaid_snapshot
+  '''
+  flowchart TD
+      init_state["Initial Inventory State (structural)"]
+      intervention_pricing["Pricing Discount 15% (interventional)"]
+      demand_shock["Spike in Demand (+40%) (predictive)"]
+      init_state -->|"triggers"| intervention_pricing
+      intervention_pricing -->|"leads_to"| demand_shock
+  '''
+# ---

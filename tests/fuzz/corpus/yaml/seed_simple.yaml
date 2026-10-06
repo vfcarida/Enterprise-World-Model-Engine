@@ -1,0 +1,13 @@
+engine: "ewm-engine"
+version: "2.0.0"
+horizon: 50
+dt: 0.1
+enabled: true
+parameters:
+  learning_rate: 0.01
+  max_iterations: 1000
+  tolerance: 0.000001
+tags:
+  - simulation
+  - production
+  - benchmark

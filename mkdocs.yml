@@ -161,6 +161,7 @@ nav:
           - "ADR-028: Experimentation Suite": adr/ADR-028-experimentation-suite-doe-backtesting-calibration-optimization.md
           - "ADR-029: Interop & Ecosystem": adr/ADR-029-interop-cosim-multiagent-reporting-serving-trackers.md
           - "ADR-030: Documentation Architecture (Diátaxis & MkDocs)": adr/ADR-030-documentation-stack-mkdocs-material-diataxis.md
+          - "ADR-031: Multi-Tiered Testing Rigor & CI Gates": adr/ADR-031-multi-tiered-testing-rigor-and-ci-gates.md
 
   - Explanation:
       - "What is a World Model?": concepts/world-models.md

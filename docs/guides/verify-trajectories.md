@@ -205,10 +205,12 @@ For inspecting natural-language trace attributes or unstructured qualitative con
 ```python
 from ewm_engine.verification import LLMSoftCheckAdapter
 
+
 # User-provided async or sync callable
 def my_llm_checker(prompt: str) -> str:
     # Call OpenAI, Anthropic, or local model here
     return "The evacuation log meets the municipal safety protocol. YES."
+
 
 adapter = LLMSoftCheckAdapter(llm_callable=my_llm_checker, rubric="Municipal Flood Protocol")
 is_valid = adapter.verify_node(node_label="evacuation_notice", details={"tone": "urgent"})

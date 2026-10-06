@@ -27,7 +27,9 @@ print(f"RMSE: {rmse:.4f}")
 # 2. Method-of-Moments Distance (Bias, variance, z-score)
 ensemble_samples = [9.8, 10.1, 10.3, 10.7, 11.2]
 moments = score_moments_distance(ensemble_samples, observed_value=10.5)
-print(f"Mean: {moments['mean']:.2f}, Bias: {moments['bias']:.2f}, Z-score: {moments['z_score']:.2f}")
+print(
+    f"Mean: {moments['mean']:.2f}, Bias: {moments['bias']:.2f}, Z-score: {moments['z_score']:.2f}"
+)
 
 # 3. Continuous Ranked Probability Score (CRPS)
 crps = score_crps(ensemble_samples, observed_value=10.5)
@@ -35,9 +37,12 @@ print(f"CRPS: {crps:.4f}")
 
 # 4. Empirical Coverage (SBC / TARP concept across credible intervals)
 import numpy as np
+
 ensemble_matrix = np.random.normal(loc=10.0, scale=1.0, size=(50, 3))
 observed_series = [10.2, 9.8, 10.5]
-coverage = score_empirical_coverage(ensemble_matrix, observed_series, credible_intervals=(0.50, 0.80, 0.95))
+coverage = score_empirical_coverage(
+    ensemble_matrix, observed_series, credible_intervals=(0.50, 0.80, 0.95)
+)
 print(f"Empirical Coverage (95% CI): {coverage['ci_95']:.1%}")
 
 # 5. Spectral Fourier Distance (Frequency-domain cyclic dynamics comparison)
@@ -60,7 +65,9 @@ from ewm_engine.experimentation import run_walk_forward_backtest
 # Build historical world state sequence and observed target signal
 total_history_length = 20
 world_history = [
-    World(initial_state=WorldState(step=t, resources=[Resource(id="demand", current=100.0 + 2.0 * t)]))
+    World(
+        initial_state=WorldState(step=t, resources=[Resource(id="demand", current=100.0 + 2.0 * t)])
+    )
     for t in range(total_history_length)
 ]
 observed_series = [100.0 + 2.0 * t for t in range(total_history_length)]
@@ -70,9 +77,9 @@ report = run_walk_forward_backtest(
     world_history=world_history,
     observed_signal_history=observed_series,
     target_signal_name="demand",
-    horizon=4,      # Forecast 4 steps ahead from each origin
-    step_size=2,    # Advance origin by 2 steps per window
-    samples=10,     # 10 stochastic Monte Carlo rollouts per origin
+    horizon=4,  # Forecast 4 steps ahead from each origin
+    step_size=2,  # Advance origin by 2 steps per window
+    samples=10,  # 10 stochastic Monte Carlo rollouts per origin
     seed=42,
 )
 

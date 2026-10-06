@@ -48,6 +48,7 @@ historical_data = [22.4, 25.1, 28.3, 21.0, 26.5, 29.8, 24.2]
 target_moments = compute_msm_moments(historical_data)
 print(f"Target Moments: {target_moments}")
 
+
 # 3. Simulation runner callback (maps point dict -> simulated series)
 def simulate_queue(point: dict[str, float]) -> list[float]:
     rate = point["service_rate"]
@@ -55,6 +56,7 @@ def simulate_queue(point: dict[str, float]) -> list[float]:
     # Simulated response
     base_queue = 500.0 / rate * congestion
     return [base_queue - 2.0, base_queue, base_queue + 2.0]
+
 
 # 4. Calibrate parameters using DistanceCalibrator
 calibrator = DistanceCalibrator(

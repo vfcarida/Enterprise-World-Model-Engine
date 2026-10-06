@@ -19,9 +19,10 @@ Co-simulation in EWM Engine is based on a zero-dependency master scheduling loop
 ```python
 from ewm_engine.cosim import CoSimMaster, SubModel
 
+
 class SimplePlantModel:
     """Discrete sub-model simulating a manufacturing unit."""
-    
+
     def __init__(self, model_id: str = "plant"):
         self.model_id = model_id
         self.temperature = 25.0
@@ -43,9 +44,15 @@ class SimplePlantModel:
     def set_state(self, state: dict) -> None:
         self.temperature = state.get("temp", 25.0)
 
+
 # Instantiate master and register sub-models
 master = CoSimMaster(t_step=1.0)
-master.register_submodel("plant", SimplePlantModel(), required_inputs=("cooling_power",), provided_outputs=("temperature",))
+master.register_submodel(
+    "plant",
+    SimplePlantModel(),
+    required_inputs=("cooling_power",),
+    provided_outputs=("temperature",),
+)
 
 # Step the coupled system
 master.initialize(start_time=0.0)
@@ -72,12 +79,15 @@ All external engines are quarantined behind optional extras:
 from ewm_engine.cosim.adapters import SimPySubModel
 import simpy
 
+
 def env_factory():
     return simpy.Environment()
+
 
 def step_runner(env, t_step, inputs):
     env.run(until=env.now + t_step)
     return {"processed_orders": env.now * 1.5}
+
 
 simpy_model = SimPySubModel(
     model_id="warehouse_ops",

@@ -195,9 +195,9 @@ def run_walk_forward_backtest(
                     series.append(float(st.memory[target_signal_name]))
                 elif (
                     step_rec.step_metrics is not None
-                    and target_signal_name in step_rec.step_metrics.metrics
+                    and target_signal_name in step_rec.step_metrics
                 ):
-                    series.append(float(step_rec.step_metrics.metrics[target_signal_name]))
+                    series.append(float(step_rec.step_metrics[target_signal_name]))
                 else:
                     series.append(0.0)
         return series

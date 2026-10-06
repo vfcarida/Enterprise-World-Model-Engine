@@ -94,7 +94,7 @@ def main() -> int:
         covered = 0
         for filepath, file_data in files.items():
             norm_path = filepath.replace("\\", "/")
-            if f"/ewm_engine/{area}/" in norm_path:
+            if f"ewm_engine/{area}/" in norm_path:
                 summary = file_data.get("summary", {})
                 num_stmts = summary.get("num_statements", 0)
                 cov_lines = summary.get("covered_lines", 0)

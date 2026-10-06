@@ -1,0 +1,23 @@
+{
+  "scenario_id": "test_fuzz_01",
+  "samples": 100,
+  "horizon": 25,
+  "random_seed": 42,
+  "deterministic": true,
+  "actors": [
+    {
+      "id": "agent_alpha",
+      "strategy": "greedy",
+      "budget": 50000.5
+    },
+    {
+      "id": "agent_beta",
+      "strategy": "cooperative",
+      "budget": 75000.0
+    }
+  ],
+  "metadata": {
+    "tier": "enterprise",
+    "region": "us-east-1"
+  }
+}

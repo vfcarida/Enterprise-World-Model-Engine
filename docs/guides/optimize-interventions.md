@@ -48,6 +48,7 @@ space = ParameterSpace(
     ),
 )
 
+
 def evaluate_policy(point: dict[str, float]) -> ObjectiveVector:
     cost = point["staffing_buffer"] * 100.0 + point["safety_stock"] * 2.0
     sla = 1.0 - (10.0 / (point["staffing_buffer"] + 1.0)) * 0.05
@@ -55,6 +56,7 @@ def evaluate_policy(point: dict[str, float]) -> ObjectiveVector:
         values={"cost": cost, "sla": sla},
         directions={"cost": "minimize", "sla": "maximize"},
     )
+
 
 optimizer = HillClimbingOptimizer(step_fraction=0.15)
 result = optimizer.optimize(evaluate_policy, space, n_evaluations=40, seed=42)
@@ -116,7 +118,7 @@ for i, policy in enumerate(front.policies[:5]):
     cost = policy.objectives.values["cost"]
     sla = policy.objectives.values["sla"]
     print(
-        f"  Policy #{i+1}: Cost=${cost:,.2f}, SLA={sla:.2%}, "
+        f"  Policy #{i + 1}: Cost=${cost:,.2f}, SLA={sla:.2%}, "
         f"Parameters={policy.parameters}, Fingerprint={policy.policy_fingerprint[:12]}..."
     )
 ```

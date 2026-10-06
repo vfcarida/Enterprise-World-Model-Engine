@@ -34,6 +34,7 @@ from ewm_engine.reporting import render_rich_report, format_rich_summary_str
 
 # Print a formatted table to stdout
 from rich.console import Console
+
 console = Console()
 console.print(render_rich_report(report))
 

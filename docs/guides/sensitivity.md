@@ -38,10 +38,14 @@ space = ParameterSpace(
     ),
 )
 
+
 # 2. Define simulator evaluation callback (maps point dict -> float metric)
 def simulation_metric(point: dict[str, float]) -> float:
     # Example non-linear response
-    return point["lead_time"] * 2.5 + (point["demand_growth"] * 100.0) ** 1.5 + point["holding_cost"]
+    return (
+        point["lead_time"] * 2.5 + (point["demand_growth"] * 100.0) ** 1.5 + point["holding_cost"]
+    )
+
 
 # 3. Execute Sobol analysis
 analyzer = GlobalSensitivityAnalyzer(space)
