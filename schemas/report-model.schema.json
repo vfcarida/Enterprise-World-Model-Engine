@@ -1,0 +1,221 @@
+{
+  "$defs": {
+    "BranchTreeNode": {
+      "additionalProperties": false,
+      "description": "Node in an event-sourced or scenario branching tree.",
+      "properties": {
+        "branch_tag": {
+          "default": "main",
+          "description": "Branch tag or intervention name.",
+          "title": "Branch Tag",
+          "type": "string"
+        },
+        "node_id": {
+          "description": "Unique node identifier.",
+          "title": "Node Id",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Parent node identifier.",
+          "title": "Parent Id"
+        },
+        "state_fingerprint": {
+          "description": "Canonical fingerprint of the state.",
+          "title": "State Fingerprint",
+          "type": "string"
+        },
+        "step": {
+          "description": "Step index of this node.",
+          "minimum": 0,
+          "title": "Step",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "node_id",
+        "step",
+        "state_fingerprint"
+      ],
+      "title": "BranchTreeNode",
+      "type": "object"
+    },
+    "SignalQuantiles": {
+      "additionalProperties": false,
+      "description": "Empirical quantiles and moments for a timeseries across Monte Carlo samples.",
+      "properties": {
+        "mean": {
+          "description": "Mean timeseries.",
+          "items": {
+            "type": "number"
+          },
+          "title": "Mean",
+          "type": "array"
+        },
+        "p10": {
+          "description": "10th percentile timeseries.",
+          "items": {
+            "type": "number"
+          },
+          "title": "P10",
+          "type": "array"
+        },
+        "p25": {
+          "description": "25th percentile timeseries.",
+          "items": {
+            "type": "number"
+          },
+          "title": "P25",
+          "type": "array"
+        },
+        "p50": {
+          "description": "Median (50th percentile) timeseries.",
+          "items": {
+            "type": "number"
+          },
+          "title": "P50",
+          "type": "array"
+        },
+        "p75": {
+          "description": "75th percentile timeseries.",
+          "items": {
+            "type": "number"
+          },
+          "title": "P75",
+          "type": "array"
+        },
+        "p90": {
+          "description": "90th percentile timeseries.",
+          "items": {
+            "type": "number"
+          },
+          "title": "P90",
+          "type": "array"
+        },
+        "signal_name": {
+          "description": "Name of the resource or metric.",
+          "title": "Signal Name",
+          "type": "string"
+        },
+        "steps": {
+          "description": "Time step indices.",
+          "items": {
+            "type": "integer"
+          },
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "signal_name",
+        "steps",
+        "p10",
+        "p25",
+        "p50",
+        "p75",
+        "p90",
+        "mean"
+      ],
+      "title": "SignalQuantiles",
+      "type": "object"
+    }
+  },
+  "$id": "https://ewm-engine.org/schemas/v1/report-model.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Renderer-neutral simulation report model.",
+  "properties": {
+    "branch_tree": {
+      "description": "Scenario branching DAG nodes.",
+      "items": {
+        "$ref": "#/$defs/BranchTreeNode"
+      },
+      "title": "Branch Tree",
+      "type": "array"
+    },
+    "fingerprint": {
+      "description": "Canonical SHA-256 fingerprint of the simulation result.",
+      "title": "Fingerprint",
+      "type": "string"
+    },
+    "horizon": {
+      "description": "Simulation horizon steps.",
+      "minimum": 1,
+      "title": "Horizon",
+      "type": "integer"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "description": "Simulation and engine metadata.",
+      "title": "Metadata",
+      "type": "object"
+    },
+    "sample_count": {
+      "description": "Number of Monte Carlo rollout samples.",
+      "minimum": 1,
+      "title": "Sample Count",
+      "type": "integer"
+    },
+    "scenario_id": {
+      "description": "Scenario identifier.",
+      "title": "Scenario Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Report schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "signals": {
+      "additionalProperties": {
+        "$ref": "#/$defs/SignalQuantiles"
+      },
+      "description": "Extracted signal quantiles.",
+      "title": "Signals",
+      "type": "object"
+    },
+    "simulation_id": {
+      "description": "Identifier of the simulation run.",
+      "title": "Simulation Id",
+      "type": "string"
+    },
+    "verification_verdicts": {
+      "description": "Temporal STL or Oracle-graph verification logs.",
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Verification Verdicts",
+      "type": "array"
+    },
+    "violations_summary": {
+      "description": "Constraint violation events.",
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Violations Summary",
+      "type": "array"
+    }
+  },
+  "required": [
+    "fingerprint",
+    "horizon",
+    "sample_count",
+    "scenario_id",
+    "schema_version",
+    "simulation_id"
+  ],
+  "title": "ReportModel",
+  "type": "object"
+}

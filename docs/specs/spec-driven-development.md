@@ -84,51 +84,56 @@ O projeto não assume que uma simulação condicional é automaticamente causal.
 
 ---
 
-### Tabela A — Matriz MUST / SHOULD / FUTURE
+### Tabela A — Matriz MUST / SHOULD / FUTURE / PROMOÇÕES
 
-| Capacidade | Prioridade v1 | Critério |
-| :--- | :--- | :--- |
-| `World` + `WorldState` | **MUST** | Estado inspecionável, versionável e branchable |
-| `Entity`, `Relationship`, `Resource` | **MUST** | Representação tipada e serializável |
-| `Action` e `ExogenousEvent` | **MUST** | Eventos controláveis e não controláveis separados |
-| `DynamicsModel` protocol | **MUST** | Dynamics intercambiáveis sem alterar o simulation engine |
-| Deterministic dynamics | **MUST** | Implementação de referência |
-| Stochastic dynamics | **MUST** | Usa RNG explícito |
-| Composite dynamics | **MUST** | Composição determinística de componentes |
-| Hard/soft constraints | **MUST** | Semantics explícitas pre/post transition |
-| Scenario branching | **MUST** | Mesmo snapshot, políticas independentes |
-| Monte Carlo rollouts | **MUST** | `samples >= 1`, seed reproduzível |
-| `Trajectory` e `SimulationResult` | **MUST** | Histórico completo e machine-readable |
-| Provenance + fingerprint | **MUST** | Reproduzir/configurar auditoria |
-| `EvidenceLevel` | **MUST** | Qualificar epistemicamente relações/trace |
-| Systemic trace | **MUST** | Dependency/provenance trace, não “causal graph” |
-| Scenario comparison | **MUST** | Comparação de métricas entre resultados |
-| JSON serialization | **MUST** | Formato canônico |
-| Safe YAML input | **MUST** | Alternativa humana; mesma validação |
-| JSON Schema artifacts | **MUST** | Versionados em `schemas/` |
-| Minimal Warehouse | **MUST** | Quickstart e acceptance fixture |
-| CivicFlow | **MUST** | Flagship cross-domain/social demo |
-| CI, typing, lint, tests, docs | **MUST** | Release blocking |
-| Hook/event protocol | **SHOULD** | Observabilidade extensível |
-| Minimal CLI | **SHOULD** | Convenience layer; API Python prevalece |
-| Trace graph export | **SHOULD** | Sem tornar NetworkX obrigatório se evitável |
-| Performance benchmark suite | **SHOULD** | Monitoramento inicialmente não bloqueante |
-| OpenTelemetry adapter | **SHOULD** | Optional extra |
-| MLflow adapter | **SHOULD** | Optional extra |
-| Z3 adapter | **FUTURE** | Solver-backed constraints |
-| OR-Tools adapter | **FUTURE** | Planning/optimization |
-| Learned PyTorch dynamics | **FUTURE** | `DynamicsModel` implementation |
-| RSSM/Dreamer-like dynamics | **FUTURE** | Research adapter |
-| JEPA dynamics | **FUTURE** | Research adapter |
-| GNN dynamics | **FUTURE** | Research adapter |
-| LLM actor adapter | **FUTURE** | Actor implementation |
-| RL agents | **FUTURE** | Actor/policy adapter |
-| Causal estimators | **FUTURE** | Dedicated causal extension |
-| Receding-horizon/MPC controller | **FUTURE** | Control layer |
-| Distributed/GPU rollouts | **FUTURE** | Scalability |
-| Real-time data ingestion | **FUTURE** | External adapter |
-| General-purpose DSL | **FUTURE** | Somente após estabilização do Python API |
-| Web dashboard | **FUTURE** | Fora do engine |
+| Capacidade | Prioridade Inicial | Maturidade Atual | Governança / ADR | Critério Normativo |
+| :--- | :--- | :--- | :--- | :--- |
+| `World` + `WorldState` | **MUST** | **Stable (v1.0.0)** | ADR-001, ADR-009 | Estado profundamente imutável, versionável e branchable |
+| `Entity`, `Relationship`, `Resource` | **MUST** | **Stable (v1.0.0)** | ADR-001, ADR-007 | Representação tipada, serializável e defensiva |
+| `Action` e `ExogenousEvent` | **MUST** | **Stable (v1.0.0)** | ADR-001, ADR-007 | Eventos controláveis e não controláveis separados |
+| `DynamicsModel` protocol | **MUST** | **Stable (v1.0.0)** | ADR-002, ADR-007 | Dinâmica intercambiável sem alterar o simulation engine |
+| Deterministic dynamics | **MUST** | **Stable (v1.0.0)** | ADR-002, ADR-005 | Implementação de referência para transferências de recursos |
+| Stochastic dynamics | **MUST** | **Stable (v1.0.0)** | ADR-005, ADR-012 | Usa RNG explícito e `SeedSequence` derivado |
+| Composite dynamics | **MUST** | **Stable (v1.0.0)** | ADR-002 | Composição determinística de componentes |
+| Hard/soft constraints | **MUST** | **Stable (v1.0.0)** | ADR-003, ADR-008 | Semântica explícita `PRE_ACTION` e `POST_TRANSITION` |
+| Scenario branching | **MUST** | **Stable (v1.0.0)** | ADR-005, ADR-012 | Mesmo snapshot, políticas isoladas sem contaminação |
+| Monte Carlo rollouts | **MUST** | **Stable (v1.0.0)** | ADR-005, ADR-012 | `samples >= 1`, seed reproduzível e reordenamento determinístico |
+| `Trajectory` e `SimulationResult` | **MUST** | **Stable (v1.0.0)** | ADR-001, ADR-007 | Histórico completo e machine-readable |
+| Provenance + fingerprint | **MUST** | **Stable (v1.0.0)** | ADR-009, ADR-010 | SHA-256 estável e metadados de execução para auditoria |
+| `EvidenceLevel` | **MUST** | **Stable (v1.0.0)** | ADR-010 | Qualificar epistemicamente relações e traces sem sobre-alegação |
+| Systemic trace | **MUST** | **Stable (v1.0.0)** | ADR-010 | Grafo de dependência direcionado; proíbe arestas `"causes"` |
+| Scenario comparison | **MUST** | **Stable (v1.0.0)** | ADR-001, ADR-016 | Comparação de métricas entre resultados com CIs bootstrap |
+| JSON serialization | **MUST** | **Stable (v1.0.0)** | ADR-011 | Formato canônico canônico ordenado |
+| Safe YAML input | **MUST** | **Stable (v1.0.0)** | ADR-011, ADR-018 | Alternativa humana segura; rejeita tags customizadas |
+| JSON Schema artifacts | **MUST** | **Stable (v1.0.0)** | ADR-011 | Versionados em `schemas/` sob Draft 2020-12 |
+| Minimal Warehouse | **MUST** | **Stable (v1.0.0)** | AC-012 | Quickstart e acceptance fixture canônica |
+| CivicFlow | **MUST** | **Stable (v1.0.0)** | AC-013 | Flagship cross-domain/social demo |
+| CI, typing, lint, tests, docs | **MUST** | **Stable (v1.0.0)** | ADR-014 | Quality gates bloqueantes de release |
+| Hook/event protocol | **SHOULD** | **Stable (v1.0.0)** | ADR-013 | Observabilidade extensível e `RunMetrics` |
+| Minimal CLI | **SHOULD** | **Stable (v1.0.0)** | ADR-007 | Camada de conveniência; API Python prevalece |
+| Trace graph export | **SHOULD** | **Stable (v1.0.0)** | ADR-010 | Mermaid e NetworkX sem dependência mandatória |
+| Scenario evaluation & Bootstrap | **FUTURE** | **Stable (v1.1.0)** | ADR-016, ACP-001 | CIs percentis bootstrap em deltas e fronteira de Pareto |
+| Distributed Monte Carlo | **FUTURE** | **Beta Adapter (v1.1.0)** | ADR-017, ACP-003 | Execução paralela preservando `SeedSequence` (extra `parallel`) |
+| OpenTelemetry adapter | **SHOULD** | **Beta Adapter (v1.1.0)** | ADR-024 | Observabilidade API-only sem acoplamento ao core (extra `otel`) |
+| OR-Tools adapter | **FUTURE** | **Beta Adapter (v1.1.0)** | ADR-018 | CP-SAT discrete optimization com limites de tempo (extra `or`) |
+| SciPy Continuous Planner | **FUTURE** | **Beta Adapter (v1.1.0)** | ADR-018 | Continuous allocation planner via HiGHS com limites de tempo |
+| Z3 SMT solver adapter | **FUTURE** | **Beta Adapter (v1.1.0)** | ADR-018 | Verificação formal de invariantes simbólicos com timeout |
+| Gymnasium RL adapter | **FUTURE** | **Beta Adapter (v1.1.0)** | ADR-018 | Wrapper `gymnasium.Env` para treinamento de políticas de agentes |
+| Learned dynamics eval harness | **FUTURE** | **Experimental (v1.2.0)** | ADR-019 | Medição de erro multi-step, calibração e invariantes |
+| Torch neural residual dynamics | **FUTURE** | **Experimental (v1.2.0)** | ADR-019 | Baseline neural MLP com symlog scaling (extra `ml`) |
+| Scientific benchmark families | **FUTURE** | **Research (v1.2.0)** | ADR-025 | 5 famílias sintéticas de shift estrutural em `benchmarks/` |
+| Planning & controller layer | **FUTURE** | **Experimental (v1.3.0)** | ADR-020 | Scorers de rollout (CVaR, constraints) e controle em horizonte móvel |
+| OOD & regime-shift detection | **FUTURE** | **Experimental (v1.4.0)** | ADR-021 | Detecção de suporte e covariância de Mahalanobis sem auto-downgrade |
+| Honest causal diagnostics | **FUTURE** | **Experimental (v1.4.0)** | ADR-021 | Backdoor, sobreposição de positividade e Twin Rollouts acoplados |
+| Heterogeneous graph world state | **FUTURE** | **Experimental (v2.0-alpha)**| ADR-022, ACP-004 | Projeção em grafo heterogêneo temporal e migração v1 <-> v2 |
+| Relational GNN dynamics | **FUTURE** | **Experimental (v2.0-alpha)**| ADR-022 | Message passing relacional sobre topologia temporal (extra `ml`) |
+| World Specification Language (WSL)| **FUTURE**| **Experimental (v2.0-alpha)**| ADR-023, ACP-004 | Gramática declarativa segura, validação, compilação e exportação |
+| MLflow adapter | **SHOULD** | **FUTURE (v1.2.0 T9)** | — | Optional tracking extra |
+| RSSM/Dreamer-like dynamics | **FUTURE** | **Research** | — | Research latent adapter |
+| JEPA dynamics | **FUTURE** | **Research** | — | Research latent adapter |
+| LLM actor adapter | **FUTURE** | **Beta Adapter** | ADR-018 | `CallableActorAdapter` para agentes externos |
+| Real-time data ingestion | **FUTURE** | **FUTURE (v1.5.0 T5)** | — | External adapter de telemetria |
+| Web dashboard | **FUTURE** | **FUTURE** | — | Fora do engine |
 
 ---
 
@@ -176,6 +181,15 @@ A versão `1.0.0` DEVE:
 | **AC-022** | Documentação compila em strict mode | `mkdocs.yml`, `docs/` | `docs-build` workflow |
 | **AC-023** | Release não contém secrets ou credenciais | repo/workflows | secret/security scanning |
 | **AC-024** | Public API de 1.x não quebra fixtures de contrato sem API Change Proposal | `tests/contract/` | compatibility gate |
+| **AC-025** | Execução distribuída de Monte Carlo preserva resultados idênticos à serial | `simulation/executors.py` | `tests/property/test_distributed_determinism.py` |
+| **AC-026** | Observabilidade OpenTelemetry é API-only e no-op quando dependência ausente | `integrations/otel.py` | `tests/unit/test_otel_adapter.py` |
+| **AC-027** | Adapters de solvers e planners impõem limites de tempo e recursos com fallback | `integrations/` | `tests/integration/test_solvers_and_planners.py` |
+| **AC-028** | Harness de dinâmica aprendida avalia divergência multi-step e invariantes | `experimental/dynamics_eval.py` | `tests/unit/test_dynamics_eval.py` |
+| **AC-029** | Famílias de benchmark científico são reproduzíveis a partir de seed + versões | `benchmarks/protocol.py` | `tests/benchmark/test_scientific_benchmarks.py` |
+| **AC-030** | Decisões de planejamento (MPC) são determinísticas, filtradas e auditadas | `experimental/planning.py` | `tests/unit/test_planning_scorers.py` |
+| **AC-031** | Detector OOD reporta regime empírico; diagnóstico causal não auto-rotula EvidenceLevel | `experimental/ood.py`, `causal.py` | `tests/unit/test_ood_detection.py`, `test_causal_diagnostics.py` |
+| **AC-032** | WSL rejeita código arbitrário, usa carregador seguro e compila para World container | `serialization/wsl.py` | `tests/unit/test_wsl.py`, `tests/unit/test_migration.py` |
+
 
 ---
 
@@ -759,3 +773,73 @@ A v1.0.0 exists only when:
 - and a new coding agent can continue development from the repository
   without needing the original conversation that created it.
 ```
+
+---
+
+## Evolução Pós-v1: Extensão Normativa e Critérios de Aceitação (v1.1.0 — v2.0-alpha)
+
+Para garantir que coding agents futuros e contribuidores mantenham a integridade arquitetural sem reinterpretar intenções, esta seção estende formalmente o contrato normativo além da versão `1.0.0`:
+
+### 1. Critérios de Aceitação Pós-v1 (AC-025 a AC-032)
+
+#### AC-025: Determinismo Rigoroso em Monte Carlo Distribuído (v1.1.0)
+- **Declaração Normativa:** A execução paralela/distribuída de rollouts de Monte Carlo DEVE produzir trajetórias e métricas logicamente e numericamente idênticas à execução serial sob os mesmos seeds, cenários e configurações de mundo.
+- **Invariante:** Cada worker consome a mesma sub-semente gerada deterministicamente por `np.random.SeedSequence(scenario.seed).spawn(samples)[rollout_idx]`. Os resultados DEVEM ser reagrupados na ordem ordinal estrita dos rollouts (índices `0` a `samples - 1`), independentemente da ordem assíncrona de conclusão dos processos.
+- **Artefato:** `src/ewm_engine/simulation/executors.py`
+- **Governança:** ADR-017, ACP-003. Teste obrigatório: `tests/property/test_distributed_determinism.py`.
+
+#### AC-026: Observabilidade OpenTelemetry API-Only e Desacoplada (v1.1.0)
+- **Declaração Normativa:** O adapter de telemetria DEVE registrar-se como listener no `HookRegistry` existente consumindo exclusivamente a API pública de instrumentação, sem impor o SDK do OpenTelemetry como dependência do core.
+- **Invariante:** Quando o extra opcional `[otel]` não estiver instalado, a importação ou presença do adapter NÃO DEVE lançar exceções e DEVE degradar graciosamente para no-op sem qualquer degradação de performance no loop de simulação.
+- **Artefato:** `src/ewm_engine/integrations/otel.py`
+- **Governança:** ADR-013, ADR-024. Teste obrigatório: `tests/unit/test_otel_adapter.py`.
+
+
+#### AC-027: Limites Estritos de Recursos e Timeouts em Planners e Solvers (v1.1.0)
+- **Declaração Normativa:** Todo adapter de Operations Research (Google OR-Tools, SciPy) e de verificação formal (Z3 SMT) DEVE expor parâmetros obrigatórios de limite de tempo (`time_limit_seconds` ou `timeout_ms`).
+- **Invariante:** Quando a busca exceder o tempo limite alocado, o solver/planner DEVE abortar graciosamente retornando um resultado explícito de timeout (`satisfied=False`, `timed_out=True`), sem travar o kernel de simulação, sem vazamento de memória e sem lançar exceções não tratadas. Planners propõem ações; constraints dispõem.
+- **Artefato:** `src/ewm_engine/integrations/` (`ortools.py`, `scipy_planner.py`, `solvers.py`)
+- **Governança:** ADR-018. Teste obrigatório: `tests/integration/test_solvers_and_planners.py`.
+
+
+#### AC-028: Harness de Avaliação e Invariantes para Dinâmica Aprendida (v1.2.0)
+- **Declaração Normativa:** O framework DEVE disponibilizar harness científico para medir qualquer implementação de `DynamicsModel` ou `LearnedDynamics` contra métricas canônicas de erro multi-step, calibração estocástica e verificação de invariantes.
+- **Invariante:** O harness DEVE medir: (1) erro de previsão pontual em 1-passo ($MAE$, $RMSE$); (2) divergência autorregressiva em rollouts multi-step; (3) calibração estocástica via CRPS e coverage; (4) taxa de violação de invariantes declarados de recursos ($[min, max]$); (5) hiato de generalização intervencional ($MAE_{\text{interventional}} - MAE_{\text{in-distribution}}$).
+- **Artefato:** `src/ewm_engine/experimental/dynamics_eval.py`
+- **Governança:** ADR-019. Teste obrigatório: `tests/unit/test_dynamics_eval.py`.
+
+#### AC-029: Reprodutibilidade de Famílias de Benchmark Científico (v1.2.0)
+- **Declaração Normativa:** O repositório DEVE disponibilizar cinco famílias canônicas de benchmark sintético (`InterventionShift`, `RuleShift`, `ConstraintStress`, `LongHorizon`, `MultiAgentCascade`) como instrumentos de medição para pesquisa em world models.
+- **Invariante:** Qualquer execução de benchmark com os mesmos seeds canônicos e versões de dependências DEVE produzir relatórios estruturados idênticos (`BenchmarkReport`) contendo proveniência criptográfica completa. O benchmark é um instrumento de medição, não o produto do repositório.
+- **Artefato:** `benchmarks/protocol.py`, `benchmarks/families/`
+- **Governança:** ADR-025. Teste obrigatório: `tests/benchmark/test_scientific_benchmarks.py`.
+
+#### AC-030: Determinismo e Auditabilidade na Camada de Planejamento e Controle (v1.3.0)
+- **Declaração Normativa:** O controlador de horizonte móvel (MPC) e scorers de rollout DEVEM tomar decisões determinísticas e auditáveis, operando sob re-ancoragem contínua (re-grounding).
+- **Invariante:** Rollouts abertos longos NÃO SÃO previsões. Cada decisão de planejamento DEVE emitir `PlanningDecision` registrando candidatos avaliados, sementes de lookahead, amostras, pontuações de utilidade e hashes de estado antes e depois da execução. Ações propostas passam obrigatoriamente pelo portão de restrições do mundo hospedeiro.
+- **Artefato:** `src/ewm_engine/experimental/planning.py`, `src/ewm_engine/simulation/mpc.py`
+- **Governança:** ADR-020. Teste obrigatório: `tests/unit/test_planning_scorers.py`, `tests/integration/test_planning_controller.py`.
+
+#### AC-031: Detecção de Regime OOD e Honestidade Causal sem Auto-Rotulação (v1.4.0)
+- **Declaração Normativa:** O engine DEVE diagnosticar quando uma trajetória deixa o suporte empírico calibrado e avaliar hipóteses causais explicitamente declaradas, sem jamais emitir alegações causais automáticas a partir de dados observacionais.
+- **Invariante:** O detector de OOD computa `grounded_fraction` e anota o `SystemicTrace` sem alterar o status da simulação nem elevar arbitrariamente o `EvidenceLevel`. Verificações de Backdoor e diagnósticos de sensibilidade de Rosenbaum operam como ferramentas epistêmicas: o engine JAMAIS descobre DAGs causais automaticamente a partir de correlações brutas.
+- **Artefato:** `src/ewm_engine/experimental/ood.py`, `src/ewm_engine/experimental/causal.py`
+- **Governança:** ADR-021. Teste obrigatório: `tests/unit/test_ood_detection.py`, `tests/unit/test_causal_diagnostics.py`.
+
+#### AC-032: Execução Declarativa Segura na World Specification Language (WSL) (v2.0-alpha)
+- **Declaração Normativa:** A especificação declarativa de mundos em YAML/JSON (WSL) DEVE ser 100% livre de execução de código arbitrário e validar contra schema JSON formal.
+- **Invariante:** `parse_wsl_file` e `parse_wsl_yaml` utilizam carregador seguro estrito (`StrictSafeLoader`), rejeitando tags customizadas (ex: `!python/object`), chamadas inline (`eval`, `exec`) e importações arbitrárias de strings. Componentes dinâmicos são instanciados exclusivamente a partir de um `ComponentRegistry` programático pré-aprovado. A migração entre `schema_version = "1.0.0"` e `"2.0.0"` DEVE ser bidirecional e sem perda de dados.
+- **Artefato:** `src/ewm_engine/serialization/wsl.py`, `src/ewm_engine/core/graph.py`, `src/ewm_engine/core/migration.py`
+- **Governança:** ADR-022, ADR-023, ACP-004. Teste obrigatório: `tests/unit/test_wsl.py`, `tests/unit/test_migration.py`.
+
+---
+
+### 2. Regra de Promoção de Maturidade e Governança SemVer
+
+1. **Promoção FUTURE $\to$ BETA / EXPERIMENTAL:**
+   Nenhum item pode ser promovido de `FUTURE` para `BETA` ou `EXPERIMENTAL` sem um Architecture Decision Record (ADR) aceito e testes de unidade/integração correspondentes.
+2. **Promoção BETA / EXPERIMENTAL $\to$ STABLE:**
+   Exige um API Change Proposal (ACP) formal aprovado, snapshot de schema validado, freeze de assinaturas públicas em `tests/contract/test_api_compatibility.py` e período mínimo de estabilidade.
+3. **Imutabilidade do Core v1:**
+   A inclusão de novos módulos experimentais (`ewm_engine.experimental.*`) ou adapters (`ewm_engine.integrations.*`) NÃO PODE introduzir dependências obrigatórias no core nem quebrar a compatibilidade retroativa dos 22 símbolos Stable declarados em `ewm_engine.__all__`.
+

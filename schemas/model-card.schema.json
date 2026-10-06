@@ -1,0 +1,138 @@
+{
+  "$id": "https://ewm-engine.org/schemas/v1/model-card.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Native Model Card documenting a DynamicsModel or Policy Actor.\n\nFields aligned with Mitchell et al. (arXiv:1810.03993) and population\ncalibration provenance standards.",
+  "properties": {
+    "artifact_fingerprint": {
+      "description": "Canonical cryptographic SHA-256 fingerprint of the described artifact.",
+      "title": "Artifact Fingerprint",
+      "type": "string"
+    },
+    "assumptions": {
+      "description": "Explicit theoretical, structural, or behavioral assumptions embedded in dynamics.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Assumptions",
+      "type": "array"
+    },
+    "calibration_score": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Empirical population calibration metric score (e.g. SBC/Kolmogorov score).",
+      "title": "Calibration Score"
+    },
+    "card_type": {
+      "const": "model",
+      "default": "model",
+      "title": "Card Type",
+      "type": "string"
+    },
+    "constraints_exercised": {
+      "description": "Identifiers of physical or operational constraints evaluated with this model.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Constraints Exercised",
+      "type": "array"
+    },
+    "description": {
+      "default": "",
+      "description": "Detailed description of dynamics mechanism, architecture, or policy.",
+      "title": "Description",
+      "type": "string"
+    },
+    "intended_use": {
+      "description": "Declared organizational decisions and operating regimes model was designed for.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Intended Use",
+      "type": "array"
+    },
+    "limitations": {
+      "description": "Epistemic caveats, numerical approximations, or unmodeled feedback loops.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "maturity": {
+      "default": "production",
+      "description": "Maturity tier: 'production', 'beta', or 'experimental'.",
+      "title": "Maturity",
+      "type": "string"
+    },
+    "metrics": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "description": "Benchmark or calibration metrics (e.g. RMSE, coverage, calibration score).",
+      "title": "Metrics",
+      "type": "object"
+    },
+    "model_id": {
+      "description": "Unique identifier of the model.",
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_name": {
+      "description": "Human-readable model name.",
+      "title": "Model Name",
+      "type": "string"
+    },
+    "out_of_scope": {
+      "description": "Known scenarios, domains, or extreme regimes where model MUST NOT be applied.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Out Of Scope",
+      "type": "array"
+    },
+    "provenance_sources": {
+      "description": "Source dataset hashes, training run IDs, or empirical telemetry sources.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Provenance Sources",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Semantic schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "version": {
+      "default": "1.0.0",
+      "description": "Semantic version string of the model.",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "artifact_fingerprint",
+    "model_id",
+    "model_name",
+    "schema_version"
+  ],
+  "title": "ModelCard",
+  "type": "object"
+}

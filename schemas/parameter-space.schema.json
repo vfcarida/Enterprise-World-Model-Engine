@@ -1,0 +1,146 @@
+{
+  "$defs": {
+    "ParameterDef": {
+      "additionalProperties": false,
+      "description": "Specification of a single parameter dimension.",
+      "properties": {
+        "bounds": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numeric [lower, upper] interval for continuous and integer parameters.",
+          "title": "Bounds"
+        },
+        "categories": {
+          "anyOf": [
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Discrete set of permitted values for categorical parameters.",
+          "title": "Categories"
+        },
+        "default": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Nominal baseline value.",
+          "title": "Default"
+        },
+        "description": {
+          "default": "",
+          "description": "Human-readable parameter description.",
+          "title": "Description",
+          "type": "string"
+        },
+        "name": {
+          "description": "Parameter name / identifier.",
+          "title": "Name",
+          "type": "string"
+        },
+        "target": {
+          "default": "resource",
+          "description": "Location or semantics of the parameter within World/Scenario.",
+          "enum": [
+            "resource",
+            "memory",
+            "context",
+            "variable",
+            "scenario_horizon",
+            "scenario_attribute",
+            "custom"
+          ],
+          "title": "Target",
+          "type": "string"
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Specific entity/resource ID or dot-path within target.",
+          "title": "Target Id"
+        },
+        "type": {
+          "description": "Variable type: continuous, integer, or categorical.",
+          "enum": [
+            "continuous",
+            "integer",
+            "categorical"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ],
+      "title": "ParameterDef",
+      "type": "object"
+    }
+  },
+  "$id": "https://ewm-engine.org/schemas/v1/parameter-space.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Multi-dimensional parameter search or experimentation space.",
+  "properties": {
+    "name": {
+      "default": "ParameterSpace",
+      "description": "Name of the parameter space.",
+      "title": "Name",
+      "type": "string"
+    },
+    "parameters": {
+      "description": "Ordered sequence of parameter dimensions.",
+      "items": {
+        "$ref": "#/$defs/ParameterDef"
+      },
+      "title": "Parameters",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "parameters",
+    "schema_version"
+  ],
+  "title": "ParameterSpace",
+  "type": "object"
+}

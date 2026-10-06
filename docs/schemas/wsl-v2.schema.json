@@ -1,0 +1,440 @@
+{
+  "$defs": {
+    "WSLComponentSpec": {
+      "additionalProperties": false,
+      "description": "Reference to a registered executable component resolved via ComponentRegistry.",
+      "properties": {
+        "type_id": {
+          "description": "Registered component type identifier.",
+          "title": "Type Id",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "description": "Initialization parameters passed to component factory.",
+          "title": "Parameters",
+          "type": "object"
+        },
+        "evidence_level": {
+          "default": "ASSUMED",
+          "description": "Declared epistemic evidence level.",
+          "title": "Evidence Level",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type_id"
+      ],
+      "title": "WSLComponentSpec",
+      "type": "object"
+    },
+    "WSLConstraintSpec": {
+      "additionalProperties": false,
+      "description": "Declarative constraint specification.",
+      "properties": {
+        "id": {
+          "description": "Unique constraint identifier.",
+          "title": "Id",
+          "type": "string"
+        },
+        "type_id": {
+          "description": "Registered constraint type identifier.",
+          "title": "Type Id",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "description": "Constraint parameters.",
+          "title": "Parameters",
+          "type": "object"
+        },
+        "phase": {
+          "default": "POST_DYNAMICS",
+          "description": "Evaluation phase.",
+          "title": "Phase",
+          "type": "string"
+        },
+        "severity": {
+          "default": "HARD",
+          "description": "Constraint severity: 'HARD' or 'SOFT'.",
+          "title": "Severity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type_id"
+      ],
+      "title": "WSLConstraintSpec",
+      "type": "object"
+    },
+    "WSLEntitySpec": {
+      "additionalProperties": false,
+      "description": "Declarative specification of a participating entity node.",
+      "properties": {
+        "id": {
+          "description": "Unique entity identifier.",
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "description": "Categorical entity classification.",
+          "title": "Type",
+          "type": "string"
+        },
+        "attributes": {
+          "additionalProperties": true,
+          "description": "Static attributes.",
+          "title": "Attributes",
+          "type": "object"
+        },
+        "tags": {
+          "description": "Categorical tags.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "temporal_valid_from": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Timestamp when entity becomes active.",
+          "title": "Temporal Valid From"
+        },
+        "temporal_valid_until": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Timestamp when entity expires.",
+          "title": "Temporal Valid Until"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "WSLEntitySpec",
+      "type": "object"
+    },
+    "WSLMetadata": {
+      "additionalProperties": false,
+      "description": "Metadata describing the enterprise world model specification.",
+      "properties": {
+        "id": {
+          "default": "enterprise_world",
+          "description": "Unique world model identifier.",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "default": "Enterprise World",
+          "description": "Human-readable model name.",
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "default": "2.0.0",
+          "description": "Model semantic version.",
+          "title": "Version",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "description": "High-level narrative description.",
+          "title": "Description",
+          "type": "string"
+        },
+        "author": {
+          "default": "",
+          "description": "Author or organization name.",
+          "title": "Author",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Categorical classification tags.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        }
+      },
+      "title": "WSLMetadata",
+      "type": "object"
+    },
+    "WSLRelationshipSpec": {
+      "additionalProperties": false,
+      "description": "Declarative specification of a directed relational edge.",
+      "properties": {
+        "source": {
+          "description": "Source entity ID.",
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "description": "Target entity ID.",
+          "title": "Target",
+          "type": "string"
+        },
+        "type": {
+          "description": "Relational edge type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "attributes": {
+          "additionalProperties": true,
+          "description": "Edge attributes.",
+          "title": "Attributes",
+          "type": "object"
+        },
+        "weight": {
+          "default": 1.0,
+          "description": "Scalar relational weight.",
+          "title": "Weight",
+          "type": "number"
+        },
+        "temporal_valid_from": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Timestamp when edge becomes active.",
+          "title": "Temporal Valid From"
+        },
+        "temporal_valid_until": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Timestamp when edge expires.",
+          "title": "Temporal Valid Until"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "type"
+      ],
+      "title": "WSLRelationshipSpec",
+      "type": "object"
+    },
+    "WSLResourceSpec": {
+      "additionalProperties": false,
+      "description": "Declarative specification of a bounded state resource.",
+      "properties": {
+        "id": {
+          "description": "Unique resource identifier.",
+          "title": "Id",
+          "type": "string"
+        },
+        "current": {
+          "description": "Initial numeric resource level.",
+          "title": "Current",
+          "type": "number"
+        },
+        "min_value": {
+          "default": 0.0,
+          "description": "Hard lower bound.",
+          "title": "Min Value",
+          "type": "number"
+        },
+        "max_value": {
+          "default": 1000000000.0,
+          "description": "Hard upper bound.",
+          "title": "Max Value",
+          "type": "number"
+        },
+        "unit": {
+          "default": "",
+          "description": "Measurement unit.",
+          "title": "Unit",
+          "type": "string"
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional entity node this resource attaches to.",
+          "title": "Entity Id"
+        }
+      },
+      "required": [
+        "id",
+        "current"
+      ],
+      "title": "WSLResourceSpec",
+      "type": "object"
+    },
+    "WSLScenarioSpec": {
+      "additionalProperties": false,
+      "description": "Declarative simulation scenario specification.",
+      "properties": {
+        "id": {
+          "description": "Unique scenario identifier.",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "description": "Scenario title.",
+          "title": "Name",
+          "type": "string"
+        },
+        "seed": {
+          "default": 42,
+          "description": "Pseudorandom generator seed.",
+          "title": "Seed",
+          "type": "integer"
+        },
+        "horizon": {
+          "default": 10,
+          "description": "Simulation step count.",
+          "title": "Horizon",
+          "type": "integer"
+        },
+        "interventions": {
+          "description": "Scheduled interventions.",
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Interventions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "WSLScenarioSpec",
+      "type": "object"
+    },
+    "WSLTemporalConfig": {
+      "additionalProperties": false,
+      "description": "Temporal horizon and stepping configuration.",
+      "properties": {
+        "time_unit": {
+          "default": "step",
+          "description": "Logical time unit (e.g., 'step', 'day').",
+          "title": "Time Unit",
+          "type": "string"
+        },
+        "step_duration": {
+          "default": 1.0,
+          "description": "Duration per step in time units.",
+          "title": "Step Duration",
+          "type": "number"
+        },
+        "default_horizon": {
+          "default": 10,
+          "description": "Default rollout steps.",
+          "title": "Default Horizon",
+          "type": "integer"
+        }
+      },
+      "title": "WSLTemporalConfig",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Root World Specification Language document (v2.0 grammar).",
+  "properties": {
+    "schema_version": {
+      "default": "wsl/2.0.0",
+      "description": "WSL schema version string.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "metadata": {
+      "$ref": "#/$defs/WSLMetadata"
+    },
+    "temporal": {
+      "$ref": "#/$defs/WSLTemporalConfig"
+    },
+    "entities": {
+      "items": {
+        "$ref": "#/$defs/WSLEntitySpec"
+      },
+      "title": "Entities",
+      "type": "array"
+    },
+    "relationships": {
+      "items": {
+        "$ref": "#/$defs/WSLRelationshipSpec"
+      },
+      "title": "Relationships",
+      "type": "array"
+    },
+    "resources": {
+      "items": {
+        "$ref": "#/$defs/WSLResourceSpec"
+      },
+      "title": "Resources",
+      "type": "array"
+    },
+    "dynamics": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/WSLComponentSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Primary dynamics model component."
+    },
+    "constraints": {
+      "items": {
+        "$ref": "#/$defs/WSLConstraintSpec"
+      },
+      "title": "Constraints",
+      "type": "array"
+    },
+    "event_sources": {
+      "items": {
+        "$ref": "#/$defs/WSLComponentSpec"
+      },
+      "title": "Event Sources",
+      "type": "array"
+    },
+    "scenarios": {
+      "items": {
+        "$ref": "#/$defs/WSLScenarioSpec"
+      },
+      "title": "Scenarios",
+      "type": "array"
+    }
+  },
+  "title": "WSLDocument",
+  "type": "object"
+}

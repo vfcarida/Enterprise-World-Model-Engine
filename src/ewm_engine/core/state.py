@@ -276,3 +276,9 @@ class WorldState(BaseModel):
     def from_dict(cls, data: dict[str, Any]) -> WorldState:
         """Reconstruct WorldState from a dictionary."""
         return cls.model_validate(data)
+
+    def as_graph(self) -> Any:
+        """Project this immutable state to an additive HeterogeneousGraphView."""
+        from ewm_engine.core.graph import HeterogeneousGraphView
+
+        return HeterogeneousGraphView.from_world_state(self)

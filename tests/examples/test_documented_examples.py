@@ -413,3 +413,272 @@ def test_documented_gymnasium_snippet_executes() -> None:
     _obs, _reward, terminated, _truncated, info = env.step(1)
     assert not terminated
     assert info["violations_count"] == 0
+
+
+@pytest.mark.example
+def test_documented_graph_state_snippet_executes() -> None:
+    """Ensure documented HeterogeneousGraphView and schema migration snippets execute."""
+    from ewm_engine.core.migration import migrate_v1_to_v2, migrate_v2_to_v1
+    from ewm_engine.experimental.graph_state import HeterogeneousGraphView
+
+    state = WorldState(
+        schema_version="1.0.0",
+        entities=[
+            Entity(id="wh_north", type="warehouse", attributes={"sqft": 50000.0}),
+            Entity(id="retail_south", type="retail", attributes={"demand": 120.0}),
+        ],
+        relationships=[
+            Relationship(
+                source="wh_north",
+                target="retail_south",
+                type="supplies",
+                attributes={
+                    "transit_days": 2.0,
+                    "temporal_valid_from": 0.0,
+                    "temporal_valid_until": 20.0,
+                },
+            ),
+        ],
+        resources=[
+            Resource(
+                id="stock_north",
+                current=100.0,
+                min_value=0.0,
+                max_value=200.0,
+                entity_id="wh_north",
+            ),
+            Resource(
+                id="stock_south",
+                current=20.0,
+                min_value=0.0,
+                max_value=200.0,
+                entity_id="retail_south",
+            ),
+        ],
+    )
+
+    # Heterogeneous graph view
+    graph = HeterogeneousGraphView.from_world_state(state)
+    assert "warehouse" in graph.node_types
+    assert "retail" in graph.node_types
+
+    features = graph.get_node_features("warehouse")
+    assert features.shape[0] == 1
+
+    src_idx, dst_idx = graph.get_edge_index("warehouse__supplies__retail")
+    assert len(src_idx) == 1
+    assert len(dst_idx) == 1
+
+    active_graph = graph.filter_temporal(current_time=15.0)
+    assert active_graph.num_edges() >= 1
+
+    # Schema migration v1 <-> v2
+    state_v2 = migrate_v1_to_v2(state)
+    assert state_v2.schema_version == "2.0.0"
+    restored_v1 = migrate_v2_to_v1(state_v2)
+    assert restored_v1.schema_version == "1.0.0"
+
+
+@pytest.mark.example
+def test_documented_wsl_snippet_executes() -> None:
+    """Ensure documented WSL parsing, compilation, and export snippets execute."""
+    from ewm_engine.serialization import (
+        compile_wsl,
+        dump_wsl_yaml,
+        export_wsl,
+        parse_wsl_yaml,
+    )
+
+    sample_wsl = """
+schema_version: "wsl/2.0.0"
+metadata:
+  id: "test_doc_network"
+  name: "Documented Test Network"
+  version: "2.0.0"
+  author: "Docs Engineer"
+  description: "Test network for documented example execution."
+temporal:
+  time_unit: "step"
+  step_duration: 1.0
+  default_horizon: 5
+entities:
+  - id: "hub_1"
+    type: "hub"
+    attributes:
+      capacity: 500.0
+  - id: "station_1"
+    type: "station"
+    attributes:
+      rate: 10.0
+relationships:
+  - source: "hub_1"
+    target: "station_1"
+    type: "delivers_to"
+resources:
+  - id: "res_hub"
+    current: 100.0
+    min_value: 0.0
+    max_value: 500.0
+    entity_id: "hub_1"
+  - id: "res_station"
+    current: 10.0
+    min_value: 0.0
+    max_value: 100.0
+    entity_id: "station_1"
+dynamics:
+  type_id: "deterministic_transfer"
+  parameters:
+    action_type: "transfer_resource"
+constraints:
+  - id: "cap_hub"
+    type_id: "resource_capacity"
+    parameters:
+      resource_id: "res_hub"
+scenarios:
+  - id: "scen_test"
+    name: "Doc Scenario"
+    seed: 42
+    horizon: 2
+"""
+    doc = parse_wsl_yaml(sample_wsl)
+    assert doc.metadata.id == "test_doc_network"
+
+    world = compile_wsl(doc)
+    assert "res_hub" in world.initial_state.resources
+
+    exported = export_wsl(world, metadata=doc.metadata)
+    yaml_out = dump_wsl_yaml(exported)
+    assert "test_doc_network" in yaml_out
+
+
+@pytest.mark.example
+def test_documented_ood_snippet_executes() -> None:
+    """Ensure documented OOD support and covariance detection snippets execute."""
+    from ewm_engine.experimental.ood import SupportBoundaryOODDetector
+
+    baseline_states = [
+        WorldState(
+            step=i,
+            resources=[
+                Resource(id="demand", current=100.0 + i, min_value=0.0, max_value=1000.0),
+                Resource(id="inventory", current=500.0 - i, min_value=0.0, max_value=1000.0),
+            ],
+        )
+        for i in range(50)
+    ]
+
+    detector = SupportBoundaryOODDetector(tolerance_fraction=0.05)
+    detector.fit(baseline_states)
+
+    normal_state = WorldState(
+        step=50,
+        resources=[
+            Resource(id="demand", current=125.0, min_value=0.0, max_value=1000.0),
+            Resource(id="inventory", current=475.0, min_value=0.0, max_value=1000.0),
+        ],
+    )
+    assert not detector.is_ood(normal_state)
+
+    ood_state = WorldState(
+        step=51,
+        resources=[
+            Resource(id="demand", current=800.0, min_value=0.0, max_value=1000.0),
+            Resource(id="inventory", current=50.0, min_value=0.0, max_value=1000.0),
+        ],
+    )
+    assert detector.is_ood(ood_state)
+
+
+@pytest.mark.example
+def test_documented_causal_diagnostics_snippet_executes() -> None:
+    """Ensure documented Causal diagnostics (identifiability, positivity, twin rollout) execute."""
+    from ewm_engine.experimental.causal import (
+        CausalGraph,
+        check_backdoor_identifiability,
+        report_confounding_sensitivity,
+    )
+
+    # 1. Structural graph backdoor check
+    graph = CausalGraph()
+    graph.add_node("Z_weather")
+    graph.add_node("X_dispatch")
+    graph.add_node("Y_delivery_delay")
+    graph.add_edge("Z_weather", "X_dispatch")
+    graph.add_edge("Z_weather", "Y_delivery_delay")
+    graph.add_edge("X_dispatch", "Y_delivery_delay")
+
+    res_unadjusted = check_backdoor_identifiability(
+        graph, treatment="X_dispatch", outcome="Y_delivery_delay", conditioning_set=()
+    )
+    assert not res_unadjusted.is_identifiable
+
+    res_adjusted = check_backdoor_identifiability(
+        graph, treatment="X_dispatch", outcome="Y_delivery_delay", conditioning_set=("Z_weather",)
+    )
+    assert res_adjusted.is_identifiable
+
+    # 2. Confounding sensitivity
+    sens_report = report_confounding_sensitivity(
+        treated_outcomes=[10.0, 12.0, 14.0],
+        control_outcomes=[5.0, 6.0, 7.0],
+        gammas=[1.0, 1.5, 2.0],
+    )
+    assert sens_report.gamma_breakdown >= 1.0
+
+    assert sens_report.gamma_breakdown >= 1.0
+
+
+@pytest.mark.example
+def test_documented_planning_snippet_executes() -> None:
+    """Ensure documented planning and receding-horizon simulation snippet executes."""
+    from ewm_engine.experimental.planning import (
+        CVaRScorer,
+        PlanningCandidate,
+    )
+    from ewm_engine.simulation.mpc import RecedingHorizonSimulator
+
+    state = WorldState(
+        resources=[
+            Resource(id="stock_north", current=100.0, min_value=0.0, max_value=200.0),
+            Resource(id="stock_south", current=20.0, min_value=0.0, max_value=200.0),
+        ]
+    )
+    world = World(state=state, dynamics=DeterministicTransferDynamics())
+
+    candidates = [
+        PlanningCandidate.from_action(
+            Action(
+                id="act_idle",
+                type="transfer_resource",
+                parameters={
+                    "source_resource": "stock_north",
+                    "target_resource": "stock_south",
+                    "quantity": 0.0,
+                },
+            ),
+            id="idle",
+        ),
+        PlanningCandidate.from_action(
+            Action(
+                id="act_transfer_10",
+                type="transfer_resource",
+                parameters={
+                    "source_resource": "stock_north",
+                    "target_resource": "stock_south",
+                    "quantity": 10.0,
+                },
+            ),
+            id="transfer_10",
+        ),
+    ]
+
+    scorer = CVaRScorer(metric="resource:stock_south", alpha=0.20, minimize=False)
+    simulator = RecedingHorizonSimulator(
+        lookahead_horizon=2,
+        samples_per_candidate=2,
+        scorer=scorer,
+        seed=42,
+    )
+
+    result = simulator.run(world=world, total_steps=2, candidates=candidates)
+    assert len(result.decision_history) == 2

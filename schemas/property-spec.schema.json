@@ -1,0 +1,68 @@
+{
+  "$id": "https://ewm-engine.org/schemas/v1/property-spec.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Declarative specification of an invariant or temporal property over trajectories.\n\nEvery PropertySpec has a deterministic cryptographic SHA-256 hash computed\nover its canonical representation.",
+  "properties": {
+    "definition": {
+      "additionalProperties": true,
+      "description": "Structured specification payload (e.g. oracle graph nodes/edges or STL formula).",
+      "title": "Definition",
+      "type": "object"
+    },
+    "description": {
+      "default": "",
+      "description": "Formal or narrative explanation of the requirement.",
+      "title": "Description",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "description": "Author, domain tags, or reference documentation.",
+      "title": "Metadata",
+      "type": "object"
+    },
+    "name": {
+      "description": "Human-readable property name.",
+      "title": "Name",
+      "type": "string"
+    },
+    "parameters": {
+      "additionalProperties": true,
+      "description": "Thresholds, timing tolerance windows, or evaluation hyperparameters.",
+      "title": "Parameters",
+      "type": "object"
+    },
+    "property_id": {
+      "description": "Globally unique identifier for this verification property.",
+      "title": "Property Id",
+      "type": "string"
+    },
+    "property_type": {
+      "default": "oracle_graph",
+      "description": "Verification engine discriminator.",
+      "enum": [
+        "oracle_graph",
+        "stl_bounded",
+        "rtamt_stl",
+        "custom"
+      ],
+      "title": "Property Type",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Semantic schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "property_id",
+    "schema_version"
+  ],
+  "title": "PropertySpec",
+  "type": "object"
+}

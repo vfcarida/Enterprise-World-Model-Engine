@@ -18,6 +18,7 @@ from ewm_engine.integrations.protocols import (
     SolverStatus,
 )
 
+
 def _load_scipy_optimize() -> Any | None:
     try:
         return importlib.import_module("scipy.optimize")

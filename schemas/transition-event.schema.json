@@ -1,0 +1,660 @@
+{
+  "$defs": {
+    "Action": {
+      "additionalProperties": false,
+      "description": "An operation proposed or executed by an actor within the world.\n\nActions represent operational steps: transferring inventory, dispatching a vehicle,\nchanging a price, reallocating staff, or issuing a notification.",
+      "properties": {
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional identifier of the actor initiating this action.",
+          "title": "Actor Id"
+        },
+        "id": {
+          "description": "Unique action instance identifier.",
+          "title": "Id",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "description": "Action payload containing target entities, quantities, and parameters.",
+          "title": "Parameters",
+          "type": "object"
+        },
+        "priority": {
+          "default": 0,
+          "description": "Execution priority for tie-breaking.",
+          "title": "Priority",
+          "type": "integer"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Semantic schema version.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "timestamp": {
+          "default": 0.0,
+          "description": "Simulation timestamp at action proposal.",
+          "title": "Timestamp",
+          "type": "number"
+        },
+        "type": {
+          "description": "Action category or schema type identifier.",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "Action",
+      "type": "object"
+    },
+    "ComponentVersion": {
+      "additionalProperties": false,
+      "description": "Specification of a participating simulation component and its semantic version.",
+      "properties": {
+        "component_id": {
+          "description": "Unique identifier or class name of the component.",
+          "title": "Component Id",
+          "type": "string"
+        },
+        "component_version": {
+          "default": "1.0.0",
+          "description": "Semantic version string.",
+          "title": "Component Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "component_id"
+      ],
+      "title": "ComponentVersion",
+      "type": "object"
+    },
+    "ConstraintPhase": {
+      "description": "Execution lifecycle phase at which constraint evaluation is performed.\n\n- PRE_ACTION: Evaluated before action dispatch to validate operational feasibility.\n- POST_TRANSITION: Evaluated after dynamics transition to check state invariants.",
+      "enum": [
+        "pre_action",
+        "post_transition"
+      ],
+      "title": "ConstraintPhase",
+      "type": "string"
+    },
+    "ConstraintResult": {
+      "additionalProperties": false,
+      "description": "Detailed audit record produced when evaluating an operational constraint.\n\nPreserves full constraint provenance:\n  - Which constraint was evaluated\n  - Its version and semantic definition\n  - Whether it was satisfied\n  - What entities, resources, and offending values caused the violation\n  - What action preceded it",
+      "properties": {
+        "constraint_id": {
+          "description": "Unique constraint identifier.",
+          "title": "Constraint Id",
+          "type": "string"
+        },
+        "constraint_version": {
+          "default": "1.0.0",
+          "description": "Semantic version of constraint.",
+          "title": "Constraint Version",
+          "type": "string"
+        },
+        "entity_ids": {
+          "description": "Identifiers of entities involved in constraint breach.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Entity Ids",
+          "type": "array"
+        },
+        "message": {
+          "default": "",
+          "description": "Descriptive explanation of evaluation outcome.",
+          "title": "Message",
+          "type": "string"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "description": "Extensible audit metadata.",
+          "title": "Metadata",
+          "type": "object"
+        },
+        "penalty": {
+          "default": 0.0,
+          "description": "Numerical penalty score for soft violations.",
+          "title": "Penalty",
+          "type": "number"
+        },
+        "phase": {
+          "$ref": "#/$defs/ConstraintPhase",
+          "default": "post_transition",
+          "description": "Lifecycle evaluation phase (PRE_ACTION or POST_TRANSITION)."
+        },
+        "preceding_action_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Identifier of preceding action that prompted evaluation.",
+          "title": "Preceding Action Id"
+        },
+        "satisfied": {
+          "description": "True if constraint conditions are met.",
+          "title": "Satisfied",
+          "type": "boolean"
+        },
+        "severity": {
+          "$ref": "#/$defs/ConstraintSeverity",
+          "default": "hard",
+          "description": "Hard (fatal/invariable) or Soft (penalty)."
+        },
+        "step": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Simulation step when evaluated.",
+          "title": "Step"
+        },
+        "violating_entities": {
+          "description": "Identifiers of entities involved in constraint breach (alias for entity_ids).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Violating Entities",
+          "type": "array"
+        },
+        "violating_resources": {
+          "description": "Identifiers of resources involved in constraint breach.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Violating Resources",
+          "type": "array"
+        },
+        "violating_values": {
+          "additionalProperties": true,
+          "description": "Offending values (e.g. {'observed': 150, 'limit': 100}).",
+          "title": "Violating Values",
+          "type": "object"
+        }
+      },
+      "required": [
+        "satisfied",
+        "constraint_id"
+      ],
+      "title": "ConstraintResult",
+      "type": "object"
+    },
+    "ConstraintSeverity": {
+      "description": "Classification of constraint enforcement severity.\n\n- HARD: Inviolable physical, legal, or logistical invariant. Violations invalidate\n        an action or abort/penalize a trajectory fatally.\n- SOFT: Operational preference, guideline, or non-fatal quality degradation.\n        Violations yield warnings and numerical penalty scores.",
+      "enum": [
+        "hard",
+        "soft"
+      ],
+      "title": "ConstraintSeverity",
+      "type": "string"
+    },
+    "Entity": {
+      "additionalProperties": false,
+      "description": "Represents an autonomous, structural, or physical object participating in the world.\n\nEntities represent actors, physical facilities, geographic regions, vehicles,\nsuppliers, or any discrete organizational participant.",
+      "properties": {
+        "attributes": {
+          "additionalProperties": true,
+          "description": "Immutable property map associated with this entity.",
+          "title": "Attributes",
+          "type": "object"
+        },
+        "id": {
+          "description": "Unique entity identifier.",
+          "title": "Id",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Categorical tags for grouping and querying entities.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "type": {
+          "description": "Domain-specific entity classification (e.g., 'warehouse', 'hospital').",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "Entity",
+      "type": "object"
+    },
+    "EvidenceLevel": {
+      "description": "Epistemic classification of dynamics, relationships, and simulation traces.\n\nEWM Engine distinguishes observational correlations from interventional mechanics:\n- STRUCTURAL: Grounded in deterministic physical laws, accounting conservation, or hard rules.\n- INTERVENTIONAL: Empirically validated under controlled intervention / do-calculus.\n- QUASI_CAUSAL: Derived from econometric/quasi-experimental designs (e.g., diff-in-diff, IV).\n- PREDICTIVE: Observational statistical or machine-learned association P(Y | X).\n- ASSUMED: Working hypothesis or heuristic assumption not yet validated.",
+      "enum": [
+        "structural",
+        "interventional",
+        "quasi_causal",
+        "predictive",
+        "assumed"
+      ],
+      "title": "EvidenceLevel",
+      "type": "string"
+    },
+    "ExogenousEvent": {
+      "additionalProperties": false,
+      "description": "An external shock or event outside direct policy control.\n\nExamples include weather disruptions, sudden supplier bankruptcy, market demand surges,\ntraffic accidents, or regulatory shifts.",
+      "properties": {
+        "description": {
+          "default": "",
+          "description": "Descriptive context for the event.",
+          "title": "Description",
+          "type": "string"
+        },
+        "id": {
+          "description": "Unique event identifier.",
+          "title": "Id",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "description": "Event payload attributes.",
+          "title": "Parameters",
+          "type": "object"
+        },
+        "severity": {
+          "default": 1.0,
+          "description": "Normalized or absolute event severity measure.",
+          "title": "Severity",
+          "type": "number"
+        },
+        "timestamp": {
+          "default": 0.0,
+          "description": "Simulation timestamp when event occurs.",
+          "title": "Timestamp",
+          "type": "number"
+        },
+        "type": {
+          "description": "Event classification type (e.g., 'rainfall_surge', 'road_closure').",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "ExogenousEvent",
+      "type": "object"
+    },
+    "Relationship": {
+      "additionalProperties": false,
+      "description": "Represents a directed, typed relational edge between two entities.\n\nModels structural, logistical, dependency, or jurisdictional relations\n(e.g., 'supplies', 'depends_on', 'connected_to', 'serves').",
+      "properties": {
+        "attributes": {
+          "additionalProperties": true,
+          "description": "Attributes associated with this relation (e.g., distance, bandwidth).",
+          "title": "Attributes",
+          "type": "object"
+        },
+        "source": {
+          "description": "Source entity identifier.",
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "description": "Target entity identifier.",
+          "title": "Target",
+          "type": "string"
+        },
+        "type": {
+          "description": "Relation type identifier.",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "type"
+      ],
+      "title": "Relationship",
+      "type": "object"
+    },
+    "Resource": {
+      "additionalProperties": false,
+      "description": "Represents a finite, bounded, or measurable quantity in the enterprise.\n\nModels physical stock, vehicle fleets, operational budgets, bed capacities,\nworkforce hours, or bandwidth.",
+      "properties": {
+        "current": {
+          "description": "Current quantity or stock of the resource.",
+          "title": "Current",
+          "type": "number"
+        },
+        "description": {
+          "default": "",
+          "description": "Descriptive metadata for the resource.",
+          "title": "Description",
+          "type": "string"
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional entity ID owning or hosting this resource.",
+          "title": "Entity Id"
+        },
+        "id": {
+          "description": "Unique identifier for the resource.",
+          "title": "Id",
+          "type": "string"
+        },
+        "max_value": {
+          "default": Infinity,
+          "description": "Maximum capacity or upper bound limit.",
+          "title": "Max Value",
+          "type": "number"
+        },
+        "min_value": {
+          "default": 0.0,
+          "description": "Minimum allowable lower bound.",
+          "title": "Min Value",
+          "type": "number"
+        },
+        "unit": {
+          "default": "",
+          "description": "Measurement unit (e.g., 'units', 'liters', 'hours').",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "current"
+      ],
+      "title": "Resource",
+      "type": "object"
+    },
+    "TransitionResult": {
+      "additionalProperties": false,
+      "description": "The result of executing a dynamics transition step.\n\nContains the resulting next world state, a summary of applied changes,\nthe epistemic evidence tier, and execution diagnostics.",
+      "properties": {
+        "applied_changes": {
+          "additionalProperties": true,
+          "description": "Key deltas, resource flows, and state modifications enacted during transition.",
+          "title": "Applied Changes",
+          "type": "object"
+        },
+        "diagnostics": {
+          "additionalProperties": true,
+          "description": "Execution metadata, internal model states, and performance metrics.",
+          "title": "Diagnostics",
+          "type": "object"
+        },
+        "evidence_level": {
+          "$ref": "#/$defs/EvidenceLevel",
+          "default": "structural",
+          "description": "Epistemic status of the transition mechanism."
+        },
+        "model_name": {
+          "default": "",
+          "description": "Name of the dynamics model producing this result.",
+          "title": "Model Name",
+          "type": "string"
+        },
+        "next_state": {
+          "$ref": "#/$defs/WorldState",
+          "description": "The evolved world state after dynamics application."
+        }
+      },
+      "required": [
+        "next_state"
+      ],
+      "title": "TransitionResult",
+      "type": "object"
+    },
+    "WorldState": {
+      "additionalProperties": false,
+      "description": "Canonical representation of the enterprise or ecosystem state at a point in time.\n\nFormal Conceptual Representation:\n    S_t = (G_t, R_t, M_t, \\Gamma_t, C_t)\nwhere:\n    G_t = Entities and typed relationships\n    R_t = Measurable finite resources and capacities\n    M_t = Temporal memory and operational history\n    \\Gamma_t = Active operational rules and policy parameters\n    C_t = Exogenous and environmental context\n\nWorldState is immutable (frozen=True), branchable, serializable, and auditable.",
+      "properties": {
+        "active_rules": {
+          "additionalProperties": true,
+          "description": "Active policy parameters, operational thresholds, and rule flags.",
+          "title": "Active Rules",
+          "type": "object"
+        },
+        "context": {
+          "additionalProperties": true,
+          "description": "Environmental, economic, or meteorological context variables.",
+          "title": "Context",
+          "type": "object"
+        },
+        "entities": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Entity"
+          },
+          "description": "Active participating entities keyed by EntityId.",
+          "title": "Entities",
+          "type": "object"
+        },
+        "memory": {
+          "additionalProperties": true,
+          "description": "Relevant temporal memory, running statistics, or history lags.",
+          "title": "Memory",
+          "type": "object"
+        },
+        "relationships": {
+          "description": "Immutable sequence of directed relational edges between entities.",
+          "items": {
+            "$ref": "#/$defs/Relationship"
+          },
+          "title": "Relationships",
+          "type": "array"
+        },
+        "resources": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Resource"
+          },
+          "description": "Finite or measurable resources keyed by ResourceId.",
+          "title": "Resources",
+          "type": "object"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Semantic schema version.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "step": {
+          "default": 0,
+          "description": "Discrete simulation step index.",
+          "title": "Step",
+          "type": "integer"
+        },
+        "timestamp": {
+          "default": 0.0,
+          "description": "Continuous simulation time.",
+          "title": "Timestamp",
+          "type": "number"
+        }
+      },
+      "title": "WorldState",
+      "type": "object"
+    }
+  },
+  "$id": "https://ewm-engine.org/schemas/v1/transition-event.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Immutable, versioned canonical transition event in the simulation event store.\n\nCaptures the exact parent state fingerprint, child state fingerprint, actions,\nshocks, applied state changes, constraint violations, and component versions.",
+  "properties": {
+    "actions_accepted": {
+      "description": "Actions accepted after constraint validation and dispatched to dynamics.",
+      "items": {
+        "$ref": "#/$defs/Action"
+      },
+      "title": "Actions Accepted",
+      "type": "array"
+    },
+    "actions_proposed": {
+      "description": "Actions proposed by policy or actors prior to constraint validation.",
+      "items": {
+        "$ref": "#/$defs/Action"
+      },
+      "title": "Actions Proposed",
+      "type": "array"
+    },
+    "applied_changes": {
+      "additionalProperties": true,
+      "description": "Summary of state deltas and resource flows enacted during transition.",
+      "title": "Applied Changes",
+      "type": "object"
+    },
+    "child_fingerprint": {
+      "description": "Canonical SHA-256 fingerprint of the world state resulting from transition.",
+      "title": "Child Fingerprint",
+      "type": "string"
+    },
+    "component_versions": {
+      "description": "Versions of dynamics, actors, and constraints governing this transition.",
+      "items": {
+        "$ref": "#/$defs/ComponentVersion"
+      },
+      "title": "Component Versions",
+      "type": "array"
+    },
+    "constraint_violations": {
+      "description": "Constraint evaluations or invariant violations recorded during step.",
+      "items": {
+        "$ref": "#/$defs/ConstraintResult"
+      },
+      "title": "Constraint Violations",
+      "type": "array"
+    },
+    "event_id": {
+      "description": "Globally unique transition event identifier.",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "exogenous_events": {
+      "description": "Exogenous shocks or environment events sampled during this step.",
+      "items": {
+        "$ref": "#/$defs/ExogenousEvent"
+      },
+      "title": "Exogenous Events",
+      "type": "array"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "description": "Extensible metadata, scenario context, or execution annotations.",
+      "title": "Metadata",
+      "type": "object"
+    },
+    "parent_fingerprint": {
+      "description": "Canonical SHA-256 fingerprint of the world state prior to transition.",
+      "title": "Parent Fingerprint",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Semantic schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "seed": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Deterministic RNG seed assigned to this rollout step.",
+      "title": "Seed"
+    },
+    "state_snapshot": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/WorldState"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional full world state snapshot for instant reconstruction or validation."
+    },
+    "step": {
+      "description": "Discrete simulation time step index.",
+      "minimum": 0,
+      "title": "Step",
+      "type": "integer"
+    },
+    "step_metrics": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "description": "Scalar numerical metrics logged during step.",
+      "title": "Step Metrics",
+      "type": "object"
+    },
+    "stream_id": {
+      "description": "Stream or rollout trajectory identifier.",
+      "title": "Stream Id",
+      "type": "string"
+    },
+    "timestamp": {
+      "description": "Continuous simulation time.",
+      "minimum": 0.0,
+      "title": "Timestamp",
+      "type": "number"
+    },
+    "transition_result": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TransitionResult"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Complete transition result including dynamics output and applied changes."
+    }
+  },
+  "required": [
+    "child_fingerprint",
+    "parent_fingerprint",
+    "schema_version",
+    "step",
+    "stream_id",
+    "timestamp"
+  ],
+  "title": "TransitionEvent",
+  "type": "object"
+}

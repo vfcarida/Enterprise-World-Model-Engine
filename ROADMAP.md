@@ -8,33 +8,40 @@ This document outlines the phased development roadmap for the **Enterprise World
 
 ## Maturity Framework
 
-Capabilities in EWM Engine are classified under explicit maturity levels:
+Capabilities in EWM Engine are classified under explicit, strictly enforced maturity levels:
 
-- **Stable**: Frozen public contract (`1.x`), covered by backwards-compatibility guarantees, automated contract gates (`AC-024`), and deprecation lifecycles.
-- **Experimental**: Active research and development in `ewm_engine.experimental.*`; subject to API evolution across minor releases without deprecation cycles.
-- **Planned Adapter**: Planned external integration orbiting the core simulation kernel.
-- **Research / Exploration**: Theoretical formulation or empirical investigation.
+- **Stable**: Frozen public contract (`1.x`), covered by backwards-compatibility guarantees, automated contract gates (`AC-024`), and formal deprecation lifecycles.
+- **Beta Adapter**: Production-grade ecosystem adapters orbiting the core engine, time-bounded, tested, and guarded by explicit timeout and resource limits.
+- **Experimental**: Active research and prototyping under `ewm_engine.experimental.*`; subject to API evolution across minor releases without deprecation cycles.
+- **Research**: Scientific measurement instruments, benchmark families, and theoretical formulations without production claims.
 
 ---
 
-## Current Status (v1.0.0 — Stable Contract)
+## Current Status (v1.1.0+ / v2.0-alpha Release Horizon)
 
 | Subsystem | Maturity Level | Status / Notes |
 | :--- | :---: | :--- |
-| **Core Simulation Kernel** | **Stable** | Deterministic Monte Carlo rollout, seed spawning, bitwise reproducibility (AC-004, AC-009) |
-| **World & State Model** | **Stable** | Deeply immutable snapshot states, canonical JSON serializer, SHA-256 fingerprinting (AC-005, AC-010) |
-| **Constraint Engine** | **Stable** | Phase-aware (`PRE_ACTION`, `POST_TRANSITION`), normative action rejection and rollout invalidation (AC-006–AC-008) |
-| **Pluggable Dynamics** | **Stable** | Structural `DynamicsModel` protocol, composite and deterministic transfer implementations |
-| **Scenario Branching** | **Stable** | Safe branch isolation without mutable state cross-contamination (AC-005) |
-| **Systemic Traces** | **Stable** | Epistemic honesty with explicit `EvidenceLevel` tiers; directed dependency DAG export to Mermaid/NetworkX (AC-011) |
-| **Declarative Serialization** | **Stable** | Draft 2020-12 versioned JSON Schemas, safe YAML loader, and trusted closed `WorldFactory` registry (AC-002, AC-003, AC-018) |
-| **Scenario Evaluation** | **Stable** | Bootstrap CIs on deltas, empirical significance flags, and multi-objective Pareto analysis (FEAT-001, ADR-016) |
-| **Normative Acceptance** | **Stable** | Minimal Warehouse (AC-012) and CivicFlow regional flood response (AC-013) fixtures |
-| **Observability Layer** | **Stable** | Typed lifecycle hooks (`HookRegistry`, `HookEvent`) and programmatic `RunMetrics` |
-| **Command-Line Interface** | **Stable** | `ewm [example|validate|run|schema]` subcommands for execution and validation |
-| **Ecosystem Adapters** | **Alpha** | `CallableActorAdapter` (LangGraph/AutoGen), `Z3ConstraintAdapter` (SMT), `EnterpriseGymEnv` (RL), and `ORToolsAllocationAdapter` (OR) |
-| **Online Re-Grounding (MPC)** | **Experimental** | `RecedingHorizonSimulator` and `MPCDecisionRecord` in `ewm_engine.experimental` |
-| **Learned Dynamics** | **Experimental** | `LinearResidualDynamics` and `TransitionDataset` in `ewm_engine.experimental` |
+| **Core Simulation Kernel** | **Stable (v1.0.0)** | Deterministic Monte Carlo rollout, seed spawning, bitwise reproducibility (AC-004, AC-009) |
+| **World & State Model** | **Stable (v1.0.0)** | Deeply immutable snapshot states, canonical JSON serializer, SHA-256 fingerprinting (AC-005, AC-010) |
+| **Constraint Engine** | **Stable (v1.0.0)** | Phase-aware (`PRE_ACTION`, `POST_TRANSITION`), normative action rejection and rollout invalidation (AC-006–AC-008) |
+| **Pluggable Dynamics Protocol** | **Stable (v1.0.0)** | Structural `DynamicsModel` protocol, composite and deterministic transfer implementations |
+| **Scenario Branching** | **Stable (v1.0.0)** | Safe branch isolation without mutable state cross-contamination (AC-005) |
+| **Systemic Traces** | **Stable (v1.0.0)** | Epistemic honesty with explicit `EvidenceLevel` tiers; directed dependency DAG export to Mermaid/NetworkX (AC-011) |
+| **Declarative Serialization** | **Stable (v1.0.0)** | Draft 2020-12 versioned JSON Schemas, safe YAML loader, and trusted closed `WorldFactory` registry (AC-002, AC-003, AC-018) |
+| **Scenario Evaluation** | **Stable (v1.1.0)** | Bootstrap CIs on deltas, empirical significance flags, and multi-objective Pareto analysis (FEAT-001, ADR-016) |
+| **Distributed Monte Carlo** | **Beta Adapter (v1.1.0)** | High-throughput parallel execution preserving `SeedSequence` determinism across workers (FEAT-002, ADR-017) |
+| **OpenTelemetry Observability** | **Beta Adapter (v1.1.0)** | Zero-overhead OpenTelemetry span and metric export from lifecycle hooks without core coupling (ADR-013) |
+| **OR & Continuous Planners** | **Beta Adapter (v1.1.0)** | Google OR-Tools CP-SAT discrete and SciPy continuous allocation planners with timeout guards (ADR-018) |
+| **SMT Formal Verification** | **Beta Adapter (v1.1.0)** | Z3 SMT constraint satisfaction adapter with timeout and resource limits (ADR-018) |
+| **Gymnasium RL Adapter** | **Beta Adapter (v1.1.0)** | Standard Gym environment wrapper (`gymnasium.Env`) with step-bound resource safeguards |
+| **Learned-Dynamics Eval Harness**| **Experimental (v1.2.0)** | Multi-step rollout divergence, invariant verification, and dataset collection (ADR-019) |
+| **Torch Neural Residual Baseline**| **Experimental (v1.2.0)** | PyTorch MLP residual baseline with symlog scaling (`[ml]` extra, ADR-019) |
+| **Scientific Benchmark Families**| **Research (v1.2.0)** | 5 scientific shift benchmark families probing structural dynamics under change |
+| **Planning & Controller Layer** | **Experimental (v1.3.0)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control (ADR-020) |
+| **OOD & Regime-Shift Detection** | **Experimental (v1.4.0)** | Grounded-regime detection (support bounds, Mahalanobis covariance, ADR-021) |
+| **Honest Causal Diagnostics** | **Experimental (v1.4.0)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling (ADR-021) |
+| **Heterogeneous Graph State & GNN**| **Experimental (v2.0.0-alpha)**| Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
+| **World Specification Language**| **Experimental (v2.0.0-alpha)**| Declarative safe YAML/JSON grammar, validator, compiler, and exporter (FEAT-003, ADR-023) |
 
 ---
 

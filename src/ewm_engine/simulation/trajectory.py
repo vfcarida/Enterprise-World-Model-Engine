@@ -249,6 +249,11 @@ class SimulationResult:
         data["p50"] = dist.median
         return data
 
+    @property
+    def fingerprint(self) -> str:
+        """Deterministic canonical fingerprint of this simulation run."""
+        return self.provenance.fingerprint
+
     def violation_rate(self) -> float:
         """Fraction of rollout trajectories that suffered constraint violations or became invalid."""
         if not self.trajectories:

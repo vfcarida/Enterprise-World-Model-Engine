@@ -195,6 +195,56 @@ def _handle_schema(action: str, name: str | None = None) -> int:
         return 1
 
 
+def _import_sd(model_path_str: str, out_path_str: str | None = None) -> int:
+    """Import a System Dynamics (XMILE / Vensim) model into a WorldSpec YAML template."""
+    model_path = Path(model_path_str)
+    if not model_path.exists():
+        sys.stderr.write(f"Error: System dynamics model file not found: {model_path_str}\n")
+        return 1
+
+    try:
+        from ewm_engine.cosim.adapters import is_pysd_available
+
+        if not is_pysd_available():
+            sys.stderr.write(
+                "Error: PySD is required to import System Dynamics models. "
+                "Install via `pip install ewm-engine[sd]`.\n"
+            )
+            return 1
+
+        import yaml
+
+        model_name = model_path.stem
+        spec_dict = {
+            "schema_version": "1.0.0",
+            "world": {
+                "name": f"SD_{model_name}",
+                "description": f"Imported System Dynamics model from {model_path.name}",
+            },
+            "entities": [{"id": f"sd_system_{model_name}", "type": "system_dynamics"}],
+            "resources": [],
+            "constraints": [],
+            "dynamics": {
+                "type": "pysd_submodel",
+                "config": {"model_path": str(model_path.resolve())},
+            },
+        }
+
+        yaml_content = yaml.dump(spec_dict, sort_keys=False)
+
+        if out_path_str:
+            out_p = Path(out_path_str)
+            out_p.parent.mkdir(parents=True, exist_ok=True)
+            out_p.write_text(yaml_content, encoding="utf-8")
+            sys.stdout.write(f"Successfully generated WorldSpec template at {out_p}\n")
+        else:
+            sys.stdout.write(yaml_content)
+        return 0
+    except Exception as err:
+        sys.stderr.write(f"Error importing SD model: {err}\n")
+        return 1
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Main CLI entrypoint for `ewm` command."""
     parser = argparse.ArgumentParser(
@@ -254,6 +304,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         "name", nargs="?", default=None, help="Schema name to show (when action is 'show')"
     )
 
+    # 5. `ewm import-sd <model_file> [--out <out_file>]`
+    import_sd_parser = subparsers.add_parser(
+        "import-sd", help="Import a System Dynamics XMILE model into WorldSpec format"
+    )
+    import_sd_parser.add_argument(
+        "model_file", help="Path to .xmile or .mdl system dynamics model file"
+    )
+    import_sd_parser.add_argument(
+        "--out", type=str, default=None, help="Optional output YAML path for generated spec"
+    )
+
     args = parser.parse_args(argv)
 
     if args.command == "example":
@@ -271,6 +332,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     elif args.command == "schema":
         return _handle_schema(args.action, args.name)
+    elif args.command == "import-sd":
+        return _import_sd(args.model_file, out_path_str=args.out)
 
     parser.print_help()
     return 0

@@ -10,7 +10,7 @@ Implements the continuous re-grounding feedback loop:
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -22,6 +22,14 @@ from ewm_engine.simulation.branching import branch_world
 from ewm_engine.simulation.engine import SimulationEngine
 from ewm_engine.simulation.scenario import Scenario
 from ewm_engine.simulation.trajectory import Trajectory
+
+if TYPE_CHECKING:
+    from ewm_engine.experimental.planning import (
+        Planner,
+        PlanningCandidate,
+        PlanningDecision,
+        RolloutScorer,
+    )
 
 
 class MPCDecisionRecord(BaseModel):
@@ -43,9 +51,11 @@ class RecedingHorizonResult:
         self,
         realized_trajectory: Trajectory,
         decision_history: list[MPCDecisionRecord],
+        planning_decisions: list[PlanningDecision] | None = None,
     ) -> None:
         self.realized_trajectory = realized_trajectory
         self.decision_history = decision_history
+        self.planning_decisions = planning_decisions or []
 
     @property
     def final_state(self) -> WorldState:
@@ -76,12 +86,30 @@ class RecedingHorizonSimulator:
         objective_metric: str = "violations_count",
         minimize: bool = True,
         seed: int = 42,
+        scorer: RolloutScorer | None = None,
+        planner: Planner | None = None,
     ) -> None:
         self.lookahead_horizon = lookahead_horizon
         self.samples_per_candidate = samples_per_candidate
         self.objective_metric = objective_metric
         self.minimize = minimize
         self.seed = seed
+        if scorer is None:
+            from ewm_engine.experimental.planning import ExpectedObjectiveScorer
+
+            self.scorer: RolloutScorer = ExpectedObjectiveScorer(
+                metric=objective_metric, minimize=minimize
+            )
+        else:
+            self.scorer = scorer
+
+        if planner is None:
+            from ewm_engine.experimental.planning import RolloutPlanner
+
+            self.planner: Planner = RolloutPlanner()
+        else:
+            self.planner = planner
+
         self._engine = SimulationEngine()
 
     def run(
@@ -90,12 +118,19 @@ class RecedingHorizonSimulator:
         total_steps: int,
         candidate_interventions: Sequence[Intervention] | None = None,
         candidate_actors: Sequence[Actor] | None = None,
+        candidates: Sequence[PlanningCandidate] | None = None,
     ) -> RecedingHorizonResult:
         """Execute receding-horizon closed-loop simulation over total_steps."""
+        from ewm_engine.experimental.planning import (
+            PlanningCandidate,
+            _StaticActionInjector,
+        )
+
         active_world = world.branch()
         current_state = active_world.initial_state
 
         decision_history: list[MPCDecisionRecord] = []
+        planning_decisions: list[PlanningDecision] = []
         realized_trajectory = Trajectory(
             sample_id=0,
             seed=self.seed,
@@ -104,67 +139,49 @@ class RecedingHorizonSimulator:
 
         for step in range(total_steps):
             state_hash_before = current_state.state_hash
-            candidate_scores: dict[str, float] = {}
 
-            # Evaluate Candidate Interventions
-            best_candidate_name = "default"
-            best_score = float("inf") if self.minimize else float("-inf")
-            chosen_intervention: Intervention | None = None
-            chosen_actor: Actor | None = None
-
-            if candidate_interventions:
-                for interv in candidate_interventions:
-                    sim_world = branch_world(active_world, state=current_state)
-                    sim_scenario = Scenario(
-                        name=f"Lookahead_{interv.id}",
-                        horizon=self.lookahead_horizon,
-                        samples=self.samples_per_candidate,
-                        seed=self.seed + step,
-                        intervention=interv,
-                    )
-                    sim_res = self._engine.run(world=sim_world, scenario=sim_scenario)
-                    score = sim_res.metric_distribution(self.objective_metric)["mean"]
-                    candidate_scores[interv.id] = score
-
-                    is_better = (score < best_score) if self.minimize else (score > best_score)
-                    if is_better:
-                        best_score = score
-                        best_candidate_name = interv.id
-                        chosen_intervention = interv
-
-            elif candidate_actors:
-                for actor in candidate_actors:
-                    sim_world = branch_world(active_world, state=current_state)
-                    sim_world.add_actor(actor)
-                    sim_scenario = Scenario(
-                        name=f"Lookahead_{actor.actor_id}",
-                        horizon=self.lookahead_horizon,
-                        samples=self.samples_per_candidate,
-                        seed=self.seed + step,
-                    )
-                    sim_res = self._engine.run(world=sim_world, scenario=sim_scenario)
-                    score = sim_res.metric_distribution(self.objective_metric)["mean"]
-                    candidate_scores[actor.actor_id] = score
-
-                    is_better = (score < best_score) if self.minimize else (score > best_score)
-                    if is_better:
-                        best_score = score
-                        best_candidate_name = actor.actor_id
-                        chosen_actor = actor
+            # Assemble candidates
+            planning_cands: list[PlanningCandidate] = []
+            if candidates is not None:
+                planning_cands = list(candidates)
+            elif candidate_interventions is not None:
+                planning_cands = [
+                    PlanningCandidate.from_intervention(i) for i in candidate_interventions
+                ]
+            elif candidate_actors is not None:
+                planning_cands = [PlanningCandidate.from_actor(a) for a in candidate_actors]
             else:
-                candidate_scores["default"] = 0.0
+                planning_cands = [PlanningCandidate(id="default", name="default")]
+
+            # Execute planning over candidate lookaheads
+            decision = self.planner.plan(
+                world=active_world,
+                state=current_state,
+                candidates=planning_cands,
+                horizon=self.lookahead_horizon,
+                samples=self.samples_per_candidate,
+                scorer=self.scorer,
+                step=step,
+                seed=self.seed + step,
+            )
+
+            chosen = decision.chosen_candidate
 
             # Execute exactly 1 discrete step in the ground-truth world under the chosen policy
             step_world = branch_world(active_world, state=current_state)
-            if chosen_actor is not None:
-                step_world.add_actor(chosen_actor)
+            if chosen.actor is not None:
+                step_world.add_actor(chosen.actor)
+            elif chosen.actions:
+                step_world.add_actor(
+                    _StaticActionInjector(chosen.actions, actor_id=f"exec_{chosen.id}")
+                )
 
             exec_scenario = Scenario(
                 name="ExecuteSingleStep",
                 horizon=1,
                 samples=1,
                 seed=self.seed + (step * 100),
-                intervention=chosen_intervention,
+                intervention=chosen.intervention,
             )
             step_res = self._engine.run(world=step_world, scenario=exec_scenario)
             step_traj = step_res.trajectories[0]
@@ -175,17 +192,18 @@ class RecedingHorizonSimulator:
 
             realized_trajectory.append_step(step_record, current_state)
 
-            decision_history.append(
-                MPCDecisionRecord(
-                    step=step,
-                    selected_candidate=best_candidate_name,
-                    candidate_scores=candidate_scores,
-                    state_hash_before=state_hash_before,
-                    state_hash_after=current_state.state_hash,
-                )
+            decision_record = MPCDecisionRecord(
+                step=step,
+                selected_candidate=chosen.id,
+                candidate_scores=decision.candidate_scores,
+                state_hash_before=state_hash_before,
+                state_hash_after=current_state.state_hash,
             )
+            decision_history.append(decision_record)
+            planning_decisions.append(decision)
 
         return RecedingHorizonResult(
             realized_trajectory=realized_trajectory,
             decision_history=decision_history,
+            planning_decisions=planning_decisions,
         )

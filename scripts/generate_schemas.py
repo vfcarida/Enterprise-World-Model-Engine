@@ -17,12 +17,17 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from ewm_engine.cards.models import DatasetCard, ModelCard, ScenarioCard
 from ewm_engine.core.actions import Action
 from ewm_engine.core.spec import WorldSpec
 from ewm_engine.core.state import WorldState
+from ewm_engine.durability.events import TransitionEvent
+from ewm_engine.experimentation.params import ParameterSpace
 from ewm_engine.provenance.metadata import Provenance
+from ewm_engine.reporting.model import ReportModel
 from ewm_engine.simulation.scenario import Scenario
 from ewm_engine.simulation.trajectory import Trajectory
+from ewm_engine.verification.spec import PropertySpec
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SCHEMAS_DIR = ROOT_DIR / "schemas"
@@ -34,6 +39,13 @@ SCHEMA_REGISTRY: dict[str, type[BaseModel]] = {
     "scenario.schema.json": Scenario,
     "trajectory.schema.json": Trajectory,
     "provenance.schema.json": Provenance,
+    "transition-event.schema.json": TransitionEvent,
+    "scenario-card.schema.json": ScenarioCard,
+    "model-card.schema.json": ModelCard,
+    "dataset-card.schema.json": DatasetCard,
+    "property-spec.schema.json": PropertySpec,
+    "parameter-space.schema.json": ParameterSpace,
+    "report-model.schema.json": ReportModel,
 }
 
 

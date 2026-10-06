@@ -205,3 +205,64 @@ def test_core_and_simulation_do_not_import_solvers_or_planners() -> None:
                             f"Architecture boundary violation in {py_file}:{line_no} - "
                             f"'{d.name}' must not depend on '{prefix}' (found import '{mod_name}')"
                         )
+
+
+@pytest.mark.architecture
+def test_no_torch_outside_experimental_ml() -> None:
+    """Core, simulation, constraints, dynamics, provenance, evaluation, and integrations MUST NOT import torch."""
+    checked_dirs = [
+        SRC_ROOT / "core",
+        SRC_ROOT / "simulation",
+        SRC_ROOT / "constraints",
+        SRC_ROOT / "dynamics",
+        SRC_ROOT / "hooks",
+        SRC_ROOT / "provenance",
+        SRC_ROOT / "evaluation",
+        SRC_ROOT / "integrations",
+    ]
+    for d in checked_dirs:
+        for py_file in d.rglob("*.py"):
+            imports = _extract_imports(py_file, include_function_level=True)
+            for line_no, mod_name in imports:
+                if mod_name == "torch" or mod_name.startswith("torch."):
+                    pytest.fail(
+                        f"Architecture boundary violation in {py_file}:{line_no} - "
+                        f"'{d.name}' must not depend on PyTorch (found import '{mod_name}')"
+                    )
+
+    # dynamics_eval.py must also be Torch-free
+    eval_file = SRC_ROOT / "experimental" / "dynamics_eval.py"
+    if eval_file.exists():
+        eval_imports = _extract_imports(eval_file, include_function_level=True)
+        for line_no, mod_name in eval_imports:
+            if mod_name == "torch" or mod_name.startswith("torch."):
+                pytest.fail(
+                    f"Architecture boundary violation in {eval_file}:{line_no} - "
+                    f"'dynamics_eval.py' must be Torch-free (found import '{mod_name}')"
+                )
+
+    # dynamics_torch.py must not import Torch at top-level
+    torch_file = SRC_ROOT / "experimental" / "dynamics_torch.py"
+    if torch_file.exists():
+        top_imports = _extract_imports(torch_file, include_function_level=False)
+        for line_no, mod_name in top_imports:
+            if mod_name == "torch" or mod_name.startswith("torch."):
+                pytest.fail(
+                    f"Architecture boundary violation in {torch_file}:{line_no} - "
+                    f"'dynamics_torch.py' must lazily load PyTorch, never at top-level (found '{mod_name}')"
+                )
+
+
+@pytest.mark.architecture
+def test_top_level_import_does_not_load_torch() -> None:
+    """Importing ewm_engine or ewm_engine.experimental must NOT load torch into sys.modules."""
+    import subprocess
+    import sys
+
+    cmd = [
+        sys.executable,
+        "-c",
+        "import sys; import ewm_engine; import ewm_engine.experimental; assert 'torch' not in sys.modules, 'torch leaked into sys.modules'",
+    ]
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    assert proc.returncode == 0, f"Importing ewm_engine or experimental leaked torch: {proc.stderr}"

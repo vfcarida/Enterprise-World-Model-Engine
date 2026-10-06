@@ -59,3 +59,84 @@ $$\begin{aligned}
 \end{aligned}$$
 
 Forcing known physical and accounting equations into opaque neural network weights produces hallucinated states and physically impossible transitions. EWM Engine keeps structural rules explicit, verifiable, and audited.
+
+---
+
+## Positioning: Enterprise World Models vs. World Foundation Models (2024–2026)
+
+The explosion of interest in **world models** across 2024–2026 encompasses two fundamentally distinct technological paradigms:
+
+1. **World Foundation Models (WFMs)** (NVIDIA Cosmos, Google Genie 2/3, Meta V-JEPA 2, Navigation World Models, World Labs):
+   Large-scale generative models operating on sensorimotor, pixel, or 3D latent spaces. They simulate photorealistic interactive video, 3D spatial scenes, or physical robot environments.
+2. **Enterprise World Models (EWMs)** (EWM Engine):
+   Domain-independent computational kernels operating on organizational, socio-technical, and relational state. They simulate business consequence distributions, physical/accounting conservation laws, multi-actor contracts, and operational interventions under uncertainty.
+
+!!! warning "Clear Architectural Stance: Not a Video Model"
+    **EWM Engine is not a video generation model, an interactive 3D graphics simulator, or a pixel diffusion pipeline.**  
+    While EWM Engine **can host** a learned latent dynamics adapter (such as a DreamerV3-style RSSM, an MLP residual, or a relational GNN module via its pluggable `DynamicsModel` and `LearnedDynamics` protocols), the engine itself represents state as explicit typed entities, bounded resources, operational rules, and auditable causal traces.
+
+### Architectural Contrast Table
+
+| Dimension | Enterprise World Model Engine (EWM) | World Foundation Models (Cosmos, Genie 2/3, World Labs) | Latent / Predictive Models (V-JEPA 2, DreamerV3) |
+| :--- | :--- | :--- | :--- |
+| **Target Domain** | Socio-technical systems (enterprises, supply chains, healthcare, public logistics, financial networks). | Sensorimotor physical worlds, interactive video games, robotics manipulation. | Abstract visual/robotic representation, continuous motor control. |
+| **State Representation** | Symbolic + Hybrid: Heterogeneous relational graph ($G_t$), bounded continuous resources ($R_t$), memory ($M_t$), active rules ($\Gamma_t$). | High-dimensional visual tokens, pixel lattices, or 3D Gaussian splats ($V_t$). | Abstract continuous latent vector ($z_t$) without pixel reconstruction. |
+| **Physical & Business Laws** | **Strict Invariants**: Hard conservation laws, capacity limits, and legal constraints enforced by pre/post validation gates ($\mathcal{V}_{\text{pre}}$, $\mathcal{V}_{\text{post}}$). | **Statistical Illusion**: Invariants are learned implicitly from video; prone to physical hallucinations, object vanishing, and balance breaches. | **Loss Penalties**: Invariants approximated via latent regularization; no hard guarantees. |
+| **Dynamics Mechanism** | **Pluggable Hybrid**: Structural mechanical rules + OR solvers + optional learned neural/GNN residuals. | Autoregressive diffusion, video spatio-temporal transformers. | Recurrent State-Space Models (RSSM) or Joint-Embedding Predictors. |
+| **Epistemics & Causality** | **Honest Diagnostics**: Backdoor identifiability checks, positivity overlap, Twin Rollout noise coupling, Rosenbaum bounds, OOD regime detection. | **Pure Observational / Action-Conditioned**: Incurs unavoidable interventional bias when backdoor paths are open (Song & Cai, arXiv:2610.00012). | Latent planning without structural identification guarantees. |
+| **Execution Core** | **Zero-LLM, Zero-GPU Required**: Lightweight, deterministically seeded, reproducible PRNG kernel. | Multi-billion-parameter neural networks requiring GPU/TPU clusters for inference. | Neural inference requiring PyTorch/JAX runtimes. |
+| **Primary Output** | Decision-grade consequence distributions, Pareto trade-offs, and systemic dependency traces. | Rendered video frames or simulated sensory streams. | Latent value estimates and continuous control policies. |
+
+---
+
+## Subsystem Architecture & Execution Lifecycle
+
+The relationship between the symbolic state, pluggable dynamics, constraint engines, and the planning layer is illustrated below:
+
+```mermaid
+flowchart TD
+    subgraph StateLayer["1. World State Representation (Symbolic + Relational)"]
+        ENT["Typed Entities & Attributes"]
+        REL["Relational Topology / Graph G_t"]
+        RES["Bounded Continuous Resources R_t"]
+        RULES["Active Operational Rules & Invariants"]
+    end
+
+    subgraph DecisionLayer["2. Interventions & Planning Layer"]
+        PLANNER["Planning Controller (MPC / OR / RL)"]
+        ACT["Proposed Candidate Action A_t"]
+        PLANNER --> ACT
+    end
+
+    subgraph VerificationPre["3. Pre-Action Constraint Gate"]
+        PRE["V_pre(S_t, A_t) Filter"]
+        ACT --> PRE
+        RULES -.-> PRE
+    end
+
+    subgraph DynamicsLayer["4. Pluggable Dynamics Engine"]
+        DET["Structural Deterministic Rules"]
+        OR_OPT["OR-Tools / SciPy Solvers"]
+        LEARNED["Optional Learned Residuals (MLP / GNN)"]
+        EXOG["Exogenous Shocks E_t ~ D_exog"]
+    end
+
+    PRE -- "Valid Actions A_t_valid" --> DynamicsLayer
+    StateLayer --> DynamicsLayer
+
+    subgraph VerificationPost["5. Post-Transition Invariant Gate"]
+        POST["V_post(S_t+1) Invariants Check"]
+        DynamicsLayer --> POST
+    end
+
+    subgraph EpistemicsLayer["6. Diagnostics & Provenance"]
+        TRACE["Systemic Trace (Audit DAG)"]
+        OOD["OOD & Regime-Shift Detection"]
+        CAUSAL["Causal Identifiability & Twin Rollouts"]
+    end
+
+    POST --> EpistemicsLayer
+    POST -- "Valid S_t+1" --> EVAL["Consequence Distributions & Pareto Evaluation"]
+    EVAL -. Feedback .-> PLANNER
+```
+

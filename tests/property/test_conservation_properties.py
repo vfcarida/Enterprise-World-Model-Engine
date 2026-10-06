@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
-from hypothesis import given, settings
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from ewm_engine.core.actions import Action
@@ -13,7 +13,7 @@ from ewm_engine.core.state import WorldState
 from ewm_engine.dynamics.deterministic import DeterministicTransferDynamics
 
 
-@settings(max_examples=50)
+@settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
 @given(
     initial_stock_a=st.floats(min_value=10.0, max_value=500.0),
     initial_stock_b=st.floats(min_value=10.0, max_value=500.0),

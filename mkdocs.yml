@@ -54,6 +54,14 @@ nav:
       - "Decision-Grade Evaluation": concepts/evaluation.md
       - First-Class Constraints: concepts/constraints.md
       - Systemic Traces: concepts/systemic-traces.md
+      - "Learned Dynamics & Invariants": concepts/learned-dynamics.md
+      - "Planning & Controller Layer": concepts/planning.md
+      - "OOD & Regime-Shift Epistemics": concepts/ood.md
+      - "Heterogeneous Graph State & GNNs": concepts/graph-state.md
+      - "World Specification Language (WSL)": concepts/wsl.md
+      - "Trajectory Verification": concepts/verification.md
+      - "Experimentation Suite": concepts/experimentation.md
+      - "Interop & Ecosystem": concepts/interop.md
   - Architecture:
       - Architecture Overview: architecture/overview.md
       - State Management & Formalism: architecture/state-management.md
@@ -64,13 +72,32 @@ nav:
       - "v1 Specification Contract": specs/spec-driven-development.md
       - "FEAT-001: Evaluation Upgrade": specs/features/FEAT-001-evaluation-upgrade.md
       - "FEAT-002: Distributed Monte Carlo": specs/features/FEAT-002-distributed-monte-carlo.md
+      - "FEAT-003: Graph State & WSL": specs/features/FEAT-003-heterogeneous-graph-state-and-wsl.md
+      - "FEAT-004: Durability & Replay": specs/features/FEAT-004-durability-and-replay.md
+      - "FEAT-005: Trajectory Verification": specs/features/FEAT-005-trajectory-verification.md
+      - "FEAT-006: Experimentation Suite": specs/features/FEAT-006-experimentation-suite.md
+      - "FEAT-007: Interop & Ecosystem": specs/features/FEAT-007-interop-multiagent-reporting-service-trackers.md
       - "v1.0.0 Convergence Review": specs/v1-convergence.md
       - "Repository Audit Report": audit/repository-audit-report.md
       - "v1.1 Baseline Verification Report": audit/v1-1-baseline-report.md
       - "Verified Baseline & Dev Setup (P01)": dev/baseline.md
   - User Guides:
+      - "Persistence & Event-Sourced Replay": guides/persistence.md
+      - "Reproducibility Cards & Croissant": guides/reproducibility-cards.md
       - "Scaling Out Monte Carlo Simulations": guides/scale-out.md
       - "OpenTelemetry Observability": guides/observability-otel.md
+      - "Receding-Horizon Control (MPC)": guides/receding-horizon.md
+      - "Verifying Trajectories": guides/verify-trajectories.md
+      - "Design of Experiments (DoE)": guides/design-of-experiments.md
+      - "Backtesting & Validation": guides/backtesting.md
+      - "Sensitivity Analysis": guides/sensitivity.md
+      - "Simulation Calibration": guides/calibration.md
+      - "Optimize Interventions": guides/optimize-interventions.md
+      - "Co-Simulation & FMI": guides/co-simulation.md
+      - "Multi-Agent Simulation": guides/multi-agent.md
+      - "Visualization & Reporting": guides/visualization-and-reporting.md
+      - "Simulation-as-a-Service": guides/simulation-as-a-service.md
+      - "Experiment Trackers": guides/experiment-trackers.md
   - Architecture Decision Records (ADRs):
       - "ADR-001: Python-First Implementation": adr/ADR-001-python-first.md
       - "ADR-002: Pluggable Dynamics Protocol": adr/ADR-002-pluggable-dynamics.md
@@ -90,6 +117,17 @@ nav:
       - "ADR-016: Evaluation Upgrade & Pareto Analysis": adr/ADR-016-evaluation-upgrade-bootstrap-cis-and-pareto.md
       - "ADR-017: Distributed Monte Carlo & Determinism": adr/ADR-017-distributed-monte-carlo-execution-and-determinism.md
       - "ADR-018: Solver & Planner Protocols with Resource Limits": adr/ADR-018-solver-and-planner-protocols-and-resource-limits.md
+      - "ADR-019: Learned-Dynamics Evaluation Harness": adr/ADR-019-learned-dynamics-evaluation-harness-and-invariants.md
+      - "ADR-020: Planning & Controller Layer": adr/ADR-020-planning-controller-layer.md
+      - "ADR-021: OOD Detection & Honest Causal Diagnostics": adr/ADR-021-ood-detection-and-honest-causal-diagnostics.md
+      - "ADR-022: Heterogeneous Graph World State & GNN Dynamics": adr/ADR-022-heterogeneous-graph-world-state-and-gnn-dynamics.md
+      - "ADR-023: Safe Declarative World Specification Language (WSL)": adr/ADR-023-declarative-world-specification-language-wsl.md
+      - "ADR-024: OpenTelemetry Observability Adapter (API-Only)": adr/ADR-024-opentelemetry-observability-adapter.md
+      - "ADR-025: Scientific Benchmark Protocol and Shift Families": adr/ADR-025-scientific-benchmark-protocol-and-shift-families.md
+      - "ADR-026: Event-Sourced TraceLog & EventStore": adr/ADR-026-event-sourced-tracelog-and-eventstore.md
+      - "ADR-027: Trajectory Verification (Oracle & STL)": adr/ADR-027-trajectory-verification-oracle-graph-and-temporal-logic.md
+      - "ADR-028: Experimentation Suite": adr/ADR-028-experimentation-suite-doe-backtesting-calibration-optimization.md
+      - "ADR-029: Interop & Ecosystem": adr/ADR-029-interop-cosim-multiagent-reporting-serving-trackers.md
   - Integrations & Ecosystem:
       - Overview: integrations/overview.md
       - Operations Research (Google OR-Tools): integrations/or-tools.md
@@ -97,6 +135,14 @@ nav:
       - Formal SMT Verification (Z3): integrations/z3-smt.md
       - Reinforcement Learning (Gymnasium): integrations/gymnasium.md
       - "Agent Evaluation ('Engine != Agent')": integrations/agent-evaluation.md
+  - Model & Scenario Cards:
+      - "Card Specification & Template": cards/TEMPLATE.md
+      - "Torch Neural Residual Baseline": cards/torch-neural-residual.md
+      - "Graph Neural Dynamics (GNN)": cards/graph-neural-dynamics.md
+      - "CivicFlow Disaster Scenario Card": cards/civicflow-disaster-response.md
+      - "Neural Baseline Model Card": models/neural-residual-baseline.md
+  - Research & Benchmarks:
+      - "Scientific Benchmark Families": research/benchmarks.md
   - Examples:
       - "Minimal Warehouse (Normative Fixture)": examples/minimal-warehouse.md
       - Minimal Supply World: examples/minimal-world.md

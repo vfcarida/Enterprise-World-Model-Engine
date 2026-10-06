@@ -81,6 +81,76 @@ distributed = [
 otel = [
     "opentelemetry-api>=1.25.0",
 ]
+stl = [
+    "rtamt>=0.4.0",
+]
+sensitivity = [
+    "salib>=1.4.0",
+]
+calibrate = [
+    "scipy>=1.11.0",
+    "scikit-learn>=1.4.0",
+]
+opt-evolutionary = [
+    "cma>=3.3.0",
+    "nevergrad>=1.0.0",
+]
+opt-pareto = [
+    "pymoo>=0.6.0",
+]
+surrogate = [
+    "scikit-learn>=1.4.0",
+]
+experimentation = [
+    "salib>=1.4.0",
+    "scikit-learn>=1.4.0",
+    "cma>=3.3.0",
+    "nevergrad>=1.0.0",
+    "pymoo>=0.6.0",
+]
+fmi = [
+    "fmpy>=0.3.20",
+]
+simpy = [
+    "simpy>=4.1.0",
+]
+mesa = [
+    "mesa>=3.0.0",
+]
+sd = [
+    "pysd>=3.14.0",
+]
+game = [
+    "nashpy>=0.0.40",
+]
+cli = [
+    "rich>=13.0.0",
+]
+viz = [
+    "plotly>=5.20.0",
+]
+viz-export = [
+    "kaleido>=0.2.1",
+]
+serve = [
+    "fastapi>=0.110.0",
+    "httpx>=0.25.0",
+]
+config = [
+    "omegaconf>=2.3.0",
+]
+trackers = [
+    "mlflow>=2.10.0",
+]
+interop = [
+    "simpy>=4.1.0",
+    "nashpy>=0.0.40",
+    "rich>=13.0.0",
+    "plotly>=5.20.0",
+    "fastapi>=0.110.0",
+    "httpx>=0.25.0",
+    "omegaconf>=2.3.0",
+]
 all = [
     "networkx>=3.2",
     "z3-solver>=4.12.0",

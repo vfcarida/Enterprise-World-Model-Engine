@@ -1,0 +1,123 @@
+{
+  "$id": "https://ewm-engine.org/schemas/v1/scenario-card.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Native Scenario Card documenting an experiment setup, stress scenario, or policy sweep.",
+  "properties": {
+    "artifact_fingerprint": {
+      "description": "Canonical cryptographic SHA-256 fingerprint of the described artifact.",
+      "title": "Artifact Fingerprint",
+      "type": "string"
+    },
+    "assumptions": {
+      "description": "Assumptions regarding exogenous shock rates, actor adherence, or context stability.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Assumptions",
+      "type": "array"
+    },
+    "card_type": {
+      "const": "scenario",
+      "default": "scenario",
+      "title": "Card Type",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "description": "Narrative explanation of the organizational experiment or policy shock.",
+      "title": "Description",
+      "type": "string"
+    },
+    "environmental_context": {
+      "additionalProperties": true,
+      "description": "Context variables (e.g. interest rates, demand shock multipliers).",
+      "title": "Environmental Context",
+      "type": "object"
+    },
+    "horizon": {
+      "description": "Discrete simulation time steps per rollout.",
+      "minimum": 1,
+      "title": "Horizon",
+      "type": "integer"
+    },
+    "interventions": {
+      "description": "Interventions applied in this scenario (e.g. capacity expansions, rule shifts).",
+      "items": {
+        "type": "string"
+      },
+      "title": "Interventions",
+      "type": "array"
+    },
+    "limitations": {
+      "description": "Scenario design limitations and known confounders.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "maturity": {
+      "default": "production",
+      "description": "Maturity tier: 'production', 'beta', or 'experimental'.",
+      "title": "Maturity",
+      "type": "string"
+    },
+    "metrics": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "description": "Expected or observed scenario summary metrics.",
+      "title": "Metrics",
+      "type": "object"
+    },
+    "out_of_scope": {
+      "description": "Conditions under which this scenario is not representative.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Out Of Scope",
+      "type": "array"
+    },
+    "samples": {
+      "description": "Monte Carlo rollout count.",
+      "minimum": 1,
+      "title": "Samples",
+      "type": "integer"
+    },
+    "scenario_id": {
+      "description": "Unique scenario identifier.",
+      "title": "Scenario Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Semantic schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "seed": {
+      "description": "Master pseudo-random seed.",
+      "title": "Seed",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "artifact_fingerprint",
+    "horizon",
+    "samples",
+    "scenario_id",
+    "schema_version",
+    "seed"
+  ],
+  "title": "ScenarioCard",
+  "type": "object"
+}

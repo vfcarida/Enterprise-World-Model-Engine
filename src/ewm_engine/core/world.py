@@ -78,6 +78,11 @@ class World:
         """Retrieve an immutable snapshot of the baseline world state."""
         return self.initial_state
 
+    @property
+    def current_state(self) -> WorldState:
+        """Retrieve the current baseline state of the world."""
+        return self.initial_state
+
     def branch(self, state: WorldState | None = None) -> World:
         """Create an independent counterfactual branch from a world state snapshot.
 

@@ -53,13 +53,15 @@ __version__
 ## 2. Experimental Namespace (`ewm_engine.experimental`)
 
 Components that are actively undergoing research, empirical validation, or iterative API design reside exclusively in the `ewm_engine.experimental` namespace:
-- `ewm_engine.experimental.Intervention`
-- `ewm_engine.experimental.LearnedDynamics`
-- `ewm_engine.experimental.LinearResidualDynamics`
-- `ewm_engine.experimental.RecedingHorizonSimulator`
-- `ewm_engine.experimental.TransitionDataset`
-- `ewm_engine.experimental.TransitionSample`
-- `ewm_engine.experimental.MPCDecisionRecord`
+- `ewm_engine.experimental.Intervention`, `TransitionDataset`, `TransitionSample`
+- `ewm_engine.experimental.dynamics_eval` (Learned-dynamics evaluation harness, metrics, and invariant verification)
+- `ewm_engine.experimental.neural_dynamics` (`TorchNeuralResidualDynamics` PyTorch MLP baseline)
+- `ewm_engine.experimental.planning` (Rollout scorers: `CVaRScorer`, `ConstraintPenalizedScorer`, `UncertaintyPenalizedScorer`, `PlanningActor`)
+- `ewm_engine.experimental.ood` (Grounded-regime detection: `SupportBoundaryOODDetector`, `MahalanobisOODDetector`)
+- `ewm_engine.experimental.causal_diagnostics` (Identifiability, positivity, and Twin Rollout noise coupling)
+- `ewm_engine.experimental.graph_state` (`HeterogeneousGraphView` and schema migration)
+- `ewm_engine.experimental.graph_dynamics` (`GraphNeuralDynamics` relational message passing)
+- `ewm_engine.experimental.wsl` (World Specification Language grammar, compiler, and exporter)
 
 **Policy on Experimental Components:**
 - Experimental components carry an explicit warning upon instantiation or import.

@@ -1,0 +1,120 @@
+{
+  "$id": "https://ewm-engine.org/schemas/v1/dataset-card.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Native Dataset Card documenting a simulation trace or synthetic training dataset.\n\nConforms to Datasheets for Datasets (Gebru et al., arXiv:1803.09010).",
+  "properties": {
+    "artifact_fingerprint": {
+      "description": "Canonical cryptographic SHA-256 fingerprint of the described artifact.",
+      "title": "Artifact Fingerprint",
+      "type": "string"
+    },
+    "biases_and_limitations": {
+      "description": "Sampling biases, distribution coverage limits, or simulator artifacts.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Biases And Limitations",
+      "type": "array"
+    },
+    "card_type": {
+      "const": "dataset",
+      "default": "dataset",
+      "title": "Card Type",
+      "type": "string"
+    },
+    "collection_process": {
+      "default": "Monte Carlo simulation rollout under EWM Engine",
+      "description": "Methodology and generator configuration used to assemble dataset.",
+      "title": "Collection Process",
+      "type": "string"
+    },
+    "dataset_id": {
+      "description": "Unique dataset identifier.",
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "description": "Description of generated trajectories, entities, and systemic traces.",
+      "title": "Description",
+      "type": "string"
+    },
+    "features": {
+      "description": "List of recorded feature fields, resource timeseries, and state attributes.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Features",
+      "type": "array"
+    },
+    "intended_use": {
+      "description": "Intended downstream tasks (e.g. offline policy evaluation, dynamics learning).",
+      "items": {
+        "type": "string"
+      },
+      "title": "Intended Use",
+      "type": "array"
+    },
+    "license": {
+      "default": "Apache-2.0",
+      "description": "Distribution and reuse license.",
+      "title": "License",
+      "type": "string"
+    },
+    "maturity": {
+      "default": "production",
+      "description": "Maturity tier: 'production', 'beta', or 'experimental'.",
+      "title": "Maturity",
+      "type": "string"
+    },
+    "name": {
+      "description": "Human-readable dataset name.",
+      "title": "Name",
+      "type": "string"
+    },
+    "num_steps": {
+      "default": 0,
+      "description": "Total discrete simulation steps across all trajectories.",
+      "minimum": 0,
+      "title": "Num Steps",
+      "type": "integer"
+    },
+    "num_trajectories": {
+      "default": 0,
+      "description": "Total rollout trajectories contained in dataset.",
+      "minimum": 0,
+      "title": "Num Trajectories",
+      "type": "integer"
+    },
+    "provenance_fingerprints": {
+      "description": "Upstream world state and scenario fingerprints from which this dataset was generated.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Provenance Fingerprints",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Semantic schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "version": {
+      "default": "1.0.0",
+      "description": "Dataset version identifier.",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "artifact_fingerprint",
+    "dataset_id",
+    "name",
+    "schema_version"
+  ],
+  "title": "DatasetCard",
+  "type": "object"
+}

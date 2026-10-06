@@ -87,13 +87,38 @@ How does EWM Engine compare to traditional simulators, reinforcement learning to
 
 To maintain architectural focus and scientific integrity, EWM Engine is **not**:
 
+- **NOT a Video or Pixel World Model**: It does not generate video frames (like Cosmos, Sora, or Genie) or 3D graphics (like World Labs). It models discrete, relational, and continuous organizational states.
 - **NOT a Chatbot or Agent Orchestrator**: It is not LangChain, AutoGen, CrewAI, or LangGraph. External agents interface with EWM Engine as decision actors.
 - **NOT an RL-Only Discrete Gym**: While it supports policy rollouts, it is an enterprise state and evaluation kernel, not just a reinforcement learning benchmark wrapper.
 - **NOT a 3D Digital Twin**: It models socio-technical state, contracts, resources, and operational rules, not CAD graphics or 3D visual rendering.
 - **NOT a Univariate Time-Series Forecaster**: It simulates structural state transitions under candidate actions rather than extrapolating a single historical metric.
 - **NOT a Monolithic Discrete-Event Simulator (DES) Replacement**: It is a modular Python kernel designed for programmatic integration, Monte Carlo uncertainty, and systemic dependency tracing.
-- **NOT a Standalone JEPA Neural Network**: Joint Embedding Predictive Architectures are future research dynamics adapters, not a mandatory monolithic dependency.
 - **NOT an Automated Causal Discovery Tool**: EWM Engine does not claim to magically discover true causal DAGs from raw observational data without explicit structural assumptions.
+
+---
+
+## Positioning: Enterprise World Models vs. World Foundation Models (2024–2026)
+
+The explosion of interest in **world models** across 2024–2026 encompasses two fundamentally distinct technological directions:
+1. **World Foundation Models (WFMs)** (NVIDIA Cosmos, Google Genie 2/3, Meta V-JEPA 2, Navigation World Models, World Labs):
+   Pre-trained generative models operating on sensorimotor, pixel, or 3D latent spaces. They simulate photorealistic interactive video, 3D scenes, or physical robot environments.
+2. **Enterprise World Models (EWMs)** (EWM Engine):
+   Domain-independent computational kernels operating on organizational, socio-technical, and relational state. They simulate business consequence distributions, physical/accounting conservation laws, multi-actor contracts, and operational interventions under uncertainty.
+
+> [!IMPORTANT]
+> **Clear Architectural Stance:** EWM Engine is **not** a video generation model, an interactive 3D graphics simulator, or a pixel diffusion pipeline. While EWM Engine **can host** a learned latent dynamics adapter (such as a DreamerV3-style RSSM or relational GNN module), the engine itself represents state as explicit typed entities, bounded resources, operational rules, and auditable causal traces.
+
+### Architectural Contrast Table
+
+| Dimension | Enterprise World Model Engine (EWM) | World Foundation Models (Cosmos, Genie 2/3, World Labs) | Latent / Predictive Models (V-JEPA 2, DreamerV3) |
+| :--- | :--- | :--- | :--- |
+| **Target Domain** | Socio-technical systems (enterprises, supply chains, healthcare, public logistics, financial networks). | Sensorimotor physical worlds, interactive video games, robotics manipulation. | Abstract visual/robotic representation, continuous motor control. |
+| **State Representation** | Symbolic + Hybrid: Heterogeneous relational graph ($G_t$), bounded continuous resources ($R_t$), memory ($M_t$), active rules ($\Gamma_t$). | High-dimensional visual tokens, pixel lattices, or 3D Gaussian splats ($V_t$). | Abstract continuous latent vector ($z_t$) without pixel reconstruction. |
+| **Physical & Business Laws** | **Strict Invariants**: Hard conservation laws, capacity limits, and legal constraints enforced by pre/post validation gates ($\mathcal{V}_{\text{pre}}$, $\mathcal{V}_{\text{post}}$). | **Statistical Illusion**: Invariants are learned implicitly from video; prone to physical hallucinations, object vanishing, and balance breaches. | **Loss Penalties**: Invariants approximated via latent regularization; no hard guarantees. |
+| **Dynamics Mechanism** | **Pluggable Hybrid**: Structural mechanical rules + OR solvers + optional learned neural/GNN residuals. | Autoregressive diffusion, video spatio-temporal transformers. | Recurrent State-Space Models (RSSM) or Joint-Embedding Predictors. |
+| **Epistemics & Causality** | **Honest Diagnostics**: Backdoor identifiability checks, positivity overlap, Twin Rollout noise coupling, Rosenbaum bounds, OOD regime detection. | **Pure Observational / Action-Conditioned**: Incurs unavoidable interventional bias when backdoor paths are open (Song & Cai, arXiv:2610.00012). | Latent planning without structural identification guarantees. |
+| **Execution Core** | **Zero-LLM, Zero-GPU Required**: Lightweight, deterministically seeded, reproducible PRNG kernel. | Multi-billion-parameter neural networks requiring GPU/TPU clusters for inference. | Neural inference requiring PyTorch/JAX runtimes. |
+| **Primary Output** | Decision-grade consequence distributions, Pareto trade-offs, and systemic dependency traces. | Rendered video frames or simulated sensory streams. | Latent value estimates and continuous control policies. |
 
 ---
 
@@ -418,22 +443,28 @@ EWM Engine adheres strictly to [Semantic Versioning (SemVer 2.0.0)](https://semv
 
 | Subsystem | Maturity Status | Architectural Scope |
 | :--- | :--- | :--- |
-| **Core Simulation & Branching** | **Stable (v1.0.0)** | Immutable states, snapshot branching, scenario fingerprinting |
+| **Core Simulation & Branching** | **Stable (v1.0.0)** | Deeply immutable states, snapshot branching, scenario fingerprinting |
 | **Constraint Engine** | **Stable (v1.0.0)** | Pre-action and post-transition verification with full audit provenance |
-| **Pluggable Dynamics** | **Stable (v1.0.0)** | Deterministic, stochastic, and composite dynamic models |
+| **Pluggable Dynamics Protocol** | **Stable (v1.0.0)** | Deterministic, stochastic, and composite dynamic models |
 | **Systemic Traces** | **Stable (v1.0.0)** | Directed dependency graph generation with Mermaid and NetworkX export |
-| **Scenario Evaluation & Bootstrap** | **Stable (v1.1.0)** | Bootstrap CIs on deltas, significance flags, Pareto frontiers |
-| **Learned Dynamics Protocol** | **Beta (v1.0.0)** | Protocol interfaces and linear empirical regression baselines |
-| **Gymnasium / RL Adapters** | **Alpha (v1.0.0+)** | Standard Gym environment wrappers (`gymnasium.Env`) for policy training |
-| **SMT Solvers & Optimizers** | **Alpha (v1.0.0+)** | Optional Z3 SMT and Google OR-Tools constraint satisfaction |
-| **Distributed Monte Carlo** | Planned (v1.1.0) | High-throughput parallel execution preserving `SeedSequence` determinism |
-| **OpenTelemetry Telemetry** | Planned (v1.1.0) | Zero-overhead OpenTelemetry span export from lifecycle hooks |
+| **Scenario Evaluation & Bootstrap** | **Stable (v1.1.0)** | Bootstrap CIs on deltas, significance flags, Pareto frontiers (FEAT-001) |
+| **Distributed Monte Carlo** | **Beta (v1.1.0)** | High-throughput parallel execution preserving `SeedSequence` determinism |
+| **OpenTelemetry Telemetry** | **Beta (v1.1.0)** | Zero-overhead OpenTelemetry span and metric export from lifecycle hooks |
+| **OR & Continuous Planners** | **Beta (v1.1.0)** | Google OR-Tools CP-SAT discrete and SciPy continuous allocation planners |
+| **SMT Formal Verification** | **Beta (v1.1.0)** | Z3 SMT constraint satisfaction adapter with timeout guards |
+| **Gymnasium / RL Adapter** | **Beta (v1.1.0)** | Standard Gym environment wrapper (`gymnasium.Env`) for policy training |
+| **Learned-Dynamics Eval Harness** | **Experimental (v1.2.0)** | Multi-step rollout divergence, invariant verification, and dataset collection |
+| **Torch Neural Residual Baseline** | **Experimental (v1.2.0)** | PyTorch MLP residual baseline with symlog scaling (`[ml]` extra) |
+| **Scientific Benchmark Families** | **Research (v1.2.0)** | 5 scientific shift benchmark families probing structural dynamics |
+| **Planning & Controller Layer** | **Experimental (v1.3.0)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control |
+| **OOD & Regime-Shift Detection** | **Experimental (v1.4.0)** | Grounded-regime detection (support bounds, Mahalanobis covariance) |
+| **Honest Causal Diagnostics** | **Experimental (v1.4.0)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling |
+| **Heterogeneous Graph State & GNN**| **Experimental (v2.0.0-alpha)**| Relational graph state representation, schema migration, and GNN dynamics |
+| **World Specification Language (WSL)**| **Experimental (v2.0.0-alpha)**| Declarative safe YAML/JSON grammar, validator, compiler, and exporter |
 | **Durability & Replay (T1, T2)** | Planned (v1.2.0) | Event-sourced `TraceLog`, `EventStore`, and fingerprint `ResultStore` |
 | **Trajectory Verification (T3)** | Planned (v1.3.0) | Oracle-graph DAG verifier (CORE) and STL robustness monitoring (EXTRA) |
 | **Experimentation Suite (T4)** | Planned (v1.4.0) | DoE/sweep harness, backtesting, sensitivity (SALib), and calibration |
 | **Platform Interop & Viz (T5–T9)** | Planned (v1.5.0) | Co-sim (FMI/SimPy), multi-agent mediator, ReportModel, REST serving |
-| **Learned Depth & OOD (v1.6+)** | Research (v1.6+) | Neural learned dynamics, planning controller, OOD/regime shift |
-| **World Spec Language & Graphs** | Research (v2.0+) | Heterogeneous temporal relational graphs and declarative DSL |
 
 See [ROADMAP.md](ROADMAP.md) and [01_EXPANDED_ROADMAP.md](01_EXPANDED_ROADMAP.md) for detailed release milestones and research grounding.
 
