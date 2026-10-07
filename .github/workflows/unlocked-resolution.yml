@@ -1,0 +1,38 @@
+name: Upstream Unlocked Range Resolution
+
+on:
+  schedule:
+    - cron: "0 5 * * 1" # Weekly on Monday at 05:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unlocked-resolution:
+    name: Unlocked Resolution (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install with latest compatible unlocked dependencies
+        run: |
+          uv pip install --system --upgrade ".[all,dev]"
+
+      - name: Run Core & Packaging Tests against Unpinned Upstream
+        run: |
+          pytest tests/unit tests/contract tests/packaging -q

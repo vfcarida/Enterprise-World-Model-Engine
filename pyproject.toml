@@ -1,16 +1,18 @@
 [build-system]
-requires = ["setuptools>=68.0.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.21.0", "hatch-vcs>=0.4.0"]
+build-backend = "hatchling.build"
 
 [project]
 name = "ewm-engine"
-version = "1.0.0"
+dynamic = ["version"]
 description = "Enterprise World Model Engine: Action-conditioned, uncertainty-aware simulation and evaluation of organizational systems."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [
-    { name = "Enterprise World Model Engine Maintainers", email = "maintainers@ewm-engine.org" }
+    { name = "Vinicius Caridá", email = "vfcarida@gmail.com" },
+    { name = "Enterprise World Model Engine Maintainers", email = "maintainers@ewm-engine.org" },
 ]
 keywords = [
     "world-models",
@@ -90,6 +92,11 @@ dev = [
     "pytest-benchmark>=4.0.0",
     "asv>=0.6.4",
     "pytest-memray>=1.7.0; sys_platform != 'win32'",
+    "beartype>=0.18.0",
+    "typeguard>=4.0.0",
+    "pyrefly>=1.0.0",
+    "hatchling>=1.21.0",
+    "hatch-vcs>=0.4.0",
 ]
 distributed = [
     "ray>=2.9.0",
@@ -187,16 +194,24 @@ all = [
     "gymnasium>=0.29.0",
     "ray>=2.9.0",
     "opentelemetry-api>=1.25.0",
-    "mkdocs>=1.5.0",
-    "mkdocs-material>=9.5.0",
-    "mkdocstrings[python]>=0.24.0",
-    "pytest>=8.0.0",
-    "hypothesis>=6.100.0",
-    "pytest-cov>=4.1.0",
-    "ruff>=0.3.0",
-    "mypy>=1.9.0",
-    "build>=1.1.0",
-    "twine>=5.0.0",
+    "rtamt>=0.4.0",
+    "salib>=1.4.0",
+    "scikit-learn>=1.4.0",
+    "cma>=3.3.0",
+    "nevergrad>=1.0.0",
+    "pymoo>=0.6.0",
+    "fmpy>=0.3.20",
+    "simpy>=4.1.0",
+    "mesa>=3.0.0",
+    "pysd>=3.14.0",
+    "nashpy>=0.0.40",
+    "rich>=13.0.0",
+    "plotly>=5.20.0",
+    "kaleido>=0.2.1",
+    "fastapi>=0.110.0",
+    "httpx>=0.25.0",
+    "omegaconf>=2.3.0",
+    "mlflow>=2.10.0",
 ]
 
 [project.scripts]
@@ -210,11 +225,28 @@ Repository = "https://github.com/vfcarida/Enterprise-World-Model-Engine"
 Issues = "https://github.com/vfcarida/Enterprise-World-Model-Engine/issues"
 Changelog = "https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/CHANGELOG.md"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.hatch.version]
+source = "vcs"
 
-[tool.setuptools.package-data]
-ewm_engine = ["py.typed"]
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
+fallback_version = "1.0.0"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/ewm_engine/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ewm_engine"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/schemas",
+    "/README.md",
+    "/LICENSE",
+    "/pyproject.toml",
+    "/CITATION.cff",
+]
 
 [tool.ruff]
 line-length = 100
@@ -260,6 +292,7 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
+strict_equality = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -306,6 +339,7 @@ markers = [
     "limit_memory: memray memory allocation limit gate",
     "limit_leaks: memray memory leak gate",
     "numerical: numerical reproducibility and differential tests",
+    "packaging: packaging, wheel, and core-only tests",
 ]
 
 [dependency-groups]
@@ -332,6 +366,11 @@ dev = [
     "pytest-benchmark>=4.0.0",
     "asv>=0.6.4",
     "pytest-memray>=1.7.0; sys_platform != 'win32'",
+    "beartype>=0.18.0",
+    "typeguard>=4.0.0",
+    "pyrefly>=1.0.0",
+    "hatchling>=1.21.0",
+    "hatch-vcs>=0.4.0",
 ]
 
 [tool.mutmut]

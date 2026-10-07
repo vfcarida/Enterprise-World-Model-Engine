@@ -37,7 +37,15 @@ from ewm_engine.simulation import (
 # Ensure library root logger has a NullHandler to prevent unhandled log warnings
 logging.getLogger("ewm_engine").addHandler(logging.NullHandler())
 
-__version__ = "1.0.0"
+try:
+    from ewm_engine._version import __version__
+except ImportError:
+    try:
+        from importlib.metadata import version as _get_version
+
+        __version__ = _get_version("ewm-engine")
+    except Exception:
+        __version__ = "1.0.0"
 
 __all__ = [
     "Action",

@@ -166,6 +166,7 @@ nav:
           - "ADR-032: Deterministic Performance Gates & Numerical QA": adr/ADR-032-deterministic-performance-gates-and-numerical-qa.md
           - "ADR-033: Scientific ML Rigor, Provenance & Causal Gates": adr/ADR-033-scientific-ml-provenance-uq-and-causal-gates.md
           - "ADR-034: Supply-Chain Security & Provenance": adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md
+          - "ADR-035: Modern Packaging, Dynamic Versioning & Typing": adr/ADR-035-modern-packaging-dynamic-versioning-and-typing-excellence.md
 
   - Explanation:
       - "What is a World Model?": concepts/world-models.md
