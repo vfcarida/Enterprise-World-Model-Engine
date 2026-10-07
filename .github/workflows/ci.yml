@@ -57,6 +57,32 @@ jobs:
       - name: Enforce SPEC 0 Compatibility
         run: uv run pytest tests/packaging/test_spec0_compliance.py -v
 
+  towncrier-check:
+    name: Changelog News Fragment Check (Towncrier)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python and uv
+        uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: "3.11"
+
+      - name: Check Towncrier News Fragments
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          SKIP_CHANGELOG: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
+        run: uv run python scripts/check_towncrier.py
+
   lint:
     name: Lint Check (Ruff)
     runs-on: ubuntu-latest
@@ -586,6 +612,7 @@ jobs:
     needs:
       - zizmor
       - action-pins-and-spec0
+      - towncrier-check
       - lint
       - format-check
       - type-check
@@ -611,6 +638,7 @@ jobs:
           echo "Checking status of all required quality gates..."
           if [[ "${{ needs.zizmor.result }}" != "success" ]]; then failures+=("zizmor"); fi
           if [[ "${{ needs.action-pins-and-spec0.result }}" != "success" ]]; then failures+=("action-pins-and-spec0"); fi
+          if [[ "${{ needs.towncrier-check.result }}" != "success" ]]; then failures+=("towncrier-check"); fi
           if [[ "${{ needs.lint.result }}" != "success" ]]; then failures+=("lint"); fi
           if [[ "${{ needs.format-check.result }}" != "success" ]]; then failures+=("format-check"); fi
           if [[ "${{ needs.type-check.result }}" != "success" ]]; then failures+=("type-check"); fi
@@ -633,4 +661,4 @@ jobs:
             echo "CI Gate Check FAILED! Failed jobs: ${failures[*]}"
             exit 1
           fi
-          echo "All 19 CI quality gates passed successfully."
+          echo "All 20 CI quality gates passed successfully."

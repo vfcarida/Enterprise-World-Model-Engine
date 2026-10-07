@@ -107,6 +107,23 @@ You **must** submit an **API Change Proposal (ACP)** using the template at [`.gi
 ## 6. Submitting Pull Requests
 
 1. Fork the repository and create your feature branch: `git checkout -b feature/my-feature`.
-2. Ensure all tests, lint checks, and type checks pass.
-3. Submit a Pull Request targeting the `main` branch using the provided [Pull Request Template](.github/PULL_REQUEST_TEMPLATE.md).
+2. Ensure all 20 CI quality gates pass (`pytest`, `ruff`, `mypy --strict`, `zizmor`, `check_action_pins`).
+3. Add a Towncrier news fragment in `newsfragments/<pr>.<type>.md` (see `newsfragments/README.md`), or request the `skip-changelog` label if the PR is non-user-facing.
+4. Submit a Pull Request targeting the `main` branch using the provided [Pull Request Template](.github/PULL_REQUEST_TEMPLATE.md).
+
+---
+
+## 7. Commit Conventions & Deprecations
+
+### Conventional Commits
+We recommend following the [Conventional Commits 1.0.0](https://www.conventionalcommits.org/) convention for clean, structured git logs:
+- `feat: <summary>` — Adds a new user-facing feature.
+- `fix: <summary>` — Fixes a bug or unintended behavior.
+- `docs: <summary>` — Documentation only changes.
+- `refactor: <summary>` — Code change that neither fixes a bug nor adds a feature.
+- `test: <summary>` — Adding or updating test suites.
+- `chore: <summary>` — Maintenance, packaging, or CI changes.
+
+### Deprecations & Stability (NEP-23)
+Any planned deprecation must follow the [Deprecation Policy](docs/deprecation-policy.md), remaining functional across at least two minor releases (`>= 2 minor` or `>= 1 year`) and emitting `warnings.warn(..., DeprecationWarning, stacklevel=2)`. Never introduce deprecations or removals in patch releases.
 

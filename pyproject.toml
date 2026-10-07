@@ -97,6 +97,7 @@ dev = [
     "pyrefly>=1.0.0",
     "hatchling>=1.21.0",
     "hatch-vcs>=0.4.0",
+    "towncrier>=23.11.0",
 ]
 distributed = [
     "ray>=2.9.0",
@@ -371,6 +372,7 @@ dev = [
     "pyrefly>=1.0.0",
     "hatchling>=1.21.0",
     "hatch-vcs>=0.4.0",
+    "towncrier>=23.11.0",
 ]
 
 [tool.mutmut]
@@ -392,3 +394,40 @@ exclude_lines = [
     "raise NotImplementedError",
     "\\.\\.\\.",
 ]
+
+[tool.towncrier]
+package = "ewm_engine"
+package_dir = "src"
+filename = "CHANGELOG.md"
+directory = "newsfragments"
+title_format = "## [{version}] - {project_date}"
+issue_format = "[#{issue}](https://github.com/vfcarida/Enterprise-World-Model-Engine/issues/{issue})"
+start_string = "<!-- towncrier release notes start -->\n"
+underlines = ["", "", ""]
+wrap = false
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "Features"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug Fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "doc"
+name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "removal"
+name = "Deprecations and Removals"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Miscellaneous / Internal"
+showcontent = true
+

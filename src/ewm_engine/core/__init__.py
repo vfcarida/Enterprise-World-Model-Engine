@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ewm_engine.core.actions import Action, Intervention
+from ewm_engine.core.deprecation import deprecate, deprecated
 from ewm_engine.core.entities import Entity, Relationship
 from ewm_engine.core.events import ExogenousEvent, ExogenousEventSource
 from ewm_engine.core.resources import Resource
@@ -63,4 +64,6 @@ __all__ = [
     "WorldSpec",
     "WorldSpecification",
     "WorldState",
+    "deprecate",
+    "deprecated",
 ]

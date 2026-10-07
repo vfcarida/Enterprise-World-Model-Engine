@@ -1,0 +1,29 @@
+# GitHub Auto-Generated Release Notes Configuration
+changelog:
+  categories:
+    - title: "🚀 Features & Enhancements"
+      labels:
+        - "feature"
+        - "enhancement"
+    - title: "🐛 Bug Fixes"
+      labels:
+        - "fix"
+        - "bugfix"
+        - "bug"
+    - title: "⚠️ Deprecations & Removals"
+      labels:
+        - "deprecation"
+        - "removal"
+    - title: "📚 Documentation"
+      labels:
+        - "documentation"
+        - "docs"
+    - title: "🔒 Security & Supply Chain"
+      labels:
+        - "security"
+        - "dependencies"
+    - title: "🛠 Maintenance & CI"
+      labels:
+        - "chore"
+        - "ci"
+        - "refactor"

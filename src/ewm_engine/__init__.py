@@ -22,6 +22,8 @@ from ewm_engine.core import (
     Resource,
     World,
     WorldState,
+    deprecate,
+    deprecated,
 )
 from ewm_engine.dynamics import DynamicsModel, TransitionResult
 from ewm_engine.evaluation import compare_scenarios
@@ -71,4 +73,6 @@ __all__ = [
     "WorldState",
     "__version__",
     "compare_scenarios",
+    "deprecate",
+    "deprecated",
 ]

@@ -571,7 +571,7 @@ If you use EWM Engine in academic research, benchmark evaluation, or technical p
   title     = {Enterprise World Model Engine: An Open Framework for Modeling, Simulating, and Evaluating Organizational Dynamics},
   year      = {2026},
   url       = {https://github.com/vfcarida/Enterprise-World-Model-Engine},
-  version   = {1.0.0},
+  version   = {1.5.0},
   license   = {Apache-2.0}
 }
 ```

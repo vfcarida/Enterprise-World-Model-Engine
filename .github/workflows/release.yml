@@ -28,6 +28,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up uv (isolated, uncached for release integrity)
@@ -42,6 +43,28 @@ jobs:
 
       - name: Install build dependencies
         run: uv sync --extra dev
+
+      - name: Assert Version Equals Git Tag & Reject .dev/Local Builds (Truth Gate)
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          # Expected version stripped of leading 'v'
+          EXPECTED_VERSION="${TAG_NAME#v}"
+          DETECTED_VERSION=$(uv run python -c "import ewm_engine; print(ewm_engine.__version__)")
+          echo "Release Git Tag: ${TAG_NAME}"
+          echo "Expected Version: ${EXPECTED_VERSION}"
+          echo "Detected Version: ${DETECTED_VERSION}"
+
+          if [ "${DETECTED_VERSION}" != "${EXPECTED_VERSION}" ]; then
+            echo "[ERROR] Version drift! Package version (${DETECTED_VERSION}) does not match release tag (${TAG_NAME})."
+            exit 1
+          fi
+
+          if [[ "${DETECTED_VERSION}" =~ (\.dev|\+) ]]; then
+            echo "[ERROR] Unclean version segment detected (${DETECTED_VERSION})! Releasing .dev or local builds to PyPI is rejected."
+            exit 1
+          fi
+          echo "[SUCCESS] Version truth verified: ${DETECTED_VERSION} == ${EXPECTED_VERSION}"
 
       - name: Build distributions (sdist & wheel)
         run: uv run python -m build

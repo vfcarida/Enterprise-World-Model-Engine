@@ -7,8 +7,8 @@ authors:
     given-names: "Vinicius"
     email: "vfcarida@gmail.com"
     affiliation: "Independent Researcher"
-version: 1.0.0
-date-released: 2026-10-02
+version: 1.5.0
+date-released: 2026-10-07
 license: Apache-2.0
 repository-code: "https://github.com/vfcarida/Enterprise-World-Model-Engine"
 url: "https://vfcarida.github.io/Enterprise-World-Model-Engine/"

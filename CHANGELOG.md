@@ -5,9 +5,20 @@ All notable changes to the Enterprise World Model Engine (EWM Engine) will be do
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - Unreleased
+<!-- towncrier release notes start -->
+
+## [1.5.0] - 2026-10-07
 
 ### Added
+- **Release Engineering & Version Truth (ADR-037, R10)**:
+  - Authored Architecture Decision Record [`ADR-037`](docs/adr/ADR-037-release-engineering-version-truth-and-deprecation-policy.md) reconciling repository version truth to `v1.5.0`, establishing Towncrier news-fragment workflows, Release Please release automation, and NEP-23 deprecation policies.
+  - **Reconciled SemVer Release Truth**: Reconciled roadmap, documentation, and metadata from the stale `1.0.0` freeze to `v1.5.0`, truthfully reflecting all shipped platform completeness tracks (v1.1 through v1.5: distributed Monte Carlo, durability, verification, DoE experimentation, multi-agent coordination, and FastAPI serving) while maintaining experimental namespaces for v2.0 capabilities.
+  - **Release Workflow Truth Gate**: Configured `.github/workflows/release.yml` with an automated truth gate asserting `version == tag` (stripping `v`) and strictly rejecting `.dev` or `+local` versions from PyPI release builds.
+  - **Towncrier News-Fragment Workflow**: Adopted Towncrier news-fragment changelog management (`newsfragments/`), eliminating PR merge conflicts; added `towncrier-check` CI gate in `.github/workflows/ci.yml` with a `skip-changelog` label bypass.
+  - **Conventional Commits & Release Automation**: Configured `.github/release.yml` for category-grouped GitHub release notes; added Release Please manifest automation (`.github/release-please-config.json`, `.release-please-manifest.json`, `.github/workflows/release-please.yml`).
+  - **NEP-23 Deprecation Lifecycle**: Implemented `ewm_engine.core.deprecation` providing `@deprecated` and `deprecate()` runtime warning utilities emitting standard `DeprecationWarning` with `stacklevel=2` and Sphinx doc markers; authored `docs/deprecation-policy.md` enforcing a minimum two-minor-release window; added unit tests in `tests/unit/test_deprecation.py`.
+  - **SPEC 0 Policy Documented**: Codified Scientific Python Ecosystem Coordination support windows in `docs/spec0-policy.md` and enforced via packaging CI tests.
+  - **Release Checklist Hardening**: Updated `.github/RELEASE_CHECKLIST.md` unifying tags, dynamic VCS versioning, Towncrier build, SLSA L2+ provenance, dual SBOMs, and Zenodo DOI minting.
 - **CI/CD Excellence, Repository Rulesets & Merge Queue Governance (ADR-036, R09)**:
   - Authored Architecture Decision Record [`ADR-036`](docs/adr/ADR-036-cicd-excellence-repository-rulesets-and-merge-queue.md) establishing immutable commit SHA pinning, automated Zizmor security auditing, StepSecurity Harden-Runner runtime monitoring, repository rulesets with CODEOWNERS reviews, merge queue automation, and cache poisoning prevention.
   - **100% Immutable Commit SHA Action Pinning**: Pinned every external GitHub Action reference across all workflows and composite actions to a full 40-character hexadecimal commit SHA followed by human-readable version tag comments; authored `scripts/check_action_pins.py` verifying supply-chain immutability and OpenSSF Scorecard compliance.

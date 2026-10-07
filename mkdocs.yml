@@ -121,6 +121,8 @@ nav:
       - "CLI Command Reference": reference/cli.md
       - "JSON Schemas Reference": reference/schemas.md
       - "Stability Policy (SemVer 2.0.0)": stability-policy.md
+      - "Deprecation Policy (NEP-23)": deprecation-policy.md
+      - "SPEC 0 Support Policy": spec0-policy.md
       - "Scientific Reproducibility & Citation": reproducibility.md
       - "v1 Specification Contract": specs/spec-driven-development.md
       - Feature Specifications:
@@ -168,6 +170,7 @@ nav:
           - "ADR-034: Supply-Chain Security & Provenance": adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md
           - "ADR-035: Modern Packaging, Dynamic Versioning & Typing": adr/ADR-035-modern-packaging-dynamic-versioning-and-typing-excellence.md
           - "ADR-036: CI/CD Excellence, Repository Rulesets & Merge Queue": adr/ADR-036-cicd-excellence-repository-rulesets-and-merge-queue.md
+          - "ADR-037: Release Engineering, Version Truth & Deprecations": adr/ADR-037-release-engineering-version-truth-and-deprecation-policy.md
 
   - Explanation:
       - "What is a World Model?": concepts/world-models.md

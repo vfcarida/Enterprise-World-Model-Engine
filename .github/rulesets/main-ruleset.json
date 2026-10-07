@@ -43,6 +43,7 @@
           { "context": "Type Check (Mypy Strict)" },
           { "context": "GitHub Actions Security Audit (zizmor)" },
           { "context": "Action SHA Pinning & SPEC 0 Checks" },
+          { "context": "Changelog News Fragment Check (Towncrier)" },
           { "context": "Citation Metadata Validation (cffconvert)" },
           { "context": "Dependency Vulnerability Audit (pip-audit)" },
           { "context": "Packaging & Wheel Artifact Tests" },
