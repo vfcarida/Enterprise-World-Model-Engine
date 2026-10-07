@@ -177,6 +177,16 @@ config = [
 trackers = [
     "mlflow>=2.10.0",
 ]
+fairness = [
+    "fairlearn>=0.10.0",
+]
+explain = [
+    "interpret-community>=0.30.0",
+    "dice-ml>=0.11",
+]
+erroranalysis = [
+    "erroranalysis>=0.5.0",
+]
 interop = [
     "simpy>=4.1.0",
     "nashpy>=0.0.40",
@@ -301,6 +311,10 @@ module = [
     "yaml.*",
     "z3.*",
     "atheris.*",
+    "fairlearn.*",
+    "dice_ml.*",
+    "erroranalysis.*",
+    "pandas.*",
 ]
 ignore_missing_imports = true
 

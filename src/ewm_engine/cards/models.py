@@ -77,9 +77,17 @@ class ModelCard(BaseCard):
         default="",
         description="Detailed description of dynamics mechanism, architecture, or policy.",
     )
+    model_details: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Basic details: developer, architecture, type, license, date.",
+    )
     intended_use: list[str] = Field(
         default_factory=list,
         description="Declared organizational decisions and operating regimes model was designed for.",
+    )
+    factors: list[str] = Field(
+        default_factory=list,
+        description="Relevant operational, environmental, or demographic factors and sub-populations.",
     )
     assumptions: list[str] = Field(
         default_factory=list,
@@ -93,6 +101,14 @@ class ModelCard(BaseCard):
         default_factory=list,
         description="Epistemic caveats, numerical approximations, or unmodeled feedback loops.",
     )
+    training_data: list[str] = Field(
+        default_factory=list,
+        description="Training datasets, generator parameters, and data hashes.",
+    )
+    eval_data: list[str] = Field(
+        default_factory=list,
+        description="Evaluation dataset, benchmark family, and split methodology.",
+    )
     constraints_exercised: list[str] = Field(
         default_factory=list,
         description="Identifiers of physical or operational constraints evaluated with this model.",
@@ -100,6 +116,18 @@ class ModelCard(BaseCard):
     metrics: dict[str, float | str] = Field(
         default_factory=dict,
         description="Benchmark or calibration metrics (e.g. RMSE, coverage, calibration score).",
+    )
+    quantitative_analyses: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Distributional summaries, uncertainty intervals, and subgroup analyses.",
+    )
+    ethical_considerations: list[str] = Field(
+        default_factory=list,
+        description="Fairness risks, human oversight mechanisms, privacy, and systemic harm considerations.",
+    )
+    caveats_and_recommendations: list[str] = Field(
+        default_factory=list,
+        description="Actionable caveats, minimum sample guidelines, and user recommendations.",
     )
     provenance_sources: list[str] = Field(
         default_factory=list,
@@ -109,6 +137,95 @@ class ModelCard(BaseCard):
         default=None,
         description="Empirical population calibration metric score (e.g. SBC/Kolmogorov score).",
     )
+
+    def validate_mitchell_completeness(self, *, strict: bool = True) -> list[str]:
+        """Validate presence of core Mitchell et al. Model Card sections.
+
+        Required sections: intended_use, out_of_scope, assumptions, limitations, and metrics.
+        """
+        missing: list[str] = []
+        if not self.intended_use:
+            missing.append("intended_use")
+        if not self.out_of_scope:
+            missing.append("out_of_scope")
+        if not self.assumptions:
+            missing.append("assumptions")
+        if not self.limitations:
+            missing.append("limitations")
+        if not self.metrics and not self.quantitative_analyses:
+            missing.append("metrics/quantitative_analyses")
+
+        if missing and strict:
+            raise ValueError(
+                f"ModelCard '{self.model_id}' failed Mitchell completeness validation. "
+                f"Missing required sections: {', '.join(missing)}"
+            )
+        return missing
+
+    def populate_from_simulation(
+        self,
+        result: Any,
+        *,
+        metrics: list[str] | None = None,
+    ) -> ModelCard:
+        """Auto-populate metrics and quantitative_analyses from an executed SimulationResult."""
+        metric_keys = metrics or list(result.uncertainty_by_metric.keys())
+        new_metrics = dict(self.metrics)
+        new_analyses = dict(self.quantitative_analyses)
+
+        for m in metric_keys:
+            dist = result.get_metric_distribution(m)
+            new_metrics[f"{m}_mean"] = round(dist.mean, 4)
+            new_metrics[f"{m}_median"] = round(dist.median, 4)
+            new_metrics[f"{m}_p05"] = round(dist.p05, 4)
+            new_metrics[f"{m}_p95"] = round(dist.p95, 4)
+            new_analyses[m] = {
+                "mean": dist.mean,
+                "std": dist.std,
+                "median": dist.median,
+                "iqr": dist.iqr,
+                "cvar_05": dist.cvar_05,
+                "ci_90": [dist.p05, dist.p95],
+            }
+
+        updates: dict[str, Any] = {
+            "metrics": new_metrics,
+            "quantitative_analyses": new_analyses,
+            "artifact_fingerprint": result.fingerprint,
+        }
+        return self.model_copy(update=updates)
+
+    def populate_from_comparison(
+        self,
+        comparison: Any,
+        *,
+        scenario_name: str | None = None,
+    ) -> ModelCard:
+        """Auto-populate comparative metrics and bootstrap CIs from a ScenarioComparison."""
+        scn = scenario_name or next(iter(comparison.results_by_scenario.keys()))
+        m_dict = comparison.results_by_scenario.get(scn, {})
+        new_metrics = dict(self.metrics)
+        new_analyses = dict(self.quantitative_analyses)
+
+        for m_name, dist in m_dict.items():
+            new_metrics[f"{m_name}_median"] = round(dist.median, 4)
+            boot = comparison.bootstrap_deltas.get(scn, {}).get(m_name)
+            if boot:
+                new_metrics[f"{m_name}_delta_ci_lower"] = round(boot.ci_lower, 4)
+                new_metrics[f"{m_name}_delta_ci_upper"] = round(boot.ci_upper, 4)
+                new_analyses[f"{m_name}_bootstrap_delta"] = boot.model_dump()
+
+        updates: dict[str, Any] = {
+            "metrics": new_metrics,
+            "quantitative_analyses": new_analyses,
+        }
+        return self.model_copy(update=updates)
+
+    def to_annex_iv(self) -> dict[str, Any]:
+        """Reproject card into EU AI Act Annex IV technical documentation structure."""
+        from ewm_engine.cards.annex_iv import render_model_annex_iv
+
+        return render_model_annex_iv(self)
 
 
 class ScenarioCard(BaseCard):
@@ -139,7 +256,7 @@ class ScenarioCard(BaseCard):
     )
     assumptions: list[str] = Field(
         default_factory=list,
-        description="Assumptions regarding exogenous shock rates, actor adherence, or context stability.",
+        description="Explicit theoretical or behavioral assumptions regarding shock rates, adherence, etc.",
     )
     out_of_scope: list[str] = Field(
         default_factory=list,
@@ -153,10 +270,67 @@ class ScenarioCard(BaseCard):
         default_factory=dict,
         description="Expected or observed scenario summary metrics.",
     )
+    quantitative_analyses: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Quantitative analysis distributions and subgroup metrics.",
+    )
     limitations: list[str] = Field(
         default_factory=list,
         description="Scenario design limitations and known confounders.",
     )
+
+    def validate_assumptions_and_scope(self, *, strict: bool = True) -> list[str]:
+        """Validate required Assumptions & Out-of-Scope fields."""
+        missing: list[str] = []
+        if not self.assumptions:
+            missing.append("assumptions")
+        if not self.out_of_scope:
+            missing.append("out_of_scope")
+
+        if missing and strict:
+            raise ValueError(
+                f"ScenarioCard '{self.scenario_id}' failed Responsible AI validation. "
+                f"Missing required fields: {', '.join(missing)}"
+            )
+        return missing
+
+    def populate_from_simulation(
+        self,
+        result: Any,
+        *,
+        metrics: list[str] | None = None,
+    ) -> ScenarioCard:
+        """Auto-populate metrics and quantitative_analyses from an executed SimulationResult."""
+        metric_keys = metrics or list(result.uncertainty_by_metric.keys())
+        new_metrics = dict(self.metrics)
+        new_analyses = dict(self.quantitative_analyses)
+
+        for m in metric_keys:
+            dist = result.get_metric_distribution(m)
+            new_metrics[f"{m}_mean"] = round(dist.mean, 4)
+            new_metrics[f"{m}_median"] = round(dist.median, 4)
+            new_metrics[f"{m}_p05"] = round(dist.p05, 4)
+            new_metrics[f"{m}_p95"] = round(dist.p95, 4)
+            new_analyses[m] = {
+                "mean": dist.mean,
+                "median": dist.median,
+                "p05": dist.p05,
+                "p95": dist.p95,
+                "iqr": dist.iqr,
+            }
+
+        updates: dict[str, Any] = {
+            "metrics": new_metrics,
+            "quantitative_analyses": new_analyses,
+            "artifact_fingerprint": result.fingerprint,
+        }
+        return self.model_copy(update=updates)
+
+    def to_annex_iv(self) -> dict[str, Any]:
+        """Reproject card into EU AI Act Annex IV test documentation structure."""
+        from ewm_engine.cards.annex_iv import render_scenario_annex_iv
+
+        return render_scenario_annex_iv(self)
 
 
 class DatasetCard(BaseCard):

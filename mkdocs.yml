@@ -124,6 +124,7 @@ nav:
       - "Deprecation Policy (NEP-23)": deprecation-policy.md
       - "SPEC 0 Support Policy": spec0-policy.md
       - "Scientific Reproducibility & Citation": reproducibility.md
+      - "Responsible AI & Governance Mapping": responsible-ai.md
       - "v1 Specification Contract": specs/spec-driven-development.md
       - Feature Specifications:
           - "FEAT-001: Evaluation Upgrade": specs/features/FEAT-001-evaluation-upgrade.md
@@ -172,16 +173,19 @@ nav:
           - "ADR-036: CI/CD Excellence, Repository Rulesets & Merge Queue": adr/ADR-036-cicd-excellence-repository-rulesets-and-merge-queue.md
           - "ADR-037: Release Engineering, Version Truth & Deprecations": adr/ADR-037-release-engineering-version-truth-and-deprecation-policy.md
           - "ADR-038: Open-Source Governance & RFC Process": adr/ADR-038-open-source-governance-community-health-and-rfc-process.md
+          - "ADR-039: Responsible AI, Trust & Anti-Overclaiming": adr/ADR-039-responsible-ai-trust-and-anti-overclaiming-enforcement.md
 
   - Community & Governance:
       - "Community Health & CHAOSS": community-health.md
       - "Curated Starter Tasks": good-first-issues.md
       - "NumFOCUS Sponsorship Prospectus": numfocus-sponsorship.md
+      - "Responsible AI Governance Mapping": responsible-ai.md
       - "Open-Source Governance (ADR-038)": adr/ADR-038-open-source-governance-community-health-and-rfc-process.md
 
   - Explanation:
       - "What is a World Model?": concepts/world-models.md
       - "Scientific ML Rigor & Provenance": concepts/ml-scientific-rigor.md
+      - "Responsible AI & Anti-Overclaiming": responsible-ai.md
       - "Causal Epistemology": concepts/causality.md
       - "Uncertainty & Rollouts": concepts/uncertainty.md
       - "Decision-Grade Evaluation": concepts/evaluation.md

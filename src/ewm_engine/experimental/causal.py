@@ -19,7 +19,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from typing_extensions import Self
 
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import WorldState
@@ -158,6 +159,18 @@ class IdentifiabilityResult(BaseModel):
     diagnostic_message: str = Field(
         description="Human-readable explanation of identifiability status."
     )
+
+    @model_validator(mode="after")
+    def _enforce_identifiability_standing(self) -> Self:
+        from ewm_engine.core.trust import validate_causal_claim
+
+        validate_causal_claim(
+            claimed_level=self.causal_level,
+            is_identifiable=self.is_identifiable,
+            overlap_satisfied=True,
+            strict=True,
+        )
+        return self
 
 
 def check_backdoor_identifiability(
@@ -363,6 +376,21 @@ class InterventionalQueryResult(BaseModel):
         default=None,
         description="Observational propensity score overlap and common support diagnostic.",
     )
+
+    @model_validator(mode="after")
+    def _enforce_epistemic_standing(self) -> Self:
+        from ewm_engine.core.trust import validate_causal_claim
+
+        overlap = True
+        if self.positivity_report is not None:
+            overlap = self.positivity_report.positivity_satisfied
+        validate_causal_claim(
+            claimed_level=self.causal_level,
+            is_identifiable=self.identifiability.is_identifiable,
+            overlap_satisfied=overlap,
+            strict=True,
+        )
+        return self
 
 
 class NotIdentifiableResult(BaseModel):

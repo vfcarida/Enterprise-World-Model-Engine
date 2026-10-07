@@ -15,6 +15,21 @@ from ewm_engine.integrations.protocols import (
     SolverResult,
     SolverStatus,
 )
+from ewm_engine.integrations.rai_erroranalysis import (
+    ErrorAnalysisAdapter,
+    ErrorAnalysisResult,
+    ErrorCohort,
+)
+from ewm_engine.integrations.rai_explain import (
+    CounterfactualExplainerAdapter,
+    CounterfactualExplanation,
+    CounterfactualExplanationResult,
+)
+from ewm_engine.integrations.rai_fairness import (
+    FairnessAuditAdapter,
+    FairnessAuditResult,
+    GroupMetricSummary,
+)
 from ewm_engine.integrations.scipy_planner import SciPyAllocationPlanner
 from ewm_engine.integrations.solvers import Z3ConstraintAdapter
 
@@ -23,7 +38,16 @@ __all__ = [
     "CPSATAllocationPlanner",
     "CallableActorAdapter",
     "ConstraintSolver",
+    "CounterfactualExplainerAdapter",
+    "CounterfactualExplanation",
+    "CounterfactualExplanationResult",
     "EnterpriseGymEnv",
+    "ErrorAnalysisAdapter",
+    "ErrorAnalysisResult",
+    "ErrorCohort",
+    "FairnessAuditAdapter",
+    "FairnessAuditResult",
+    "GroupMetricSummary",
     "ORToolsAllocationAdapter",
     "OpenTelemetryHook",
     "SciPyAllocationPlanner",
@@ -31,3 +55,4 @@ __all__ = [
     "SolverStatus",
     "Z3ConstraintAdapter",
 ]
+

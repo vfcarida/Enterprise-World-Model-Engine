@@ -18,6 +18,7 @@ from ewm_engine.simulation.metrics import RunMetrics
 from ewm_engine.simulation.scenario import Scenario
 
 if TYPE_CHECKING:
+    from ewm_engine.core.trust import ScenarioForecastResult
     from ewm_engine.evaluation.comparison import ScenarioComparison
     from ewm_engine.evaluation.uncertainty import UncertaintyDistribution
 
@@ -264,6 +265,73 @@ class SimulationResult:
             if t.total_violations > 0 or t.status == TrajectoryStatus.INVALID
         )
         return violating / len(self.trajectories)
+
+    @property
+    def has_extrapolation(self) -> bool:
+        """Check whether any rollout trajectory entered an ungrounded or out-of-distribution regime."""
+        # 1. Check top-level provenance / metadata
+        if getattr(self.provenance, "metadata", None) and self.provenance.metadata.get(
+            "has_extrapolation"
+        ):
+            return True
+        # 2. Check individual trajectories and steps
+        for t in self.trajectories:
+            for s in t.steps:
+                if s.step_metrics.get("is_ood", 0.0) > 0.0:
+                    return True
+                if s.step_metrics.get("extrapolation_flag", 0.0) > 0.0:
+                    return True
+        return False
+
+    def get_forecast(
+        self,
+        metric_name: str,
+        *,
+        confidence_level: float = 0.90,
+    ) -> ScenarioForecastResult:
+        """Extract a structured ScenarioForecastResult coupling point estimates with mandatory uncertainty."""
+        from ewm_engine.core.trust import ScenarioForecastResult
+        from ewm_engine.provenance.evidence import EvidenceLevel
+
+        dist = self.get_metric_distribution(metric_name)
+        values = [t.final_metric(metric_name) for t in self.trajectories if t.steps]
+        sample_count = len(values) if values else 1
+
+        # Use non-parametric quantiles corresponding to requested confidence level
+        alpha = (1.0 - confidence_level) / 2.0
+        lower_pct = alpha * 100.0
+        upper_pct = (1.0 - alpha) * 100.0
+
+        if values:
+            import numpy as np
+
+            arr = np.array(values, dtype=float)
+            ci_lower = float(np.percentile(arr, lower_pct))
+            ci_upper = float(np.percentile(arr, upper_pct))
+        else:
+            ci_lower = dist.p05
+            ci_upper = dist.p95
+
+        return ScenarioForecastResult(
+            metric_name=metric_name,
+            point_estimate=dist.median,
+            ci_lower=ci_lower,
+            ci_upper=ci_upper,
+            confidence_level=confidence_level,
+            distribution=dist,
+            extrapolation_flag=self.has_extrapolation,
+            sample_count=sample_count,
+            evidence_level=EvidenceLevel.PREDICTIVE,
+        )
+
+    @property
+    def uncertainty_by_metric(self) -> dict[str, UncertaintyDistribution]:
+        """Dictionary of full uncertainty distributions for all recorded final metrics."""
+        metric_names: set[str] = set()
+        for t in self.trajectories:
+            if t.steps:
+                metric_names.update(t.steps[-1].step_metrics.keys())
+        return {m: self.get_metric_distribution(m) for m in sorted(metric_names)}
 
     def compare(
         self,

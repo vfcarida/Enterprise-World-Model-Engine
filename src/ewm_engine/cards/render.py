@@ -119,6 +119,18 @@ def render_card_markdown(card: BaseCard) -> str:
                 lines.append(f"- {item}")
             lines.append("")
 
+        if m.ethical_considerations:
+            lines.append("### Ethical Considerations & Responsible AI")
+            for item in m.ethical_considerations:
+                lines.append(f"- {item}")
+            lines.append("")
+
+        if m.quantitative_analyses:
+            lines.append("### Quantitative Analyses & Uncertainty Intervals")
+            for k, v in sorted(m.quantitative_analyses.items()):
+                lines.append(f"- **{k}**: `{v}`")
+            lines.append("")
+
     # Specific sections for ScenarioCard
     elif card.card_type == "scenario":
         sc: ScenarioCard = card  # type: ignore[assignment]
