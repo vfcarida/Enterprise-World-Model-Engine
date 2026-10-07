@@ -1,0 +1,62 @@
+name: "Good First Issue / Starter Task"
+description: "Propose or document a curated starter issue for new open-source contributors"
+title: "[STARTER]: <Short title>"
+labels: ["good first issue", "help wanted"]
+assignees:
+  - "vfcarida"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping build an welcoming open-source community!
+        Please fill out the starter issue template below.
+  - type: input
+    id: mentor
+    attributes:
+      label: Mentor
+      description: GitHub handle of the maintainer available to review and guide this task
+      placeholder: "@vfcarida"
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Subsystem / Area
+      description: Primary codebase area for this task
+      options:
+        - "area:core"
+        - "area:simulation"
+        - "area:dynamics"
+        - "area:constraints"
+        - "area:provenance"
+        - "area:reporting"
+        - "area:serialization"
+        - "area:docs"
+        - "area:tooling"
+        - "area:benchmarks"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: Detailed summary of the work to be done
+      placeholder: "Explain the context and why this task is needed..."
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: Relevant Files & Pointers
+      description: Paths to existing code, tests, and documentation
+      placeholder: "e.g., src/ewm_engine/core/..., tests/unit/test_..."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Expected Acceptance Criteria
+      description: What checks must pass for the PR to be merged?
+      placeholder: "1. Unit tests pass\n2. Type annotations verified with mypy --strict\n3. Docs updated"
+    validations:
+      required: true

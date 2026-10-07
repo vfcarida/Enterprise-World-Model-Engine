@@ -24,6 +24,9 @@
   <a href="paper/paper.md"><img src="https://img.shields.io/badge/JOSS-paper%20review-brightgreen?style=flat" alt="JOSS Paper"></a>
   <a href="docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md"><img src="https://img.shields.io/badge/SLSA-Build%20L2%2B-blue?style=flat" alt="SLSA L2+"></a>
   <a href="https://www.bestpractices.dev/projects/10000"><img src="https://img.shields.io/badge/OpenSSF-passing-brightgreen?style=flat" alt="OpenSSF Best Practices"></a>
+  <a href="CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=flat" alt="Contributor Covenant 2.1"></a>
+  <a href="GOVERNANCE.md"><img src="https://img.shields.io/badge/governance-SPEC%209-informational?style=flat" alt="SPEC 9 Governance"></a>
+  <a href="docs/community-health.md"><img src="https://img.shields.io/badge/CHAOSS-health%20metrics-orange?style=flat" alt="CHAOSS Health"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat" alt="License: Apache-2.0"></a>
 </p>
 
@@ -549,15 +552,43 @@ Capabilities in EWM Engine are classified under explicit, strictly enforced matu
 | **World Specification Language** | **Experimental (v2.0.0-alpha)** | Declarative safe YAML/JSON grammar, validator, compiler, and exporter (FEAT-003, ADR-023) |
 
 See [ROADMAP.md](ROADMAP.md) and [01_EXPANDED_ROADMAP.md](01_EXPANDED_ROADMAP.md) for detailed milestone descriptions and architectural tracking.
+Track active delivery on the **[Pinned GitHub Project](https://github.com/users/vfcarida/projects/1)** and milestones ([v1.5.0 Shipped](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/1), [v1.6.0 Active](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/2), [v2.0-alpha Horizon](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/3)).
 
 ---
 
-## Contributing
+## Contributing & Community
 
-We welcome contributions from researchers, software engineers, and domain experts! Please review:
-- [CONTRIBUTING.md](CONTRIBUTING.md): Workflow guidelines, testing procedures, and submission standards.
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): Community engagement expectations.
-- [GOVERNANCE.md](GOVERNANCE.md): Project governance and maintainer authority.
+We welcome contributions from researchers, software engineers, and domain experts! EWM Engine is governed as an open, meritocratic community aligned with Scientific Python SPEC 9:
+
+- **[CONTRIBUTING.md](CONTRIBUTING.md)**: Workflow guidelines, development setup with `uv`, and testing standards.
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)**: Contributor Covenant 2.1 code of conduct with 4-tier enforcement.
+- **[GOVERNANCE.md](GOVERNANCE.md)**: Steering Council model, maintainer ladder (SPEC 9), and secure releases (SPEC 8).
+- **[Curated Starter Tasks](docs/good-first-issues.md)**: Mentored `good first issue` tasks for new contributors.
+- **[Community Health & CHAOSS](docs/community-health.md)**: Live metrics tracking (Bus Factor $\ge 3$, TTFR $< 48$h, Elephant Factor).
+- **[NumFOCUS Sponsorship](docs/numfocus-sponsorship.md)**: Fiscal sponsorship prospectus and public benefit mission.
+- **[RFC Process](rfcs/RFC-0001-rfc-process.md)**: Architectural and ecosystem proposal framework.
+
+### Contributors
+
+We celebrate and acknowledge all contributions to EWM Engine—including code, documentation, benchmark design, issue triage, and security disclosures.
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/vfcarida"><img src="https://avatars.githubusercontent.com/u/1043329?v=4" width="100px;" alt="Vinicius Caridá"/><br /><sub><b>Vinicius Caridá</b></sub></a><br /><a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/commits?author=vfcarida" title="Code">💻</a> <a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/commits?author=vfcarida" title="Documentation">📖</a> <a href="#design-vfcarida" title="Design">🎨</a> <a href="#ideas-vfcarida" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-vfcarida" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#maintenance-vfcarida" title="Maintenance">🚧</a> <a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/pulls?q=is%3Apr+reviewed-by%3Avfcarida" title="Reviewed Pull Requests">👀</a> <a href="#security-vfcarida" title="Security">🛡️</a> <a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/commits?author=vfcarida" title="Tests">⚠️</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project adheres to the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are welcome!
 
 ---
 

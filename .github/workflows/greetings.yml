@@ -1,0 +1,38 @@
+name: First Interaction Greeting
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  greeting:
+    name: Welcome First-Time Contributor
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+
+      - name: Greet New Contributor
+        uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d # v3.1.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: >
+            Welcome to the Enterprise World Model Engine! 🎉
+            Thank you for opening your first issue in this repository.
+            Please make sure to review our [Code of Conduct](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/CODE_OF_CONDUCT.md).
+            A maintainer will review your issue shortly.
+          pr-message: >
+            Welcome to the Enterprise World Model Engine! 🚀
+            Thank you for opening your first pull request.
+            Please ensure you have read our [Contributing Guide](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/CONTRIBUTING.md)
+            and that your changes pass all local quality checks (`ruff`, `mypy --strict`, and `pytest`).
+            Once CI gates complete, a maintainer will review your code.

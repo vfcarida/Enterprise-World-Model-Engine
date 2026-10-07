@@ -1,0 +1,49 @@
+name: Stale Activity Management
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    name: Manage Stale Issues and PRs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+
+      - name: Stale Bot
+        uses: actions/stale@1e223db275d687790206a7acac4d1a11bd6fe629 # v10.4.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-issue-stale: 60
+          days-before-issue-close: 14
+          days-before-pr-stale: 60
+          days-before-pr-close: 14
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has not had
+            activity in the last 60 days. It will be closed in 14 days if no further
+            activity occurs. Thank you for your contributions to EWM Engine!
+          stale-pr-message: >
+            This pull request has been automatically marked as stale because it has not had
+            activity in the last 60 days. It will be closed in 14 days if no further
+            activity occurs. If this work is still active, please leave a comment.
+          close-issue-message: >
+            This issue was closed because it has been stalled for 14 days with no activity.
+            Feel free to reopen it or file a new issue if you would like to continue this work.
+          close-pr-message: >
+            This pull request was closed because it has been stalled for 14 days with no activity.
+            Please feel free to reopen or open a new pull request when ready.
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-issue-labels: 'pinned,security,rfc,blocked,good first issue,in-progress,help wanted'
+          exempt-pr-labels: 'pinned,security,rfc,blocked,good first issue,in-progress,help wanted'
+          exempt-all-milestones: true

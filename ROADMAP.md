@@ -3,6 +3,12 @@
 This document outlines the phased development roadmap for the **Enterprise World Model Engine (EWM Engine)**.
 
 > **Canonical Contract:** See [docs/specs/spec-driven-development.md](docs/specs/spec-driven-development.md) for the authoritative v1 specification and authority chain governing this roadmap. See [docs/stability-policy.md](docs/stability-policy.md) for SemVer 2.0.0 stability guarantees.
+>
+> **Interactive Project Tracker:** Follow live development progress, sprint backlogs, and milestone deliverables on the pinned GitHub Project board:
+> - **Pinned GitHub Project:** [https://github.com/users/vfcarida/projects/1](https://github.com/users/vfcarida/projects/1)
+> - **Milestone v1.5.0 (Shipped):** [v1.5.0 Interop & Ecosystem](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/1)
+> - **Milestone v1.6.0 (Active):** [v1.6.0 Learned Dynamics & Causal Epistemics](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/2)
+> - **Milestone v2.0-alpha (Horizon):** [v2.0-alpha Relational GNNs & WSL](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/3)
 
 ---
 

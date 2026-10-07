@@ -57,6 +57,9 @@ jobs:
       - name: Enforce SPEC 0 Compatibility
         run: uv run pytest tests/packaging/test_spec0_compliance.py -v
 
+      - name: ADR Link and Reciprocal Status Linter
+        run: uv run python scripts/check_adr_links.py
+
   towncrier-check:
     name: Changelog News Fragment Check (Towncrier)
     runs-on: ubuntu-latest

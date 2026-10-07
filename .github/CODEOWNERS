@@ -1,13 +1,23 @@
-# Global project owners
+# Global project ownership
 * @vfcarida
 
-# CI/CD Workflows, Actions, and Governance
+# Governance, Community, and Security Policies
+GOVERNANCE.md @vfcarida
+SECURITY.md @vfcarida
+CODE_OF_CONDUCT.md @vfcarida
+CONTRIBUTING.md @vfcarida
+security.txt @vfcarida
+.well-known/ @vfcarida
+rfcs/ @vfcarida
+
+# CI/CD Workflows, Actions, and Repository Rulesets
 .github/ @vfcarida
 .github/workflows/ @vfcarida
 .github/actions/ @vfcarida
 .github/rulesets/ @vfcarida
+.github/dependabot.yml @vfcarida
 
-# Packaging, Dependencies, and Supply-Chain
+# Packaging, Dependencies, and Supply-Chain Metadata
 pyproject.toml @vfcarida
 uv.lock @vfcarida
 CITATION.cff @vfcarida
@@ -19,3 +29,9 @@ src/ewm_engine/simulation/ @vfcarida
 src/ewm_engine/dynamics/ @vfcarida
 src/ewm_engine/constraints/ @vfcarida
 src/ewm_engine/provenance/ @vfcarida
+src/ewm_engine/experimental/ @vfcarida
+
+# Documentation and Architecture Decision Records
+docs/ @vfcarida
+docs/adr/ @vfcarida
+docs/specs/ @vfcarida

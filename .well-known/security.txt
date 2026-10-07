@@ -1,0 +1,10 @@
+# RFC 9116 Security Contact Information
+# https://www.rfc-editor.org/rfc/rfc9116
+
+Contact: https://github.com/vfcarida/Enterprise-World-Model-Engine/security/advisories/new
+Contact: mailto:vfcarida@gmail.com
+Expires: 2027-10-07T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://raw.githubusercontent.com/vfcarida/Enterprise-World-Model-Engine/main/.well-known/security.txt
+Policy: https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/SECURITY.md
+Acknowledgments: https://github.com/vfcarida/Enterprise-World-Model-Engine/security/advisories

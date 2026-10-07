@@ -1,0 +1,88 @@
+# Configuration for actions/labeler v5
+# Maps repository file paths to GitHub labels
+
+area:core:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/core/**'
+
+area:simulation:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/simulation/**'
+
+area:dynamics:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/dynamics/**'
+
+area:constraints:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/constraints/**'
+
+area:provenance:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/provenance/**'
+
+area:experimental:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/experimental/**'
+
+area:integrations:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/integrations/**'
+
+area:cosim:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/cosim/**'
+
+area:multiagent:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/multiagent/**'
+
+area:reporting:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/reporting/**'
+
+area:service:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/service/**'
+
+area:trackers:
+  - changed-files:
+      - any-glob-to-any-file: 'src/ewm_engine/trackers/**'
+
+area:serialization:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/ewm_engine/serialization/**'
+          - 'schemas/**'
+
+area:benchmarks:
+  - changed-files:
+      - any-glob-to-any-file: 'benchmarks/**'
+
+area:docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**'
+          - '*.md'
+          - 'mkdocs.yml'
+
+area:ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+          - 'scripts/**'
+
+area:packaging:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pyproject.toml'
+          - 'uv.lock'
+          - 'tests/packaging/**'
+
+area:tests:
+  - changed-files:
+      - any-glob-to-any-file: 'tests/**'
+
+rfc:
+  - changed-files:
+      - any-glob-to-any-file: 'rfcs/**'

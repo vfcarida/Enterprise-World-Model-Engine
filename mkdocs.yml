@@ -171,6 +171,13 @@ nav:
           - "ADR-035: Modern Packaging, Dynamic Versioning & Typing": adr/ADR-035-modern-packaging-dynamic-versioning-and-typing-excellence.md
           - "ADR-036: CI/CD Excellence, Repository Rulesets & Merge Queue": adr/ADR-036-cicd-excellence-repository-rulesets-and-merge-queue.md
           - "ADR-037: Release Engineering, Version Truth & Deprecations": adr/ADR-037-release-engineering-version-truth-and-deprecation-policy.md
+          - "ADR-038: Open-Source Governance & RFC Process": adr/ADR-038-open-source-governance-community-health-and-rfc-process.md
+
+  - Community & Governance:
+      - "Community Health & CHAOSS": community-health.md
+      - "Curated Starter Tasks": good-first-issues.md
+      - "NumFOCUS Sponsorship Prospectus": numfocus-sponsorship.md
+      - "Open-Source Governance (ADR-038)": adr/ADR-038-open-source-governance-community-health-and-rfc-process.md
 
   - Explanation:
       - "What is a World Model?": concepts/world-models.md
