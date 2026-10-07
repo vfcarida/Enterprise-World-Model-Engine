@@ -22,6 +22,8 @@
   <!-- Zenodo DOI (minted upon GitHub Release via R10) -->
   <a href="https://doi.org/10.5281/zenodo.placeholder"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.placeholder-blue?style=flat" alt="DOI"></a>
   <a href="paper/paper.md"><img src="https://img.shields.io/badge/JOSS-paper%20review-brightgreen?style=flat" alt="JOSS Paper"></a>
+  <a href="docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md"><img src="https://img.shields.io/badge/SLSA-Build%20L2%2B-blue?style=flat" alt="SLSA L2+"></a>
+  <a href="https://www.bestpractices.dev/projects/10000"><img src="https://img.shields.io/badge/OpenSSF-passing-brightgreen?style=flat" alt="OpenSSF Best Practices"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat" alt="License: Apache-2.0"></a>
 </p>
 

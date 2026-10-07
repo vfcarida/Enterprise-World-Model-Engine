@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - Unreleased
 
 ### Added
+- **Supply-Chain Security Hardening: SLSA Provenance, Dual SBOMs, PEP 740 Attestations, and Gated Vulnerability Management (ADR-034, R07)**:
+  - Authored Architecture Decision Record [`ADR-034`](docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md) establishing zero-static-token OIDC publishing, SLSA Build L2+ attestations, dual CycloneDX and Syft SBOM generation, and the blocking vs. advisory vulnerability triage split.
+  - **Zero Static PyPI Secrets & PEP 740 Attestations**: Updated release pipeline (`.github/workflows/release.yml`) to authenticate via PyPI OIDC Trusted Publishing with `attestations: true` (`pypa/gh-action-pypi-publish@v1.14+`), removing all static API tokens and publishing Sigstore-signed digital attestations.
+  - **Cryptographic SLSA Build Provenance (L2+)**: Configured `actions/attest-build-provenance` to generate verifiable in-toto build provenance for wheel and sdist distributions on release, bindable to source commit SHAs and verifiable via `gh attestation verify`.
+  - **Dual Software Bill of Materials (SBOM)**: Integrated CycloneDX JSON (`cyclonedx-bom`) logical environment SBOMs and Syft SPDX JSON (`anchore/sbom-action`) wheel-level binary inspection SBOMs into every release build, capturing phantom native dependencies and attaching them directly to GitHub Releases.
+  - **Blocking PR Vulnerability Gate (`pip-audit`)**: Added `pip-audit` job to `.github/workflows/ci.yml` and wired it into `ci-gates` as the 16th required CI quality gate, blocking regressions against the pinned lockfile environment while codifying an expiry-bounded `--ignore-vuln` exception policy.
+  - **Weekly OpenSSF Scorecard**: Configured `.github/workflows/scorecard.yml` running weekly Scorecard analysis (`ossf/scorecard-action`), uploading SARIF reports to GitHub Code Scanning to audit token permissions, workflow safety, dependency pinning, and branch protections.
+  - **Nightly Vulnerability & License Scans**: Added `.github/workflows/vulnerability-scan.yml` running nightly OSV-Scanner v2 and Anchore Grype scans under an advisory triage policy.
+  - **Security Posture Documentation & Badges**: Enriched `SECURITY.md`, added OpenSSF Best Practices, SLSA L2+, and Scorecard badges to `README.md`, and updated `mkdocs.yml` navigation.
 - **Academic Polish: CITATION.cff, Zenodo DOI Architecture, JOSS Manuscript, and Research Reproducibility Guide (R06)**:
   - **Machine-Readable Citation (`CITATION.cff`)**: Updated root `CITATION.cff` (v1.2.0 schema) with comprehensive author metadata, affiliation ("Independent Researcher"), contact email, repository links, keywords, and abstract, instantly enabling GitHub's native **"Cite this repository"** button with APA and BibTeX exports.
   - **Automated CI Validation (`cffconvert`)**: Added `citation-check` job to `.github/workflows/ci.yml` powered by `citation-file-format/cffconvert-github-action@2.0.0` and wired into the `ci-gates` aggregation gate, ensuring citation metadata never breaks in future pull requests.

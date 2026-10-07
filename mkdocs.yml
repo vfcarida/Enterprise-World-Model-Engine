@@ -165,6 +165,7 @@ nav:
           - "ADR-031: Multi-Tiered Testing Rigor & CI Gates": adr/ADR-031-multi-tiered-testing-rigor-and-ci-gates.md
           - "ADR-032: Deterministic Performance Gates & Numerical QA": adr/ADR-032-deterministic-performance-gates-and-numerical-qa.md
           - "ADR-033: Scientific ML Rigor, Provenance & Causal Gates": adr/ADR-033-scientific-ml-provenance-uq-and-causal-gates.md
+          - "ADR-034: Supply-Chain Security & Provenance": adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md
 
   - Explanation:
       - "What is a World Model?": concepts/world-models.md
