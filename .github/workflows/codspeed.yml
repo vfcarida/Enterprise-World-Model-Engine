@@ -38,7 +38,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run CodSpeed Curated Benchmarks
-        uses: CodSpeedHQ/action@76578c2a7ddd928664caa737f0e962e3085d4e7c # v3.8.1
+        uses: CodSpeedHQ/action@c4fd08a3a159bd0cc208da1e0edf32b8c47d75e5 # v5.4.0
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
           run: uv run pytest benchmarks/test_curated_benchmarks.py --codspeed -v
