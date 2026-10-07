@@ -1,0 +1,25 @@
+{
+  "title": "Enterprise World Model Engine: An Open Framework for Modeling, Simulating, and Evaluating Organizational Dynamics",
+  "description": "Enterprise World Model Engine (EWM Engine) is an open-source, domain-neutral Python framework for modeling, simulating, and evaluating complex organizational and socio-technical systems under interventional policy changes. Unlike observational predictive models or workflow orchestrators, EWM executes action-conditioned forward rollouts (E[S_{t+H} | do(A_t)]) that strictly decouple known explicit rules and conservation laws from learned probabilistic dynamics — guaranteeing bitwise reproducibility through cryptographic state fingerprints, seed-tree isolation, and zero mandatory LLM dependencies.",
+  "creators": [
+    {
+      "name": "Caridá, Vinicius",
+      "affiliation": "Independent Researcher"
+    }
+  ],
+  "access_right": "open",
+  "license": "Apache-2.0",
+  "keywords": [
+    "world models",
+    "enterprise systems",
+    "simulation",
+    "counterfactuals",
+    "operations research",
+    "socio-technical dynamics",
+    "causal inference",
+    "uncertainty quantification",
+    "reproducible research"
+  ],
+  "upload_type": "software",
+  "notes": "Project repository: https://github.com/vfcarida/Enterprise-World-Model-Engine\nDocumentation: https://vfcarida.github.io/Enterprise-World-Model-Engine/"
+}

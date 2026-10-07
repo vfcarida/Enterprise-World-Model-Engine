@@ -19,8 +19,9 @@
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/types-mypy%20strict-1f2937?style=flat" alt="Mypy Strict"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat" alt="Ruff Style"></a>
   <a href="docs/adr/ADR-004-no-llm-dependency.md"><img src="https://img.shields.io/badge/core-zero--LLM%20%7C%20deterministic-8b5cf6?style=flat" alt="Zero-LLM Core"></a>
-  <!-- DOI / Zenodo badge placeholder (wired in R06) -->
+  <!-- Zenodo DOI (minted upon GitHub Release via R10) -->
   <a href="https://doi.org/10.5281/zenodo.placeholder"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.placeholder-blue?style=flat" alt="DOI"></a>
+  <a href="paper/paper.md"><img src="https://img.shields.io/badge/JOSS-paper%20review-brightgreen?style=flat" alt="JOSS Paper"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat" alt="License: Apache-2.0"></a>
 </p>
 
@@ -558,24 +559,30 @@ We welcome contributions from researchers, software engineers, and domain expert
 
 ---
 
-## Citation
+## Citation & Academic Rigor
 
-If you use EWM Engine in academic research, benchmark evaluation, or technical publications, please cite:
+If you use EWM Engine in academic research, benchmark evaluation, or technical publications, please cite the framework using the machine-readable [CITATION.cff](CITATION.cff) (enabling GitHub's native **"Cite this repository"** button) or the BibTeX entry below:
 
 ```bibtex
 @software{carida2026ewmengine,
-  author = {Carida, Vinicius},
-  title = {Enterprise World Model Engine: An Open Framework for Modeling, Simulating, and Evaluating Organizational Dynamics},
-  year = {2026},
-  url = {https://github.com/vfcarida/Enterprise-World-Model-Engine},
-  version = {1.0.0}
+  author    = {Caridá, Vinicius},
+  title     = {Enterprise World Model Engine: An Open Framework for Modeling, Simulating, and Evaluating Organizational Dynamics},
+  year      = {2026},
+  url       = {https://github.com/vfcarida/Enterprise-World-Model-Engine},
+  version   = {1.0.0},
+  license   = {Apache-2.0}
 }
 ```
 
-See [CITATION.cff](CITATION.cff) for complete citation metadata.
+### Scholarly Archival & Reproducibility
+- **Journal of Open Source Software (JOSS)**: See the paper manuscript in [`paper/paper.md`](paper/paper.md) and bibliography in [`paper/paper.bib`](paper/paper.bib).
+- **Zenodo Persistent Identifiers**: Configured via [`.zenodo.json`](.zenodo.json). Every GitHub release mints both a **Concept DOI** (`10.5281/zenodo.<concept>`) for general project citations and a **Version DOI** (`10.5281/zenodo.<version>`) for exact snapshot reproducibility.
+- **Software Heritage (SWHID)**: Long-term content-addressed source code archival via [Software Heritage](https://archive.softwareheritage.org/save/).
+- **Reproducibility Guide**: See the complete [Research Reproducibility & Citation Guide](docs/reproducibility.md) for NeurIPS checklist compliance and seed-tree determinism.
 
 ---
 
 ## License
 
 EWM Engine is open-source software licensed under the [Apache License 2.0](LICENSE).
+

@@ -346,7 +346,7 @@ def _create_synthetic_causal_dataset() -> tuple[TransitionDataset, CausalGraph]:
                 "revenue": Resource(id="revenue", current=rev, min_value=0.0, max_value=500.0)
             }
         )
-        samples.append(TransitionSample(state=st, actions=actions, next_state=nxt))
+        samples.append(TransitionSample(state=st, actions=tuple(actions), next_state=nxt))
 
     return TransitionDataset(samples=samples), graph
 

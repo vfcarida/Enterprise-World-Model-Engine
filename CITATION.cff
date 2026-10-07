@@ -1,18 +1,39 @@
 cff-version: 1.2.0
 message: "If you use Enterprise World Model Engine in your research, please cite it as below."
+title: "Enterprise World Model Engine: An Open Framework for Modeling, Simulating, and Evaluating Organizational Dynamics"
+abstract: "Enterprise World Model Engine (EWM Engine) is an open-source, domain-neutral Python framework for modeling, simulating, and evaluating complex organizational and socio-technical systems under interventional policy changes. Unlike observational predictive models, EWM executes action-conditioned forward rollouts that strictly decouple known explicit rules and conservation laws from learned probabilistic dynamics — guaranteeing bitwise reproducibility through cryptographic state fingerprints, seed-tree isolation, and zero mandatory LLM dependencies."
 authors:
-  - family-names: "Carida"
+  - family-names: "Caridá"
     given-names: "Vinicius"
-title: "Enterprise World Model Engine: A General-Purpose Framework for Modeling, Simulating, and Evaluating Organizational Dynamics"
+    email: "vfcarida@gmail.com"
+    affiliation: "Independent Researcher"
 version: 1.0.0
 date-released: 2026-10-02
-url: "https://github.com/vfcarida/Enterprise-World-Model-Engine"
+license: Apache-2.0
 repository-code: "https://github.com/vfcarida/Enterprise-World-Model-Engine"
+url: "https://vfcarida.github.io/Enterprise-World-Model-Engine/"
 keywords:
   - "world models"
   - "enterprise systems"
   - "simulation"
   - "counterfactuals"
+  - "causal inference"
   - "operations research"
   - "socio-technical dynamics"
-license: Apache-2.0
+  - "uncertainty quantification"
+  - "reproducible research"
+
+# Zenodo DOI placeholder (minted upon GitHub Release via R10)
+# doi: "10.5281/zenodo.placeholder"
+
+# JOSS Paper citation placeholder (uncomment upon peer-reviewed publication)
+# preferred-citation:
+#   type: article
+#   title: "Enterprise World Model Engine: An Open Framework for Modeling, Simulating, and Evaluating Organizational Dynamics"
+#   authors:
+#     - family-names: "Caridá"
+#       given-names: "Vinicius"
+#       affiliation: "Independent Researcher"
+#   journal: "Journal of Open Source Software"
+#   year: 2026
+#   doi: "10.21105/joss.placeholder"

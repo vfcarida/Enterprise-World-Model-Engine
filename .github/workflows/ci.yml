@@ -83,6 +83,18 @@ jobs:
       - name: Run Mypy
         run: uv run mypy src tests examples benchmarks
 
+  citation-check:
+    name: Citation Metadata Validation (cffconvert)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate CITATION.cff
+        uses: citation-file-format/cffconvert-github-action@4cf11baa70a673bfec112acf80073161f4ba332b # 2.0.0
+        with:
+          args: "--validate"
+
   unit-tests:
     name: Unit Tests (${{ matrix.python-version }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -405,6 +417,7 @@ jobs:
       - lint
       - format-check
       - type-check
+      - citation-check
       - unit-tests
       - property-tests
       - integration-tests
@@ -421,13 +434,14 @@ jobs:
       - name: Evaluate Gates
         run: |
           failures=()
-          for job in lint format-check type-check unit-tests property-tests integration-tests contract-tests security-tests example-tests architecture-tests package-build docs-build memory-gates numerical-tests; do
+          for job in lint format-check type-check citation-check unit-tests property-tests integration-tests contract-tests security-tests example-tests architecture-tests package-build docs-build memory-gates numerical-tests; do
             result="${{ needs.lint.result }}" # template
           done
           echo "Checking status of all required quality gates..."
           if [[ "${{ needs.lint.result }}" != "success" ]]; then failures+=("lint"); fi
           if [[ "${{ needs.format-check.result }}" != "success" ]]; then failures+=("format-check"); fi
           if [[ "${{ needs.type-check.result }}" != "success" ]]; then failures+=("type-check"); fi
+          if [[ "${{ needs.citation-check.result }}" != "success" ]]; then failures+=("citation-check"); fi
           if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then failures+=("unit-tests"); fi
           if [[ "${{ needs.property-tests.result }}" != "success" ]]; then failures+=("property-tests"); fi
           if [[ "${{ needs.integration-tests.result }}" != "success" ]]; then failures+=("integration-tests"); fi
@@ -444,4 +458,4 @@ jobs:
             echo "CI Gate Check FAILED! Failed jobs: ${failures[*]}"
             exit 1
           fi
-          echo "All 14 CI quality gates passed successfully."
+          echo "All 15 CI quality gates passed successfully."

@@ -121,6 +121,7 @@ nav:
       - "CLI Command Reference": reference/cli.md
       - "JSON Schemas Reference": reference/schemas.md
       - "Stability Policy (SemVer 2.0.0)": stability-policy.md
+      - "Scientific Reproducibility & Citation": reproducibility.md
       - "v1 Specification Contract": specs/spec-driven-development.md
       - Feature Specifications:
           - "FEAT-001: Evaluation Upgrade": specs/features/FEAT-001-evaluation-upgrade.md
