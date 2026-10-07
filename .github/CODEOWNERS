@@ -1,0 +1,21 @@
+# Global project owners
+* @vfcarida
+
+# CI/CD Workflows, Actions, and Governance
+.github/ @vfcarida
+.github/workflows/ @vfcarida
+.github/actions/ @vfcarida
+.github/rulesets/ @vfcarida
+
+# Packaging, Dependencies, and Supply-Chain
+pyproject.toml @vfcarida
+uv.lock @vfcarida
+CITATION.cff @vfcarida
+.zenodo.json @vfcarida
+
+# Core Architecture & Execution Engine
+src/ewm_engine/core/ @vfcarida
+src/ewm_engine/simulation/ @vfcarida
+src/ewm_engine/dynamics/ @vfcarida
+src/ewm_engine/constraints/ @vfcarida
+src/ewm_engine/provenance/ @vfcarida

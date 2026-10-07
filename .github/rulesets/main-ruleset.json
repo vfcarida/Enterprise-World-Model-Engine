@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json.schemastore.org/github-ruleset.json",
+  "name": "Main Protection & CI Quality Gates Ruleset",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": [
+        "refs/heads/main"
+      ],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "required_linear_history"
+    },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews_on_push": true,
+        "require_code_owner_review": true,
+        "require_last_push_approval": true,
+        "required_review_thread_resolution": true
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": false,
+        "required_status_checks": [
+          { "context": "All CI Quality Gates Passed" },
+          { "context": "Lint Check (Ruff)" },
+          { "context": "Formatting Check (Ruff)" },
+          { "context": "Type Check (Mypy Strict)" },
+          { "context": "GitHub Actions Security Audit (zizmor)" },
+          { "context": "Action SHA Pinning & SPEC 0 Checks" },
+          { "context": "Citation Metadata Validation (cffconvert)" },
+          { "context": "Dependency Vulnerability Audit (pip-audit)" },
+          { "context": "Packaging & Wheel Artifact Tests" },
+          { "context": "Unit Tests (3.11 on ubuntu-latest)" },
+          { "context": "Unit Tests (3.12 on ubuntu-latest)" },
+          { "context": "Property-Based Tests (Hypothesis CI Profile)" },
+          { "context": "Integration Tests" },
+          { "context": "Contract & Packaging Tests" },
+          { "context": "Security Tests & Credential Scan" },
+          { "context": "Acceptance Example Tests" },
+          { "context": "Architecture & Import Boundary Tests" },
+          { "context": "Package Build & Wheel Verification" },
+          { "context": "Documentation Build (Strict Mode)" },
+          { "context": "Deterministic Memory & Leak Gates (memray)" },
+          { "context": "Numerical Reproducibility & Differential Tests" },
+          { "context": "CodeQL Security Scan" },
+          { "context": "Scorecard Security Analysis" }
+        ]
+      }
+    },
+    {
+      "type": "merge_queue",
+      "parameters": {
+        "check_response_timeout_minutes": 60,
+        "grouping_strategy": "ALLGREEN",
+        "max_entries_to_build": 5,
+        "max_entries_to_merge": 5,
+        "merge_method": "SQUASH",
+        "min_entries_to_merge": 1,
+        "min_entries_to_merge_wait_minutes": 5
+      }
+    }
+  ],
+  "bypass_actors": []
+}

@@ -1,0 +1,31 @@
+name: "Setup Python & uv"
+description: "Composite action configuring Python, uv, lockfile-based caching, and restore-only PR behavior"
+
+inputs:
+  python-version:
+    description: "Target Python version"
+    required: false
+    default: "3.11"
+  enable-cache:
+    description: "Whether to enable uv dependency caching"
+    required: false
+    default: "true"
+  save-cache:
+    description: "Whether to persist cache writes (defaults to true only on push to main)"
+    required: false
+    default: "auto"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up uv
+      uses: astral-sh/setup-uv@1641328005b630e69882bf6b9fb543eb3fef0437 # v5.1.0
+      with:
+        enable-cache: ${{ inputs.enable-cache }}
+        cache-dependency-glob: "uv.lock"
+        save-cache: ${{ inputs.save-cache != 'auto' && inputs.save-cache || (github.ref == 'refs/heads/main' && github.event_name == 'push') }}
+
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+      with:
+        python-version: ${{ inputs.python-version }}

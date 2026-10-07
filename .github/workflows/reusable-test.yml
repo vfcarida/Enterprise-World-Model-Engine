@@ -1,0 +1,58 @@
+name: Reusable Test Matrix Runner
+
+on:
+  workflow_call:
+    inputs:
+      test-type:
+        description: "Type of test suite to execute (unit, integration, property, contract, security, examples, architecture)"
+        required: true
+        type: string
+      python-version:
+        description: "Python version"
+        required: false
+        type: string
+        default: "3.11"
+      os:
+        description: "Runner operating system"
+        required: false
+        type: string
+        default: "ubuntu-latest"
+      pytest-args:
+        description: "Additional pytest arguments"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ inputs.test-type }} (${{ inputs.python-version }} on ${{ inputs.os }})
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Harden Runner
+        if: runner.os == 'Linux'
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python and uv
+        uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Test Suite
+        env:
+          TEST_TYPE: ${{ inputs.test-type }}
+          PYTEST_ARGS: ${{ inputs.pytest-args }}
+        run: |
+          uv run pytest "tests/${TEST_TYPE}" ${PYTEST_ARGS}
