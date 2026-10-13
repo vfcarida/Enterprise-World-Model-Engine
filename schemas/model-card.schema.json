@@ -36,6 +36,14 @@
       "title": "Card Type",
       "type": "string"
     },
+    "caveats_and_recommendations": {
+      "description": "Actionable caveats, minimum sample guidelines, and user recommendations.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Caveats And Recommendations",
+      "type": "array"
+    },
     "constraints_exercised": {
       "description": "Identifiers of physical or operational constraints evaluated with this model.",
       "items": {
@@ -49,6 +57,30 @@
       "description": "Detailed description of dynamics mechanism, architecture, or policy.",
       "title": "Description",
       "type": "string"
+    },
+    "ethical_considerations": {
+      "description": "Fairness risks, human oversight mechanisms, privacy, and systemic harm considerations.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Ethical Considerations",
+      "type": "array"
+    },
+    "eval_data": {
+      "description": "Evaluation dataset, benchmark family, and split methodology.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Eval Data",
+      "type": "array"
+    },
+    "factors": {
+      "description": "Relevant operational, environmental, or demographic factors and sub-populations.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Factors",
+      "type": "array"
     },
     "intended_use": {
       "description": "Declared organizational decisions and operating regimes model was designed for.",
@@ -87,6 +119,12 @@
       "title": "Metrics",
       "type": "object"
     },
+    "model_details": {
+      "additionalProperties": true,
+      "description": "Basic details: developer, architecture, type, license, date.",
+      "title": "Model Details",
+      "type": "object"
+    },
     "model_id": {
       "description": "Unique identifier of the model.",
       "title": "Model Id",
@@ -113,12 +151,26 @@
       "title": "Provenance Sources",
       "type": "array"
     },
+    "quantitative_analyses": {
+      "additionalProperties": true,
+      "description": "Distributional summaries, uncertainty intervals, and subgroup analyses.",
+      "title": "Quantitative Analyses",
+      "type": "object"
+    },
     "schema_version": {
       "const": "1.0.0",
       "default": "1.0.0",
       "description": "Semantic schema version.",
       "title": "Schema Version",
       "type": "string"
+    },
+    "training_data": {
+      "description": "Training datasets, generator parameters, and data hashes.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Training Data",
+      "type": "array"
     },
     "version": {
       "default": "1.0.0",

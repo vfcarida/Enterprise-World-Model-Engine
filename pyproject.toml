@@ -185,7 +185,7 @@ explain = [
     "dice-ml>=0.11",
 ]
 erroranalysis = [
-    "erroranalysis>=0.5.0",
+    "erroranalysis>=0.5.0; python_version < '3.12'",
 ]
 interop = [
     "simpy>=4.1.0",
@@ -236,6 +236,50 @@ Repository = "https://github.com/vfcarida/Enterprise-World-Model-Engine"
 Issues = "https://github.com/vfcarida/Enterprise-World-Model-Engine/issues"
 Changelog = "https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/CHANGELOG.md"
 
+[tool.uv]
+conflicts = [
+    [
+        { extra = "erroranalysis" },
+        { extra = "all" },
+    ],
+    [
+        { extra = "erroranalysis" },
+        { extra = "solvers" },
+    ],
+    [
+        { extra = "erroranalysis" },
+        { extra = "or" },
+    ],
+    [
+        { extra = "erroranalysis" },
+        { extra = "fairness" },
+    ],
+    [
+        { extra = "erroranalysis" },
+        { extra = "explain" },
+    ],
+    [
+        { extra = "erroranalysis" },
+        { extra = "calibrate" },
+    ],
+    [
+        { extra = "erroranalysis" },
+        { extra = "uq" },
+    ],
+    [
+        { extra = "erroranalysis" },
+        { extra = "causal" },
+    ],
+    [
+        { extra = "erroranalysis" },
+        { extra = "experimentation" },
+    ],
+    [
+        { extra = "erroranalysis" },
+        { extra = "surrogate" },
+    ],
+]
+
 [tool.hatch.version]
 source = "vcs"
 
@@ -248,6 +292,7 @@ version-file = "src/ewm_engine/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ewm_engine"]
+# PEP 561 typing marker: py.typed is included from src/ewm_engine/py.typed
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -315,6 +360,16 @@ module = [
     "dice_ml.*",
     "erroranalysis.*",
     "pandas.*",
+    "ray.*",
+    "beartype.*",
+    "typeguard.*",
+    "time_machine.*",
+    "pytest_socket.*",
+    "syrupy.*",
+    "pytest_benchmark.*",
+    "pytest_codspeed.*",
+    "gymnasium.*",
+    "simpy.*",
 ]
 ignore_missing_imports = true
 

@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from beartype import beartype
-from beartype.roar import BeartypeCallHintViolation
 
 from ewm_engine.core.boundary import validate_numeric_array_boundary
 
@@ -53,8 +51,11 @@ def test_validate_numeric_array_boundary_failures() -> None:
 @pytest.mark.packaging
 def test_beartype_decoration_on_boundary_functions() -> None:
     """Beartype successfully decorates public boundary functions without array element loops."""
+    pytest.importorskip("beartype")
+    from beartype import beartype
+    from beartype.roar import BeartypeCallHintViolation
 
-    @beartype
+    @beartype  # type: ignore[untyped-decorator]
     def boundary_endpoint(state_id: str, values: np.ndarray, tolerance: float = 1e-4) -> float:
         validate_numeric_array_boundary(values, expected_ndim=1)
         return float(np.sum(values))
@@ -64,5 +65,19 @@ def test_beartype_decoration_on_boundary_functions() -> None:
     assert total == 60.0
 
     # Type error on primitive parameter caught by beartype at O(1)
+    bad_id: object = 12345
     with pytest.raises(BeartypeCallHintViolation):
-        boundary_endpoint(12345, np.array([10.0, 20.0]))  # type: ignore[arg-type]
+        boundary_endpoint(bad_id, np.array([10.0, 20.0]))  # type: ignore[arg-type,unused-ignore]
+
+
+@pytest.mark.packaging
+def test_typeguard_import_hook_in_test_environment() -> None:
+    """Typeguard checks runtime annotations when activated without altering core numeric paths."""
+    pytest.importorskip("typeguard")
+    from typeguard import TypeCheckError, check_type, install_import_hook
+
+    # Verify runtime type validation capability for test suites
+    assert callable(install_import_hook)
+    check_type(42, int)
+    with pytest.raises(TypeCheckError):
+        check_type("forty-two", int)

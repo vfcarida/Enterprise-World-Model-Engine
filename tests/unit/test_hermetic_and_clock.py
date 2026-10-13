@@ -18,7 +18,7 @@ import pytest
 try:
     import time_machine
 except ImportError:
-    time_machine = None  # type: ignore[assignment]
+    time_machine = None  # type: ignore[assignment,unused-ignore]
 
 from ewm_engine.cards.models import ScenarioCard
 

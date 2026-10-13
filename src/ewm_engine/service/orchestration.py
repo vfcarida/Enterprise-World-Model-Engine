@@ -5,7 +5,7 @@ Wires EWM Engine canonical simulation fingerprints directly into orchestrator ca
 
 from __future__ import annotations
 
-import importlib
+import importlib.util
 from typing import Any
 
 from ewm_engine.core.world import World

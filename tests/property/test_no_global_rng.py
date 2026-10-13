@@ -43,6 +43,9 @@ def test_ast_scan_no_global_rng_calls_in_core_modules() -> None:
     for pkg_name in core_packages:
         pkg_dir = SRC_ROOT / pkg_name
         for py_file in pkg_dir.rglob("*.py"):
+            if py_file.name == "seed.py":
+                # seed_everything explicitly seeds runtime global environments per NeurIPS checklist
+                continue
             tree = ast.parse(py_file.read_text(encoding="utf-8"), filename=str(py_file))
 
             for node in ast.walk(tree):

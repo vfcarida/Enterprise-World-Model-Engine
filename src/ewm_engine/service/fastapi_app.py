@@ -6,7 +6,7 @@ to JobRunner (never using FastAPI BackgroundTasks for compute).
 
 from __future__ import annotations
 
-import importlib
+import importlib.util
 from typing import Any
 
 from pydantic import BaseModel, Field

@@ -38,7 +38,9 @@ LOCKED_V1_STABLE_SURFACE: frozenset[str] = frozenset(
         "Provenance",
         "Relationship",
         "Resource",
+        "ResponsibleAIGate",
         "Scenario",
+        "ScenarioForecastResult",
         "SimulationEngine",
         "SimulationResult",
         "TraceEdge",
@@ -47,8 +49,10 @@ LOCKED_V1_STABLE_SURFACE: frozenset[str] = frozenset(
         "TransitionResult",
         "World",
         "WorldState",
-        "compare_scenarios",
         "__version__",
+        "compare_scenarios",
+        "deprecate",
+        "deprecated",
     }
 )
 

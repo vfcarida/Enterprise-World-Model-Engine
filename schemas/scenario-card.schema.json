@@ -10,7 +10,7 @@
       "type": "string"
     },
     "assumptions": {
-      "description": "Assumptions regarding exogenous shock rates, actor adherence, or context stability.",
+      "description": "Explicit theoretical or behavioral assumptions regarding shock rates, adherence, etc.",
       "items": {
         "type": "string"
       },
@@ -85,6 +85,12 @@
       },
       "title": "Out Of Scope",
       "type": "array"
+    },
+    "quantitative_analyses": {
+      "additionalProperties": true,
+      "description": "Quantitative analysis distributions and subgroup metrics.",
+      "title": "Quantitative Analyses",
+      "type": "object"
     },
     "samples": {
       "description": "Monte Carlo rollout count.",

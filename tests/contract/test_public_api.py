@@ -20,7 +20,9 @@ EXPECTED_STABLE_ALL: set[str] = {
     "Provenance",
     "Relationship",
     "Resource",
+    "ResponsibleAIGate",
     "Scenario",
+    "ScenarioForecastResult",
     "SimulationEngine",
     "SimulationResult",
     "TraceEdge",
@@ -31,6 +33,8 @@ EXPECTED_STABLE_ALL: set[str] = {
     "WorldState",
     "__version__",
     "compare_scenarios",
+    "deprecate",
+    "deprecated",
 }
 
 

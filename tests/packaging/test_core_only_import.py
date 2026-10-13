@@ -10,6 +10,8 @@ import pytest
 @pytest.mark.packaging
 def test_root_import_does_not_load_optional_dependencies() -> None:
     """Importing ewm_engine root must NEVER load heavy optional libraries into sys.modules."""
+    import subprocess
+
     forbidden_heavy_modules = [
         "torch",
         "z3",
@@ -28,12 +30,19 @@ def test_root_import_does_not_load_optional_dependencies() -> None:
         "fmpy",
     ]
 
-    import ewm_engine  # noqa: F401
-
-    for mod in forbidden_heavy_modules:
-        assert mod not in sys.modules, (
-            f"Optional library '{mod}' was eagerly imported on 'import ewm_engine'!"
-        )
+    script = (
+        "import sys\n"
+        "import ewm_engine\n"
+        f"forbidden = {forbidden_heavy_modules!r}\n"
+        "loaded = [m for m in forbidden if m in sys.modules]\n"
+        "if loaded:\n"
+        "    print(f'LEAKED: {loaded}')\n"
+        "    sys.exit(1)\n"
+    )
+    res = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True)
+    assert res.returncode == 0, (
+        f"Optional dependencies eagerly loaded on import ewm_engine:\n{res.stdout}\n{res.stderr}"
+    )
 
 
 @pytest.mark.packaging
