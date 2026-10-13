@@ -14,13 +14,19 @@ import time
 from pathlib import Path
 
 import pytest
-import time_machine
+
+try:
+    import time_machine
+except ImportError:
+    time_machine = None  # type: ignore[assignment]
 
 from ewm_engine.cards.models import ScenarioCard
 
 
 def test_frozen_clock_determinism() -> None:
     """Verify that time-machine freezes datetime and produces identical deterministic timestamps."""
+    if time_machine is None:
+        pytest.skip("time-machine not installed")
     frozen_point = "2026-10-06 12:00:00 +00:00"
 
     with time_machine.travel(frozen_point, tick=False):

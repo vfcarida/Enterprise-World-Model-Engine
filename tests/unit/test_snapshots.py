@@ -12,6 +12,8 @@ from typing import Any
 
 import pytest
 
+pytest.importorskip("syrupy")
+
 from ewm_engine.cards.models import ScenarioCard
 from ewm_engine.cards.render import render_card_markdown, render_card_yaml
 from ewm_engine.provenance.evidence import EvidenceLevel
