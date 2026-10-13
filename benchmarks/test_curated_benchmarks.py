@@ -19,6 +19,19 @@ from typing import Any
 import numpy as np
 import pytest
 
+try:
+    import pytest_benchmark  # noqa: F401
+except ImportError:
+    try:
+        import pytest_codspeed  # noqa: F401
+    except ImportError:
+        @pytest.fixture
+        def benchmark() -> Any:
+            """Fallback benchmark fixture when pytest-benchmark/codspeed is not installed."""
+            def _runner(func: Any, *args: Any, **kwargs: Any) -> Any:
+                return func(*args, **kwargs)
+            return _runner
+
 from ewm_engine.actors.rule_based import ThresholdReplenishmentActor
 from ewm_engine.constraints.registry import ConstraintRegistry
 from ewm_engine.constraints.standard import (
