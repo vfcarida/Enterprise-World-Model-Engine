@@ -24,6 +24,7 @@ runs:
         enable-cache: ${{ inputs.enable-cache }}
         cache-dependency-glob: "uv.lock"
         save-cache: ${{ inputs.save-cache != 'auto' && inputs.save-cache || (github.ref == 'refs/heads/main' && github.event_name == 'push') }}
+        prune-cache: true
 
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
