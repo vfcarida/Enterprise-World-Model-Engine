@@ -15,6 +15,7 @@
   <a href="https://vfcarida.github.io/Enterprise-World-Model-Engine/"><img src="https://img.shields.io/github/actions/workflow/status/vfcarida/Enterprise-World-Model-Engine/docs.yml?branch=main&label=docs&style=flat" alt="Documentation Status"></a>
   <a href="https://pypi.org/project/ewm-engine/"><img src="https://img.shields.io/pypi/v/ewm-engine?color=4f46e5&style=flat" alt="PyPI Version"></a>
   <a href="https://pypi.org/project/ewm-engine/"><img src="https://img.shields.io/pypi/pyversions/ewm-engine?style=flat" alt="Python Versions"></a>
+  <a href="https://pepy.tech/project/ewm-engine"><img src="https://static.pepy.tech/badge/ewm-engine?style=flat" alt="PyPI Downloads"></a>
   <a href="scripts/check_coverage.py"><img src="https://img.shields.io/badge/coverage-%E2%89%A585%25%20gated-success?style=flat" alt="Coverage Gate"></a>
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/types-mypy%20strict-1f2937?style=flat" alt="Mypy Strict"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat" alt="Ruff Style"></a>

@@ -17,10 +17,10 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from typing import Self
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from typing_extensions import Self
 
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import WorldState
