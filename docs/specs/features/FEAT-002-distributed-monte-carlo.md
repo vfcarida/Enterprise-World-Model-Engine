@@ -62,6 +62,9 @@ To enable scale-out while preserving the engine's core promise—**same seed $\i
 
 ```mermaid
 flowchart TD
+    accTitle: Distributed Monte Carlo Execution Architecture
+    accDescr: Diagram showing scenario decomposition, SeedSequence spawning, multiprocessing worker pools, and result aggregation.
+
     Scenario[Scenario: seed, samples, horizon] --> Orchestrator[SimulationEngine.run]
     Orchestrator --> SeedSeq[SeedSequence.spawn(samples)]
     Orchestrator --> Dispatcher{Selected Executor}

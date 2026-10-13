@@ -22,14 +22,20 @@ def check_file_accessibility(file_path: Path) -> list[str]:
     # 1. Heading hierarchy check
     lines = content.splitlines()
     last_heading_level = 0
-    in_code_block = False
+    current_fence: str | None = None
 
     for line_idx, line in enumerate(lines, start=1):
         stripped = line.strip()
-        if stripped.startswith("```"):
-            in_code_block = not in_code_block
-            continue
-        if in_code_block:
+        fence_match = re.match(r"^(`{3,}|~{3,})", stripped)
+        if fence_match:
+            fence = fence_match.group(1)
+            if not current_fence:
+                current_fence = fence
+                continue
+            elif len(fence) >= len(current_fence) and fence[0] == current_fence[0]:
+                current_fence = None
+                continue
+        if current_fence:
             continue
 
         heading_match = re.match(r"^(#{1,6})\s+(.*)$", stripped)

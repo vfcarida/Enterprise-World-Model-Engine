@@ -6,6 +6,9 @@ The Enterprise World Model Engine addresses this via five dedicated, zero-depend
 
 ```mermaid
 flowchart TD
+    accTitle: Platform Interoperability and Co-Simulation Architecture
+    accDescr: Overview of master co-simulation loop connecting FMI, SimPy, Mesa, and System Dynamics sub-models.
+
     subgraph CoSim ["1. Co-Simulation (T5)"]
         CSM["CoSimMaster\n(Fixed-Step Scheduling)"]
         ENV["CoSimExchangeEnvelope\n(Typed Zero-Order-Hold)"]

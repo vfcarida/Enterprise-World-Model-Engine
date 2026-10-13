@@ -24,6 +24,9 @@ EWM Engine actively monitors five primary CHAOSS metric categories:
 
 ```mermaid
 graph TD
+    accTitle: CHAOSS Community Health Metrics Framework
+    accDescr: Hierarchy of open-source sustainability metrics tracking knowledge distribution, response velocity, and institutional concentration.
+
     BF["Bus Factor >= 3 (Knowledge Distribution)"]
     TTFR["Time to First Response (< 48h SLA)"]
     EF["Elephant Factor (Vendor Neutrality)"]

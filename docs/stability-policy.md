@@ -76,6 +76,9 @@ When a public capability, class, or method is superseded by a superior design, i
 
 ```mermaid
 flowchart LR
+    accTitle: SemVer 2.0.0 API Lifecycle and Deprecation Flow
+    accDescr: State machine depicting progression of APIs from Active to Deprecated in minor releases and removal in major releases.
+
     ACTIVE["Stable API (Active)"] -->|"Minor Release X.Y.0"| DEPRECATED["Deprecated (Emits DeprecationWarning)"]
     DEPRECATED -->|"Persists >= 1 minor release AND >= 90 days"| REMOVED["Removed in Major Release (2.0.0+)"]
 ```

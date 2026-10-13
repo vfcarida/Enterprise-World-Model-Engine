@@ -8,6 +8,9 @@ The **Minimal Supply World** provides a concise, 50-line introduction to the cor
 
 ```mermaid
 flowchart LR
+    accTitle: Two-Warehouse Supply Network Topology
+    accDescr: Relational graph depicting two connected warehouses with resource capacities and scheduled transfer actions.
+
     subgraph S0["Initial World State S_0"]
         WH_N["Warehouse North (150 units)"]
         WH_S["Warehouse South (35 units)"]

@@ -8,6 +8,9 @@ EWM Engine provides an optional, lightweight observability layer consisting of a
 
 ```mermaid
 flowchart TD
+    accTitle: Simulation Engine Lifecycle Observability Architecture
+    accDescr: Dataflow diagram illustrating hook dispatching from SimulationEngine to HookRegistry and external OpenTelemetry or logging listeners.
+
     Engine[SimulationEngine]
     Registry[HookRegistry]
     H1[Custom Logger Hook]

@@ -9,6 +9,9 @@ In production decision systems, simulations must not live purely in transient pr
 
 ```mermaid
 flowchart TD
+    accTitle: Event-Sourced TraceLog and EventStore Architecture
+    accDescr: Flowchart showing simulation step execution appending events to SQLite and JSON stores for deterministic replay.
+
     InitState[Initial WorldState S_0] -->|Execute Rollout| Engine[SimulationEngine]
     Engine -->|Yields Trajectory| Traj[Trajectory]
     Traj -->|from_trajectory| TraceLog[TraceLog / TransitionEvent Stream]

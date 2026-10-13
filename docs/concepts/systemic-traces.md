@@ -13,6 +13,9 @@ A **Systemic Trace** in EWM Engine is a directed dependency graph recording how 
 
 ```mermaid
 flowchart TD
+    accTitle: Systemic Dependency Trace DAG
+    accDescr: Directed graph linking policy interventions, proposed actions, and dynamics transitions with explicit evidence levels.
+
     POLICY["Policy Intervention: Preemptive Buffer (interventional)"] -->|"drives"| DISPATCH["Supply Convoys Dispatched (interventional)"]
     STORM["Exogenous Storm Cloudburst (structural)"] -->|"affects"| SURGE["River Stage Rises Above 5.5m (structural)"]
     SURGE -->|"triggers"| ROAD["Causeway C1 Inundated & Closed (structural)"]

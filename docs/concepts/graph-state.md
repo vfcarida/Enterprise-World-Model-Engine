@@ -12,6 +12,9 @@ Rather than forcing an incompatible state representation or rewriting the core d
 
 ```mermaid
 flowchart LR
+    accTitle: Relational Graph State and Schema Migration
+    accDescr: Diagram showing immutable WorldState transformation to HeterogeneousGraphState and versioned schema migration.
+
     WS["Canonical WorldState<br/>(Immutable, Auditable, Hashed)"] -->|"state.as_graph()<br/>Zero-Mutation Projection"| GV["HeterogeneousGraphView<br/>(Multi-relational Typed Graph)"]
     GV -->|"Relational Message Passing"| GNN["GraphNeuralDynamics<br/>(Heterogeneous GNN)"]
     GNN -->|"graph_view.to_world_state()<br/>Bounded State Update"| WS_NEXT["Next WorldState (t+1)<br/>(EvidenceLevel.PREDICTIVE)"]

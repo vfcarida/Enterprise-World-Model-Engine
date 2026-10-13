@@ -8,6 +8,9 @@ The simulation engine coordinates state evolution through an explicit, reproduci
 
 ```mermaid
 sequenceDiagram
+    accTitle: Simulation Step Execution Sequence
+    accDescr: Sequence diagram illustrating the interaction between engine, world state, constraints, dynamics, and trace log during a simulation step.
+
     autonumber
     participant Engine as SimulationEngine
     participant Shocks as ExogenousEventSources

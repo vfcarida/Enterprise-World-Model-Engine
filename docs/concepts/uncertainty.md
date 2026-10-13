@@ -27,6 +27,9 @@ $$\mathcal{T} = \{\tau_1, \tau_2, \dots, \tau_N\}$$
 
 ```mermaid
 flowchart LR
+    accTitle: Deterministic PRNG SeedSequence Spawning Tree
+    accDescr: Seed-tree diagram illustrating deterministic child seed generation for independent parallel Monte Carlo rollouts.
+
     S0["Initial World State S_0"] --> DERIVE["Derived RNG Streams (SeedSequence)"]
     DERIVE --> R1["Rollout 1: tau_1"]
     DERIVE --> R2["Rollout 2: tau_2"]
@@ -78,6 +81,9 @@ EWM Engine advocates a **receding-horizon execution loop** (Model Predictive Con
 
 ```mermaid
 flowchart TD
+    accTitle: Taxonomy of Enterprise Uncertainty in Simulation
+    accDescr: Classification of uncertainty into aleatoric parameter noise, exogenous regime shocks, and epistemic model drift.
+
     OBS["1. Observe Real-World System State"] --> STATE["2. Construct World State S_t"]
     STATE --> SIM["3. Simulate Short Horizon (e.g., H=12) with Monte Carlo"]
     SIM --> EVAL["4. Evaluate Candidate Policy Branches"]

@@ -15,6 +15,9 @@ In enterprise decision science and machine learning, four distinct analytical ca
 
 ```mermaid
 flowchart TD
+    accTitle: Pearl's Causal Hierarchy and EWM Epistemics
+    accDescr: Comparison of observational prediction, interventional simulation, and counterfactual rollouts across Pearl's causal ladder.
+
     PRED["1. Prediction P(Y | X)<br/>Observational Forecasting"]
     SIM["2. Simulation P(S | S_0, theta)<br/>Generative Model Stepping"]
     INT["3. Intervention Simulation<br/>Scenario Branching under do(A)"]
@@ -52,6 +55,9 @@ To turn these epistemics into operational code without overclaiming, the engine 
 
 ```mermaid
 flowchart TD
+    accTitle: Layered Query Architecture for Causal Diagnostics
+    accDescr: Workflow illustrating progression from observational association to interventional query and counterfactual diagnosis.
+
     L1["Layer 1: Association<br/>query_observational()<br/>EvidenceLevel.PREDICTIVE"]
     L2["Layer 2: Intervention<br/>query_interventional()<br/>EvidenceLevel.INTERVENTIONAL (conditional)"]
     L3["Layer 3: Counterfactual<br/>twin_rollout_counterfactual()<br/>Exact RNG Noise Coupling"]

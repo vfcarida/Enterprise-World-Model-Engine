@@ -29,6 +29,9 @@ EWM Engine directly builds upon and strengthens the NumFOCUS scientific stack:
 
 ```mermaid
 graph LR
+    accTitle: NumFOCUS Scientific Python Ecosystem Synergies
+    accDescr: Graph of dependencies and shared community standards connecting EWM Engine with NumPy, SciPy, and NetworkX under NumFOCUS.
+
     subgraph NumFOCUS Foundation
         NP[NumPy] --> EWM[EWM Engine]
         SP[SciPy] --> EWM
@@ -53,6 +56,9 @@ Under NumFOCUS 501(c)(3) fiscal sponsorship, all contributions, corporate grants
 
 ```mermaid
 pie title Planned Budget Allocation Under Fiscal Sponsorship
+    accTitle: Planned Budget Allocation Under Fiscal Sponsorship
+    accDescr: Pie chart displaying budget percentage allocations for contributor bounties, travel grants, CI infrastructure, and documentation.
+
     "Contributor Bounties & Underrepresented Grants" : 35
     "CI/CD Cloud Infrastructure & Hardware Runners" : 25
     "Academic Conference Travel & Workshops (SciPy/PyData)" : 20
@@ -74,6 +80,9 @@ The Steering Council is executing a structured roadmap toward full NumFOCUS Affi
 
 ```mermaid
 gantt
+    accTitle: NumFOCUS Fiscal Sponsorship Timeline Roadmap
+    accDescr: Gantt chart outlining milestones across preparatory phases, governance alignment, formal application, and affiliated onboarding.
+
     title NumFOCUS Sponsorship Roadmap
     dateFormat  YYYY-MM
     section Governance

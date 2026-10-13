@@ -74,6 +74,9 @@ Enterprise world models are frequently defined across organizational boundaries,
 
 ```mermaid
 flowchart TD
+    accTitle: Heterogeneous Graph State and Declarative WSL Compiler
+    accDescr: System architecture showing declarative YAML parsing, schema validation, and graph state conversion for GNN dynamics.
+
     YAML["Untrusted WSL YAML / JSON"] --> LOADER["StrictSafeLoader<br/>(Rejects Custom Tags & Pickles)"]
     LOADER --> DICT["Plain JSON Primitives<br/>(dict, list, str, num)"]
     DICT --> PYDANTIC["Pydantic Validation<br/>WSLDocument (extra='forbid')"]

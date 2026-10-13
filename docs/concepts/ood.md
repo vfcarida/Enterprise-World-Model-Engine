@@ -12,6 +12,9 @@ When simulating complex enterprises (supply chains, market expansions, dynamic p
 
 ```mermaid
 flowchart LR
+    accTitle: Out-of-Distribution and Regime-Shift Detection
+    accDescr: Comparison of grounded empirical support bounds with Mahalanobis covariance and extreme value extrapolation.
+
     A["Grounded Training Support<br/>Empirical History S_train"] --> B["In-Distribution Rollout<br/>Reliable Dynamics"]
     B --> C["Regime Shift / Policy Shock<br/>Unseen State Space"]
     C --> D["Ungrounded Rollout<br/>Silent Extrapolation Error"]

@@ -10,6 +10,9 @@ Because world specification files are often imported from untrusted repositories
 
 ```mermaid
 flowchart TD
+    accTitle: Declarative World Specification Language Pipeline
+    accDescr: Compilation pipeline showing safe YAML loading, Draft 2020-12 schema validation, and AST compilation into executable World instances.
+
     YAML["Untrusted WSL YAML File"] --> LOADER["StrictSafeLoader<br/>(Forbids Custom & Python Tags)"]
     LOADER --> DICT["Plain JSON Primitives<br/>(dict, list, str, float)"]
     DICT --> PYDANTIC["Pydantic Validation<br/>WSLDocument (extra='forbid')"]

@@ -6,6 +6,9 @@ To understand where **Enterprise World Models (EWM)** sit within artificial inte
 
 ```mermaid
 flowchart TD
+    accTitle: Evolution of Artificial Intelligence Modeling Paradigms
+    accDescr: Taxonomy tracing the evolution from specialized supervised ML to foundation models, simulators, and Enterprise World Models.
+
     SPEC["1. Specialized Predictive Models<br/>(Supervised ML: X -> Y)"] --> FOUND["2. Foundation Models<br/>(Large LLMs / Multimodal Pre-training)"]
     FOUND --> SIM["3. Discrete Simulators & Digital Twins<br/>(Physics/Asset Mirroring)"]
     SIM --> AGENT["4. Agent Frameworks<br/>(LLM Tool Calling & Reasoning)"]
@@ -95,6 +98,9 @@ The relationship between the symbolic state, pluggable dynamics, constraint engi
 
 ```mermaid
 flowchart TD
+    accTitle: Subsystem Architecture and Execution Lifecycle
+    accDescr: Six-stage pipeline connecting symbolic world state, planning, pre-action constraints, pluggable dynamics, post-transition invariants, and epistemics diagnostics.
+
     subgraph StateLayer["1. World State Representation (Symbolic + Relational)"]
         ENT["Typed Entities & Attributes"]
         REL["Relational Topology / Graph G_t"]

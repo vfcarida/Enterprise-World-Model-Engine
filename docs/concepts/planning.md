@@ -25,6 +25,9 @@ Inspired by Model Predictive Control (MPC) and modern world-model planning archi
 
 ```mermaid
 flowchart TD
+    accTitle: Receding Horizon Control Execution Loop
+    accDescr: Closed-loop planning diagram showing state observation, trajectory rollout simulation, action selection, and environment stepping.
+
     OBS["1. Observe Ground Truth State (s_t)"] --> SIM["2. Simulate Short Lookahead Horizon (H)"]
     SIM --> CAND["Monte Carlo Rollouts per Candidate"]
     CAND --> SCORE["3. Pluggable Scoring (RolloutScorer)"]
@@ -76,6 +79,9 @@ A critical architectural guarantee of the EWM Engine is that **planners propose 
 
 ```mermaid
 flowchart LR
+    accTitle: Planner Proposal and Constraint Mediation Architecture
+    accDescr: Dataflow showing candidate action generation by planning algorithms passing through pre-action validation gates.
+
     PLANNER["Planner / Controller"] -- Proposes Actions --> GATE["Constraint Engine (Registry)"]
     GATE -- Passed --> EXEC["Dynamics Transition"]
     GATE -- Hard Violation --> REJECT["Action Rejected / Trajectory Invalidated"]

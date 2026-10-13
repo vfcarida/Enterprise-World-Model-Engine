@@ -14,6 +14,9 @@ The OpenTelemetry integration adheres strictly to the official [OpenTelemetry Py
 
 ```mermaid
 flowchart TD
+    accTitle: OpenTelemetry Span and Metric Export Architecture
+    accDescr: Architecture showing lifecycle hooks streaming telemetry events to OpenTelemetry SDK tracers and collectors.
+
     HostApp[Host Application] -->|Configures SDK & Exporter| OTelSDK[OpenTelemetry SDK]
     HostApp -->|Creates| OTelHook[OpenTelemetryHook]
     OTelHook -->|Registers with| HookReg[HookRegistry]

@@ -26,6 +26,9 @@ $$\Delta^*_b = \bar{X}^*_{cand, b} - \bar{X}^*_{base, b}, \quad b = 1, \dots, B$
 
 ```mermaid
 flowchart TD
+    accTitle: Non-Parametric Bootstrap Evaluation Pipeline
+    accDescr: Flowchart showing baseline and candidate trajectory resampling to derive confidence intervals on counterfactual deltas.
+
     BASE["Baseline Trajectories (N samples)"] --> BOOT_BASE["Resample with Replacement (B iterations)"]
     CAND["Candidate Trajectories (N samples)"] --> BOOT_CAND["Resample with Replacement (B iterations)"]
     BOOT_BASE --> DELTA["Compute Delta for each resample: Δ* = X_cand* - X_base*"]

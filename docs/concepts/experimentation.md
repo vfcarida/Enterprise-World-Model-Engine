@@ -6,6 +6,9 @@ The Enterprise World Model Engine provides a first-class **scientific experiment
 
 ```mermaid
 flowchart TD
+    accTitle: Scientific Design of Experiments Pipeline
+    accDescr: Pipeline connecting parameter space definition, LHS and Sobol sampling, parallel rollout execution, and sensitivity analysis.
+
     subgraph Space ["1. Parameter Space"]
         PS["ParameterSpace\n(Continuous, Integer, Categorical)"]
     end

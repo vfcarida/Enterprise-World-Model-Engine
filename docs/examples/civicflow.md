@@ -19,6 +19,9 @@ $$\begin{aligned}
 
 ```mermaid
 flowchart TD
+    accTitle: CivicFlow Disaster Relief Network Topology
+    accDescr: Graph of central depots, vulnerable refugee shelters, and connecting causeway corridors under hydrological flood risk.
+
     DEPOT_CENTRAL["Depot Central (Upland: 1000 rations, 1500L water)"]
     DEPOT_VALLEY["Depot Valley (Valley: 300 rations, 400L water)"]
     S1["Shelter S1 (Valley: 60 evacuees)"]

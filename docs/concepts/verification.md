@@ -9,6 +9,9 @@ Enterprise decision simulations cannot rely solely on per-step static constraint
 
 ```mermaid
 flowchart LR
+    accTitle: Trajectory Verification Dual-Engine Architecture
+    accDescr: Verification pipeline evaluating simulation trajectories against graph-based oracle checks and Signal Temporal Logic formulas.
+
     subgraph Inputs
         T["Trajectory & Timeseries"]
         ST["SystemicTrace DAG"]
