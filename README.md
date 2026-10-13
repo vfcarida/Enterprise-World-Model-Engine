@@ -517,6 +517,8 @@ EWM Engine adheres strictly to [Semantic Versioning (SemVer 2.0.0)](https://semv
 
 ---
 
+<a id="project-roadmap--maturity"></a>
+
 ## Project Roadmap & Maturity
 
 Capabilities in EWM Engine are classified under explicit, strictly enforced maturity levels sourced directly from [ROADMAP.md](ROADMAP.md):
@@ -592,6 +594,8 @@ We celebrate and acknowledge all contributions to EWM Engine—including code, d
 This project adheres to the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are welcome!
 
 ---
+
+<a id="citation"></a>
 
 ## Citation & Academic Rigor
 
