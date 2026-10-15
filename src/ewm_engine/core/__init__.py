@@ -7,6 +7,14 @@ from ewm_engine.core.deprecation import deprecate, deprecated
 from ewm_engine.core.entities import Entity, Relationship
 from ewm_engine.core.events import ExogenousEvent, ExogenousEventSource
 from ewm_engine.core.resources import Resource
+from ewm_engine.core.scm import (
+    AbductionResult,
+    ExogenousVariable,
+    InvertibilityType,
+    NonUniqueAbductionWarning,
+    StructuralAssignment,
+    StructuralCausalModel,
+)
 from ewm_engine.core.spec import (
     ComponentRegistry,
     ComponentSpec,
@@ -49,6 +57,7 @@ from ewm_engine.core.types import (
 from ewm_engine.core.world import World
 
 __all__ = [
+    "AbductionResult",
     "Action",
     "ActionId",
     "ActorId",
@@ -64,10 +73,13 @@ __all__ = [
     "EventId",
     "ExogenousEvent",
     "ExogenousEventSource",
+    "ExogenousVariable",
     "ExtrapolationWarning",
     "GateValidationReport",
     "InsufficientCausalEvidenceWarning",
     "Intervention",
+    "InvertibilityType",
+    "NonUniqueAbductionWarning",
     "RandomGenerator",
     "Relationship",
     "RelationshipId",
@@ -79,6 +91,8 @@ __all__ = [
     "ResponsibleAIWarning",
     "ScenarioForecastResult",
     "ScenarioId",
+    "StructuralAssignment",
+    "StructuralCausalModel",
     "TrajectoryId",
     "UncertaintyRequiredError",
     "UnqualifiedCausalClaimError",

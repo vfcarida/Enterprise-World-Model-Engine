@@ -1,0 +1,3 @@
+# Target observed empirical inventory depletion series across 6 operating cycles
+observations:
+  inventory: [85.0, 70.0, 55.0, 40.0, 25.0, 10.0]

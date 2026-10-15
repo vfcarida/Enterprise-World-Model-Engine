@@ -26,14 +26,14 @@ keywords:
 # Zenodo DOI placeholder (minted upon GitHub Release via R10)
 # doi: "10.5281/zenodo.placeholder"
 
-# JOSS Paper citation placeholder (uncomment upon peer-reviewed publication)
-# preferred-citation:
-#   type: article
-#   title: "Enterprise World Model Engine: An Open Framework for Modeling, Simulating, and Evaluating Organizational Dynamics"
-#   authors:
-#     - family-names: "Caridá"
-#       given-names: "Vinicius"
-#       affiliation: "Independent Researcher"
-#   journal: "Journal of Open Source Software"
-#   year: 2026
-#   doi: "10.21105/joss.placeholder"
+references:
+  - type: article
+    title: "Beyond Rollout Error: A Causal, Calibrated, and Conservation-Preserving Architecture for Enterprise World Models"
+    authors:
+      - family-names: "Caridá"
+        given-names: "Vinicius"
+        affiliation: "Independent Researcher"
+    year: 2026
+    journal: "arXiv preprint"
+    url: "https://arxiv.org/abs/2603.xxxxx"
+

@@ -7,48 +7,64 @@
 </p>
 
 <p align="center">
-  <em>Simulate consequences before acting.</em>
+  <em>Deterministic, auditable structural simulation kernel for organizational systems.</em><br>
+  <strong>The only world-model engine scored on being right about its own uncertainty.</strong>
 </p>
 
 <p align="center">
   <a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/vfcarida/Enterprise-World-Model-Engine/ci.yml?branch=main&label=CI&style=flat" alt="CI Status"></a>
-  <a href="https://vfcarida.github.io/Enterprise-World-Model-Engine/"><img src="https://img.shields.io/github/actions/workflow/status/vfcarida/Enterprise-World-Model-Engine/docs.yml?branch=main&label=docs&style=flat" alt="Documentation Status"></a>
-  <a href="https://pypi.org/project/ewm-engine/"><img src="https://img.shields.io/pypi/v/ewm-engine?color=4f46e5&style=flat" alt="PyPI Version"></a>
   <a href="https://pypi.org/project/ewm-engine/"><img src="https://img.shields.io/pypi/pyversions/ewm-engine?style=flat" alt="Python Versions"></a>
-  <a href="https://pepy.tech/project/ewm-engine"><img src="https://static.pepy.tech/badge/ewm-engine?style=flat" alt="PyPI Downloads"></a>
   <a href="scripts/check_coverage.py"><img src="https://img.shields.io/badge/coverage-%E2%89%A585%25%20gated-success?style=flat" alt="Coverage Gate"></a>
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/types-mypy%20strict-1f2937?style=flat" alt="Mypy Strict"></a>
-  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat" alt="Ruff Style"></a>
-  <a href="docs/adr/ADR-004-no-llm-dependency.md"><img src="https://img.shields.io/badge/core-zero--LLM%20%7C%20deterministic-8b5cf6?style=flat" alt="Zero-LLM Core"></a>
-  <!-- Zenodo DOI (minted upon GitHub Release via R10) -->
+  <a href="docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md"><img src="https://img.shields.io/badge/SLSA-Build%20L2%2B-blue?style=flat" alt="SLSA L2+"></a>
   <a href="https://doi.org/10.5281/zenodo.placeholder"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.placeholder-blue?style=flat" alt="DOI"></a>
   <a href="paper/paper.md"><img src="https://img.shields.io/badge/JOSS-paper%20review-brightgreen?style=flat" alt="JOSS Paper"></a>
-  <a href="docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md"><img src="https://img.shields.io/badge/SLSA-Build%20L2%2B-blue?style=flat" alt="SLSA L2+"></a>
-  <a href="https://www.bestpractices.dev/projects/10000"><img src="https://img.shields.io/badge/OpenSSF-passing-brightgreen?style=flat" alt="OpenSSF Best Practices"></a>
-  <a href="CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=flat" alt="Contributor Covenant 2.1"></a>
-  <a href="GOVERNANCE.md"><img src="https://img.shields.io/badge/governance-SPEC%209-informational?style=flat" alt="SPEC 9 Governance"></a>
-  <a href="docs/community-health.md"><img src="https://img.shields.io/badge/CHAOSS-health%20metrics-orange?style=flat" alt="CHAOSS Health"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat" alt="License: Apache-2.0"></a>
 </p>
 
 <p align="center">
   <a href="https://vfcarida.github.io/Enterprise-World-Model-Engine/"><b>Docs</b></a> ·
   <a href="#five-minute-quickstart"><b>Quickstart</b></a> ·
+  <a href="docs/handbook/"><b>Handbook</b></a> ·
+  <a href="docs/explorables/interactive-world-model.md"><b>Explorable</b></a> ·
+  <a href="docs/positioning/landscape.md"><b>Landscape</b></a> ·
+  <a href="docs/executive/"><b>Executive</b></a> ·
   <a href="https://vfcarida.github.io/Enterprise-World-Model-Engine/concepts/world-models/"><b>Concepts</b></a> ·
   <a href="https://vfcarida.github.io/Enterprise-World-Model-Engine/reference/api/"><b>API Reference</b></a> ·
-  <a href="#project-roadmap--maturity"><b>Roadmap</b></a> ·
   <a href="#citation"><b>Cite</b></a>
 </p>
 
 ---
 
-**Enterprise World Model Engine (EWM Engine)** is an open-source, domain-neutral Python framework for modeling, simulating, and evaluating complex socio-technical systems under interventional policy changes. Unlike observational predictive models or workflow engines (Airflow/Prefect), EWM executes **action-conditioned forward rollouts** ($\mathbb{E}[S_{t+H} \mid \text{do}(A_t)]$) that strictly decouple **known explicit rules and conservation laws** from **learned probabilistic dynamics** — guaranteeing bitwise reproducibility through cryptographic state fingerprints, seed-tree isolation, and zero mandatory LLM dependencies.
+**Enterprise World Model Engine (EWM)** is a deterministic, auditable **structural simulation kernel** for organizational and socio-technical systems. Simulate the consequences of an operational or policy decision before you make it — with reproducible cryptographic provenance and zero mandatory GPU or LLM dependencies.
+
+> [!NOTE]
+> **Disambiguation (Structural vs. Neural World Models):** Unlike neural world models (NVIDIA Cosmos, Meta V-JEPA, DreamerV3) that predict pixels or uninterpretable latent embeddings, EWM simulates typed, constrained, auditable organizational state (inventories, balance sheets, supply tiers, legal bounds). It is a **structural world model** ("decision twin") where physical and accounting conservation laws hold by construction, not by hope. Read the [Competitive Landscape](docs/positioning/landscape.md).
 
 <p align="center">
-  <img src="assets/demo.gif" alt="EWM Engine Terminal Demo: CivicFlow Disaster Relief Simulation" width="960">
-  <br>
-  <em>Interactive CLI rollout of CivicFlow disaster logistics evaluating flood surge counterfactuals and systemic traces.</em>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/hero-proof-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/hero-proof-light.svg">
+    <img alt="EWM Engine Proof Hero: Empirical Ground Truth vs Structural Simulation" src="assets/hero-proof-dark.svg" width="940">
+  </picture>
 </p>
+<p align="center">
+  <em>SEIR benchmark: Published analytical ground-truth curve overlaid on EWM Engine forward simulation. Exact mass conservation (S + E + I + R = N) holds bit-for-bit across all 80 steps with zero drift. Uncertainty band shows 90% conformal coverage. Reproduce with: <code>python scripts/generate_hero_proof.py</code></em>
+</p>
+
+---
+
+### The One Claim No Competitor Can Honestly Make
+
+> **The only world-model engine scored on being right about its own uncertainty.**
+
+Most enterprise simulators and predictive models optimize exclusively for surface point accuracy or visual plausibility. EWM Engine is engineered around epistemic honesty:
+
+1. **[E-Values & Safe Testing](docs/concepts/causality.md):** Every interventional claim is accompanied by an anytime-valid E-value, eliminating false-discovery inflation under optional stopping.
+2. **[Mandatory Uncertainty Intervals](docs/concepts/uncertainty.md):** Rejects point predictions; every rollout provides calibrated conformal predictive bands and bootstrap confidence intervals.
+3. **[Causal Refusal Gate](docs/concepts/causality.md):** Actively refuses to rank or simulate counterfactual scenarios when unobserved confounding violates structural identifiability (no auto-upgrading evidence tiers).
+4. **[Epistemic Competence & Abstention](docs/concepts/model-reliability.md):** Rollouts that extrapolate beyond the verified horizon or historical telemetry support trigger automated abstention signals ([RWM-U](https://arxiv.org/abs/2504.16680)), down-weighting ungrounded extrapolations in decision optimization (`ewm decide`).
+5. **[The Physics-IQ Guardrail](docs/concepts/model-reliability.md):** Output plausibility or visual realism is *never* treated as a proxy for correctness. All verification is grounded against symbolic conservation laws and certified calibration.
 
 ---
 
@@ -551,10 +567,16 @@ Capabilities in EWM Engine are classified under explicit, strictly enforced matu
 | **Planning & Controller Layer** | **Experimental (v1.3.0)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control (ADR-020) |
 | **OOD & Regime-Shift Detection** | **Experimental (v1.4.0)** | Grounded-regime detection (support bounds, Mahalanobis covariance, ADR-021) |
 | **Honest Causal Diagnostics** | **Experimental (v1.4.0)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling (ADR-021) |
+| **Counterfactual SCM Kernel (S01)** | **Beta (v1.6.0)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040) |
+| **Grey-Box Dynamics & Conservation (S03)** | **Beta (v1.6.0)** | Residual-only learning, hard nullspace projection for conservation laws (FEAT-010, ADR-042) |
+| **Causal-Correctness & Metamorphic (S05)** | **Beta (v1.6.0)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044) |
+| **Decision Scenario Discovery (S02)** | **Beta (v1.7.0)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (FEAT-009, ADR-041) |
+| **Amortized Calibration & TARP (S04)** | **Beta (v1.8.0)** | Simulation-Based Inference, certified coverage via TARP, misspecification refusal (FEAT-011, ADR-043) |
+| **Results Gallery & Benchmark Harness (S09)** | **Stable / Research (v2.0.0)** | CI-reproducible gallery, NeurIPS D&B checklist, arXiv companion methods paper (FEAT-012, ADR-044) |
 | **Heterogeneous Graph State & GNN** | **Experimental (v2.0.0-alpha)** | Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
 | **World Specification Language** | **Experimental (v2.0.0-alpha)** | Declarative safe YAML/JSON grammar, validator, compiler, and exporter (FEAT-003, ADR-023) |
 
-See [ROADMAP.md](ROADMAP.md) and [01_EXPANDED_ROADMAP.md](01_EXPANDED_ROADMAP.md) for detailed milestone descriptions and architectural tracking.
+See [ROADMAP.md](ROADMAP.md), [01_EXPANDED_ROADMAP.md](01_EXPANDED_ROADMAP.md), and [02_ROUND5_EXPANDED_ROADMAP.md](02_ROUND5_EXPANDED_ROADMAP.md) for detailed milestone descriptions and architectural tracking.
 Track active delivery on the **[Pinned GitHub Project](https://github.com/users/vfcarida/projects/1)** and milestones ([v1.5.0 Shipped](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/1), [v1.6.0 Active](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/2), [v2.0-alpha Horizon](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/3)).
 
 ---

@@ -41,50 +41,75 @@ Observing that a retailer experiences stockouts whenever price promotions are ac
 
 Conditioning on $X$ filters historical data where $X$ naturally occurred. Intervening with $\text{do}(X)$ severs the incoming causal parents of $X$, altering the structural data-generating mechanism.
 
-### 2.2 Recent Research Anchors (2024–2026)
-Recent breakthroughs in causal machine learning formally establish that:
-- **Observational world models incur unavoidable interventional error** when backdoor paths are open (Song & Cai, *arXiv:2610.00012*). A predictive dynamics model trained on observational trajectories cannot distinguish true causal influence from spurious confounding correlations.
-- **Action-conditioned rollout $\neq$ counterfactual reasoning** (*arXiv:2608.11601*). Stepping an action-conditioned simulator does not perform Pearlian counterfactual inference unless exogenous latent disturbances are explicitly coupled or abducted.
-- **Causal Representation Learning** (Schölkopf et al., 2021) emphasizes that reliable world models must modularize dynamics into **independent causal mechanisms (ICM)** that remain invariant under localized interventions.
+### 2.2 Theoretical Foundations: Richens & Everitt (ICLR 2024)
+The theoretical justification for EWM Engine's architecture is provided by **Richens & Everitt ("Robust agents learn causal world models", ICLR 2024 oral, arXiv:2402.10877)**.
+
+Their central theorem establishes that:
+> **Any agent or decision system that successfully generalizes across distribution shifts must have implicitly learned an approximate causal model of the environment.**
+
+Specifically, an agent optimizing purely observational associations $P(Y \mid X)$ will catastrophically fail under out-of-distribution interventions. Robust decision-making requires separating:
+1. **Explicit, known causal mechanisms** (conservation laws, physical constraints, operational handoffs).
+2. **Exogenous noise variations** ($U_i$) driven by environmental shocks or actor choices.
+3. **Learned stochastic dynamics** ($f_i(\text{PA}_i, U_i)$) bounded by invariant boundaries.
+
+This theorem provides the rigorous license for EWM Engine: agents and policies orbit the engine; the engine itself is the **explicit Structural Causal Model (SCM)** that simulates the environment under Pearl's do-calculus.
 
 ---
 
-## 3. Pearl's Typed Ladder of Causation (`ewm_engine.experimental.causal`)
+## 3. Pearl's Typed Ladder of Causation
 
-To turn these epistemics into operational code without overclaiming, the engine introduces a typed Ladder-of-Causation surface:
+The engine natively formalizes Judea Pearl's three-tiered hierarchy of causal reasoning:
 
 ```mermaid
 flowchart TD
-    accTitle: Layered Query Architecture for Causal Diagnostics
-    accDescr: Workflow illustrating progression from observational association to interventional query and counterfactual diagnosis.
+    accTitle: Pearl's Causal Hierarchy in EWM Engine
+    accDescr: Ladder of causation mapping observational prediction, interventional simulation, and counterfactual rollouts.
 
-    L1["Layer 1: Association<br/>query_observational()<br/>EvidenceLevel.PREDICTIVE"]
-    L2["Layer 2: Intervention<br/>query_interventional()<br/>EvidenceLevel.INTERVENTIONAL (conditional)"]
-    L3["Layer 3: Counterfactual<br/>twin_rollout_counterfactual()<br/>Exact RNG Noise Coupling"]
+    L1["Rung 1: Association P(Y | X)<br/>Observational Prediction<br/>EvidenceLevel.PREDICTIVE"]
+    L2["Rung 2: Intervention P(Y | do(X))<br/>Causal Surgery & Scenario Branching<br/>EvidenceLevel.INTERVENTIONAL"]
+    L3["Rung 3: Counterfactual P(Y_x | x', y')<br/>Twin-Rollout SCM Kernel<br/>EvidenceLevel.COUNTERFACTUAL"]
 
     L1 -->|"Requires Backdoor Check & Positivity"| L2
-    L2 -->|"Requires Exogenous Noise Abduction"| L3
+    L2 -->|"Requires Abduction & Coupled Noise"| L3
 ```
 
-### 3.1 Layer 1: Observational Association
-`query_observational(data, treatment_var, outcome_var, ...)` computes the conditional expectation $\mathbb{E}[Y \mid X=x]$. It returns a [`CausalQueryResult`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/causal.py) strictly tagged with:
-- `causal_level = CausalLevel.ASSOCIATION`
-- `evidence_level = EvidenceLevel.PREDICTIVE`
-- Clear warnings that the estimate reflects observational correlation, not causal identification.
+### 3.1 Rung 1: Observational Association
+Observational expectations $\mathbb{E}[Y \mid X=x]$ are evaluated via `query_observational()`. They are strictly tagged with `EvidenceLevel.PREDICTIVE`. They reflect correlation and carry an explicit disclaimer that observational associations do not imply causal effects.
 
-### 3.2 Layer 2: Interventional Identification & Backdoor Checking
-`query_interventional(data, treatment_var, outcome_var, causal_graph, conditioning_vars, ...)` attempts to identify $\mathbb{E}[Y \mid \text{do}(X=x)]$.
+### 3.2 Rung 2: Interventional Identification & Backdoor Checking
+Interventional queries $\mathbb{E}[Y \mid \text{do}(X=x)]$ perform causal surgery on the data-generating mechanism.
 
-Before returning any numerical estimate, the function executes **Judea Pearl's Backdoor Criterion** against the user-declared [`CausalGraph`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/causal.py):
+Before asserting `EvidenceLevel.INTERVENTIONAL`, the engine validates **Judea Pearl's Backdoor Criterion** on the declared [`CausalGraph`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/scm.py):
 1. **Descendant Check**: No variable in the conditioning set $Z$ may be a descendant of treatment $X$.
 2. **Backdoor Blocking Check**: Conditioning set $Z$ must block all active backdoor paths from $X$ to outcome $Y$.
 
-If an unblocked backdoor path or collider activation exists, the engine **refuses to compute a causal estimate**, returning a [`NotIdentifiableResult`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/causal.py) detailing:
-- `open_backdoor_paths`: List of unblocked paths (e.g., `['X <- Confounder -> Y']`).
-- `assumptions_needed`: Explicit statement of required adjustments.
-- `evidence_level = EvidenceLevel.ASSUMED`.
+If backdoor paths remain open or unobserved confounders exist, the engine refuses to return a scalar effect estimate, returning a [`NotIdentifiableResult`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/causal.py) tagged with `EvidenceLevel.PREDICTIVE`.
 
-Only when the backdoor check passes against the declared graph is `EvidenceLevel.INTERVENTIONAL` emitted. **This level is set by the declared structural graph and mathematical check, never inferred from raw data.**
+### 3.3 Rung 3: Native Counterfactual SCM Kernel (`world.counterfactual()`)
+Rung 3 answers entity-level retrospective queries: *"Given that this specific warehouse stocked out at step 2 under observed demand, what would have happened had we rerouted supply at step 0?"*
+
+Under Pearl (2009), counterfactuals require three algorithmic steps:
+1. **Abduction**: Infer the posterior over exogenous background noise $U$ given the factual trajectory $\tau = (S_0, A_{0:T}, S_{1:T})$.
+   - Invertible / deterministic mechanisms yield unique, exact algebraic recovery: $U_i := f_i^{-1}(V_i, \text{PA}_i)$.
+   - All exogenous draws are addressably recorded in [`SystemicTrace.exogenous_noise`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/provenance/trace.py).
+   - If a mechanism is non-invertible, the engine refuses to emit a false point counterfactual, returning a posterior distribution with `is_unique=False` and a structured [`NonUniqueAbductionWarning`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/scm.py).
+2. **Action (Graph Surgery)**: Apply $\text{do}(X = x)$ by mutilating the structural assignment:
+   $$X := x, \quad \text{severing } \text{PA}(X) \to X$$
+3. **Prediction (Twin-Rollout Noise Coupling)**: Re-run the simulation holding all exogenous noise variables $U$ coupled bit-for-bit to the factual branch.
+
+```python
+# Native counterfactual execution
+cf_result = world.counterfactual(
+    observed=factual_trajectory,
+    intervention={"warehouse_stock": 350.0},
+    horizon=4,
+)
+
+# Inspect divergence metrics and trace diff
+print(cf_result.target_divergences)
+print(cf_result.locality_preserved)
+print(cf_result.trace_diff.to_mermaid())
+```
 
 ---
 
@@ -98,32 +123,41 @@ Positivity (or common support) requires that every unit has a non-zero probabili
 $$0 < P(X = 1 \mid Z = z) < 1 \quad \forall z$$
 
 `check_positivity_overlap` fits propensity scores and computes:
-- **Overlap Index**: Proportion of units with propensity scores within the reliable support $[\epsilon, 1 - \epsilon]$.
-- **Extreme Propensity Identification**: Identifies near-deterministic treatment assignments ($P \approx 0$ or $P \approx 1$) that lead to extreme variance and ungrounded extrapolation in inverse-probability weighting or stratification.
+- **Overlap Index**: Bhattacharyya coefficient of propensity distributions between treated and control units.
+- **Extreme Propensity Identification**: Identifies near-deterministic treatment assignments ($P \approx 0$ or $P \approx 1$) that lead to extreme variance and ungrounded extrapolation.
+- **High-Dimensional Warnings**: Incorporates D'Amour et al. (arXiv:1711.02582) overlap collapse warnings as covariate dimensionality increases.
 
-### 4.2 Confounding Sensitivity Diagnostics (`report_confounding_sensitivity`)
-No observational study can empirically prove the absence of unobserved confounding. Rather than pretending unobserved confounding is zero, `report_confounding_sensitivity` implements **Rosenbaum sensitivity bounds** ($\Gamma$):
-- Measures how strong an unobserved confounder would have to be (odds ratio $\Gamma$) to explain away the observed effect estimate.
-- A critical threshold $\Gamma_{\text{crit}} \approx 1.15$ signals that even a tiny hidden bias could render the effect null, whereas $\Gamma_{\text{crit}} > 3.0$ indicates robust stability against hidden confounding.
+### 4.2 Confounding Sensitivity Diagnostics (`report_confounding_sensitivity` & E-values)
+No observational study can empirically prove the absence of unobserved confounding. The engine provides two rigorous sensitivity diagnostics:
+1. **Rosenbaum Bounds ($\Gamma$)**: Measures how strong an unobserved confounder would have to alter treatment odds to nullify the effect estimate.
+2. **E-values (VanderWeele & Ding, 2017)**: Computes the minimum risk ratio that an unmeasured confounder must have with both treatment and outcome to explain away the observed effect.
 
 ---
 
-## 5. Layer 3: Noise-Coupled Counterfactual Branching (Twin Rollouts)
+## 5. Twin-Rollout Coupled Noise & Bit-Reproducibility
 
-In standard simulation, branching a scenario with a new seed creates stochastic divergence unrelated to the intervention:
+In standard Monte Carlo simulators, branching a scenario with an uncorrelated seed induces random divergence having nothing to do with the intervention:
 
 ```
+Uncoupled Branching:
 Factual:         S_0 ---> S_1(w_1) ---> S_2(w_2)
 Counterfactual:  S_0 ---> S_1(w'_1) ---> S_2(w'_2)   (Noise uncoupled: confounded by stochasticity)
 ```
 
-EWM Engine implements **Twin Rollouts** (*arXiv:2608.08982*):
-`twin_rollout_counterfactual(scenario, intervention_step, intervention_fn)`:
-1. **Noise Coupling**: Locks the pseudo-random generator stream (SeedSequence / identical RNG seed stream) between the factual and counterfactual rollouts.
-2. **Abduction by Construction**: Exogenous noise realizations $U_t$ are identical across factual and counterfactual branches, fulfilling Judea Pearl's third rung of the ladder ($P(Y_x \mid x', y')$).
-3. **Off-Target Locality Divergence**: Computes state divergence for non-targeted variables immediately following the intervention:
-   $$\text{LocalityDivergence} = \| S^{\text{CF}}_{\text{untargeted}} - S^{\text{Factual}}_{\text{untargeted}} \|$$
-   An unexpected immediate divergence in untargeted state dimensions flags hidden coupling or structural confounding in the simulation equations.
+EWM Engine implements **Twin-Rollout Noise Coupling**:
+
+```
+Twin-Rollout Noise Coupling:
+Factual:         S_0 ---> S_1(U_1) ---> S_2(U_2)
+                          |              |  (Same coupled exogenous noise U_t)
+                          v              v
+Counterfactual:  S_0'---> S'_1(U_1)---> S'_2(U_2)  (Difference is SOLELY the causal intervention)
+```
+
+### 5.1 Bit-Reproducibility Contract (S00 Invariant 5)
+1. **Exact Seed Sequence Coupling**: Sub-stream random generators are derived deterministically via `np.random.SeedSequence`.
+2. **Bit-Identical Invariance**: If an intervention has no causal path to variable $Y$, the counterfactual trajectory of $Y$ is bit-identical to its factual trajectory.
+3. **Trace Diff (`TraceDiff`)**: Categorizes nodes into `invariant_nodes` vs. `divergent_nodes`, proving structural locality.
 
 ---
 
@@ -131,7 +165,7 @@ EWM Engine implements **Twin Rollouts** (*arXiv:2608.08982*):
 
 To preserve scientific humility and prevent executive overclaim:
 
-1. **No Automated Causal Discovery**: The engine does not infer causal graphs from data. All causal graphs must be explicitly declared and defended by the domain modeler.
-2. **Diagnostics, Not Verdicts**: Diagnostic functions report *"under stated assumptions A, the effect is identified / not identified"*. They do not declare real-world truth.
-3. **No Automatic Level Elevation**: Predictive models or ungrounded simulations are **never** auto-upgraded to `INTERVENTIONAL`.
-4. **No `"causes"` Edges**: Provenance traces remain dependency graphs. The engine explicitly forbids `"causes"` relations in systemic traces.
+1. **No Automated Causal Discovery**: The engine does not claim to discover causal graphs from observational data. Causal graphs must be explicitly declared and defended.
+2. **Model-Counterfactual Scoping**: Rung-3 counterfactuals carry `EvidenceLevel.COUNTERFACTUAL` with an explicit disclaimer that they are counterfactuals *of the simulation model*, not validated real-world counterfactuals (unless the SCM is empirically calibrated).
+3. **No Automatic Level Elevation**: Predictive associations and observational fits are **never** auto-upgraded to `INTERVENTIONAL` or `COUNTERFACTUAL`.
+4. **No `"causes"` Edges**: Provenance traces model simulated mechanistic dependencies (`influences`, `drives`, `perturbs`, `conditions`), strictly forbidding `"causes"` relations.

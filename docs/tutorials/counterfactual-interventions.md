@@ -127,3 +127,45 @@ violations_count          | Baseline             | 0.00 (+/-0.00)     | 0.00 [0.
 ```
 
 Notice how the engine records exact empirical percentile confidence intervals and automatically flags statistically significant shifts under $P_{\text{model}}$.
+
+---
+
+## 4. Native Pearl Rung-3 Counterfactuals (Twin-Rollout SCM Coupling)
+
+While scenario branching evaluates forward interventions at **Pearl Rung 2** ($do(X)$), EWM Engine natively supports **Pearl Rung 3** counterfactuals: *"Given what was observed for this specific entity, what would have happened had we intervened, under the exact same realized exogenous noise?"*
+
+Anchored in **Richens & Everitt (ICLR 2024 oral, arXiv:2402.10877)**, the engine compiles the typed graph into a Structural Causal Model (SCM) view:
+
+```python
+from ewm_engine.core.actions import Intervention
+
+# 1. Run or observe the factual trajectory
+factual_traj = world_baseline.simulate(scenario_baseline).trajectories[0]
+
+# 2. Formulate the causal intervention
+intervention = Intervention(
+    id="emergency_reroute",
+    description="Emergency reroute of stock to warehouse B",
+    parameters={"stock_b": 60.0},
+)
+
+# 3. Execute Pearl's three-step counterfactual:
+#    - Abduction: Infer realized exogenous noise U from the factual trace
+#    - Action: Apply structural graph surgery do(stock_b = 60.0)
+#    - Prediction: Re-run with Twin-Rollout noise coupling (identical U)
+cf_result = world_baseline.counterfactual(
+    observed=factual_traj,
+    intervention=intervention,
+)
+
+print(f"Evidence Level: {cf_result.evidence_level.value}")
+# -> 'counterfactual'
+
+print(f"Disclaimer: {cf_result.disclaimer}")
+# -> Model-counterfactual evaluated within the fully specified simulated SCM...
+
+# Export the systemic divergence diagram in Mermaid notation
+print(cf_result.trace_diff.to_mermaid())
+```
+
+For a comprehensive worked example preventing warehouse stockouts under identical demand shocks, see [examples/counterfactual_warehouse_reroute.py](file:///examples/counterfactual_warehouse_reroute.py) and [ADR-040](file:///docs/adr/ADR-040-twin-rollout-counterfactual-scm-kernel.md).

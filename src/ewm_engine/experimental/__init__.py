@@ -34,6 +34,14 @@ from ewm_engine.experimental.causal import (
     run_causal_refutations,
     twin_rollout_counterfactual,
 )
+from ewm_engine.experimental.conservation import (
+    ConservationHonestyReport,
+    ConservationLaw,
+    ConservationProjectionLayer,
+    LinearConservationLaw,
+    PortHamiltonianConservationLayer,
+    evaluate_conservation_honesty,
+)
 from ewm_engine.experimental.dynamics_eval import (
     CalibrationResult,
     DynamicsEvaluationReport,
@@ -54,8 +62,22 @@ from ewm_engine.experimental.dynamics_eval import (
     symlog,
 )
 from ewm_engine.experimental.dynamics_torch import TorchNeuralResidualDynamics
+from ewm_engine.experimental.flywheel import (
+    AdvisoryEquationPrior,
+    CandidateRulePromotion,
+    ResidualPromotionWorkflow,
+    SINDyFitResult,
+    SINDyRegressor,
+)
 from ewm_engine.experimental.graph_dynamics import GraphNeuralDynamics
 from ewm_engine.experimental.graph_state import HeterogeneousGraphView
+from ewm_engine.experimental.grey_box import (
+    CallableResidualEstimator,
+    GreyBoxDynamics,
+    LinearResidualEstimator,
+    ResidualEstimator,
+    ZeroResidualEstimator,
+)
 from ewm_engine.experimental.ood import (
     MahalanobisOODDetector,
     OODDetector,
@@ -93,17 +115,24 @@ from ewm_engine.experimental.readiness import (
 from ewm_engine.simulation.mpc import MPCDecisionRecord, RecedingHorizonSimulator
 
 __all__ = [
+    "AdvisoryEquationPrior",
     "CVaRScorer",
     "CalibrationResult",
+    "CallableResidualEstimator",
+    "CandidateRulePromotion",
     "CategoryScore",
     "CausalGraph",
     "CausalRefutationSuiteResult",
     "ConfoundingSensitivityReport",
+    "ConservationHonestyReport",
+    "ConservationLaw",
+    "ConservationProjectionLayer",
     "ConstraintPenalizedScorer",
     "DynamicsEvaluationReport",
     "EValueResult",
     "ExpectedObjectiveScorer",
     "GraphNeuralDynamics",
+    "GreyBoxDynamics",
     "HeterogeneousGraphView",
     "IdentifiabilityResult",
     "Intervention",
@@ -111,7 +140,9 @@ __all__ = [
     "InterventionalShiftResult",
     "InvariantCheckResult",
     "LearnedDynamics",
+    "LinearConservationLaw",
     "LinearResidualDynamics",
+    "LinearResidualEstimator",
     "MLTestScoreReport",
     "MPCDecisionRecord",
     "MahalanobisOODDetector",
@@ -129,13 +160,18 @@ __all__ = [
     "PlanningActor",
     "PlanningCandidate",
     "PlanningDecision",
+    "PortHamiltonianConservationLayer",
     "PositivityReport",
     "ReadinessLevel",
     "RecedingHorizonSimulator",
     "RefutationTestResult",
+    "ResidualEstimator",
+    "ResidualPromotionWorkflow",
     "RolloutDivergenceResult",
     "RolloutPlanner",
     "RolloutScorer",
+    "SINDyFitResult",
+    "SINDyRegressor",
     "ScorerResult",
     "SupportBoundaryOODDetector",
     "TorchNeuralResidualDynamics",
@@ -143,12 +179,14 @@ __all__ = [
     "TransitionSample",
     "TwinRolloutResult",
     "UncertaintyPenalizedScorer",
+    "ZeroResidualEstimator",
     "check_backdoor_identifiability",
     "check_positivity_overlap",
     "collect_transition_dataset",
     "compute_e_value",
     "compute_readiness_report",
     "evaluate_calibrated_dynamics_gate",
+    "evaluate_conservation_honesty",
     "evaluate_dynamics_model",
     "evaluate_interventional_shift",
     "evaluate_off_policy",

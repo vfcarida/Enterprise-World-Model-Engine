@@ -41,6 +41,7 @@ from ewm_engine.simulation.scenario import Scenario
 @pytest.mark.integration
 def test_z3_protocol_and_satisfaction() -> None:
     """Verify Z3ConstraintAdapter satisfies both Constraint and ConstraintSolver protocols."""
+    pytest.importorskip("z3")
 
     def verify_positive_cash(
         state: WorldState,
@@ -88,6 +89,7 @@ def test_z3_protocol_and_satisfaction() -> None:
 @pytest.mark.integration
 def test_z3_unsat_core_extraction() -> None:
     """Verify Z3ConstraintAdapter surfaces unsatisfiable core when constraints conflict."""
+    pytest.importorskip("z3")
 
     def unsatisfiable_budget_solver(
         state: WorldState,
@@ -134,6 +136,7 @@ def test_z3_unsat_core_extraction() -> None:
 @pytest.mark.integration
 def test_z3_timeout_enforcement() -> None:
     """Verify Z3ConstraintAdapter enforces finite timeout rather than hanging indefinitely."""
+    pytest.importorskip("z3")
 
     def slow_combinatorial_solver(
         state: WorldState,
@@ -193,6 +196,7 @@ def test_z3_invalid_timeout_raises() -> None:
 @pytest.mark.integration
 def test_ortools_allocation_adapter_optimal_solve() -> None:
     """Verify ORToolsAllocationAdapter synthesizes optimal transfer actions."""
+    pytest.importorskip("ortools")
     adapter = ORToolsAllocationAdapter(default_time_limit_seconds=5.0)
     assert isinstance(adapter, ConstraintSolver)
 
@@ -223,6 +227,7 @@ def test_ortools_allocation_adapter_optimal_solve() -> None:
 @pytest.mark.integration
 def test_ortools_allocation_adapter_check_protocol() -> None:
     """Verify ORToolsAllocationAdapter.check() validates candidate action feasibility."""
+    pytest.importorskip("ortools")
     adapter = ORToolsAllocationAdapter()
     state = WorldState(
         resources=[Resource(id="stock", current=50.0, min_value=0.0, max_value=100.0)]
@@ -259,6 +264,7 @@ def test_ortools_allocation_adapter_check_protocol() -> None:
 @pytest.mark.integration
 def test_cpsat_planner_protocol_and_solve() -> None:
     """Verify CPSATAllocationPlanner conforms to ActionPlanner and Actor protocols."""
+    pytest.importorskip("ortools")
     planner = CPSATAllocationPlanner(
         actor_id="cpsat_logistics",
         sources=["depot_1", "depot_2"],
@@ -293,6 +299,7 @@ def test_cpsat_planner_protocol_and_solve() -> None:
 @pytest.mark.integration
 def test_cpsat_planner_unsat_core_infeasibility_certificate() -> None:
     """Verify CP-SAT planner extracts unsat core when physical supply cannot meet demand."""
+    pytest.importorskip("ortools")
     planner = CPSATAllocationPlanner(
         actor_id="cpsat_infeasible",
         sources=["depot_empty"],
@@ -324,6 +331,7 @@ def test_cpsat_planner_unsat_core_infeasibility_certificate() -> None:
 @pytest.mark.integration
 def test_cpsat_planner_in_simulation_engine_rollout() -> None:
     """Verify CPSATAllocationPlanner acts as an interventional Actor in SimulationEngine."""
+    pytest.importorskip("ortools")
     planner = CPSATAllocationPlanner(
         actor_id="cpsat_actor",
         sources=["wh_main"],

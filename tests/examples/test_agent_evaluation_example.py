@@ -10,6 +10,7 @@ from examples.agent_evaluation.run import run_agent_evaluation
 @pytest.mark.example
 def test_agent_evaluation_example_executes() -> None:
     """Verify agent evaluation runs end-to-end and produces verifiable state scores and audit certs."""
+    pytest.importorskip("ortools")
     results = run_agent_evaluation()
 
     assert results is not None

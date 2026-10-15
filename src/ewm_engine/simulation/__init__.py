@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from ewm_engine.simulation.branching import branch_scenario, branch_world
+from ewm_engine.simulation.counterfactual import (
+    CounterfactualEngine,
+    CounterfactualResult,
+)
 from ewm_engine.simulation.engine import SimulationEngine
 from ewm_engine.simulation.executors import (
     MultiprocessingExecutor,
@@ -26,6 +30,8 @@ from ewm_engine.simulation.trajectory import (
 )
 
 __all__ = [
+    "CounterfactualEngine",
+    "CounterfactualResult",
     "MPCDecisionRecord",
     "MultiprocessingExecutor",
     "RayExecutor",

@@ -248,8 +248,9 @@
       "type": "object"
     },
     "EvidenceLevel": {
-      "description": "Epistemic classification of dynamics, relationships, and simulation traces.\n\nEWM Engine distinguishes observational correlations from interventional mechanics:\n- STRUCTURAL: Grounded in deterministic physical laws, accounting conservation, or hard rules.\n- INTERVENTIONAL: Empirically validated under controlled intervention / do-calculus.\n- QUASI_CAUSAL: Derived from econometric/quasi-experimental designs (e.g., diff-in-diff, IV).\n- PREDICTIVE: Observational statistical or machine-learned association P(Y | X).\n- ASSUMED: Working hypothesis or heuristic assumption not yet validated.",
+      "description": "Epistemic classification of dynamics, relationships, and simulation traces.\n\nEWM Engine distinguishes observational correlations from interventional mechanics:\n- COUNTERFACTUAL: Rung-3 counterfactual under a fully specified simulated SCM (noise coupling / Twin Rollout).\n  Evaluated strictly within the model's structural mechanics; carries an explicit model-counterfactual disclaimer.\n- STRUCTURAL: Grounded in deterministic physical laws, accounting conservation, or hard rules.\n- INTERVENTIONAL: Empirically validated under controlled intervention / do-calculus.\n- QUASI_CAUSAL: Derived from econometric/quasi-experimental designs (e.g., diff-in-diff, IV).\n- PREDICTIVE: Observational statistical or machine-learned association P(Y | X).\n- ASSUMED: Working hypothesis or heuristic assumption not yet validated.",
       "enum": [
+        "counterfactual",
         "structural",
         "interventional",
         "quasi_causal",

@@ -1,0 +1,13 @@
+# Bayesian parameter priors for warehouse calibration
+priors:
+  - name: "initial_inventory"
+    target: "resource"
+    target_id: "inventory"
+    distribution: "uniform"
+    bounds: [50.0, 150.0]
+
+  - name: "depletion_rate"
+    target: "parameter"
+    target_id: "demand"
+    distribution: "uniform"
+    bounds: [5.0, 25.0]

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ewm-engine"
 dynamic = ["version"]
-description = "Enterprise World Model Engine: Action-conditioned, uncertainty-aware simulation and evaluation of organizational systems."
+description = "Deterministic, auditable structural simulation kernel for organizational systems. The only world-model engine scored on being right about its own uncertainty."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
@@ -15,13 +15,15 @@ authors = [
     { name = "Enterprise World Model Engine Maintainers", email = "maintainers@ewm-engine.org" },
 ]
 keywords = [
-    "world-models",
-    "simulation",
-    "counterfactuals",
-    "operations-research",
-    "socio-technical-systems",
-    "decision-evaluation",
-    "uncertainty-quantification",
+    "deterministic-simulation",
+    "provenance",
+    "causal",
+    "digital-twin",
+    "scenario-planning",
+    "decision-intelligence",
+    "what-if",
+    "monte-carlo",
+    "structural-world-model",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -115,6 +117,10 @@ calibrate = [
     "scipy>=1.11.0",
     "scikit-learn>=1.4.0",
 ]
+sbi = [
+    "scipy>=1.11.0",
+    "scikit-learn>=1.4.0",
+]
 uq = [
     "scipy>=1.11.0",
     "scikit-learn>=1.4.0",
@@ -186,6 +192,9 @@ explain = [
 ]
 erroranalysis = [
     "erroranalysis>=0.5.0; python_version < '3.12'",
+]
+decision = [
+    "ema-workbench>=3.0.0",
 ]
 interop = [
     "simpy>=4.1.0",
@@ -370,6 +379,7 @@ module = [
     "pytest_codspeed.*",
     "gymnasium.*",
     "simpy.*",
+    "ema_workbench.*",
 ]
 ignore_missing_imports = true
 

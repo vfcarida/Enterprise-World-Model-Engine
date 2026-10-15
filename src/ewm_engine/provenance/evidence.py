@@ -9,6 +9,8 @@ class EvidenceLevel(StrEnum):
     """Epistemic classification of dynamics, relationships, and simulation traces.
 
     EWM Engine distinguishes observational correlations from interventional mechanics:
+    - COUNTERFACTUAL: Rung-3 counterfactual under a fully specified simulated SCM (noise coupling / Twin Rollout).
+      Evaluated strictly within the model's structural mechanics; carries an explicit model-counterfactual disclaimer.
     - STRUCTURAL: Grounded in deterministic physical laws, accounting conservation, or hard rules.
     - INTERVENTIONAL: Empirically validated under controlled intervention / do-calculus.
     - QUASI_CAUSAL: Derived from econometric/quasi-experimental designs (e.g., diff-in-diff, IV).
@@ -16,6 +18,7 @@ class EvidenceLevel(StrEnum):
     - ASSUMED: Working hypothesis or heuristic assumption not yet validated.
     """
 
+    COUNTERFACTUAL = "counterfactual"
     STRUCTURAL = "structural"
     INTERVENTIONAL = "interventional"
     QUASI_CAUSAL = "quasi_causal"

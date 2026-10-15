@@ -282,3 +282,9 @@ class WorldState(BaseModel):
         from ewm_engine.core.graph import HeterogeneousGraphView
 
         return HeterogeneousGraphView.from_world_state(self)
+
+    def as_scm(self) -> Any:
+        """Compile an additive Structural Causal Model (SCM) view from this immutable state."""
+        from ewm_engine.core.scm import StructuralCausalModel
+
+        return StructuralCausalModel.from_world_state(self)

@@ -68,10 +68,59 @@ markdown_extensions:
 nav:
   - Overview: index.md
 
+  - Results & Benchmarks:
+      - "Results Gallery": results/index.md
+      - "Reproducible Benchmarks": results/benchmarks.md
+      - "SEIR Epidemic Outbreak": results/seir-outbreak.md
+      - "Beer Game Bullwhip": results/beer-game-bullwhip.md
+      - "WORLD3 Resource Depletion": results/world3-resource-depletion.md
+      - "Calibrated Posterior (S04)": results/calibrated-posterior-s04.md
+      - "Counterfactual SCM (S01)": results/counterfactual-scm-s01.md
+      - "Decision Scenario Discovery (S02)": results/decision-discovery-s02.md
+
+  - Executive & Strategy:
+      - "Executive Briefing (One-Pager)": executive/index.md
+      - "Intellectual Lineage": executive/lineage.md
+      - "Decision-Grade Guarantees": executive/decision-grade-guarantees.md
+      - "Enterprise Maturity Model": executive/maturity-model.md
+      - "Reference Architectures": executive/reference-architectures.md
+      - Use-Case Gallery:
+          - "Overview": executive/use-cases/index.md
+          - "COO: Supply Chain Resilience": executive/use-cases/coo.md
+          - "CFO: Capital Allocation & Tail Risk": executive/use-cases/cfo.md
+          - "CRO: Correlated Stress Testing": executive/use-cases/cro.md
+          - "Public Sector: Disaster Logistics": executive/use-cases/public-sector.md
+          - "CSO: Strategy War-Gaming": executive/use-cases/cso.md
+      - "Regulatory & Compliance Mapping": governance/compliance-mapping.md
+
+  - Handbook:
+      - "Overview & Pedagogy": handbook/index.md
+      - "1. Interventions & Uncertainty": handbook/interventions-and-uncertainty.md
+      - "2. Scenario Discovery & Vulnerability": handbook/scenario-discovery-and-vulnerability.md
+      - "3. Causal Identifiability & Graphs": handbook/causal-identifiability-and-graphs.md
+      - "4. Calibration & SBI": handbook/calibration-and-sbi.md
+      - "5. When to Refuse a Claim": handbook/when-to-refuse-a-claim.md
+      - "6. Choosing a Robustness Metric": handbook/choosing-robustness-metric.md
+      - "7. Common Pitfalls: Leakage & Drift": handbook/pitfalls-leakage-drift-overclaiming.md
+
+  - Explorables:
+      - "Interactive World Model Explainer": explorables/interactive-world-model.md
+
+  - Cookbook:
+      - "Overview": cookbook/index.md
+      - "Supply Reroute with Invariants": cookbook/recipe-supply-reroute.md
+      - "Macro Stress Testing with PRIM": cookbook/recipe-stress-test.md
+      - "Counterfactual Audit with Mermaid Diffs": cookbook/recipe-counterfactual-audit.md
+
   - Tutorials:
       - Getting Started: getting-started.md
+      - "The Whole Game in 10 Minutes": tutorials/whole-game-in-ten-minutes.md
       - "Building Your First World": tutorials/first-world.md
       - "Simulating Interventions": tutorials/counterfactual-interventions.md
+      - "Decision-Focused Scenario Discovery": tutorials/decision-discovery.md
+      - "Grey-Box Dynamics & Conservation": tutorials/grey-box-conservation.md
+      - "Amortized Calibration with Certified Coverage": tutorials/amortized-calibration.md
+      - "Metamorphic Reliability Testing": tutorials/metamorphic-reliability.md
       - "Executed Example Gallery": tutorials/gallery.md
       - "Minimal Warehouse Fixture": examples/minimal-warehouse.md
       - "Minimal Supply World": examples/minimal-world.md
@@ -79,6 +128,9 @@ nav:
       - "Agent Policy Evaluation": examples/agent-evaluation.md
 
   - How-To Guides:
+      - "Counterfactual Twin-Rollouts": guides/counterfactual-twin-rollouts.md
+      - "Scenario Discovery with PRIM": guides/scenario-discovery-prim.md
+      - "Enforcing Conservation Layers": guides/conservation-layers.md
       - "Persistence & Event-Sourced Replay": guides/persistence.md
       - "Reproducibility Cards & Croissant": guides/reproducibility-cards.md
       - "Scaling Out Monte Carlo Simulations": guides/scale-out.md
@@ -134,6 +186,11 @@ nav:
           - "FEAT-005: Trajectory Verification": specs/features/FEAT-005-trajectory-verification.md
           - "FEAT-006: Experimentation Suite": specs/features/FEAT-006-experimentation-suite.md
           - "FEAT-007: Interop & Ecosystem": specs/features/FEAT-007-interop-multiagent-reporting-service-trackers.md
+          - "FEAT-008: Twin-Rollout SCM Kernel": specs/features/FEAT-008-twin-rollout-counterfactual-scm-kernel.md
+          - "FEAT-009: Decision-Focused Scenario Discovery": specs/features/FEAT-009-decision-focused-scenario-discovery.md
+          - "FEAT-010: Grey-Box Conservation & Flywheel": specs/features/FEAT-010-grey-box-conservation-flywheel.md
+          - "FEAT-011: Amortized Calibration with Certified Coverage": specs/features/FEAT-011-amortized-calibration-coverage.md
+          - "FEAT-012: Causal-Correctness & Metamorphic Reliability": specs/features/FEAT-012-causal-correctness-metamorphic-reliability.md
       - Architecture Decision Records (ADRs):
           - "ADR-001: Python-First Implementation": adr/ADR-001-python-first.md
           - "ADR-002: Pluggable Dynamics Protocol": adr/ADR-002-pluggable-dynamics.md
@@ -174,24 +231,37 @@ nav:
           - "ADR-037: Release Engineering, Version Truth & Deprecations": adr/ADR-037-release-engineering-version-truth-and-deprecation-policy.md
           - "ADR-038: Open-Source Governance & RFC Process": adr/ADR-038-open-source-governance-community-health-and-rfc-process.md
           - "ADR-039: Responsible AI, Trust & Anti-Overclaiming": adr/ADR-039-responsible-ai-trust-and-anti-overclaiming-enforcement.md
+          - "ADR-040: Twin-Rollout Counterfactual SCM Kernel": adr/ADR-040-twin-rollout-counterfactual-scm-kernel.md
+          - "ADR-041: Decision-Focused Scenario Discovery": adr/ADR-041-decision-focused-scenario-discovery.md
+          - "ADR-042: Grey-Box Conservation Layer & Neuro-Symbolic Flywheel": adr/ADR-042-grey-box-conservation-flywheel.md
+          - "ADR-043: Amortized Calibration with Certified Coverage": adr/ADR-043-amortized-calibration-certified-coverage.md
+          - "ADR-044: Causal-Correctness & Metamorphic Evaluation": adr/ADR-044-causal-correctness-metamorphic-evaluation.md
 
   - Community & Governance:
       - "Community Health & CHAOSS": community-health.md
       - "Curated Starter Tasks": good-first-issues.md
       - "NumFOCUS Sponsorship Prospectus": numfocus-sponsorship.md
       - "Responsible AI Governance Mapping": responsible-ai.md
+      - "NIST AI RMF & EU AI Act Compliance": governance/compliance-mapping.md
       - "Open-Source Governance (ADR-038)": adr/ADR-038-open-source-governance-community-health-and-rfc-process.md
+      - "Launch Announcement": community/launch-announcement.md
+      - "Outreach & Ecosystem Plan": community/outreach-plan.md
 
   - Explanation:
       - "What is a World Model?": concepts/world-models.md
+      - "Competitive Landscape & Positioning": positioning/landscape.md
       - "Scientific ML Rigor & Provenance": concepts/ml-scientific-rigor.md
       - "Responsible AI & Anti-Overclaiming": responsible-ai.md
       - "Causal Epistemology": concepts/causality.md
+      - "Decision-Focused Scenario Discovery": concepts/decision-making.md
+      - "Amortized Calibration & Coverage": concepts/calibration.md
       - "Uncertainty & Rollouts": concepts/uncertainty.md
       - "Decision-Grade Evaluation": concepts/evaluation.md
+      - "Model Reliability Beyond Rollout Error": concepts/model-reliability.md
       - "First-Class Constraints": concepts/constraints.md
       - "Systemic Traces": concepts/systemic-traces.md
       - "Learned Dynamics & Invariants": concepts/learned-dynamics.md
+      - "Grey-Box Dynamics & Flywheel": concepts/grey-box-dynamics.md
       - "Planning & Controller Layer": concepts/planning.md
       - "OOD & Regime-Shift Epistemics": concepts/ood.md
       - "Heterogeneous Graph State & GNNs": concepts/graph-state.md

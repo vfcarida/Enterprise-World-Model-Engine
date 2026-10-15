@@ -31,8 +31,11 @@ def _extract_imports(
 
     nodes_to_inspect = []
     if include_function_level:
-        for node in ast.walk(tree):
-            nodes_to_inspect.append(node)
+        for node in tree.body:
+            if _is_type_checking(node):
+                continue
+            for child in ast.walk(node):
+                nodes_to_inspect.append(child)
     else:
         for node in tree.body:
             if _is_type_checking(node):

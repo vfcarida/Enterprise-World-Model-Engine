@@ -4,14 +4,22 @@ from __future__ import annotations
 
 from ewm_engine.provenance.evidence import EvidenceLevel
 from ewm_engine.provenance.metadata import ComponentVersion, Provenance, SimulationMetadata
-from ewm_engine.provenance.trace import SystemicTrace, TraceEdge, TraceNode
+from ewm_engine.provenance.trace import (
+    ExogenousNoiseRecord,
+    SystemicTrace,
+    TraceDiff,
+    TraceEdge,
+    TraceNode,
+)
 
 __all__ = [
     "ComponentVersion",
     "EvidenceLevel",
+    "ExogenousNoiseRecord",
     "Provenance",
     "SimulationMetadata",
     "SystemicTrace",
+    "TraceDiff",
     "TraceEdge",
     "TraceNode",
 ]

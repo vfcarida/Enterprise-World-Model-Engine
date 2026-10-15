@@ -1,0 +1,20 @@
+schema_version: "1.0.0"
+world:
+  name: "CalibratedWarehouse"
+  description: "Enterprise distribution warehouse for amortized SBI calibration"
+entities:
+  - id: "regional_dc"
+    type: "distribution_center"
+    attributes:
+      region: "North"
+resources:
+  - id: "inventory"
+    current: 85.0
+    min_value: 0.0
+    max_value: 500.0
+    unit: "pallets"
+dynamics:
+  type: "deterministic_demand"
+  parameters:
+    resource_id: "inventory"
+    demand: 15.0

@@ -196,6 +196,7 @@ class HeterogeneousGraphView(BaseModel):
             "memory": state.memory,
             "active_rules": state.active_rules,
             "context": state.context,
+            "raw_resources": [r.model_dump() for r in state.resources.values()],
         }
 
         return cls(
@@ -213,9 +214,14 @@ class HeterogeneousGraphView(BaseModel):
         If base_state is provided, unattached resources and non-graph metadata are preserved.
         """
         entities: list[Entity] = []
-        resources_dict: dict[ResourceId, Resource] = (
-            copy.deepcopy(base_state.resources) if base_state is not None else {}
-        )
+        if base_state is not None:
+            resources_dict: dict[ResourceId, Resource] = copy.deepcopy(base_state.resources)
+        elif "raw_resources" in self.global_attributes:
+            resources_dict = {
+                r["id"]: Resource(**r) for r in self.global_attributes["raw_resources"]
+            }
+        else:
+            resources_dict = {}
 
         for _n_type, nodes in self.nodes_by_type.items():
             for _n_id, node in nodes.items():
@@ -417,3 +423,12 @@ class HeterogeneousGraphView(BaseModel):
                 "edges_by_type": active_edges_by_type,
             }
         )
+
+    def as_scm(self, world: Any | None = None) -> Any:
+        """Compile an additive Structural Causal Model (SCM) view from this heterogeneous graph view."""
+        from ewm_engine.core.scm import StructuralCausalModel
+
+        if world is not None:
+            return StructuralCausalModel.from_world(world)
+        base_state = self.to_world_state()
+        return StructuralCausalModel.from_world_state(base_state)

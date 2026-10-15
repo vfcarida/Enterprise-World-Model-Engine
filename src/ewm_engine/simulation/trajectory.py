@@ -159,6 +159,16 @@ class Trajectory(BaseModel):
         """Extract a time series of values for a given step metric."""
         return [step.step_metrics.get(metric_name, 0.0) for step in self.steps]
 
+    @property
+    def exogenous_noise(self) -> dict[str, Any]:
+        """Addressable exogenous noise variables (U) recorded during this rollout."""
+        return self.systemic_trace.exogenous_noise
+
+    @property
+    def exogenous_noise_fingerprint(self) -> str:
+        """Canonical SHA-256 fingerprint over all addressable exogenous noise draws."""
+        return self.systemic_trace.exogenous_noise_fingerprint
+
     def final_metric(self, metric_name: str) -> float:
         """Get the final value of a metric at the end of the rollout."""
         if not self.steps:

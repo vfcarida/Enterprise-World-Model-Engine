@@ -1,7 +1,19 @@
-"""Evaluation metrics, uncertainty estimation, and counterfactual scenario comparison."""
+"""Evaluation metrics, uncertainty estimation, counterfactual comparison, and reliability gates."""
 
 from __future__ import annotations
 
+from ewm_engine.evaluation.abstention import (
+    CompetenceEstimator,
+    EpistemicCompetence,
+    PhysicsIQGuardrail,
+)
+from ewm_engine.evaluation.causal import (
+    CausalCorrectnessGate,
+    CausalCorrectnessReport,
+    InterventionSelectivityViolation,
+    MonotonicDirection,
+    evaluate_intervention_selectivity,
+)
 from ewm_engine.evaluation.comparison import ScenarioComparison, compare_scenarios
 from ewm_engine.evaluation.conformal import (
     ACIState,
@@ -11,6 +23,22 @@ from ewm_engine.evaluation.conformal import (
     ConformalIntervalPredictor,
     UQParetoCandidate,
     compute_uq_pareto_front,
+)
+from ewm_engine.evaluation.metamorphic import (
+    MR_CONSERVATION,
+    MR_CONSTRAINT_SLACK,
+    MR_DETERMINISM,
+    MR_ENTITY_PERMUTATION,
+    MR_MONOTONICITY,
+    MR_SCALING,
+    STANDARD_MR_CARDS,
+    FaultMutant,
+    MetamorphicRelationCard,
+    MetamorphicRelationVerdict,
+    MetamorphicSuite,
+    MetamorphicSuiteReport,
+    MutationAdequacyEvaluator,
+    MutationType,
 )
 from ewm_engine.evaluation.metrics import (
     DistributionalEquityMetric,
@@ -29,6 +57,10 @@ from ewm_engine.evaluation.pareto import (
     ObjectiveSpec,
     ParetoFrontier,
     compute_pareto_frontier,
+)
+from ewm_engine.evaluation.reliability import (
+    WorldModelReliabilityReport,
+    evaluate_world_model_reliability,
 )
 from ewm_engine.evaluation.uncertainty import (
     AdaptiveCalibrationResult,
@@ -52,30 +84,52 @@ from ewm_engine.evaluation.uncertainty import (
 )
 
 __all__ = [
+    "MR_CONSERVATION",
+    "MR_CONSTRAINT_SLACK",
+    "MR_DETERMINISM",
+    "MR_ENTITY_PERMUTATION",
+    "MR_MONOTONICITY",
+    "MR_SCALING",
+    "STANDARD_MR_CARDS",
     "ACIState",
     "AdaptiveCalibrationResult",
     "AdaptiveConformalInference",
     "BootstrapConfidenceInterval",
     "BootstrapDelta",
     "CalibrationDiagnostic",
+    "CausalCorrectnessGate",
+    "CausalCorrectnessReport",
+    "CompetenceEstimator",
     "ConformalEvaluationSummary",
     "ConformalInterval",
     "ConformalIntervalPredictor",
     "DistributionalEquityMetric",
+    "EpistemicCompetence",
+    "FaultMutant",
     "FinalResourceLevelMetric",
     "HardViolationsMetric",
+    "InterventionSelectivityViolation",
+    "MetamorphicRelationCard",
+    "MetamorphicRelationVerdict",
+    "MetamorphicSuite",
+    "MetamorphicSuiteReport",
     "Metric",
+    "MonotonicDirection",
     "MultiSeedMetricSummary",
     "MultiSeedReport",
+    "MutationAdequacyEvaluator",
+    "MutationType",
     "ObjectiveDirection",
     "ObjectiveSpec",
     "PITCalibrationResult",
     "ParetoFrontier",
+    "PhysicsIQGuardrail",
     "ReliabilityBin",
     "ScenarioComparison",
     "TotalViolationsMetric",
     "UQParetoCandidate",
     "UncertaintyDistribution",
+    "WorldModelReliabilityReport",
     "compare_scenarios",
     "compute_adaptive_calibration_error",
     "compute_bootstrap_ci",
@@ -89,6 +143,8 @@ __all__ = [
     "compute_pit_calibration",
     "compute_tail_metrics",
     "compute_uq_pareto_front",
+    "evaluate_intervention_selectivity",
     "evaluate_multiseed",
+    "evaluate_world_model_reliability",
     "summarize_distribution",
 ]

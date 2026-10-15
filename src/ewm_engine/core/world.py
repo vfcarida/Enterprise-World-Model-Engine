@@ -150,3 +150,39 @@ class World:
 
         engine = SimulationEngine(executor=executor)
         return engine.run(world=self, scenario=scenario)
+
+    def as_scm(self, horizon: int = 1) -> Any:
+        """Compile an additive Structural Causal Model (SCM) view from this world."""
+        from ewm_engine.core.scm import StructuralCausalModel
+
+        return StructuralCausalModel.from_world(self, horizon=horizon)
+
+    def counterfactual(
+        self,
+        observed: Any,
+        intervention: Any,
+        horizon: int | None = None,
+        seed: int | None = None,
+        locality_tolerance: float = 1e-5,
+    ) -> Any:
+        """Evaluate a native Pearl three-step counterfactual rollout under Twin-Rollout noise coupling.
+
+        Implements:
+            1. Abduction: Recover posterior over exogenous noise U given observed trajectory.
+            2. Action: Apply causal surgery do(X = x) to replace structural assignments.
+            3. Prediction: Re-run the modified model using the abduced, coupled exogenous noise.
+
+        References:
+            - Richens & Everitt (ICLR 2024 oral, arXiv:2402.10877): Robust agents learn causal world models.
+            - Pearl (2009): Causality: Models, Reasoning, and Inference.
+        """
+        from ewm_engine.simulation.counterfactual import CounterfactualEngine
+
+        cf_engine = CounterfactualEngine(locality_tolerance=locality_tolerance)
+        return cf_engine.run(
+            world=self,
+            observed=observed,
+            intervention=intervention,
+            horizon=horizon,
+            seed=seed,
+        )

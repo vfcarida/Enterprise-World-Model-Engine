@@ -69,6 +69,7 @@ def execute_step(
     # 1. Sample exogenous shocks
     events: list[ExogenousEvent] = []
     for src in world.event_sources:
+        src_name = getattr(src, "name", src.__class__.__name__)
         sampled_events = src.sample(state=state, step=step_idx, rng=rng)
         for ev in sampled_events:
             events.append(ev)
@@ -80,6 +81,16 @@ def execute_step(
                 label=f"Exogenous Shock: {ev.type} (sev={ev.severity})",
                 evidence_level=EvidenceLevel.STRUCTURAL,
                 details=ev.parameters,
+            )
+            u_id = f"u:step_{step_idx}:event:{src_name}:{ev.id}"
+            trace.record_exogenous_draw(
+                noise_id=u_id,
+                step=step_idx,
+                mechanism=src_name,
+                variable=ev.type,
+                value={"severity": ev.severity, "parameters": ev.parameters},
+                is_invertible=True,
+                add_to_nodes=False,
             )
 
     # 2. Query actors for proposed actions
@@ -165,6 +176,16 @@ def execute_step(
             evidence_level=trans_result.evidence_level,
             details=trans_result.applied_changes,
         )
+        if trans_result.applied_changes:
+            trace.record_exogenous_draw(
+                noise_id=f"u:step_{step_idx}:dynamics:{trans_result.model_name}",
+                step=step_idx,
+                mechanism=trans_result.model_name,
+                variable="state_delta",
+                value=trans_result.applied_changes,
+                is_invertible=True,
+                add_to_nodes=False,
+            )
         for act in accepted_actions:
             rel = str(
                 act.parameters.get("trace_relation")

@@ -190,6 +190,12 @@ class WorldSpec(BaseModel):
         wf = factory or WorldFactory()
         return wf.create_world(self)
 
+    def as_scm(self, horizon: int = 1) -> Any:
+        """Compile an additive Structural Causal Model (SCM) view from this declarative specification."""
+        from ewm_engine.core.scm import StructuralCausalModel
+
+        return StructuralCausalModel.from_world_spec(self, horizon=horizon)
+
 
 # Backward-compatible aliases
 WorldSpecification = WorldSpec
@@ -313,6 +319,31 @@ class ComponentRegistry:
             ]
             return CompositeDynamics(models=sub_models, name=p.get("name", "CompositeDynamics"))
 
+        def _make_leakage_dynamics(p: dict[str, Any]) -> DynamicsModel:
+            from ewm_engine.dynamics.faults import UnmeteredLeakageDynamics
+
+            return UnmeteredLeakageDynamics(
+                resource_id=str(p.get("resource_id", "warehouse_a")),
+                leak_rate=float(p.get("leak_rate", 15.0)),
+                name=p.get("name", "UnmeteredLeakageDynamics"),
+            )
+
+        def _make_jitter_dynamics(p: dict[str, Any]) -> DynamicsModel:
+            from ewm_engine.dynamics.faults import UnseededJitterDynamics
+
+            return UnseededJitterDynamics(
+                resource_id=str(p.get("resource_id", "warehouse_a")),
+                name=p.get("name", "UnseededJitterDynamics"),
+            )
+
+        def _make_bias_dynamics(p: dict[str, Any]) -> DynamicsModel:
+            from ewm_engine.dynamics.faults import PermutationBiasDynamics
+
+            return PermutationBiasDynamics(
+                resource_id=str(p.get("resource_id", "warehouse_a")),
+                name=p.get("name", "PermutationBiasDynamics"),
+            )
+
         self.register_dynamics("deterministic_transfer", _make_transfer_dynamics)
         self.register_dynamics("transfer", _make_transfer_dynamics)
         self.register_dynamics("deterministic", _make_deterministic_dynamics)
@@ -320,6 +351,9 @@ class ComponentRegistry:
         self.register_dynamics("demand", _make_demand_dynamics)
         self.register_dynamics("stochastic_demand", _make_stochastic_demand)
         self.register_dynamics("composite", _make_composite_dynamics)
+        self.register_dynamics("unmetered_leakage", _make_leakage_dynamics)
+        self.register_dynamics("unseeded_jitter", _make_jitter_dynamics)
+        self.register_dynamics("permutation_bias", _make_bias_dynamics)
 
         # Constraints
         def _parse_severity(s: str | None) -> ConstraintSeverity:

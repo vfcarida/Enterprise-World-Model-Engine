@@ -261,6 +261,7 @@ def test_minimal_world_backward_compatibility() -> None:
 @pytest.mark.example
 def test_documented_ortools_cpsat_planner_example_executes() -> None:
     """Ensure documented OR-Tools CP-SAT discrete allocation planner snippet executes."""
+    pytest.importorskip("ortools")
     from ewm_engine.integrations.ortools import CPSATAllocationPlanner
 
     state = WorldState(
@@ -333,6 +334,7 @@ def test_documented_scipy_allocation_planner_example_executes() -> None:
 @pytest.mark.example
 def test_documented_z3_smt_constraint_example_executes() -> None:
     """Ensure documented Z3 SMT constraint adapter snippet executes."""
+    pytest.importorskip("z3")
     from ewm_engine.constraints.results import ConstraintSeverity
     from ewm_engine.integrations.solvers import Z3ConstraintAdapter
 

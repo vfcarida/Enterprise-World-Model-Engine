@@ -52,6 +52,7 @@ def main() -> int:
         Path("docs/getting-started.md"),
         Path("docs/tutorials/first-world.md"),
         Path("docs/tutorials/counterfactual-interventions.md"),
+        Path("docs/tutorials/whole-game-in-ten-minutes.md"),
     ]
 
     total_snippets = 0

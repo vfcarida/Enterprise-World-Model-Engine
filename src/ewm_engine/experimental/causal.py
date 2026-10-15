@@ -16,13 +16,13 @@ Epistemic Invariant:
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass, field
 from typing import Self
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from ewm_engine.core.actions import Action
+from ewm_engine.core.scm import CausalGraph as CausalGraph
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.world import World
 from ewm_engine.dynamics.learned import TransitionDataset
@@ -34,102 +34,6 @@ from ewm_engine.simulation.scenario import Scenario
 # ---------------------------------------------------------------------------
 # 1. Structural Causal Graph & Backdoor Identifiability
 # ---------------------------------------------------------------------------
-
-
-@dataclass
-class CausalGraph:
-    """Directed Acyclic Graph (DAG) specifying declared structural mechanisms.
-
-    Edges represent direct causal dependencies between variables: (source, target).
-    """
-
-    nodes: set[str] = field(default_factory=set)
-    edges: set[tuple[str, str]] = field(default_factory=set)
-    unobserved_nodes: set[str] = field(default_factory=set)
-
-    def add_node(self, name: str, is_unobserved: bool = False) -> None:
-        self.nodes.add(name)
-        if is_unobserved:
-            self.unobserved_nodes.add(name)
-
-    def add_edge(self, source: str, target: str) -> None:
-        self.nodes.add(source)
-        self.nodes.add(target)
-        self.edges.add((source, target))
-
-    def parents(self, node: str) -> set[str]:
-        return {src for (src, tgt) in self.edges if tgt == node}
-
-    def children(self, node: str) -> set[str]:
-        return {tgt for (src, tgt) in self.edges if src == node}
-
-    def descendants(self, node: str) -> set[str]:
-        visited: set[str] = set()
-        queue = [node]
-        while queue:
-            curr = queue.pop(0)
-            for ch in self.children(curr):
-                if ch not in visited:
-                    visited.add(ch)
-                    queue.append(ch)
-        return visited
-
-    def find_all_undirected_paths(
-        self, start: str, end: str, max_depth: int = 6
-    ) -> list[list[str]]:
-        """Find all undirected paths between start and end (ignoring edge direction)."""
-        adjacency: dict[str, set[str]] = {n: set() for n in self.nodes}
-        for u, v in self.edges:
-            adjacency[u].add(v)
-            adjacency[v].add(u)
-
-        paths: list[list[str]] = []
-        queue: list[list[str]] = [[start]]
-
-        while queue:
-            path = queue.pop(0)
-            curr = path[-1]
-            if curr == end:
-                paths.append(path)
-                continue
-            if len(path) > max_depth:
-                continue
-            for neighbor in adjacency.get(curr, set()):
-                if neighbor not in path:
-                    queue.append([*path, neighbor])
-        return paths
-
-    def is_backdoor_path(self, path: list[str], treatment: str) -> bool:
-        """Check if a path is a backdoor path into treatment (starts with arrow into treatment)."""
-        if len(path) < 2 or path[0] != treatment:
-            return False
-        # Path is backdoor if second node points into treatment: (path[1], treatment) in edges
-        return (path[1], treatment) in self.edges
-
-    def is_collider(self, prev_node: str, curr_node: str, next_node: str) -> bool:
-        """Check if curr_node is a collider along the path (arrows point into curr: -> curr <-)."""
-        return (prev_node, curr_node) in self.edges and (next_node, curr_node) in self.edges
-
-    def is_path_blocked(self, path: list[str], conditioning_set: set[str]) -> bool:
-        """Check if a path is d-separated / blocked given the conditioning set."""
-        cond_and_descendants = set(conditioning_set)
-        for c in conditioning_set:
-            cond_and_descendants.update(self.descendants(c))
-
-        for i in range(1, len(path) - 1):
-            prev_n = path[i - 1]
-            curr_n = path[i]
-            next_n = path[i + 1]
-
-            if self.is_collider(prev_n, curr_n, next_n):
-                # Collider: blocked if neither curr_n nor any descendant is conditioned on
-                if curr_n not in cond_and_descendants:
-                    return True
-            else:
-                # Non-collider: blocked if curr_n is conditioned on
-                if curr_n in conditioning_set:
-                    return True
-        return False
 
 
 class IdentifiabilityResult(BaseModel):

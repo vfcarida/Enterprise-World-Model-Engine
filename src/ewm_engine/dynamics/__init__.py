@@ -16,6 +16,11 @@ from ewm_engine.dynamics.learned import (
     TransitionSample,
 )
 from ewm_engine.dynamics.stochastic import StochasticDemandDynamics
+from ewm_engine.experimental.grey_box import (
+    GreyBoxDynamics,
+    ResidualEstimator,
+    ZeroResidualEstimator,
+)
 
 __all__ = [
     "CompositeDynamics",
@@ -23,10 +28,13 @@ __all__ = [
     "DeterministicDynamics",
     "DeterministicTransferDynamics",
     "DynamicsModel",
+    "GreyBoxDynamics",
     "LearnedDynamics",
     "LinearResidualDynamics",
+    "ResidualEstimator",
     "StochasticDemandDynamics",
     "TransitionDataset",
     "TransitionResult",
     "TransitionSample",
+    "ZeroResidualEstimator",
 ]

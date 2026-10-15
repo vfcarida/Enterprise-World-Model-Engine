@@ -90,7 +90,11 @@ def validate_causal_claim(
     Returns:
         The validated or downgraded EvidenceLevel.
     """
-    if claimed_level in (EvidenceLevel.INTERVENTIONAL, EvidenceLevel.QUASI_CAUSAL):
+    if claimed_level in (
+        EvidenceLevel.COUNTERFACTUAL,
+        EvidenceLevel.INTERVENTIONAL,
+        EvidenceLevel.QUASI_CAUSAL,
+    ):
         reasons: list[str] = []
         if not is_identifiable:
             reasons.append(
@@ -288,6 +292,7 @@ class ResponsibleAIGate:
         # 3. Causal standing check
         if self.require_causal_identifiability:
             if forecast.evidence_level not in (
+                EvidenceLevel.COUNTERFACTUAL,
                 EvidenceLevel.STRUCTURAL,
                 EvidenceLevel.INTERVENTIONAL,
                 EvidenceLevel.QUASI_CAUSAL,

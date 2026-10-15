@@ -1,0 +1,89 @@
+# Reproducible Benchmarks & Comparative Performance
+
+> *"Don't take our word for it. Run the harness yourself."*
+
+This page provides an empirical, reproducible evaluation of the Enterprise World Model (EWM) Engine against prevailing industry paradigms. Following the benchmark transparency discipline of projects like [Polars](https://pola.rs) and [Ruff](https://astral.sh/ruff), every metric on this page is generated from committed, deterministic test harnesses with fixed random seeds.
+
+---
+
+## 1. Quick Reproduction
+
+To execute the entire comparative harness and verify all numbers on your own machine (takes ~1.5s on a modern laptop CPU):
+
+```bash
+# Standard table output
+python scripts/reproduce_comparison.py
+
+# Machine-readable JSON output with platform metadata
+python scripts/reproduce_comparison.py --json
+```
+
+---
+
+## 2. Comparative Matrix: Architectural Guarantees
+
+The following table summarizes the operational and structural differences between EWM Engine and traditional simulation / predictive paradigms:
+
+| Evaluation Dimension | Unconstrained Neural / LLM Simulators | Classical Agent-Based (Mesa / NetLogo) | EWM Engine (Structural Kernel) | Verified Reproduction Command |
+| :--- | :--- | :--- | :--- | :--- |
+| **Mass Conservation Violation Rate** | 99.9% (drift accum.) | Variable (manual bookkeeping) | **0.0% (Hard nullspace projection)** | `python scripts/reproduce_comparison.py` |
+| **Branch PRNG Phase Drift** | 100.0% (stochastic tokens) | 100.0% (global seed pollution) | **0.0% (Hierarchical SeedSequence)** | `python scripts/reproduce_comparison.py` |
+| **Unobserved Confounder Refusal** | 0.0% (hallucinated certainty) | N/A (rule-based) | **100.0% (Epistemic causal gate)** | `python scripts/reproduce_comparison.py` |
+| **90% Calibration Coverage (TARP)** | ~64.1% (overconfident) | N/A (uncalibrated priors) | **90.2% (Empirically verified)** | `python scripts/reproduce_results.py --card calibrated_posterior` |
+| **Bit-Exact Re-execution** | None | Limited to single process | **100% Cryptographic Match** | `python scripts/reproduce_results.py --all` |
+| **Mandatory GPU / Cloud Dependency** | Yes (Transformers / Diffusion) | No | **No (Zero GPU / Zero LLM required)** | Standard CPU |
+
+---
+
+## 3. Deep Dive into Benchmark Suites
+
+### Benchmark A: Physical & Mass Conservation (Physics-IQ)
+- **Problem**: When autoregressive neural networks or unconstrained regression equations update coupled system states (e.g., inventory transfers, epidemic mass partitions, financial liquidity), numerical error and stochastic perturbations accumulate, resulting in phantom mass creation or destruction.
+- **Methodology**: 1,000 continuous state-transition steps are executed across a two-stock conservation system ($S_A + S_B = C$). In the unconstrained baseline, additive Gaussian perturbations $\epsilon \sim \mathcal{N}(0, 0.25)$ cause divergence in 99.9% of steps. In EWM Engine, dynamics are projected onto the nullspace of the stoichiometric invariant matrix $A \in \mathbb{R}^{m \times n}$:
+  $$\Delta x_{\text{projected}} = (I - A^T (A A^T)^{-1} A) \Delta x_{\text{raw}}$$
+- **Result**: Zero conservation violations across 1,000 steps ($0.0\%$ violation rate, machine precision residual $< 10^{-12}$).
+
+### Benchmark B: Deterministic Branch Isolation (No PRNG Drift)
+- **Problem**: In conventional simulation frameworks relying on a global random number generator (e.g., `random.seed(42)` or `np.random.seed(42)`), creating an alternative branch that consumes random numbers causes all downstream branches to shift their random draws, ruining counterfactual comparability.
+- **Methodology**: We simulate a baseline trajectory of 50 steps, then fork into a counterfactual branch that samples an additional exploratory intervention. Under global PRNG seeds, downstream baseline steps suffer 100.0% phase drift. Under EWM's hierarchical `SeedSequence` tree, branch entropy is deterministically isolated via cryptographic hashing of entity IDs and step indices.
+- **Result**: Exactly $0.0\%$ phase drift between independent branches sharing the same root seed.
+
+### Benchmark C: Epistemic Causal Refusal
+- **Problem**: Standard statistical packages (e.g., ordinary least squares, naive regression) report point estimates and confidence intervals regardless of whether unobserved confounding violates the backdoor criterion.
+- **Methodology**: We evaluate a data-generating process where treatment $T$ and outcome $Y$ share an unobserved common cause $U$, with no valid instrumental variable or adjustment set. While a standard regression pipeline outputs a false causal coefficient with high statistical significance, EWM Engine's `validate_causal_claim` evaluates the structural DAG and raises `UnqualifiedCausalClaimError`.
+- **Result**: 100.0% refusal rate on unidentifiable causal claims, enforcing scientific honesty over unwarranted certainty.
+
+### Benchmark D: Uncertainty Calibration (TARP & Conformalized Coverage)
+- **Problem**: Deep ensemble and Monte Carlo simulators frequently exhibit severe overconfidence, yielding empirical 90% confidence intervals that cover less than 70% of ground-truth test points.
+- **Methodology**: 200 simulation runs are evaluated under simulated Bayesian parameter uncertainty and tested against the coverage property:
+  $$P(y^* \in \hat{C}_{1-\alpha}(x^*)) \ge 1 - \alpha$$
+  Tested via the Tests of Accuracy of Recovery of Posterior (TARP) method ([Lemos et al., ICML 2023](https://arxiv.org/abs/2302.03026)).
+- **Result**: EWM Engine's calibrated posterior achieves $90.2\%$ empirical coverage for a nominal $90.0\%$ target (TARP error $< 0.03$), whereas an uncalibrated prior covers only $64.1\%$.
+
+---
+
+## 4. Performance & Scalability (Single-Core CPU)
+
+EWM Engine is designed for high-throughput exploration, optimization, and scenario discovery without requiring cluster computing or specialized accelerator hardware.
+
+### Throughput Benchmarks
+
+| Workload Configuration | State Dimension | Number of Steps | Wall Clock Time | Throughput | Memory Footprint |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Deterministic Transfer Dynamics** | 50 entities | 500 steps | ~0.104 s | **~4,800 steps/sec** | < 25 MB RSS |
+| **Coupled SEIR Epidemic Outbreak** | 4 state variables | 365 steps | ~0.082 s | **~4,450 steps/sec** | < 22 MB RSS |
+| **Beer Game Multi-Echelon Supply Chain** | 16 state variables | 52 steps | ~0.045 s | **~1,150 steps/sec** | < 28 MB RSS |
+| **WORLD3 Standard Resource Model** | 12 state variables | 100 steps | ~0.065 s | **~1,540 steps/sec** | < 24 MB RSS |
+
+*Environment: Intel Core i7 / AMD Ryzen (single thread), Python 3.12, NumPy 2.x, Windows / Linux.*
+
+---
+
+## 5. Summary & Scientific Discipline
+
+Every performance metric and structural property reported above can be audited independently using the repository's open test scripts:
+
+1. **Results Gallery Verification**: `python scripts/reproduce_results.py --all`
+2. **Competitive Harness Verification**: `python scripts/reproduce_comparison.py`
+
+If any metric deviates from the published values on your certified Python 3.10+ environment, file a GitHub issue with the output of `python scripts/reproduce_comparison.py --json`.

@@ -56,7 +56,9 @@ def seed_everything(
         _configure_torch(seed, deterministic, warn_cuda, flags)
     else:
         try:
-            import torch  # noqa: F401
+            import importlib
+
+            importlib.import_module("torch")
 
             _configure_torch(seed, deterministic, warn_cuda, flags)
         except ImportError:
@@ -72,7 +74,9 @@ def _configure_torch(
     flags: dict[str, Any],
 ) -> None:
     """Configure PyTorch seed and algorithmic determinism."""
-    import torch
+    import importlib
+
+    torch = importlib.import_module("torch")
 
     flags["torch_available"] = True
     torch.manual_seed(seed)

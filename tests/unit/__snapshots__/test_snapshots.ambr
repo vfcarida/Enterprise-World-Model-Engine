@@ -60,6 +60,7 @@
     inflation: 0.03
   metrics:
     expected_margin: 0.24
+  quantitative_analyses: {}
   limitations: []
   
   '''
