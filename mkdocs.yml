@@ -74,9 +74,9 @@ nav:
       - "SEIR Epidemic Outbreak": results/seir-outbreak.md
       - "Beer Game Bullwhip": results/beer-game-bullwhip.md
       - "WORLD3 Resource Depletion": results/world3-resource-depletion.md
-      - "Calibrated Posterior (S04)": results/calibrated-posterior-s04.md
-      - "Counterfactual SCM (S01)": results/counterfactual-scm-s01.md
-      - "Decision Scenario Discovery (S02)": results/decision-discovery-s02.md
+      - "Calibrated Posterior": results/calibrated-posterior-s04.md
+      - "Counterfactual SCM": results/counterfactual-scm-s01.md
+      - "Decision Scenario Discovery": results/decision-discovery-s02.md
 
   - Executive & Strategy:
       - "Executive Briefing (One-Pager)": executive/index.md
@@ -287,5 +287,5 @@ nav:
           - "v1.0.0 Convergence Review": specs/v1-convergence.md
           - "Repository Audit Report": audit/repository-audit-report.md
           - "v1.1 Baseline Verification Report": audit/v1-1-baseline-report.md
-          - "Verified Baseline & Dev Setup (P01)": dev/baseline.md
-          - "Reproducibility & Performance Policy (R04)": dev/reproducibility-and-performance.md
+          - "Verified Baseline & Dev Setup": dev/baseline.md
+          - "Reproducibility & Performance Policy": dev/reproducibility-and-performance.md

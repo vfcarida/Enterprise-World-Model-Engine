@@ -1,6 +1,6 @@
 """Contract tests for causal-correctness, metamorphic self-knowledge, and reliability gates.
 
-Enforces S05 Invariants:
+Enforces Reliability & Causal-Correctness Invariants:
     1. Descendant Selectivity Contract: do(X) must alter ONLY descendants of X. Perturbing non-descendants
        strictly fails the gate.
     2. Metamorphic Mutation-Adequacy Contract: MR-cards must kill synthetic structural mutants with

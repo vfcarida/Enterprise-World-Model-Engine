@@ -1,4 +1,4 @@
-# Result Card: Scenario Discovery (PRIM) & Minimax Regret Ranking (S02)
+# Result Card: Scenario Discovery (PRIM) & Minimax Regret Ranking
 
 > **Identity & Scientific Domain**: Decision-Focused Learning & Robust Decision Making  
 > **Benchmark Reference**: Friedman, J. H., & Fisher, N. I. (1999). "Bump hunting in high-dimensional data." *Statistics and Computing*, 9(2), 123–143.  

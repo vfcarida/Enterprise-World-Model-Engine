@@ -3,7 +3,7 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.8.0 "Amortized Simulation-Based Calibration"
 - **Authors:** Simulation Intelligence, Calibration Engineering & Causal Verification Teams
-- **Governance:** `01_EXPANDED_ROADMAP.md` (Track S04), ADR-043
+- **Governance:** `02_ROUND5_EXPANDED_ROADMAP.md` (Amortized Calibration), ADR-043
 - **Dependencies:** Core engine (Zero mandatory dependencies: stdlib, NumPy, Pydantic); Optional extras: `[sbi]`/`[calibrate]` (scipy, scikit-learn, lazy torch)
 
 ---
@@ -45,7 +45,7 @@ Critically, because EWM Engine's core identity is epistemic honesty, calibration
 ### Sub-track 3: SCM & Evidence Linkage (Track C / PR 3)
 - **AC-074 (Epistemic Tier Honesty & Calibration Artifact):**
   - Certified calibration promotes simulation output to `EvidenceLevel.PREDICTIVE`.
-  - **Calibrated $\neq$ Identified:** The engine explicitly disclaims causal identification; counterfactual validity still requires structural backdoor or instrumental identification (S01).
+  - **Calibrated $\neq$ Identified:** The engine explicitly disclaims causal identification; counterfactual validity still requires structural backdoor or instrumental identification (Structural Causal Model).
   - Emit reproducible calibration artifacts (`CalibrationReport`) containing data SHA-256 hash, prior specifications, posterior statistics, coverage certificate, posterior predictive overlay, and execution manifest.
 
 ### Sub-track 4: CLI & Worked Example (Track D / PR 4)

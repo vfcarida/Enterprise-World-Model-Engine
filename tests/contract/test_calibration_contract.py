@@ -1,4 +1,4 @@
-"""Contract tests for Amortized Calibration with Certified Coverage (S04).
+"""Contract tests for Amortized Calibration with Certified Coverage.
 
 Enforces:
 1. Non-point distribution contract: PosteriorDistribution always reports full distributions,

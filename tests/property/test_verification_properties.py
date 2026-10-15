@@ -1,6 +1,6 @@
 """Property-based and invariant tests for verification subsystem.
 
-Conforms to Track T3 & P14:
+Conforms to Track T3 (Trajectory Verification):
 - Property hash stability, determinism, and permutation-invariance in fingerprint folding.
 - Strict non-mutation of traces and trajectories during verification.
 - Causality topological ordering invariants (independent branches free to interleave).

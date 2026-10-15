@@ -1,7 +1,7 @@
 # Feature Specification: FEAT-001 — Evaluation Upgrade
 
 **Feature ID:** `FEAT-001`  
-**Milestone:** `v1.1.0` (Prompt `P02`)  
+**Milestone:** `v1.1.0`  
 **Status:** Approved  
 **Related ADR:** [`docs/adr/ADR-016-evaluation-upgrade-bootstrap-cis-and-pareto.md`](../../adr/ADR-016-evaluation-upgrade-bootstrap-cis-and-pareto.md)  
 **Governing Specification:** [`docs/specs/spec-driven-development.md`](../spec-driven-development.md)  

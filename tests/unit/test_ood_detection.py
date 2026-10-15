@@ -1,4 +1,4 @@
-"""Unit tests for Out-of-Distribution (OOD) and regime-shift detection (P09)."""
+"""Unit tests for Out-of-Distribution (OOD) and regime-shift detection."""
 
 from __future__ import annotations
 

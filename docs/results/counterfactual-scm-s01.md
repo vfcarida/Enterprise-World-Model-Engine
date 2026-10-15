@@ -1,4 +1,4 @@
-# Result Card: Twin-Rollout Counterfactual Stockout Prevention (S01)
+# Result Card: Twin-Rollout Counterfactual Stockout Prevention
 
 > **Identity & Scientific Domain**: Structural Causal Models & Twin-Rollout Counterfactuals  
 > **Benchmark Reference**: Richens & Everitt (2024). "Robust agents learn causal world models." *ICLR 2024 (Oral)* (arXiv:2402.10877).  

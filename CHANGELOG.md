@@ -124,7 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added "Research Adopters & Citations" scaffold inviting community contributions and academic benchmarking citations.
   - Verified and tested all README Python code snippets through `scripts/test_readme_snippets.py`.
   - Added accessibility annotations (`accTitle`, `accDescr`) and descriptive prose to all Mermaid architecture diagrams.
-- **Interop, Co-Simulation, Multi-Agent, Reporting, Serving, and Experiment Trackers (ADR-029, FEAT-007, ACP-008, P16 - Core + Extras `[fmi]`, `[simpy]`, `[mesa]`, `[sd]`, `[game]`, `[cli]`, `[viz]`, `[viz-export]`, `[serve]`, `[config]`, `[trackers]`, `[interop]`, Horizon v1.5 / Ecosystem Completeness)**:
+- **Interop, Co-Simulation, Multi-Agent, Reporting, Serving, and Experiment Trackers (ADR-029, FEAT-007, ACP-008, Core + Extras `[fmi]`, `[simpy]`, `[mesa]`, `[sd]`, `[game]`, `[cli]`, `[viz]`, `[viz-export]`, `[serve]`, `[config]`, `[trackers]`, `[interop]`, Horizon v1.5 / Ecosystem Completeness)**:
   - Implemented **Sub-track 1 — Co-Simulation & Model Exchange (Track T5, Core & Adapters)** in `ewm_engine.cosim`:
     - Zero-dependency master scheduling loop `CoSimMaster` executing fixed-step master simulation loops with zero-order-hold (ZOH) interpolation.
     - Typed variable exchange envelopes `CoSimExchangeEnvelope` and pluggable `SubModel` protocol (`initialize`, `step`, `terminate`, `get_state`, `set_state`).
@@ -159,11 +159,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - API Change Proposal: `.github/proposals/ACP-008-interop-and-ecosystem.md`
     - Concept Guide: `docs/concepts/interop.md`
     - User Guides: `docs/guides/co-simulation.md`, `docs/guides/multi-agent.md`, `docs/guides/visualization-and-reporting.md`, `docs/guides/simulation-as-a-service.md`, `docs/guides/experiment-trackers.md`
-- **Experimentation Suite: Design of Experiments (DoE), Backtesting, Sensitivity Analysis, Calibration, and Multi-Objective Policy Optimization (ADR-028, FEAT-006, ACP-007, P15 - Core + Extras `[sensitivity]`, `[calibrate]`, `[opt-evolutionary]`, `[opt-pareto]`, `[surrogate]`, Horizon v1.4 / Scientific Method Layer)**:
+- **Experimentation Suite: Design of Experiments (DoE), Backtesting, Sensitivity Analysis, Calibration, and Multi-Objective Policy Optimization (ADR-028, FEAT-006, ACP-007, Core + Extras `[sensitivity]`, `[calibrate]`, `[opt-evolutionary]`, `[opt-pareto]`, `[surrogate]`, Horizon v1.4 / Scientific Method Layer)**:
   - Implemented **Core Zero-Dependency Substrate** in `ewm_engine.experimentation`:
     - Declarative `ParameterDef` and `ParameterSpace` supporting `continuous`, `integer`, and `categorical` parameters with unit-hypercube mapping and canonical SHA-256 `space_hash`. Generated Draft 2020-12 JSON schema (`schemas/parameter-space.schema.json`).
     - Pure-NumPy DoE design generators: `generate_full_factorial`, `generate_oat` (one-at-a-time), `generate_lhs` (Latin Hypercube Sampling), and `generate_halton` (low-discrepancy sequence).
-    - Reproducible sweep execution via `run_doe_sweep` keyed by `np.random.SeedSequence(seed).spawn()`, supporting optional result caching via `P13` `ResultStore`. Returns tidy `SweepResult` with `TornadoData` ranking parameters by sensitivity swing $|y_{\text{high}} - y_{\text{low}}|$.
+    - Reproducible sweep execution via `run_doe_sweep` keyed by `np.random.SeedSequence(seed).spawn()`, supporting optional result caching via `ResultStore`. Returns tidy `SweepResult` with `TornadoData` ranking parameters by sensitivity swing $|y_{\text{high}} - y_{\text{low}}|$.
     - Rolling-origin validation & walk-forward backtesting in `run_walk_forward_backtest` evaluating simulated ensembles against observed timeseries using pure-NumPy scorers: `score_rmse`, `score_moments_distance`, `score_empirical_coverage` (SBC/TARP alpha-coverage), `score_crps` (Continuous Ranked Probability Score), and `score_spectral_distance` (Fourier energy-spectrum distance).
     - Protocols and trivial built-in primitives: `Sampler` (`RandomSampler`, `LatinHypercubeSampler`, `HaltonSampler`), `Surrogate` protocol, `Optimizer` (`RandomSearchOptimizer`, `HillClimbingOptimizer`), `ObjectiveVector` (scalarization, Pareto dominance), and `ParetoFront`.
   - Implemented **Statistical & Optimization Extras** (no torch, quarantined behind optional dependencies):
@@ -181,7 +181,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - API Change Proposal: `.github/proposals/ACP-007-experimentation-suite.md`
     - Concept Guide: `docs/concepts/experimentation.md`
     - User Guides: `docs/guides/design-of-experiments.md`, `docs/guides/backtesting.md`, `docs/guides/sensitivity.md`, `docs/guides/calibration.md`, `docs/guides/optimize-interventions.md`
-- **Trajectory Verification: Oracle-Graph & Temporal Logic over Traces (ADR-027, FEAT-005, ACP-006, P14 - Core + Extra `[stl]`, Horizon v1.3 / Verification Completeness)**:
+- **Trajectory Verification: Oracle-Graph & Temporal Logic over Traces (ADR-027, FEAT-005, ACP-006, Core + Extra `[stl]`, Horizon v1.3 / Verification Completeness)**:
   - Ported Meta ARE (arXiv:2509.17158) **Oracle-Graph Verifier** into `ewm_engine.verification.oracle`:
     - Evaluates expected event DAGs (`OracleGraph`, `OracleNode`, `OracleEdge`) against `SystemicTrace` across Consistency (exact parameter/category/label matching), Causality (topological parent-before-child ordering; independent branches free to interleave), and Timing (discrete step windows $[k_{\min}, k_{\max}]$ and continuous timestamp windows $[t_{\min}, t_{\max}]$).
     - Guarantees trace non-mutation: verification strictly reads traces and emits structured `VerificationViolation` logs without repairing or mutating state.
@@ -207,7 +207,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - API Change Proposal: `.github/proposals/ACP-006-trajectory-verification.md`
     - Concept Guide: `docs/concepts/verification.md`
     - User Guide: `docs/guides/verify-trajectories.md`
-- **Durability, Event-Sourced TraceLog, ResultStore & Native Cards (ADR-026, FEAT-004, ACP-005, P13 - Core, Horizon v1.2 / Platform Completeness)**:
+- **Durability, Event-Sourced TraceLog, ResultStore & Native Cards (ADR-026, FEAT-004, ACP-005, Tracks T1/T2/T9 - Core, Horizon v1.2 / Platform Completeness)**:
   - Added event-sourced state transition logging in `ewm_engine.durability`:
     - Defined versioned canonical `TransitionEvent` schema v1 (`schema_version = "1.0.0"`) capturing parent/child fingerprints, proposed/accepted actions, exogenous shocks, dynamics transitions, constraint evaluations, state snapshots, and component versions.
     - Implemented append-only `TraceLog` with monotonic step checks, state continuity verification, and branch forks in the event DAG preserving strict branch isolation.
@@ -224,7 +224,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Implemented hand-emitted MLCommons Croissant 1.1 JSON-LD export (`to_croissant_dataset`, `to_croissant_json`) using stdlib `json`.
   - Published Feature Specification `docs/specs/features/FEAT-004-durability-and-replay.md`, Architecture Decision Record `docs/adr/ADR-026-event-sourced-tracelog-and-eventstore.md`, and API Change Proposal `.github/proposals/ACP-005-durability-and-cards.md`.
   - Published User Guides: `docs/guides/persistence.md` and `docs/guides/reproducibility-cards.md`.
-- **Heterogeneous Graph World State, GNN Dynamics & World Specification Language (WSL) (ADR-022, ADR-023, FEAT-003, P10 - Major / Horizon C Candidate)**:
+- **Heterogeneous Graph World State, GNN Dynamics & World Specification Language (WSL) (ADR-022, ADR-023, FEAT-003, Horizon C Candidate)**:
   - Introduced the **Additive Graph View Pattern** (`ewm_engine.core.graph`) projecting canonical `WorldState` into strongly-typed `HeterogeneousGraphView` without data duplication or state mutation:
     - Partitioned entity nodes by `Entity.type` and directed relational edges by canonical triple `src_type__rel_type__dst_type`.
     - Integrated multi-dimensional node feature matrices (attributes + attached resource levels) and edge feature matrices (weights + relational attributes).
@@ -238,7 +238,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Relational message-passing dynamics model operating over `HeterogeneousGraphView` with action perturbation injections and output resource clamping.
     - Tagged strictly with `EvidenceLevel.PREDICTIVE`.
     - Strictly lazy-loads `torch` via `_load_torch()`, keeping core completely free of heavy ML dependencies.
-    - Validated and evaluated under the P06 evaluation harness (`evaluate_one_step`).
+    - Validated and evaluated under the dynamics evaluation harness (`evaluate_one_step`).
   - Implemented safe declarative **World Specification Language (WSL)** (`ewm_engine.serialization.wsl`):
     - Defined versioned `WSLDocument` grammar (`schema_version="wsl/2.0.0"` or `"2.0.0"`) supporting metadata, temporal stepping, heterogeneous entities, typed relationships, bounded resources, dynamics, constraints, event sources, and scenarios.
     - Full round-trip compilation pipeline: `compile_wsl(doc) -> World` and `export_wsl(world) -> WSLDocument`.
@@ -249,7 +249,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `ADR-023: Safe Declarative World Specification Language (WSL)`.
   - Published Feature Specification `FEAT-003: Heterogeneous Graph World State & World Specification Language (WSL)`.
   - Published concept documentation in `docs/concepts/graph-state.md` and `docs/concepts/wsl.md`.
-- **OOD / Regime-Shift Detection & Honest Causal Diagnostics (ADR-021, P09 - Research / Experimental)**:
+- **OOD / Regime-Shift Detection & Honest Causal Diagnostics (ADR-021, Research / Experimental)**:
   - Added out-of-distribution (OOD) and regime-shift detection in `ewm_engine.experimental.ood`:
     - Formalized `OODDetector` protocol over `WorldState` and `Trajectory`.
     - Implemented `SupportBoundaryOODDetector` supporting empirical feature bounding boxes, configurable safety expansion margins, and custom structural rule invariants.
@@ -265,7 +265,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Implemented noise-coupled counterfactual branching (`twin_rollout_counterfactual` - Twin Rollouts, arXiv:2608.08982) enforcing exact SeedSequence / RNG noise coupling and measuring off-target locality divergence to flag structural model confounding.
   - Published Architecture Decision Record `ADR-021: Out-of-Distribution (OOD) Detection and Honest Causal Diagnostics (Ladder of Causation & Epistemic Boundaries)`.
   - Published concept documentation in `docs/concepts/ood.md` and extended `docs/concepts/causality.md` incorporating Schölkopf et al. (2021), Song & Cai (arXiv:2610.00012), and action-conditioned rollout non-counterfactuality (arXiv:2608.11601).
-- **Planning & Controller Layer with Pluggable Rollout Scoring & MPC Re-Grounding (ADR-020, P08 - Experimental)**:
+- **Planning & Controller Layer with Pluggable Rollout Scoring & MPC Re-Grounding (ADR-020, Experimental)**:
   - Formalized typed `Planner` and `RolloutScorer` protocols in `ewm_engine.experimental.planning`, establishing the world-model-as-internal-simulator paradigm with continuous state re-grounding.
   - Implemented four pluggable rollout scorers:
     - `ExpectedObjectiveScorer`: risk-neutral evaluation of sample expectation $\mathbb{E}[M]$.
@@ -279,7 +279,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Emitted full decision provenance (`PlanningDecision` / `MPCDecisionRecord`) recording pre/post state hashes, candidate utility scores, scorer component breakdowns, and simulation seeds.
   - Added Architecture Decision Record `ADR-020: Planning and Controller Layer, Pluggable Rollout Scoring, and Continuous Re-Grounding (MPC)`.
   - Published concept documentation in `docs/concepts/planning.md` and user guide in `docs/guides/receding-horizon.md`.
-- **Scientific Benchmark Families as a Research Instrument (P07)**:
+- **Scientific Benchmark Families as a Research Instrument (ADR-025)**:
   - Added typed scientific benchmark protocol in `benchmarks/protocol.py` defining benchmark specifications, model evaluation summaries, and reproducible `BenchmarkResult` with cryptographic provenance fingerprints.
   - Implemented the five canonical benchmark families reserved by spec (§63):
     - `InterventionShiftBenchmark`: probes policy generalization and measures the interventional generalization gap under logistical congestion.
@@ -291,7 +291,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implemented benchmark CLI and suite runner in `benchmarks/suite.py` supporting fast smoke testing and custom family filtering.
   - Added CI test suite in `tests/benchmark/test_scientific_benchmarks.py` running under `@pytest.mark.benchmark`.
   - Published research documentation in `docs/research/benchmarks.md` framing benchmarks as scientific measurement instruments rather than marketing validations.
-- **Learned-Dynamics Evaluation Harness + Neural Baseline (ADR-019, P06 - Experimental)**:
+- **Learned-Dynamics Evaluation Harness + Neural Baseline (ADR-019, Experimental)**:
   - Added unified dynamics evaluation harness in `ewm_engine.experimental.dynamics_eval` supporting any `DynamicsModel`.
   - Implemented mandatory Invariant Consistency Gate as a first-class acceptance criterion: checks for resource non-negativity, capacity bounds, and conservation balances; flags models that fail invariants as invalid regardless of low numeric error (Physics-IQ arXiv:2501.09038; Sora critique arXiv:2411.02385).
   - Implemented scale-invariant DreamerV3 `symlog` (`sign(x) * ln(|x| + 1)`) and `symexp` transformations for heterogeneous enterprise metric magnitudes (arXiv:2301.04104).
@@ -304,7 +304,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Published model card in `docs/models/neural-residual-baseline.md` with explicit experimental limitations banner.
   - Published concept guide in `docs/concepts/learned-dynamics.md` explaining the epistemic separation between known physics/rules and learned empirical residuals.
   - Added Architecture Decision Record `ADR-019: Learned-Dynamics Evaluation Harness and Invariants`.
-- **Graduate Adapters (Alpha → Beta) + OR Planners + Agent Evaluation (ADR-018, P05)**:
+- **Graduate Adapters (Alpha → Beta) + OR Planners + Agent Evaluation (ADR-018)**:
   - Formalized public `ConstraintSolver` (`check(*, state, actions, time_limit_seconds) -> SolverResult`) and `ActionPlanner` (`propose(*, state, objective, time_limit_seconds) -> Sequence[Action]`) protocols with structured `SolverResult` and `SolverStatus` in `ewm_engine.integrations.protocols`.
   - Added Architectural Decision Record `ADR-018: Solver and Planner Protocols & Resource Limits`.
   - Enforced mandatory finite time limits across all mathematical solvers and planners (default 5.0s / 5000ms), ensuring no unbounded solver execution path.
@@ -316,7 +316,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added agent-evaluation example in `examples/agent_evaluation/` inspired by Gaia2 / ARE (arXiv:2509.17158), proving the "engine != agent" thesis with verifiable state-based scoring and OR unsat core auditability.
   - Added optional dependency group `or = ["ortools>=9.8.0", "scipy>=1.11.0"]` and updated `solvers` extra in `pyproject.toml`.
   - Graduated all adapters to Beta maturity with explicit banners in `docs/integrations/` and automated tests in CI.
-- **OpenTelemetry Observability Adapter (P04)**:
+- **OpenTelemetry Observability Adapter (ADR-024)**:
   - Added API-only OpenTelemetry adapter (`OpenTelemetryHook`) in `ewm_engine.integrations.otel`, mapping lifecycle events (`SimulationStarted`, `StepCompleted`, `ConstraintEvaluated`, `RolloutCompleted`, `SimulationFinished`) to hierarchical spans (`simulation` -> `rollout` -> `step`).
   - Implemented OpenTelemetry metric instruments mapping `RunMetrics` counters and histograms (`ewm.simulation.duration`, `ewm.rollouts.total`, `ewm.steps.total`, `ewm.constraints.evaluations`, `ewm.dynamics.transitions`, etc.).
   - Added safe default attributes preventing leakage of sensitive enterprise state, memory payloads, or PII (opt-in via `include_state_attributes=True`).
@@ -324,7 +324,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added unit test suite in `tests/unit/test_otel_adapter.py` asserting span tree shapes and metric emissions via in-memory exporters.
   - Added architecture import-boundary tests guaranteeing core and simulation never import OpenTelemetry and the adapter never imports SDK.
   - Added comprehensive user guide in `docs/guides/observability-otel.md` and updated `docs/architecture/observability.md`.
-- **Distributed Monte Carlo with Determinism Preserved (FEAT-002, ADR-017, P03)**:
+- **Distributed Monte Carlo with Determinism Preserved (FEAT-002, ADR-017)**:
   - Added `RolloutExecutor` protocol in `ewm_engine.simulation.executors` with three backends: `SerialExecutor` (default reference), `MultiprocessingExecutor` (multi-core process pool via stdlib `concurrent.futures`), and `RayExecutor` (cluster scale-out via Ray).
   - Guaranteed strict bitwise determinism invariant: `distributed_result.logical == serial_result.logical` across trajectory statuses, seeds, state hashes, metrics, and systemic traces.
   - Implemented deterministic per-rollout RNG spawning via `np.random.SeedSequence(scenario.seed).spawn(scenario.samples)` and deterministic result reassembly in strict ascending `sample_id` order.
@@ -332,7 +332,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added comprehensive property and equivalence test suite in `tests/property/test_distributed_determinism.py`.
   - Added scale-out user guide in `docs/guides/scale-out.md`.
   - Added scale-out throughput speedup benchmarks in `benchmarks/run_benchmarks.py`.
-- **Evaluation Upgrade & Bootstrap Uncertainty (FEAT-001, ADR-016, P02)**:
+- **Evaluation Upgrade & Bootstrap Uncertainty (FEAT-001, ADR-016)**:
   - Added non-parametric percentile bootstrap confidence intervals (`compute_bootstrap_ci`, `compute_bootstrap_delta`, `BootstrapDelta`, `BootstrapConfidenceInterval`) in `ewm_engine.evaluation.uncertainty`.
   - Added empirical hypothesis testing and `is_significant` flags on counterfactual deltas with epistemic guardrails distinguishing simulation variance from real-world causality.
   - Added multi-objective Pareto analysis (`ObjectiveSpec`, `ObjectiveDirection`, `ParetoFrontier`, `compute_pareto_frontier`) in `ewm_engine.evaluation.pareto`.

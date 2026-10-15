@@ -5,7 +5,7 @@
 * Status: accepted
 * Deciders: Vinicius Caridá (@vfcarida)
 * Date: 2026-10-15
-* Technical Story: S03 — Grey-box conservation layer + neuro-symbolic flywheel
+* Technical Story: Grey-box conservation layer + neuro-symbolic flywheel
 * Supersedes: None
 
 ## Context and Problem Statement

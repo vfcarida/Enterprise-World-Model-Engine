@@ -3,7 +3,7 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.7.0 "Decision-Focused Scenario Discovery & Multi-Robustness Adjudication"
 - **Authors:** Decision Science, Platform Architecture & Optimization Teams
-- **Governance:** `01_EXPANDED_ROADMAP.md` (Track S02), ADR-041, ACP-010
+- **Governance:** `02_ROUND5_EXPANDED_ROADMAP.md` (Decision Intelligence), ADR-041, ACP-010
 - **Dependencies:** Core engine (Zero new mandatory dependencies: stdlib, NumPy, Pydantic); Optional extras: `[decision]` (ema-workbench), `[cli]` (rich)
 
 ---

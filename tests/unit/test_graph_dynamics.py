@@ -1,4 +1,4 @@
-"""Unit tests for GraphNeuralDynamics adapter (P10 - Experimental)."""
+"""Unit tests for GraphNeuralDynamics adapter (Experimental)."""
 
 from __future__ import annotations
 
@@ -88,7 +88,7 @@ def test_graph_neural_dynamics_action_perturbation() -> None:
 
 
 def test_graph_neural_dynamics_fit_and_eval_harness() -> None:
-    """Assert GraphNeuralDynamics fits a dataset and evaluates under the P06 harness."""
+    """Assert GraphNeuralDynamics fits a dataset and evaluates under the dynamics evaluation harness."""
     pytest.importorskip("torch")
 
     state = _build_network_world_state()
@@ -126,7 +126,7 @@ def test_graph_neural_dynamics_fit_and_eval_harness() -> None:
 
     assert model._is_fitted is True
 
-    # P06 evaluation harness compatibility
+    # Dynamics evaluation harness compatibility
     one_step, _ = evaluate_one_step(model, dataset)
     assert one_step.mae >= 0.0
     assert one_step.rmse >= 0.0

@@ -7,12 +7,12 @@ This document outlines the phased development roadmap for the **Enterprise World
 > **Interactive Project Tracker:** Follow live development progress, sprint backlogs, and milestone deliverables on the pinned GitHub Project board:
 > - **Pinned GitHub Project:** [https://github.com/users/vfcarida/projects/1](https://github.com/users/vfcarida/projects/1)
 > - **Milestone v1.5.0 (Shipped):** [v1.5.0 Interop & Ecosystem](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/1)
-> - **Milestone v1.5.x (Shipped):** Positioning & Narrative (`S06`, `S07`, `S08` scaffold)
+> - **Milestone v1.5.x (Shipped):** Positioning & Narrative
 > - **Milestone v1.6.0 (Active):** [v1.6.0 Learned Dynamics & Causal Epistemics](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/2)
-> - **Milestone v1.7.0 (Planned):** Decision Intelligence (`ewm decide`, `S02`)
-> - **Milestone v1.8.0 (Planned):** Calibration to Reality (`ewm calibrate`, `S04`)
-> - **Milestone v1.9.0 (Planned):** Flywheel & Neuro-Symbolic Maturation (`S03`, `S05`, `S08`)
-> - **Milestone v2.0.0 (Horizon):** Reference Release (Stable Kernel + Relational GNNs & WSL + `S09`)
+> - **Milestone v1.7.0 (Planned):** Decision Intelligence (`ewm decide`)
+> - **Milestone v1.8.0 (Planned):** Calibration to Reality (`ewm calibrate`)
+> - **Milestone v1.9.0 (Planned):** Flywheel & Neuro-Symbolic Maturation
+> - **Milestone v2.0.0 (Horizon):** Reference Release (Stable Kernel + Relational GNNs & WSL)
 
 ---
 
@@ -57,14 +57,14 @@ Capabilities in EWM Engine are classified under explicit, strictly enforced matu
 | **Planning & Controller Layer** | **Experimental (v1.3.0)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control (ADR-020) |
 | **OOD & Regime-Shift Detection** | **Experimental (v1.4.0)** | Grounded-regime detection (support bounds, Mahalanobis covariance, ADR-021) |
 | **Honest Causal Diagnostics** | **Experimental (v1.4.0)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling (ADR-021) |
-| **Counterfactual SCM Kernel (S01)**| **Beta (v1.6.0)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040) |
-| **Grey-Box Dynamics & Conservation (S03)**| **Beta (v1.6.0)** | Residual-only learning, hard nullspace projection for conservation laws (FEAT-010, ADR-042) |
-| **Causal-Correctness & Metamorphic (S05)**| **Beta (v1.6.0)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044) |
-| **Decision Scenario Discovery (S02)**| **Beta (v1.7.0)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (FEAT-009, ADR-041) |
-| **Amortized Calibration & TARP (S04)**| **Beta (v1.8.0)** | Simulation-Based Inference, certified coverage via TARP, misspecification refusal (FEAT-011, ADR-043) |
-| **Results Gallery & Benchmark Harness (S09)**| **Stable / Research (v2.0.0)**| CI-reproducible gallery, NeurIPS D&B checklist, arXiv companion methods paper (FEAT-012, ADR-044) |
-| **Heterogeneous Graph State & GNN**| **Experimental (v2.0.0-alpha)**| Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
-| **World Specification Language**| **Experimental (v2.0.0-alpha)**| Declarative safe YAML/JSON grammar, validator, compiler, and exporter (FEAT-003, ADR-023) |
+| **Counterfactual SCM Kernel** | **Active (v1.6.0)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040) |
+| **Grey-Box Dynamics & Conservation** | **Active (v1.6.0)** | Residual-only learning, hard nullspace projection for conservation laws (FEAT-010, ADR-042) |
+| **Causal-Correctness & Metamorphic Suite** | **Active (v1.6.0)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044) |
+| **Decision Scenario Discovery** | **Planned (v1.7.0)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (FEAT-009, ADR-041) |
+| **Amortized Calibration & TARP Coverage** | **Planned (v1.8.0)** | Simulation-Based Inference, certified coverage via TARP, misspecification refusal (FEAT-011, ADR-043) |
+| **Scientific Results Gallery & Benchmarks** | **Planned (v2.0.0)** | CI-reproducible gallery, NeurIPS D&B checklist, arXiv companion methods paper (FEAT-012, ADR-044) |
+| **Heterogeneous Graph State & GNN**| **Planned (v2.0.0-alpha)**| Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
+| **World Specification Language**| **Planned (v2.0.0-alpha)**| Declarative safe YAML/JSON grammar, validator, compiler, and exporter (FEAT-003, ADR-023) |
 
 ---
 
@@ -91,9 +91,7 @@ Capabilities in EWM Engine are classified under explicit, strictly enforced matu
 ## Platform Completeness & Transformative Roadmap (v1.2 — v2.0)
 
 See [01_EXPANDED_ROADMAP.md](01_EXPANDED_ROADMAP.md) for platform tracks T1–T9.
-See [02_ROUND5_EXPANDED_ROADMAP.md](02_ROUND5_EXPANDED_ROADMAP.md) for the Round-5 transformative capabilities (`S01`–`S09`) and milestone sequencing.
-
-> **Round 5 Framing:** Round 5 fills the repo's declared **v1.6.0 "Learned Dynamics & Causal Epistemics"** with world-class content — a bit-reproducible counterfactual SCM kernel (grounded in Richens & Everitt's theorem that robust agents must learn causal world models), a grey-box that enforces enterprise conservation laws by construction and whitens itself over time, and a causal-correctness + metamorphic test suite that scores the engine on *interventional* correctness and *epistemic abstention*, not just rollout error. It then adds decision intelligence (`v1.7`, `ewm decide`: scenario discovery + robustness metrics that refuse to over-rank under deep uncertainty) and calibration to reality (`v1.8`, `ewm calibrate`: simulation-based inference with mandatory coverage certification), consolidates the neuro-symbolic flywheel and the teaching handbook (`v1.9`), and culminates in a **v2.0 reference release** — the counterfactual kernel graduated to Stable, a reproducible results gallery, and an arXiv companion — alongside the repo's own relational-GNN/WSL horizon and the WMIF interchange standard. Positioning and executive narrative ship immediately as `v1.5.x` docs, because the binding constraint today is not quality but a crowded name and zero adoption. Every capability lands honest-by-construction: no new power without its refusal path and its correctness test, so the engine's identity — *the only world-model engine scored on being right about its own uncertainty* — strengthens with each release.
+See [02_ROUND5_EXPANDED_ROADMAP.md](02_ROUND5_EXPANDED_ROADMAP.md) for transformative architecture capabilities and milestone sequencing.
 
 ### v1.2.0 — Durability & Reproducibility (Tracks T1, T2, T9) [Shipped]
 - **T1: Event-Sourced `TraceLog` & Replay (CORE)**: Append-only transition log with versioned canonical event schemas; `EventStore` protocol (`append/read/fold`) with stdlib SQLite and JSON/YAML backends. Columnar sink to Parquet/DuckDB (`[analytics]` extra).
@@ -119,30 +117,30 @@ See [02_ROUND5_EXPANDED_ROADMAP.md](02_ROUND5_EXPANDED_ROADMAP.md) for the Round
 - **T8: Simulation-as-a-Service & Orchestration (CORE / EXTRA)**: Local `JobRunner` with multiprocessing (CORE); FastAPI REST serving with fingerprint caching (`[serve]` extra); Prefect/Dagster pipe integration.
 
 ### v1.5.x — Positioning & Narrative [Shipped]
-- **`S06` Positioning & Identity**: Mechanism-first README, neural-world-model disambiguation, CI-generated proof hero, curated GitHub topics, `docs/positioning/landscape.md`.
-- **`S07` Executive Narrative & Governance**: `docs/executive/` (intellectual lineage, decision-grade guarantees, C-suite use-case gallery, maturity model, reference architectures) + `docs/governance/compliance-mapping.md` (NIST AI RMF, EU AI Act).
-- **`S08` Handbook Scaffold**: Initial `docs/handbook/` question-organized structure + "When to Refuse a Claim" flagship honesty chapter.
+- **Positioning & Identity**: Mechanism-first README, neural-world-model disambiguation, CI-generated proof hero, curated GitHub topics, `docs/positioning/landscape.md`.
+- **Executive Narrative & Governance**: `docs/executive/` (intellectual lineage, decision-grade guarantees, C-suite use-case gallery, maturity model, reference architectures) + `docs/governance/compliance-mapping.md` (NIST AI RMF, EU AI Act).
+- **Handbook Scaffold**: Initial `docs/handbook/` question-organized structure + "When to Refuse a Claim" flagship honesty chapter.
 
 ### v1.6.0 — Causal Epistemics & Learned Dynamics [Active]
-- **`S01` Counterfactual SCM Kernel (Keystone)**: Native Structural Causal Model with addressable seeded exogenous noise; Pearl's Abduction-Action-Prediction Twin-Rollout with coupled noise; non-unique-abduction distributions; ID-gate integration. Theoretical license: Richens & Everitt (ICLR '24 oral, arXiv:2402.10877).
-- **`S03` Grey-Box Dynamics & Conservation**: Residual-only learned dynamics (`DynamicsModel` with zero residual ≡ symbolic kernel, fingerprint-identical) + hard architectural nullspace projection ensuring zero mass/flow violations by construction.
-- **`S05` Causal-Correctness & Metamorphic Suite**: `do(x)`-descendant selectivity gates, label-free metamorphic test cards (MR-cards), mutation adequacy testing, and first-class epistemic abstention.
-- **Round-4 Pull-ins**: `Q01` numpy-only verification metrics (rollout error compounding, CRPS, PIT/ECE calibration) and `Q02` identifiability gate + E-values.
+- **Counterfactual SCM Kernel (Keystone)**: Native Structural Causal Model with addressable seeded exogenous noise; Pearl's Abduction-Action-Prediction Twin-Rollout with coupled noise; non-unique-abduction distributions; ID-gate integration. Theoretical license: Richens & Everitt (ICLR '24 oral, arXiv:2402.10877).
+- **Grey-Box Dynamics & Conservation**: Residual-only learned dynamics (`DynamicsModel` with zero residual ≡ symbolic kernel, fingerprint-identical) + hard architectural nullspace projection ensuring zero mass/flow violations by construction.
+- **Causal-Correctness & Metamorphic Suite**: `do(x)`-descendant selectivity gates, label-free metamorphic test cards (MR-cards), mutation adequacy testing, and first-class epistemic abstention.
+- **Verification Metrics**: NumPy-only verification metrics (rollout error compounding, CRPS, PIT/ECE calibration) and identifiability gate + E-values.
 
 ### v1.7.0 — Decision Intelligence (`ewm decide`) [Planned]
-- **`S02` Scenario Discovery & Robust Decision-Making**: PRIM bump-hunting vulnerability boxes and CART scenario discovery; multi-robustness metric comparison (minimax regret, CVaR regret, satisficing) with explicit refusal to over-rank when metrics conflict; optional Expected Free Energy (EFE) scoring; `ewm decide` CLI and decision reporting.
-- **Round-4 Pull-in**: `Q05` EWM-Bench *lite* (shift families as scored sub-leaderboards).
+- **Scenario Discovery & Robust Decision-Making**: PRIM bump-hunting vulnerability boxes and CART scenario discovery; multi-robustness metric comparison (minimax regret, CVaR regret, satisficing) with explicit refusal to over-rank when metrics conflict; optional Expected Free Energy (EFE) scoring; `ewm decide` CLI and decision reporting.
+- **Scientific Benchmarks**: Scored shift families under reproducible protocol.
 
 ### v1.8.0 — Calibration to Reality (`ewm calibrate`) [Planned]
-- **`S04` Amortized Calibration with Certified Coverage**: Simulation-Based Inference (SBI) wrapper over the engine; amortized posterior estimation over `WorldSpec` parameters; mandatory TARP and Posterior-SBC coverage certification; misspecification-robust scoring; `ewm calibrate` CLI.
-- **Round-4 Pull-ins**: `Q03` real-data validation packs (SEIR/COVID, Beer-Game, WORLD3, OpenEI) as calibration targets; `Q04` batched/vectorized Monte Carlo engine for scalable simulation budgets.
+- **Amortized Calibration with Certified Coverage**: Simulation-Based Inference (SBI) wrapper over the engine; amortized posterior estimation over `WorldSpec` parameters; mandatory TARP and Posterior-SBC coverage certification; misspecification-robust scoring; `ewm calibrate` CLI.
+- **Validation Packs**: Empirical validation targets (SEIR, Beer-Game, WORLD3) and batched/vectorized Monte Carlo engine for scalable simulation budgets.
 
 ### v1.9.0 — Flywheel & Neuro-Symbolic Maturation [Planned]
-- **`S03` Symbolic Promotion Flywheel**: Equation discovery and residual extraction via sparse regression (SINDy/PySR) with human-in-the-loop spec-driven promotion workflow (LEARNED → KNOWN).
-- **`S05` End-to-End Abstention**: Out-of-competence signaling integrated across `ewm decide` and `ewm calibrate`.
-- **`S08` Handbook Completion**: Four-part Diátaxis documentation, client-side Distill-style interactive SVG explorables, and complete whole-game tutorial ladder.
+- **Symbolic Promotion Flywheel**: Equation discovery and residual extraction via sparse regression (SINDy/PySR) with human-in-the-loop spec-driven promotion workflow (LEARNED → KNOWN).
+- **End-to-End Abstention**: Out-of-competence signaling integrated across `ewm decide` and `ewm calibrate`.
+- **Handbook Completion**: Four-part Diátaxis documentation, client-side Distill-style interactive SVG explorables, and complete whole-game tutorial ladder.
 
 ### v2.0.0 — Reference Release & Standard [Horizon]
-- **Stable Core Graduation**: Counterfactual SCM kernel (`S01`) and grey-box residual/conservation contract graduated to **Stable** under SemVer guarantees and contract gates.
-- **`S09` Capstone**: CI-reproducible `docs/results/` gallery with SHA-256 fingerprints, arXiv methods/benchmark companion paper (NeurIPS D&B checklist QA), reproducible competitive comparison harness, and launch assets.
-- **Relational GNNs & World Specification Language**: Heterogeneous relational graph state & GNN dynamics adapters (`FEAT-003`, `ADR-022`), declarative safe WSL language (`ADR-023`, `Q07`), and WMIF interchange format with conformance test suite (`Q08`).
+- **Stable Core Graduation**: Counterfactual SCM kernel and grey-box residual/conservation contract graduated to **Stable** under SemVer guarantees and contract gates.
+- **Capstone Deliverables**: CI-reproducible `docs/results/` gallery with SHA-256 fingerprints, arXiv methods/benchmark companion paper (NeurIPS D&B checklist QA), reproducible competitive comparison harness, and launch assets.
+- **Relational GNNs & World Specification Language**: Heterogeneous relational graph state & GNN dynamics adapters (`FEAT-003`, `ADR-022`), declarative safe WSL language (`ADR-023`), and WMIF interchange format with conformance test suite.

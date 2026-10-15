@@ -41,7 +41,7 @@ flowchart TD
         SBC --> Gate
         Misspec --> Gate
         
-        Gate -->|Yes| Certified["CERTIFIED: Promoted to S02 / S05 Decision Use"]
+        Gate -->|Yes| Certified["CERTIFIED: Promoted to Decision & Reliability Use"]
         Gate -->|No| Refused["REFUSED: Flagged & Blocked from Decision Pipeline"]
     end
 ```
@@ -100,7 +100,7 @@ A certified calibration proves that the simulator's parameter distribution repro
 In EWM Engine's epistemic tier hierarchy:
 - Certified calibration promotes a model from speculative simulation to **`EvidenceLevel.PREDICTIVE`**.
 - It is **never** auto-promoted to `EvidenceLevel.STRUCTURAL` or `EvidenceLevel.CAUSAL`.
-- Counterfactual rollouts on calibrated models require structural backdoor or instrumental identification (S01).
+- Counterfactual rollouts on calibrated models require structural backdoor or instrumental identification (Structural Causal Model).
 
 ---
 

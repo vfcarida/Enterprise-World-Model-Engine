@@ -1,4 +1,4 @@
-"""Unit tests for causal diagnostics, Ladder-of-Causation identifiability, and Twin Rollouts (P09)."""
+"""Unit tests for causal diagnostics, Ladder-of-Causation identifiability, and Twin Rollouts."""
 
 from __future__ import annotations
 

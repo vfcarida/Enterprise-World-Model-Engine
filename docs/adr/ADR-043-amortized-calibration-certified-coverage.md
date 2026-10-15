@@ -5,7 +5,7 @@
 * Status: accepted
 * Deciders: Vinicius Caridá (@vfcarida)
 * Date: 2026-10-15
-* Technical Story: S04 — Amortized calibration with certified coverage (`ewm calibrate`)
+* Technical Story: Amortized calibration with certified coverage (`ewm calibrate`)
 * Supersedes: None
 
 ## Context and Problem Statement

@@ -5,7 +5,7 @@
 * Status: accepted
 * Deciders: Vinicius Caridá (@vfcarida)
 * Date: 2026-10-15
-* Technical Story: S01 — Twin-Rollout Counterfactual SCM Kernel
+* Technical Story: Twin-Rollout Counterfactual SCM Kernel
 * Supersedes: None
 
 ## Context and Problem Statement
@@ -31,7 +31,7 @@ How should EWM Engine compile its typed world graph into a first-class Structura
 * **First-Class SCM View Without Mutable Duplication:** The SCM must be a compiled, immutable view over the existing `WorldSpec`, `WorldState`, and `World`, preserving canonical SHA-256 fingerprinting and state immutability.
 * **Deterministic Noise Coupling (Twin-Rollout):** Exogenous noise draws must be explicitly recorded, addressable, and coupled bit-for-bit across factual and counterfactual rollouts using the engine's hierarchical `SeedSequence` tree.
 * **Invariant 5 (Bit-Level Reproducibility):** Identical counterfactual interventions applied to identical factual trajectories must produce bit-identical final states and traces.
-* **Epistemic Honesty and Anti-Overclaiming:** Rung-3 outputs must be strictly scoped to `EvidenceLevel.COUNTERFACTUAL`, carry a mandatory model-counterfactual disclaimer, refuse to auto-upgrade to real-world causal truth without empirical SCM validation (S04), degrade to posterior distributions when abduction is non-unique, and never emit synthetic `"causes"` graph relationships.
+* **Epistemic Honesty and Anti-Overclaiming:** Rung-3 outputs must be strictly scoped to `EvidenceLevel.COUNTERFACTUAL`, carry a mandatory model-counterfactual disclaimer, refuse to auto-upgrade to real-world causal truth without empirical SCM validation, degrade to posterior distributions when abduction is non-unique, and never emit synthetic `"causes"` graph relationships.
 * **Zero Heavy Dependencies in Core:** The SCM view, trace provenance, and counterfactual engine must run purely on Python standard library, NumPy, and Pydantic.
 
 ## Considered Options
@@ -94,5 +94,5 @@ Chosen option: **Option 3: Native SCM View, Addressable Noise Trace, and Pearl T
 
 * Richens, J., & Everitt, T. (2024). "Robust agents learn causal world models." *ICLR 2024 oral*, [arXiv:2402.10877](https://arxiv.org/abs/2402.10877).
 * Pearl, J. (2009). *Causality: Models, Reasoning, and Inference* (2nd ed.). Cambridge University Press.
-* Feature Specification: [FEAT-008](file:///docs/specs/features/FEAT-008-twin-rollout-counterfactual-scm-kernel.md)
+* Feature Specification: [FEAT-008](../specs/features/FEAT-008-twin-rollout-counterfactual-scm-kernel.md)
 * Related ADRs: [ADR-005](ADR-005-deterministic-reproducibility.md), [ADR-009](ADR-009-state-immutability-and-canonical-fingerprint.md), [ADR-010](ADR-010-systemic-trace-epistemic-honesty.md), [ADR-021](ADR-021-ood-detection-and-honest-causal-diagnostics.md), [ADR-033](ADR-033-scientific-ml-provenance-uq-and-causal-gates.md), [ADR-039](ADR-039-responsible-ai-trust-and-anti-overclaiming-enforcement.md).

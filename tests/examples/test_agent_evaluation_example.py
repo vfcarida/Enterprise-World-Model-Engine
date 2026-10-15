@@ -1,4 +1,4 @@
-"""Tests for the ARE/Gaia2-inspired agent evaluation example (AC-014/P05)."""
+"""Tests for the ARE/Gaia2-inspired agent evaluation example (AC-014)."""
 
 from __future__ import annotations
 

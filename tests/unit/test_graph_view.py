@@ -1,4 +1,4 @@
-"""Unit tests for HeterogeneousGraphView and graph projection (P10)."""
+"""Unit tests for HeterogeneousGraphView and graph projection."""
 
 from __future__ import annotations
 

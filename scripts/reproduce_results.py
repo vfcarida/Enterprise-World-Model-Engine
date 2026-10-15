@@ -155,7 +155,7 @@ def reproduce_world3() -> dict[str, Any]:
 
 
 def reproduce_calibrated_posterior() -> dict[str, Any]:
-    """Reproduce S04 SBI Bayesian parameter calibration with TARP coverage test."""
+    """Reproduce SBI Bayesian parameter calibration with TARP coverage test."""
     # Synthetic posterior samples vs test simulations
     rng = np.random.default_rng(42)
     test_sims = 200
@@ -189,7 +189,7 @@ def reproduce_calibrated_posterior() -> dict[str, Any]:
 
 
 def reproduce_counterfactual_scm() -> dict[str, Any]:
-    """Reproduce S01 Pearl Twin-Rollout counterfactual stockout prevention."""
+    """Reproduce Pearl Twin-Rollout counterfactual stockout prevention."""
     from ewm_engine.core.actions import Intervention
     from ewm_engine.core.entities import Entity
     from ewm_engine.core.resources import Resource
@@ -248,7 +248,7 @@ def reproduce_counterfactual_scm() -> dict[str, Any]:
 
 
 def reproduce_decision_discovery() -> dict[str, Any]:
-    """Reproduce S02 PRIM scenario discovery and Minimax Regret ranking."""
+    """Reproduce PRIM scenario discovery and Minimax Regret ranking."""
     from ewm_engine.decision.discovery import run_prim
     from ewm_engine.decision.robustness import evaluate_decision_robustness
     from ewm_engine.experimentation.params import ParameterDef, ParameterSpace

@@ -1,6 +1,6 @@
 # EWM Engine — Verified Baseline & Repository Hygiene Report
 
-**Milestone:** v1.1.0 Preparation (Prompt `P01`)  
+**Milestone:** v1.1.0 Preparation  
 **Date:** 2026-10-05  
 **Baseline Commit:** `366bdf2` (Clean working tree)  
 **Status:** GREEN & FULLY VERIFIED (All 24 Acceptance Criteria pass, all quality gates clean)  
@@ -158,8 +158,8 @@ Every one of the 24 Acceptance Criteria from the authoritative specification (`d
 
 ## 6. Deferred Follow-Ups (Scheduled for Subsequent Horizons)
 
-The following planned items are tracked for upcoming feature prompts:
-- **`P03` (Horizon A / v1.1.0):** Distributed Monte Carlo execution (Ray / multiprocessing with per-rollout `SeedSequence` bitwise equivalence tests).
-- **`P04` (Horizon A / v1.1.0):** OpenTelemetry lifecycle hook span exporter (zero core dependencies).
-- **`P05` (Horizon A / v1.1.0):** Graduate solver/Gym adapters from Alpha to Beta; implement OR-Tools CP-SAT and SciPy action planners with execution time bounds.
-- **`P13`–`P16` (Horizons v1.2–v1.6):** Platform tracks from `01_EXPANDED_ROADMAP.md` (TraceLog, ResultStore, Oracle-graph verifier, DoE suite, Co-simulation, Cards).
+The following roadmap items are tracked for subsequent release milestones:
+- **Distributed Execution (v1.1.0):** Distributed Monte Carlo execution (Ray / multiprocessing with per-rollout `SeedSequence` bitwise equivalence tests).
+- **Observability (v1.1.0):** OpenTelemetry lifecycle hook span exporter (zero core dependencies).
+- **Decision & Solvers (v1.1.0):** Graduate solver/Gym adapters from Alpha to Beta; implement OR-Tools CP-SAT and SciPy action planners with execution time bounds.
+- **Platform Tracks (v1.2–v1.6):** Architectural tracks from `01_EXPANDED_ROADMAP.md` (TraceLog, ResultStore, Oracle-graph verifier, DoE suite, Co-simulation, Cards).

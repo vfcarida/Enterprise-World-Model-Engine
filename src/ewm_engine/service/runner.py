@@ -1,7 +1,7 @@
 """Local JobRunner and concurrency protocols for simulation-as-a-service.
 
 Provides asynchronous, memoized simulation job execution keyed by SeedSequence
-and cached via P13 ResultStore.
+and cached via ResultStore.
 """
 
 from __future__ import annotations

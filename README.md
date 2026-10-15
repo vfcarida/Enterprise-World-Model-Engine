@@ -537,7 +537,11 @@ EWM Engine adheres strictly to [Semantic Versioning (SemVer 2.0.0)](https://semv
 
 ## Project Roadmap & Maturity
 
-Capabilities in EWM Engine are classified under explicit, strictly enforced maturity levels sourced directly from [ROADMAP.md](ROADMAP.md):
+Capabilities in EWM Engine advance through strictly governed stability tiers defined in our release governance:
+- **CORE Stable**: Frozen public contract (`1.x`), zero breaking changes, strictly deterministic, zero external ML dependencies, and 100% verified by automated Acceptance Criteria and test suites.
+- **Beta Adapter / Beta**: Production-ready ecosystem integrations, solvers, durability backends, and platform modules. Operates with explicit resource limits and execution time bounds.
+- **Experimental**: Research and frontier prototypes under `ewm_engine.experimental.*`, isolated behind optional extras, subject to interface evolution.
+- **Planned**: Forward-looking roadmap milestones (`v1.6.0` through `v2.0.0`) under active development or architectural specification; never labeled as shipped until all acceptance gates pass.
 
 | Subsystem | Maturity Status | Architectural Scope & Standards |
 | :--- | :---: | :--- |
@@ -567,14 +571,14 @@ Capabilities in EWM Engine are classified under explicit, strictly enforced matu
 | **Planning & Controller Layer** | **Experimental (v1.3.0)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control (ADR-020) |
 | **OOD & Regime-Shift Detection** | **Experimental (v1.4.0)** | Grounded-regime detection (support bounds, Mahalanobis covariance, ADR-021) |
 | **Honest Causal Diagnostics** | **Experimental (v1.4.0)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling (ADR-021) |
-| **Counterfactual SCM Kernel (S01)** | **Beta (v1.6.0)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040) |
-| **Grey-Box Dynamics & Conservation (S03)** | **Beta (v1.6.0)** | Residual-only learning, hard nullspace projection for conservation laws (FEAT-010, ADR-042) |
-| **Causal-Correctness & Metamorphic (S05)** | **Beta (v1.6.0)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044) |
-| **Decision Scenario Discovery (S02)** | **Beta (v1.7.0)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (FEAT-009, ADR-041) |
-| **Amortized Calibration & TARP (S04)** | **Beta (v1.8.0)** | Simulation-Based Inference, certified coverage via TARP, misspecification refusal (FEAT-011, ADR-043) |
-| **Results Gallery & Benchmark Harness (S09)** | **Stable / Research (v2.0.0)** | CI-reproducible gallery, NeurIPS D&B checklist, arXiv companion methods paper (FEAT-012, ADR-044) |
-| **Heterogeneous Graph State & GNN** | **Experimental (v2.0.0-alpha)** | Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
-| **World Specification Language** | **Experimental (v2.0.0-alpha)** | Declarative safe YAML/JSON grammar, validator, compiler, and exporter (FEAT-003, ADR-023) |
+| **Counterfactual SCM Kernel** | **Active (v1.6.0)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040) |
+| **Grey-Box Dynamics & Conservation** | **Active (v1.6.0)** | Residual-only learning, hard nullspace projection for conservation laws (FEAT-010, ADR-042) |
+| **Causal-Correctness & Metamorphic Suite** | **Active (v1.6.0)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044) |
+| **Decision Scenario Discovery** | **Planned (v1.7.0)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (FEAT-009, ADR-041) |
+| **Amortized Calibration & TARP Coverage** | **Planned (v1.8.0)** | Simulation-Based Inference, certified coverage via TARP, misspecification refusal (FEAT-011, ADR-043) |
+| **Scientific Results Gallery & Benchmarks** | **Planned (v2.0.0)** | CI-reproducible gallery, NeurIPS D&B checklist, arXiv companion methods paper (FEAT-012, ADR-044) |
+| **Heterogeneous Graph State & GNN** | **Planned (v2.0.0-alpha)** | Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
+| **World Specification Language** | **Planned (v2.0.0-alpha)** | Declarative safe YAML/JSON grammar, validator, compiler, and exporter (FEAT-003, ADR-023) |
 
 See [ROADMAP.md](ROADMAP.md), [01_EXPANDED_ROADMAP.md](01_EXPANDED_ROADMAP.md), and [02_ROUND5_EXPANDED_ROADMAP.md](02_ROUND5_EXPANDED_ROADMAP.md) for detailed milestone descriptions and architectural tracking.
 Track active delivery on the **[Pinned GitHub Project](https://github.com/users/vfcarida/projects/1)** and milestones ([v1.5.0 Shipped](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/1), [v1.6.0 Active](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/2), [v2.0-alpha Horizon](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/3)).
@@ -642,7 +646,14 @@ If you use EWM Engine in academic research, benchmark evaluation, or technical p
 
 ---
 
+## Acknowledgments & Authorship
+
+Designed and architected by [Vinicius Caridá](https://github.com/vfcarida). Implementation and test-suite verification accelerated with AI-assisted engineering workflows.
+
+---
+
 ## License
 
 EWM Engine is open-source software licensed under the [Apache License 2.0](LICENSE).
+
 

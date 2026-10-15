@@ -1,4 +1,4 @@
-"""Unit and security tests for World Specification Language (WSL) (P10)."""
+"""Unit and security tests for World Specification Language (WSL)."""
 
 from __future__ import annotations
 

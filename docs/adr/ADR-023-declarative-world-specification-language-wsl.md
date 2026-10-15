@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-10-05  
-**Context:** EWM Engine v2.0 Candidate (Prompt P10 / Horizon C)  
+**Context:** EWM Engine v2.0 Candidate (Horizon C)  
 **Related Specs:** `FEAT-003`, `ADR-004`, `ADR-006`, `ADR-011`, `ADR-022`
 
 ---

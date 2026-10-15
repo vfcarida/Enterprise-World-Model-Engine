@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-As the Enterprise World Model Engine expanded across Rounds 1 and 2 (`P01`–`P16`), the documentation suite grew to over 90 pages spanning conceptual foundations, formal feature specifications, Architecture Decision Records, and task-oriented user guides.
+As the Enterprise World Model Engine expanded across its initial development horizons (v1.0 through v1.5), the documentation suite grew to over 90 pages spanning conceptual foundations, formal feature specifications, Architecture Decision Records, and task-oriented user guides.
 
 However, the existing documentation presented several critical architectural deficiencies:
 1. **Hand-Written API Drift**: The existing `docs/api/reference.md` was manually maintained, omitting over 80% of newly introduced public protocols, submodules, and classes, creating severe documentation drift against the active codebase.

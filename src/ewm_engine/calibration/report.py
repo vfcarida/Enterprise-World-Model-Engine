@@ -122,6 +122,6 @@ class CalibrationReport(BaseModel):
 
         md.append("\n## 3. Epistemic Integrity")
         md.append("\n> [!NOTE]")
-        md.append("> **Calibrated $\\neq$ Causally Identified:** A calibrated simulation accurately reproduces observed time series data under declared assumptions, but does not identify unconfounded counterfactual effects without exogenous variation or structural backdoor admissibility (S01).")
+        md.append("> **Calibrated $\\neq$ Causally Identified:** A calibrated simulation accurately reproduces observed time series data under declared assumptions, but does not identify unconfounded counterfactual effects without exogenous variation or structural backdoor admissibility (Structural Causal Model).")
 
         return "\n".join(md)

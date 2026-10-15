@@ -3,7 +3,7 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.8.0 "Grey-Box Conservation Layer & Neuro-Symbolic Flywheel"
 - **Authors:** Hybrid Dynamics, Causal Systems & Verification Teams
-- **Governance:** `01_EXPANDED_ROADMAP.md` (Track S03), ADR-042, ACP-011
+- **Governance:** `02_ROUND5_EXPANDED_ROADMAP.md` (Grey-Box Dynamics), ADR-042, ACP-011
 - **Dependencies:** Core engine (Zero new mandatory dependencies: stdlib, NumPy, Pydantic); Optional extras: `[ml]` (torch), `[symbolic]` (pysr)
 
 ---

@@ -1,4 +1,4 @@
-"""Integration tests for planning layer controller, re-grounding, and constraint guards (P08)."""
+"""Integration tests for planning layer controller, re-grounding, and constraint guards."""
 
 from __future__ import annotations
 

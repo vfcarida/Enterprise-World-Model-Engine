@@ -15,9 +15,9 @@
 
 ## Resumo executivo e autoridade da especificação
 
-Este documento define o contrato de desenvolvimento da versão 1 do Enterprise World Model Engine (EWM Engine). Seu propósito é transformar a tese conceitual e o Master Implementation Prompt em uma especificação suficientemente precisa para que humanos e diferentes coding agents implementem o repositório de forma incremental sem reinterpretar, a cada interação, o que o projeto é, quais invariantes devem ser preservados e quais funcionalidades pertencem ou não ao núcleo.
+Este documento define o contrato de desenvolvimento da versão 1 do Enterprise World Model Engine (EWM Engine). Seu propósito é formalizar a tese conceitual e os requisitos arquiteturais em uma especificação precisa para que engenheiros e pesquisadores desenvolvam o repositório de forma incremental sem reinterpretar, a cada ciclo, o que o projeto é, quais invariantes devem ser preservados e quais funcionalidades pertencem ou não ao núcleo.
 
-A escolha por Spec-Driven Development é deliberada. A documentação atual do GitHub Spec Kit organiza o processo em Specify → Plan → Tasks → Implement → Converge, mantendo intenção e evidência como artefatos persistentes antes e depois da geração de código; o mecanismo de convergência compara implementação, especificação, plano e tarefas para identificar lacunas restantes. Essa filosofia é particularmente adequada ao EWM Engine porque o principal risco do projeto não é “não gerar código”, mas deixar agentes sucessivos criarem abstrações incompatíveis, expandirem escopo, introduzirem dependências ou confundirem hipóteses científicas com capacidades implementadas.
+A escolha por Spec-Driven Development é deliberada. Organiza-se o processo em Specify → Plan → Tasks → Implement → Converge, mantendo intenção e evidência como artefatos persistentes antes e depois da geração de código; o mecanismo de convergência compara implementação, especificação, plano e tarefas para identificar lacunas restantes. Essa filosofia é particularmente adequada ao EWM Engine porque o principal risco do projeto não é a velocidade de codificação, mas deixar implementações sucessivas criarem abstrações incompatíveis, expandirem escopo, introduzirem dependências ou confundirem hipóteses científicas com capacidades implementadas.
 
 A especificação adota como tese arquitetural permanente que um Enterprise World Model deve representar um ambiente evolutivo sobre o qual ações possam ser experimentadas antes de serem executadas no mundo real. Essa direção é consistente com a literatura de world models: o trabalho clássico de Ha e Schmidhuber aprende uma representação espaço-temporal comprimida do ambiente na qual um agente pode treinar, e DreamerV3 melhora comportamento imaginando futuros por meio de um modelo aprendido do ambiente. O diferencial proposto pelo EWM Engine é transpor essa abstração para sistemas organizacionais e socio-técnicos, combinando estado, ações, eventos exógenos, regras explícitas, dinâmica e incerteza, conforme a hipótese de pesquisa original do projeto.
 
@@ -40,7 +40,7 @@ As palavras MUST/DEVE, MUST NOT/NÃO DEVE, SHOULD/DEVERIA e MAY/PODE neste docum
 | **Média** | Testes de contrato e aceitação | Evidência executável de conformidade |
 | **Média** | Código-fonte | Implementação do contrato |
 | **Informativa** | `README.md`, guides e examples | Explicação e experiência de uso |
-| **Histórica** | Master Implementation Prompt | Origem da intenção; esta spec prevalece em caso de ambiguidade |
+| **Histórica** | Requisitos conceituais originais | Origem da intenção; esta spec prevalece em caso de ambiguidade |
 | **Exploratória** | Research notes e roadmap | Hipóteses não necessariamente implementadas |
 
 Uma alteração que contradiga este documento não pode ser legitimada apenas por um ADR. A alteração deve modificar a própria spec, incluir justificativa, impacto, testes e, quando pertinente, proposta de mudança de API.
@@ -770,15 +770,15 @@ A v1.0.0 exists only when:
 - documentation explains the boundaries;
 - CI enforces engineering quality;
 - optional technologies remain optional;
-- and a new coding agent can continue development from the repository
-  without needing the original conversation that created it.
+- and new contributors can continue development from the repository
+  with complete self-contained context and governance.
 ```
 
 ---
 
 ## Evolução Pós-v1: Extensão Normativa e Critérios de Aceitação (v1.1.0 — v2.0-alpha)
 
-Para garantir que coding agents futuros e contribuidores mantenham a integridade arquitetural sem reinterpretar intenções, esta seção estende formalmente o contrato normativo além da versão `1.0.0`:
+Para garantir que futuros contribuidores e mantenedores preservem a integridade arquitetural sem reinterpretar intenções, esta seção estende formalmente o contrato normativo além da versão `1.0.0`:
 
 ### 1. Critérios de Aceitação Pós-v1 (AC-025 a AC-032)
 

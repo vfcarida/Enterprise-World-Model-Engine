@@ -77,7 +77,7 @@ Following the formal extension of the normative specification contract in `docs/
 
 ## 4. Post-v1 Governance & SemVer Compliance Review
 
-- [x] **ADR Completeness**: Every architectural decision across P02–P10 is governed by an accepted Architecture Decision Record (`ADR-016` through `ADR-025`). ADRs are strictly append-only.
+- [x] **ADR Completeness**: Every architectural decision across the v1.1.0 to v2.0-candidate releases is governed by an accepted Architecture Decision Record (`ADR-016` through `ADR-025`). ADRs are strictly append-only.
 - [x] **API Change Control**: All changes affecting public surfaces or serialized schemas are formalized via committed proposals in `.github/proposals/` (`ACP-001` through `ACP-004`).
 - [x] **Zero Breaking Changes to v1 Stable Contract**: `tests/contract/test_api_compatibility.py` passes with zero breaking modifications to `ewm_engine.__all__` or public method signatures (AC-024).
 - [x] **Experimental Boundaries Enforced**: All neural models, GNNs, OOD detectors, causal diagnostics, and planners reside under `ewm_engine.experimental.*` or optional extras (`[ml]`, `[parallel]`, `[otel]`, `[or]`, `[smt]`), leaving the core simulation kernel lightweight and 100% dependency-free.

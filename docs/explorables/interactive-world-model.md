@@ -240,7 +240,7 @@ Use the interactive controls below to manipulate the live simulation kernel dire
 
 ## 3. The Three Scientific Mechanics Displayed Above
 
-### 1. Pearl’s Twin-Rollout Noise Coupling (S01)
+### 1. Pearl’s Twin-Rollout Noise Coupling
 Notice that when you adjust the **Intervention Transfer** slider:
 * The green **Counterfactual Curve** departs from the red **Factual Curve** at $t=2$ (the moment of intervention).
 * At $t=5$, both curves experience the **exact same exogenous demand spike** (45 units).
@@ -252,7 +252,7 @@ Adjust the **Stochastic Samples** slider:
 * As $N$ expands, the shaded **90% Conformal Band** captures the empirical dispersion under non-Gaussian noise.
 * Decision-makers must never base capital on the median alone; they must ensure that the 5th percentile ($p05$) does not breach operational safety floors.
 
-### 3. Minimax Regret Policy Flipping (S02)
+### 3. Minimax Regret Policy Flipping
 Slide the **Market Volatility ($\sigma$)** slider:
 * Under low volatility ($\sigma < 0.6$), an aggressive single-hub policy minimizes cost.
 * As volatility expands ($\sigma > 1.4$), the Minimax Regret engine automatically switches its recommendation to **Strategy B (Modular Buffer)**, because the worst-case regret of the aggressive policy becomes unacceptable.
@@ -274,4 +274,4 @@ state = WorldState(resources=[{"id": "stock_north", "current": 25.0, "min_value"
 print(f"State Fingerprint: {state.fingerprint}")
 ```
 
-To explore interactive reactive notebooks running on WebAssembly, see our [WASM & Marimo Notebook Integration Guide](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/guides/visualization-and-reporting.md).
+To explore interactive reactive notebooks running on WebAssembly, see our [WASM & Marimo Notebook Integration Guide](../guides/visualization-and-reporting.md).

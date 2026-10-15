@@ -38,7 +38,7 @@ def run_calibrated_warehouse_demo() -> None:
     priors_path = current_dir / "priors.yaml"
 
     print("======================================================================")
-    print("  EWM Engine S04: Amortized Calibration with Certified Coverage")
+    print("  EWM Engine: Amortized Calibration with Certified Coverage")
     print("======================================================================\n")
 
     # 1. Load declarative WorldSpec

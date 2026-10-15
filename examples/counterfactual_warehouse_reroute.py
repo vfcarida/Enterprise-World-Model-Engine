@@ -1,4 +1,4 @@
-"""Worked Example: Warehouse Stockout Prevention via Native Pearl Counterfactuals (S01).
+"""Worked Example: Warehouse Stockout Prevention via Native Pearl Counterfactuals.
 
 Scientific Anchors:
 - Richens & Everitt, "Robust agents learn causal world models", ICLR 2024 oral (arXiv:2402.10877).
@@ -98,7 +98,7 @@ def build_supply_chain_world() -> World:
 def run_warehouse_reroute_counterfactual() -> CounterfactualResult:
     """Execute the factual run, abduce exogenous noise, perform causal surgery, and predict."""
     print("=" * 80)
-    print("S01 WORKED EXAMPLE: WAREHOUSE STOCKOUT COUNTERFACTUAL (TWIN-ROLLOUT SCM)")
+    print("WORKED EXAMPLE: WAREHOUSE STOCKOUT COUNTERFACTUAL (TWIN-ROLLOUT SCM)")
     print("Scientific Anchor: Richens & Everitt, ICLR 2024 oral (arXiv:2402.10877)")
     print("=" * 80)
 

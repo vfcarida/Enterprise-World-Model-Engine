@@ -25,4 +25,4 @@
 ## 3. Epistemic Integrity
 
 > [!NOTE]
-> **Calibrated $\neq$ Causally Identified:** A calibrated simulation accurately reproduces observed time series data under declared assumptions, but does not identify unconfounded counterfactual effects without exogenous variation or structural backdoor admissibility (S01).
+> **Calibrated $\neq$ Causally Identified:** A calibrated simulation accurately reproduces observed time series data under declared assumptions, but does not identify unconfounded counterfactual effects without exogenous variation or structural backdoor admissibility (Structural Causal Model).

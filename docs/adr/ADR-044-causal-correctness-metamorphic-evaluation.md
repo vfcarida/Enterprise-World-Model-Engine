@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-10-15
 - **Deciders:** Simulation Architecture, Evaluation & Verification Teams
-- **Consulted:** S01 Causal SCM Team, S02 Decision Science Team, S04 Calibration Team
+- **Consulted:** Causal SCM Team, Decision Science Team, Calibration Team
 - **Informed:** Core Framework Engineers, Release Engineers
 
 ---

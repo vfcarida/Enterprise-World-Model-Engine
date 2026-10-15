@@ -1,7 +1,7 @@
 # Feature Specification: FEAT-002 — Distributed Monte Carlo with Determinism Preserved
 
 **Feature ID:** `FEAT-002`  
-**Milestone:** `v1.1.0` (Prompt `P03`)  
+**Milestone:** `v1.1.0`  
 **Status:** Approved  
 **Related ADR:** [`docs/adr/ADR-017-distributed-monte-carlo-execution-and-determinism.md`](../../adr/ADR-017-distributed-monte-carlo-execution-and-determinism.md)  
 **Governing Specification:** [`docs/specs/spec-driven-development.md`](../spec-driven-development.md)  

@@ -10,11 +10,11 @@ We propose targeted Pull Requests to curated GitHub lists that index software in
 
 | Repository / List | Category Target | Submission Description | Prerequisite Asset |
 | :--- | :--- | :--- | :--- |
-| **`awesome-causal-inference`** | Causal World Models & Simulators | *EWM Engine: Structural causal simulation engine with Abduction-Action-Prediction twin rollouts and identifiability gating.* | S01 SCM Kernel + arXiv Paper |
-| **`awesome-decision-intelligence`** | Simulation & Scenario Discovery | *EWM Engine: Scenario discovery (PRIM / CART) and minimax regret optimization under deep uncertainty.* | S02 Decision Module |
+| **`awesome-causal-inference`** | Causal World Models & Simulators | *EWM Engine: Structural causal simulation engine with Abduction-Action-Prediction twin rollouts and identifiability gating.* | SCM Kernel + arXiv Paper |
+| **`awesome-decision-intelligence`** | Simulation & Scenario Discovery | *EWM Engine: Scenario discovery (PRIM / CART) and minimax regret optimization under deep uncertainty.* | Decision Module |
 | **`awesome-python`** | Science and Data Analysis / Simulation | *EWM Engine: Deterministic, domain-neutral system dynamics and causal world model engine.* | Pure Python + JOSS paper |
 | **`awesome-system-dynamics`** | Python Frameworks | *EWM Engine: Conservation-preserving system dynamics engine with stock-flow consistency and feedback stability.* | WORLD3 & SEIR Validation Packs |
-| **`awesome-simulation`** | Discrete & Hybrid Simulation | *EWM Engine: Grey-box hybrid simulation separating explicit conservation laws from learned dynamics.* | S03 Grey-Box Engine |
+| **`awesome-simulation`** | Discrete & Hybrid Simulation | *EWM Engine: Grey-box hybrid simulation separating explicit conservation laws from learned dynamics.* | Grey-Box Engine |
 
 ---
 
@@ -23,9 +23,9 @@ We propose targeted Pull Requests to curated GitHub lists that index software in
 | Target Venue | Track / Workshop | Primary Asset Presented | Relevance & Alignment |
 | :--- | :--- | :--- | :--- |
 | **NeurIPS** | *Datasets and Benchmarks Track* | Companion Paper + Benchmark Suite (`paper/arxiv/`) | Fully audited with NeurIPS D&B checklist (`NEURIPS_CHECKLIST.md`). |
-| **ICML** | *Workshop on Simulation-Based Inference (SBI)* | Amortized Calibration with Certified Coverage (`S04`) | TARP empirical coverage validation on non-trivial simulator parameters. |
-| **CLeaR** | *Conference on Causal Learning and Reasoning* | Counterfactual Twin-Rollout SCM Engine (`S01`) | Direct implementation of Pearl's three-step counterfactual logic in dynamic graphs. |
-| **ISDC** | *International System Dynamics Conference* | Stock-Flow Grey-Box Dynamics (`S03`) | Bridging traditional system dynamics with machine learning and automated calibration. |
+| **ICML** | *Workshop on Simulation-Based Inference (SBI)* | Amortized Calibration with Certified Coverage | TARP empirical coverage validation on non-trivial simulator parameters. |
+| **CLeaR** | *Conference on Causal Learning and Reasoning* | Counterfactual Twin-Rollout SCM Engine | Direct implementation of Pearl's three-step counterfactual logic in dynamic graphs. |
+| **ISDC** | *International System Dynamics Conference* | Stock-Flow Grey-Box Dynamics | Bridging traditional system dynamics with machine learning and automated calibration. |
 | **Winter Simulation Conference (WSC)** | *Hybrid Simulation & Agent-Based Modeling* | Deterministic Branch Isolation & Provenance | Bit-exact cryptographic auditability in enterprise simulation. |
 
 ---

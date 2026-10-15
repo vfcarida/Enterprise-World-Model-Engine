@@ -3,8 +3,8 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.9.0 "Model Reliability Beyond Rollout Error"
 - **Authors:** Simulation Architecture, Evaluation & Verification Teams
-- **Governance:** `01_EXPANDED_ROADMAP.md` (Track S05), ADR-044
-- **Dependencies:** Core engine (Zero mandatory heavy dependencies: stdlib, pure NumPy, Pydantic); integrates with S01 SCM Kernel and S02 Decision Engine (`ewm decide`)
+- **Governance:** `02_ROUND5_EXPANDED_ROADMAP.md` (Causal Correctness), ADR-044
+- **Dependencies:** Core engine (Zero mandatory heavy dependencies: stdlib, pure NumPy, Pydantic); integrates with SCM Kernel and Decision Engine (`ewm decide`)
 
 ---
 

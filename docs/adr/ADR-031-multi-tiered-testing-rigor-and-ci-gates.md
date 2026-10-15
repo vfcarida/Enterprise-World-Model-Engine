@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-As the Enterprise World Model Engine reached functional completeness across Rounds 1 and 2 (`P01`–`P16`), the test suite grew to over 360 test functions across 9 categories. However, testing stochastic, numerical, and scientific world models introduces unique failure modes that traditional unit testing fails to address:
+As the Enterprise World Model Engine reached functional completeness across its core and ecosystem tiers (v1.0 through v1.5), the test suite grew to over 360 test functions across 9 categories. However, testing stochastic, numerical, and scientific world models introduces unique failure modes that traditional unit testing fails to address:
 1. **Coverage vs. Fault Detection**: High line coverage does not guarantee fault detection. Without mutation testing, tests may exercise statements without actually asserting that semantic mutants are killed.
 2. **Untrusted Serialization Surfaces**: YAML, JSON, and declarative WSL (World Specification Language) parsers handle external specifications and represent attack surfaces susceptible to malformed syntax, entity recursion, or unexpected type coercions.
 3. **Absence of Test Oracles for Complex Simulations**: Complex multi-step world trajectories lack closed-form analytical oracles, making point assertions brittle and vulnerable to hidden systemic drift.

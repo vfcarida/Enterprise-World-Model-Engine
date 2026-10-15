@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-10-05  
-**Context:** EWM Engine v2.0 Candidate (Prompt P10 / Horizon C)  
+**Context:** EWM Engine v2.0 Candidate (Horizon C)  
 **Related Specs:** `FEAT-003`, `ADR-002`, `ADR-007`, `ADR-009`, `ADR-019`
 
 ---
@@ -39,7 +39,7 @@ Under `ewm_engine.experimental.graph_dynamics`:
 - Implements `GraphNeuralDynamics` conforming to `DynamicsModel`.
 - Executes Relational Graph Convolutional message passing over `HeterogeneousGraphView`.
 - Strictly maintains zero PyTorch dependencies in `core`: `torch` is lazy-loaded at runtime via `_load_torch()`.
-- Validates against the `P06` dynamics evaluation harness and `P07` scientific benchmarks.
+- Validates against the dynamics evaluation harness and scientific benchmarks.
 
 ### 4. Schema Evolution & Bidirectional Migration Tooling
 - `WorldState.schema_version` supports both `"1.0.0"` and `"2.0.0"`.

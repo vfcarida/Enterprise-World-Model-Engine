@@ -69,7 +69,7 @@
 
 ## 3. Evaluation & Performance Metrics
 
-Evaluated via the P06 evaluation harness ([`ewm_engine.experimental.dynamics_eval`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/dynamics_eval.py)):
+Evaluated via the experimental evaluation harness (`ewm_engine.experimental.dynamics_eval`):
 
 | Metric | Empirical Result | Gate Status |
 | :--- | :--- | :--- |

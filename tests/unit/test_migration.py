@@ -1,4 +1,4 @@
-"""Unit and contract tests for WorldState v1 <-> v2 migrations (P10)."""
+"""Unit and contract tests for WorldState v1 <-> v2 migrations."""
 
 from __future__ import annotations
 

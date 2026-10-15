@@ -5,7 +5,7 @@
 * Status: accepted
 * Deciders: Vinicius Caridá (@vfcarida)
 * Date: 2026-10-15
-* Technical Story: S02 — Decision-Focused Scenario Discovery (`ewm decide`)
+* Technical Story: Decision-Focused Scenario Discovery (`ewm decide`)
 * Supersedes: None
 
 ## Context and Problem Statement

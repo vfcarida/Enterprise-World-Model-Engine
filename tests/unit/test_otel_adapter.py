@@ -1,4 +1,4 @@
-"""Unit tests for OpenTelemetry observability adapter (Prompt P04).
+"""Unit tests for OpenTelemetry observability adapter.
 
 Verifies:
 - Hierarchical span tree generation (simulation -> rollout -> step).

@@ -1,17 +1,17 @@
-# Enterprise World Model Engine — v1.1 Baseline Verification Report (P01)
+# Enterprise World Model Engine — v1.1 Baseline Verification Report
 
 **Date:** 2026-10-05  
 **Baseline Commit:** `366bdf2` (Clean working tree)  
 **Target Milestone:** v1.1.0 "Ecosystem & Scale"  
-**Scope:** Prompt P01 — Baseline verification, path hygiene, and CI gate health re-check.  
-**Auditor / Agent:** Antigravity AI  
+**Scope:** Baseline verification, path hygiene, and CI gate health re-check.  
+**Auditor:** Core Engineering / Maintainer Audit  
 **Overall Status:** ALL BASELINE GATES GREEN & VERIFIED
 
 ---
 
 ## 1. Executive Summary
 
-As required by prompt **P01** of the Evolution Plan (v1.1 → v2.0+), a complete, non-destructive verification of the repository's health was executed to establish an unshakeable baseline before introducing new feature lines.
+As part of the v1.1 evolution plan, a complete, non-destructive verification of the repository's health was executed to establish an unshakeable baseline before introducing new feature lines.
 
 All 166 tests passed with zero regressions, test coverage stands at **90.12%** (exceeding the 85.0% CI threshold), static typing (`mypy`) is 100% clean across all 122 source files in `src`, `tests`, `examples`, and `benchmarks`, and code formatting/linting (`ruff`) is clean across 126 files.
 
@@ -57,7 +57,7 @@ One minor hygiene issue noted in the audit was resolved: a machine-specific abso
 The verified baseline confirms that:
 1. The **v1.0.0 Stable Contract** is healthy and uncompromised.
 2. The repository is ready to execute **Horizon A** feature tracks:
-   - **`P02`**: Evaluation Upgrade (calibrated intervals, bootstrap CIs on deltas, significance flags, Pareto front).
-   - **`P03`**: Distributed Monte Carlo execution (multiprocessing/Ray, preserving `SeedSequence` bitwise determinism).
-   - **`P04`**: OpenTelemetry adapter (zero core dependency, API-only lifecycle hook export).
-   - **`P05`**: Adapter graduation (Alpha $\to$ Beta with time/resource limits on solvers, agent evaluation example).
+   - **FEAT-001**: Evaluation Upgrade (calibrated intervals, bootstrap CIs on deltas, significance flags, Pareto front).
+   - **FEAT-002**: Distributed Monte Carlo execution (multiprocessing/Ray, preserving `SeedSequence` bitwise determinism).
+   - **Observability Adapter**: OpenTelemetry adapter (zero core dependency, API-only lifecycle hook export).
+   - **Solvers & Adapters**: Adapter graduation (Alpha $\to$ Beta with time/resource limits on solvers, agent evaluation example).

@@ -1,7 +1,7 @@
 # Feature Specification: FEAT-003 — Heterogeneous Graph World State & World Specification Language (WSL)
 
 **Feature ID:** `FEAT-003`  
-**Milestone:** `v2.0.0-candidate` (Prompt `P10`)  
+**Milestone:** `v2.0.0-candidate`  
 **Status:** Approved  
 **Related ADRs:**  
 - [`docs/adr/ADR-022-heterogeneous-graph-world-state-and-gnn-dynamics.md`](../../adr/ADR-022-heterogeneous-graph-world-state-and-gnn-dynamics.md)  

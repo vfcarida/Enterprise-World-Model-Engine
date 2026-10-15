@@ -1,4 +1,4 @@
-# Result Card: Amortized SBI Calibration with Certified Coverage (S04)
+# Result Card: Amortized SBI Calibration with Certified Coverage
 
 > **Identity & Scientific Domain**: Simulation-Based Inference & Bayesian Calibration Diagnostics  
 > **Benchmark Reference**: Lemos et al. (2023). "Sampling-based accuracy testing of posterior estimators for astronomical imaging." *ICML 2023* (arXiv:2302.03026).  

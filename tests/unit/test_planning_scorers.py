@@ -1,4 +1,4 @@
-"""Unit tests for planning layer rollout scorers and decision provenance (P08)."""
+"""Unit tests for planning layer rollout scorers and decision provenance."""
 
 from __future__ import annotations
 

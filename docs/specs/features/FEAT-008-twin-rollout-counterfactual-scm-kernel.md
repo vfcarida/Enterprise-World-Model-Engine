@@ -3,7 +3,7 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.6.0 "Twin-Rollout SCM Kernel & Native Pearl Counterfactuals"
 - **Authors:** Causal Simulation Engineering & Platform Architecture
-- **Governance:** `01_EXPANDED_ROADMAP.md` (Track S01), ADR-040, ACP-009
+- **Governance:** `02_ROUND5_EXPANDED_ROADMAP.md` (Causal Epistemics), ADR-040, ACP-009
 - **Dependencies:** Core engine (Zero new dependencies: stdlib, NumPy, Pydantic); Optional extras: `[causal]` (DoWhy, Causal-Learn)
 
 ---

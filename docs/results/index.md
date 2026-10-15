@@ -27,7 +27,7 @@ Every result card below is backed by a committed, seeded Python test harness and
    conservation.       amplification.            depletion.         coverage.
      │                                                                 │
      ▼                                                                 ▼
-5. Counterfactual SCM (S01)                               6. Decision Discovery (S02)
+5. Counterfactual SCM                                     6. Decision Discovery
    Twin-Rollout noise coupling.                              PRIM vulnerability subspace.
 ```
 
