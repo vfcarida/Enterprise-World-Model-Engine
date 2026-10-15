@@ -37,15 +37,21 @@ class InterventionSelectivityViolation(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     intervened_variable: str = Field(description="Name of the intervened variable do(X = x).")
-    affected_variable: str = Field(description="Name of the variable exhibiting invalid divergence.")
+    affected_variable: str = Field(
+        description="Name of the variable exhibiting invalid divergence."
+    )
     step: int = Field(description="Simulation time step where violation was observed.")
     violation_type: Literal[
         "non_descendant_divergence",
         "monotonicity_sign_inversion",
         "spurious_cross_talk",
     ] = Field(description="Classification of causal failure.")
-    observed_delta: float = Field(description="Observed counterfactual divergence (Y_cf - Y_factual).")
-    expected_behavior: str = Field(description="Human-readable specification of the violated causal invariant.")
+    observed_delta: float = Field(
+        description="Observed counterfactual divergence (Y_cf - Y_factual)."
+    )
+    expected_behavior: str = Field(
+        description="Human-readable specification of the violated causal invariant."
+    )
     message: str = Field(description="Detailed diagnostic message.")
 
 
@@ -57,8 +63,12 @@ class CausalCorrectnessReport(BaseModel):
     is_causally_correct: bool = Field(
         description="True if all intervention-selectivity and monotonicity checks passed."
     )
-    pass_rate: float = Field(description="Fraction of evaluated variable-step pairs conforming to causal invariants.")
-    total_checks: int = Field(description="Total number of evaluated variable-step counterfactual pairs.")
+    pass_rate: float = Field(
+        description="Fraction of evaluated variable-step pairs conforming to causal invariants."
+    )
+    total_checks: int = Field(
+        description="Total number of evaluated variable-step counterfactual pairs."
+    )
     violations_count: int = Field(description="Count of identified causal violations.")
     violations: tuple[InterventionSelectivityViolation, ...] = Field(
         default_factory=tuple, description="Immutable sequence of detected causal failures."
@@ -80,11 +90,15 @@ class CausalCorrectnessReport(BaseModel):
         lines.append("Causal-Correctness Evaluation Gate (Vafa et al., NeurIPS 2024)")
         lines.append("=" * 72)
         status_marker = "[PASS]" if self.is_causally_correct else "[FAIL]"
-        lines.append(f"Gate Verdict:           {status_marker} {'CONSISTENT' if self.is_causally_correct else 'VIOLATIONS DETECTED'}")
+        lines.append(
+            f"Gate Verdict:           {status_marker} {'CONSISTENT' if self.is_causally_correct else 'VIOLATIONS DETECTED'}"
+        )
         lines.append(f"Causal Pass Rate:       {self.pass_rate * 100:.2f}%")
         lines.append(f"Total Checks:           {self.total_checks}")
         lines.append(f"Violations Identified:  {self.violations_count}")
-        lines.append(f"Interventions Tested:   {', '.join(self.evaluated_interventions) if self.evaluated_interventions else 'None'}")
+        lines.append(
+            f"Interventions Tested:   {', '.join(self.evaluated_interventions) if self.evaluated_interventions else 'None'}"
+        )
 
         if self.violations:
             lines.append("\nTop Causal Violations:")
@@ -92,7 +106,9 @@ class CausalCorrectnessReport(BaseModel):
             lines.append(f"{'Intervention':<20} {'Affected Var':<20} {'Step':<6} {'Type':<24}")
             lines.append("-" * 72)
             for v in self.violations[:5]:
-                lines.append(f"{v.intervened_variable:<20} {v.affected_variable:<20} {v.step:<6} {v.violation_type:<24}")
+                lines.append(
+                    f"{v.intervened_variable:<20} {v.affected_variable:<20} {v.step:<6} {v.violation_type:<24}"
+                )
             if len(self.violations) > 5:
                 lines.append(f"... and {len(self.violations) - 5} more violations.")
 
@@ -125,7 +141,9 @@ def evaluate_intervention_selectivity(
 
     # Normalize variable key: if resource ID passed, map to 'resource:<id>'
     var_key = intervened_variable
-    if not var_key.startswith("resource:") and var_key in [r.split(":", 1)[-1] for r in scm.endogenous_variables]:
+    if not var_key.startswith("resource:") and var_key in [
+        r.split(":", 1)[-1] for r in scm.endogenous_variables
+    ]:
         var_key = f"resource:{intervened_variable}"
 
     # Extract descendants from causal graph
@@ -165,8 +183,8 @@ def evaluate_intervention_selectivity(
             v_cf = float(s_cf.resources[rid].current) if rid in s_cf.resources else 0.0
             delta_v = v_cf - v_fact
 
-            is_descendant = (node_name in descendants)
-            is_target = (node_name == var_key or rid == raw_var)
+            is_descendant = node_name in descendants
+            is_target = node_name == var_key or rid == raw_var
 
             # Invariant 1: Non-descendants must remain invariant
             if not is_descendant and not is_target:
@@ -190,7 +208,11 @@ def evaluate_intervention_selectivity(
             if is_descendant:
                 edge_key = (var_key, node_name)
                 declared_sign = edge_signs.get(edge_key)
-                if declared_sign is not None and abs(intervention_delta) > tolerance and abs(delta_v) > tolerance:
+                if (
+                    declared_sign is not None
+                    and abs(intervention_delta) > tolerance
+                    and abs(delta_v) > tolerance
+                ):
                     sign_str = str(declared_sign).lower()
                     if sign_str == "positive" and (intervention_delta * delta_v) < 0:
                         violations.append(
@@ -302,7 +324,9 @@ class CausalCorrectnessGate:
             total_checks += n_checks
 
         is_passed = len(all_violations) == 0
-        pass_rate = float((total_checks - len(all_violations)) / total_checks) if total_checks > 0 else 1.0
+        pass_rate = (
+            float((total_checks - len(all_violations)) / total_checks) if total_checks > 0 else 1.0
+        )
 
         return CausalCorrectnessReport(
             is_causally_correct=is_passed,

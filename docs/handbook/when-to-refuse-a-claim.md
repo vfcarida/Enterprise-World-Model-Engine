@@ -61,10 +61,10 @@ EWM’s public simulation API **strictly refuses** to return bare point estimate
 
 # The correct, enforced pattern:
 forecast = result.scenario_forecast("inventory")
-print(forecast.p50)          # Median
-print(forecast.ci_lower)     # 90% BCa Lower Bound (e.g., p05)
-print(forecast.ci_upper)     # 90% BCa Upper Bound (e.g., p95)
-print(forecast.dispersion)   # Empirical Inter-Quartile Range
+print(forecast.p50)  # Median
+print(forecast.ci_lower)  # 90% BCa Lower Bound (e.g., p05)
+print(forecast.ci_upper)  # 90% BCa Upper Bound (e.g., p95)
+print(forecast.dispersion)  # Empirical Inter-Quartile Range
 ```
 
 ### Why Point Forecasts Are Corporate Liabilities
@@ -87,8 +87,8 @@ try:
     # Attempting to declare an INTERVENTIONAL claim when unobserved confounders exist:
     level = validate_causal_claim(
         claimed_level=EvidenceLevel.INTERVENTIONAL,
-        is_identifiable=False,   # Backdoor criterion violated
-        overlap_satisfied=False, # Positivity violated
+        is_identifiable=False,  # Backdoor criterion violated
+        overlap_satisfied=False,  # Positivity violated
         strict=True,
     )
 except UnqualifiedCausalClaimError as exc:

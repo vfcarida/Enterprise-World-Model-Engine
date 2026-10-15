@@ -42,10 +42,14 @@ class CounterfactualResult(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     factual_trajectory: Any = Field(description="The observed factual trajectory.")
-    counterfactual_trajectory: Any = Field(description="The counterfactually evolved trajectory under do(x).")
+    counterfactual_trajectory: Any = Field(
+        description="The counterfactually evolved trajectory under do(x)."
+    )
     intervention: Any = Field(description="The applied intervention specification or do-action.")
     scm: Any = Field(default=None, description="The mutilated StructuralCausalModel under do(x).")
-    abduction: AbductionResult = Field(description="The recovered posterior over exogenous noise variables U.")
+    abduction: AbductionResult = Field(
+        description="The recovered posterior over exogenous noise variables U."
+    )
     evidence_level: EvidenceLevel = Field(
         default=EvidenceLevel.COUNTERFACTUAL,
         description="Epistemic standing: Rung-3 counterfactual under the simulated SCM.",
@@ -66,7 +70,9 @@ class CounterfactualResult(BaseModel):
         default=True,
         description="True if the counterfactual trajectory is bit-reproducible under coupled seeds.",
     )
-    trace_diff: TraceDiff = Field(description="Detailed structural divergence between factual and counterfactual traces.")
+    trace_diff: TraceDiff = Field(
+        description="Detailed structural divergence between factual and counterfactual traces."
+    )
     target_divergences: dict[str, float] = Field(
         default_factory=dict,
         description="Counterfactual minus factual deltas on target variables.",

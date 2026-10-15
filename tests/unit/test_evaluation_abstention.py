@@ -153,7 +153,11 @@ def test_decision_engine_competence_weighting_integration() -> None:
         "policy_transfer": Action(
             id="transfer_act",
             type="transfer_resource",
-            parameters={"source_resource": "warehouse_a", "target_resource": "warehouse_b", "quantity": 20.0},
+            parameters={
+                "source_resource": "warehouse_a",
+                "target_resource": "warehouse_b",
+                "quantity": 20.0,
+            },
         ),
     }
 

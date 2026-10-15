@@ -59,9 +59,7 @@ def test_grey_box_learned_residual_application(sample_world_state: WorldState) -
     known_model = DeterministicTransferDynamics()
 
     # Residual estimator modeling friction/loss of 2 boxes in warehouse 2
-    estimator = CallableResidualEstimator(
-        fn=lambda s, a, e, next_s: {"stock_wh2": -2.0}
-    )
+    estimator = CallableResidualEstimator(fn=lambda s, a, e, next_s: {"stock_wh2": -2.0})
 
     grey_box = GreyBoxDynamics(known_model=known_model, residual_estimator=estimator)
 

@@ -288,13 +288,17 @@ def _run_decide(
         if uncertainty_path_str:
             unc_path = Path(uncertainty_path_str)
             if not unc_path.exists():
-                sys.stderr.write(f"Error: Uncertainty space file not found: {uncertainty_path_str}\n")
+                sys.stderr.write(
+                    f"Error: Uncertainty space file not found: {uncertainty_path_str}\n"
+                )
                 return 1
             unc_raw = yaml.safe_load(unc_path.read_text(encoding="utf-8"))
             if isinstance(unc_raw, dict) and "parameters" in unc_raw:
                 uncertainty_space = ParameterSpace(**unc_raw)
             else:
-                sys.stderr.write("Error: Invalid uncertainty space format; expected 'parameters' list.\n")
+                sys.stderr.write(
+                    "Error: Invalid uncertainty space format; expected 'parameters' list.\n"
+                )
                 return 1
         else:
             # Default uncertainty space: +/- 40% variation on numeric resources
@@ -484,7 +488,9 @@ def _run_calibrate(
                                 pass
 
         if not target_data:
-            sys.stderr.write(f"Error: No valid numeric series found in target data: {data_path_str}\n")
+            sys.stderr.write(
+                f"Error: No valid numeric series found in target data: {data_path_str}\n"
+            )
             return 1
 
         # Determine tracked resources
@@ -507,7 +513,9 @@ def _run_calibrate(
             elif isinstance(raw_priors, list):
                 prior_list = [CalibrationPrior(**p) for p in raw_priors]
             else:
-                sys.stderr.write("Error: Priors file must contain a list of priors or 'priors' key.\n")
+                sys.stderr.write(
+                    "Error: Priors file must contain a list of priors or 'priors' key.\n"
+                )
                 return 1
             prior_set = PriorSet(priors=tuple(prior_list))
         else:
@@ -659,40 +667,62 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--candidates", type=str, default=None, help="Optional YAML path for candidate strategies"
     )
     decide_parser.add_argument(
-        "--uncertainty", type=str, default=None, help="Optional YAML path for parameter uncertainty space"
+        "--uncertainty",
+        type=str,
+        default=None,
+        help="Optional YAML path for parameter uncertainty space",
     )
     decide_parser.add_argument(
-        "--objective", type=str, default="unserved_demand", help="Target performance metric (default: unserved_demand)"
+        "--objective",
+        type=str,
+        default="unserved_demand",
+        help="Target performance metric (default: unserved_demand)",
     )
     decide_parser.add_argument(
         "--threshold", type=float, default=0.0, help="Satisficing threshold value (default: 0.0)"
     )
     decide_parser.add_argument(
-        "--higher-is-better", action="store_true", help="Set if higher metric represents better outcome"
+        "--higher-is-better",
+        action="store_true",
+        help="Set if higher metric represents better outcome",
     )
     decide_parser.add_argument(
         "--horizon", type=int, default=5, help="Simulation time horizon (default: 5)"
     )
     decide_parser.add_argument(
-        "--samples", type=int, default=40, help="Number of uncertainty scenarios to sample (default: 40)"
+        "--samples",
+        type=int,
+        default=40,
+        help="Number of uncertainty scenarios to sample (default: 40)",
     )
     decide_parser.add_argument(
         "--seed", type=int, default=42, help="Random seed for reproducibility (default: 42)"
     )
     decide_parser.add_argument(
-        "--algorithm", choices=["prim", "cart"], default="prim", help="Discovery algorithm (prim or cart)"
+        "--algorithm",
+        choices=["prim", "cart"],
+        default="prim",
+        help="Discovery algorithm (prim or cart)",
     )
     decide_parser.add_argument(
-        "--efe", action="store_true", help="Include active inference Expected Free Energy (EFE) scoring"
+        "--efe",
+        action="store_true",
+        help="Include active inference Expected Free Energy (EFE) scoring",
     )
     decide_parser.add_argument(
-        "--efe-weight", type=float, default=0.3, help="Weight for epistemic information gain in EFE (default: 0.3)"
+        "--efe-weight",
+        type=float,
+        default=0.3,
+        help="Weight for epistemic information gain in EFE (default: 0.3)",
     )
     decide_parser.add_argument(
         "--out", type=str, default=None, help="Optional output JSON path for decision report"
     )
     decide_parser.add_argument(
-        "--markdown-out", type=str, default=None, help="Optional output Markdown path for decision report"
+        "--markdown-out",
+        type=str,
+        default=None,
+        help="Optional output Markdown path for decision report",
     )
 
     # 5. `ewm schema [list|show <name>]`
@@ -719,37 +749,60 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     calib_parser.add_argument("spec_file", help="Path to YAML or JSON world specification file")
     calib_parser.add_argument(
-        "--data", required=True, type=str, help="Path to target observation data (YAML, JSON, or CSV)"
+        "--data",
+        required=True,
+        type=str,
+        help="Path to target observation data (YAML, JSON, or CSV)",
     )
     calib_parser.add_argument(
-        "--priors", type=str, default=None, help="Optional YAML path for parameter prior distributions"
+        "--priors",
+        type=str,
+        default=None,
+        help="Optional YAML path for parameter prior distributions",
     )
     calib_parser.add_argument(
-        "--resources", type=str, default=None, help="Optional comma-separated list of tracked resources"
+        "--resources",
+        type=str,
+        default=None,
+        help="Optional comma-separated list of tracked resources",
     )
     calib_parser.add_argument(
         "--horizon", type=int, default=10, help="Simulation horizon (default: 10)"
     )
     calib_parser.add_argument(
-        "--samples", type=int, default=100, help="Number of forward simulation samples for amortizer (default: 100)"
+        "--samples",
+        type=int,
+        default=100,
+        help="Number of forward simulation samples for amortizer (default: 100)",
     )
     calib_parser.add_argument(
-        "--posterior-samples", type=int, default=500, help="Number of posterior draws (default: 500)"
+        "--posterior-samples",
+        type=int,
+        default=500,
+        help="Number of posterior draws (default: 500)",
     )
     calib_parser.add_argument(
         "--seed", type=int, default=42, help="Random seed for reproducibility (default: 42)"
     )
     calib_parser.add_argument(
-        "--summary-mode", choices=["trajectory", "moments"], default="trajectory", help="Summary statistic mode"
+        "--summary-mode",
+        choices=["trajectory", "moments"],
+        default="trajectory",
+        help="Summary statistic mode",
     )
     calib_parser.add_argument(
         "--out", type=str, default=None, help="Optional output JSON path for calibration report"
     )
     calib_parser.add_argument(
-        "--markdown-out", type=str, default=None, help="Optional output Markdown path for calibration report"
+        "--markdown-out",
+        type=str,
+        default=None,
+        help="Optional output Markdown path for calibration report",
     )
     calib_parser.add_argument(
-        "--allow-uncertified", action="store_true", help="Do not exit with error code if coverage test fails"
+        "--allow-uncertified",
+        action="store_true",
+        help="Do not exit with error code if coverage test fails",
     )
 
     args = parser.parse_args(argv)

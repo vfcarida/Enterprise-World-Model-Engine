@@ -36,12 +36,21 @@ class ExogenousNoiseRecord(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     id: str = Field(description="Unique addressable identifier of the exogenous draw.")
-    step: int = Field(description="Discrete simulation step at which this exogenous noise was drawn.")
+    step: int = Field(
+        description="Discrete simulation step at which this exogenous noise was drawn."
+    )
     mechanism: str = Field(description="Identifier or class name of the generating mechanism.")
-    variable: str = Field(description="Name of the endogenous target or parameter influenced by this noise.")
+    variable: str = Field(
+        description="Name of the endogenous target or parameter influenced by this noise."
+    )
     value: Any = Field(description="Exact realized numerical or structured draw value.")
-    is_invertible: bool = Field(default=True, description="Whether this noise draw is algebraically invertible from outcomes.")
-    seed_state: int | None = Field(default=None, description="Optional discrete integer state of the seed stream.")
+    is_invertible: bool = Field(
+        default=True,
+        description="Whether this noise draw is algebraically invertible from outcomes.",
+    )
+    seed_state: int | None = Field(
+        default=None, description="Optional discrete integer state of the seed stream."
+    )
     fingerprint: str = Field(default="", description="Canonical SHA-256 fingerprint of the draw.")
 
 
@@ -93,7 +102,9 @@ class TraceDiff(BaseModel):
             lines.append(f'    {n_id}["{sanitized} (Counterfactual Only)"]:::cf_only')
 
         lines.append("    classDef invariant fill:#e2e8f0,stroke:#64748b,stroke-width:1px;")
-        lines.append("    classDef divergent fill:#fee2e2,stroke:#ef4444,stroke-width:2px,stroke-dasharray: 5 5;")
+        lines.append(
+            "    classDef divergent fill:#fee2e2,stroke:#ef4444,stroke-width:2px,stroke-dasharray: 5 5;"
+        )
         lines.append("    classDef cf_only fill:#dbeafe,stroke:#3b82f6,stroke-width:2px;")
         return "\n".join(lines)
 
@@ -339,17 +350,14 @@ class SystemicTrace(BaseModel):
 
         coupled_noise_ids: list[str] = []
         divergent_noise_ids: list[str] = []
-        all_noise_ids = sorted(
-            set(self.exogenous_noise.keys()) | set(other.exogenous_noise.keys())
-        )
+        all_noise_ids = sorted(set(self.exogenous_noise.keys()) | set(other.exogenous_noise.keys()))
         for uid in all_noise_ids:
             if uid in self.exogenous_noise and uid in other.exogenous_noise:
                 u1 = self.exogenous_noise[uid]
                 u2 = other.exogenous_noise[uid]
-                if (
-                    u1.fingerprint == u2.fingerprint
-                    and normalize_canonical_value(u1.value) == normalize_canonical_value(u2.value)
-                ):
+                if u1.fingerprint == u2.fingerprint and normalize_canonical_value(
+                    u1.value
+                ) == normalize_canonical_value(u2.value):
                     coupled_noise_ids.append(uid)
                 else:
                     divergent_noise_ids.append(uid)
@@ -357,10 +365,14 @@ class SystemicTrace(BaseModel):
                 divergent_noise_ids.append(uid)
 
         is_coupled = (
-            len(divergent_noise_ids) == 0
-            and len(coupled_noise_ids) == len(self.exogenous_noise)
-            and len(self.exogenous_noise) > 0
-        ) if self.exogenous_noise else (len(other.exogenous_noise) == 0)
+            (
+                len(divergent_noise_ids) == 0
+                and len(coupled_noise_ids) == len(self.exogenous_noise)
+                and len(self.exogenous_noise) > 0
+            )
+            if self.exogenous_noise
+            else (len(other.exogenous_noise) == 0)
+        )
 
         return TraceDiff(
             invariant_nodes=tuple(invariant_nodes),

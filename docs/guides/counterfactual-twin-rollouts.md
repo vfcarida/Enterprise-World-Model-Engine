@@ -28,10 +28,12 @@ from ewm_engine.dynamics.deterministic import DeterministicTransferDynamics
 from ewm_engine.simulation.scenario import Scenario
 
 # Set up world
-state = WorldState(resources=[
-    Resource(id="hub_a", current=20.0, min_value=0.0),
-    Resource(id="hub_b", current=100.0, min_value=0.0),
-])
+state = WorldState(
+    resources=[
+        Resource(id="hub_a", current=20.0, min_value=0.0),
+        Resource(id="hub_b", current=100.0, min_value=0.0),
+    ]
+)
 world = World(state=state, dynamics=DeterministicTransferDynamics())
 
 # Run factual scenario

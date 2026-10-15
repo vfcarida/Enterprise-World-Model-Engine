@@ -24,9 +24,7 @@ class MockDemandShockSource:
         self.name = "DemandShockSource"
         self.shock_amount = shock_amount
 
-    def sample(
-        self, state: WorldState, step: int, rng: Any
-    ) -> list[ExogenousEvent]:
+    def sample(self, state: WorldState, step: int, rng: Any) -> list[ExogenousEvent]:
         return [
             ExogenousEvent(
                 id=f"shock_{step}",
@@ -126,9 +124,7 @@ def test_scm_causal_surgery_mutilation() -> None:
     scm = world.as_scm(horizon=1)
 
     # Before surgery, incoming edges exist
-    incoming_before = [
-        edge for edge in scm.causal_graph.edges if edge[1] == "resource:inventory_A"
-    ]
+    incoming_before = [edge for edge in scm.causal_graph.edges if edge[1] == "resource:inventory_A"]
     assert len(incoming_before) > 0
 
     # Perform causal surgery: do(inventory_A = 200.0)

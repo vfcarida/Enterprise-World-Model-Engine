@@ -33,9 +33,13 @@ class MetamorphicRelationVerdict(BaseModel):
     name: str = Field(description="Human-readable title of the relation.")
     passed: bool = Field(description="True if metamorphic output relation holds.")
     tolerance: float = Field(description="Numerical tolerance threshold applied.")
-    discrepancy: float = Field(default=0.0, description="Observed numerical discrepancy or violation magnitude.")
+    discrepancy: float = Field(
+        default=0.0, description="Observed numerical discrepancy or violation magnitude."
+    )
     details: str = Field(description="Audit explanation or error message.")
-    execution_duration_seconds: float = Field(default=0.0, description="Runtime execution duration.")
+    execution_duration_seconds: float = Field(
+        default=0.0, description="Runtime execution duration."
+    )
 
 
 class MetamorphicSuiteReport(BaseModel):
@@ -51,7 +55,8 @@ class MetamorphicSuiteReport(BaseModel):
         default_factory=tuple, description="Individual results for each evaluated MR-card."
     )
     mutation_adequacy_score: float | None = Field(
-        default=None, description="Fraction of non-equivalent synthetic mutants killed by this suite."
+        default=None,
+        description="Fraction of non-equivalent synthetic mutants killed by this suite.",
     )
 
     def summary_table(self) -> str:
@@ -60,10 +65,16 @@ class MetamorphicSuiteReport(BaseModel):
         lines.append("Metamorphic Self-Knowledge Suite (Label-Free Oracle)")
         lines.append("=" * 72)
         status_marker = "[PASS]" if self.all_passed else "[FAIL]"
-        lines.append(f"Suite Status:           {status_marker} {'ALL RELATIONS SATISFIED' if self.all_passed else 'VIOLATIONS DETECTED'}")
-        lines.append(f"MR Pass Rate:           {self.pass_rate * 100:.1f}% ({self.passed_cards}/{self.total_cards})")
+        lines.append(
+            f"Suite Status:           {status_marker} {'ALL RELATIONS SATISFIED' if self.all_passed else 'VIOLATIONS DETECTED'}"
+        )
+        lines.append(
+            f"MR Pass Rate:           {self.pass_rate * 100:.1f}% ({self.passed_cards}/{self.total_cards})"
+        )
         if self.mutation_adequacy_score is not None:
-            lines.append(f"Mutation Adequacy:      {self.mutation_adequacy_score * 100:.1f}% (Mutants Killed)")
+            lines.append(
+                f"Mutation Adequacy:      {self.mutation_adequacy_score * 100:.1f}% (Mutants Killed)"
+            )
 
         lines.append("\nEvaluated Metamorphic Relations:")
         lines.append("-" * 72)
@@ -233,7 +244,9 @@ def _mr3_transform_scaling(spec: WorldSpec, scen: Scenario) -> tuple[WorldSpec, 
     return spec.model_copy(update={"resources": new_res}), scen.model_copy(deep=True)
 
 
-def _mr3_check_scaling(t_base: Trajectory, t_scaled: Trajectory, tol: float) -> tuple[bool, float, str]:
+def _mr3_check_scaling(
+    t_base: Trajectory, t_scaled: Trajectory, tol: float
+) -> tuple[bool, float, str]:
     # In linear transfer dynamics, trajectories scale proportionally
     b_states = [t_base.initial_state] + [s.transition_result.next_state for s in t_base.steps]
     s_states = [t_scaled.initial_state] + [s.transition_result.next_state for s in t_scaled.steps]
@@ -270,7 +283,9 @@ def _mr4_transform_monotonicity(spec: WorldSpec, scen: Scenario) -> tuple[WorldS
     return spec.model_copy(update={"resources": new_res}), scen.model_copy(deep=True)
 
 
-def _mr4_check_monotonicity(t_base: Trajectory, t_boosted: Trajectory, tol: float) -> tuple[bool, float, str]:
+def _mr4_check_monotonicity(
+    t_base: Trajectory, t_boosted: Trajectory, tol: float
+) -> tuple[bool, float, str]:
     # Monotonicity: Boosting initial resource cannot cause final level to drop below baseline
     b_final = t_base.final_state
     s_final = t_boosted.final_state
@@ -287,8 +302,12 @@ def _mr4_check_monotonicity(t_base: Trajectory, t_boosted: Trajectory, tol: floa
                 max_inversion = max(max_inversion, inv)
                 violations += 1
 
-    passed = (violations == 0)
-    return passed, max_inversion, f"Monotonicity violations: {violations}, max inversion: {max_inversion:.4f}"
+    passed = violations == 0
+    return (
+        passed,
+        max_inversion,
+        f"Monotonicity violations: {violations}, max inversion: {max_inversion:.4f}",
+    )
 
 
 MR_MONOTONICITY = MetamorphicRelationCard(
@@ -302,9 +321,7 @@ MR_MONOTONICITY = MetamorphicRelationCard(
 
 def _mr5_transform_permutation(spec: WorldSpec, scen: Scenario) -> tuple[WorldSpec, Scenario]:
     # Permute entity IDs: rename e_i -> e_i_renamed
-    new_entities = [
-        e.model_copy(update={"id": f"permuted_{e.id}"}) for e in spec.entities
-    ]
+    new_entities = [e.model_copy(update={"id": f"permuted_{e.id}"}) for e in spec.entities]
     # Update relationships to match permuted entity IDs
     new_rels = [
         r.model_copy(
@@ -321,7 +338,9 @@ def _mr5_transform_permutation(spec: WorldSpec, scen: Scenario) -> tuple[WorldSp
     )
 
 
-def _mr5_check_permutation(t_base: Trajectory, t_perm: Trajectory, tol: float) -> tuple[bool, float, str]:
+def _mr5_check_permutation(
+    t_base: Trajectory, t_perm: Trajectory, tol: float
+) -> tuple[bool, float, str]:
     # Entity ID permutation invariance: numerical resource levels must remain identical
     b_final = t_base.final_state
     p_final = t_perm.final_state
@@ -465,10 +484,18 @@ class MutationAdequacyEvaluator:
             if clean_spec.dynamics is not None:
                 if clean_spec.dynamics.type == "composite":
                     existing = list(clean_spec.dynamics.parameters.get("models", []))
-                    new_params = {**clean_spec.dynamics.parameters, "models": [*existing, fault_entry]}
+                    new_params = {
+                        **clean_spec.dynamics.parameters,
+                        "models": [*existing, fault_entry],
+                    }
                     return clean_spec.dynamics.model_copy(update={"parameters": new_params})
                 else:
-                    existing = [{"type": clean_spec.dynamics.type, "parameters": clean_spec.dynamics.parameters}]
+                    existing = [
+                        {
+                            "type": clean_spec.dynamics.type,
+                            "parameters": clean_spec.dynamics.parameters,
+                        }
+                    ]
                     return ComponentSpec(
                         type="composite",
                         parameters={"name": "MutatedDynamics", "models": [*existing, fault_entry]},
@@ -479,7 +506,9 @@ class MutationAdequacyEvaluator:
             )
 
         # 1. Leakage Mutant: injects unmetered mass drain (violates MR-2 Conservation)
-        leak_dyn = _wrap_with_fault("unmetered_leakage", {"resource_id": target_res, "leak_rate": 20.0})
+        leak_dyn = _wrap_with_fault(
+            "unmetered_leakage", {"resource_id": target_res, "leak_rate": 20.0}
+        )
         mutants.append(
             FaultMutant(
                 name="mutant_unmetered_leakage",

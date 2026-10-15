@@ -171,7 +171,13 @@ class AmortizedPosteriorEstimator:
         seed: int = 42,
     ) -> PosteriorDistribution:
         """Infer parameter posterior p(theta | x_obs) conditioned on observed target data x_obs."""
-        if not self.is_fitted or self._thetas is None or self._xs is None or self._x_mean is None or self._x_std is None:
+        if (
+            not self.is_fitted
+            or self._thetas is None
+            or self._xs is None
+            or self._x_mean is None
+            or self._x_std is None
+        ):
             raise RuntimeError("Estimator must be fitted before inferring posterior.")
 
         x_o = np.asarray(x_obs, dtype=np.float64).ravel()

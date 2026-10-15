@@ -32,8 +32,7 @@ Provide a concise 1-paragraph summary of the proposed feature, architectural par
 ```python
 # Example interface sketch
 class ProposedProtocol(Protocol):
-    def evaluate(self, state: WorldState) -> EvaluationResult:
-        ...
+    def evaluate(self, state: WorldState) -> EvaluationResult: ...
 ```
 
 ---

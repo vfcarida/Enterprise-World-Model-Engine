@@ -53,7 +53,7 @@ try:
     level = validate_causal_claim(
         claimed_level=EvidenceLevel.INTERVENTIONAL,
         is_identifiable=False,  # Unobserved confounding or open backdoor paths
-        overlap_satisfied=False, # Positivity violation
+        overlap_satisfied=False,  # Positivity violation
         strict=True,
     )
 except UnqualifiedCausalClaimError as exc:
@@ -90,9 +90,9 @@ Downstream automated execution pipelines can install `ResponsibleAIGate` to bloc
 from ewm_engine.core.trust import ResponsibleAIGate, DecisionBlockedError
 
 gate = ResponsibleAIGate(
-    max_relative_ci_width=1.5,       # Block if CI width > 150% of estimate
-    require_causal_identifiability=True, # Flag purely associational estimates
-    block_on_extrapolation=True,     # Block if rollout entered OOD space
+    max_relative_ci_width=1.5,  # Block if CI width > 150% of estimate
+    require_causal_identifiability=True,  # Flag purely associational estimates
+    block_on_extrapolation=True,  # Block if rollout entered OOD space
     strict=True,
 )
 

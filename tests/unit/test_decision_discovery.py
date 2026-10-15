@@ -73,10 +73,7 @@ def test_prim_discovers_known_vulnerability_box() -> None:
 def test_prim_deterministic_fingerprint() -> None:
     """Scenario discovery must be strictly reproducible under identical inputs."""
     space = _build_test_space()
-    points = [
-        {"x1": float(i), "x2": float(i % 50)}
-        for i in range(100)
-    ]
+    points = [{"x1": float(i), "x2": float(i % 50)} for i in range(100)]
     targets = [1 if p["x1"] > 60 else 0 for p in points]
 
     res1 = run_prim(points, targets, space, strategy_id="repro")

@@ -180,7 +180,9 @@ def reproduce_calibrated_posterior() -> dict[str, Any]:
     payload = {
         "card": "calibrated_posterior_s04",
         "test_simulations": test_sims,
-        "nominal_vs_empirical_coverage": dict(zip([f"{a:.1f}" for a in alphas], coverages, strict=True)),
+        "nominal_vs_empirical_coverage": dict(
+            zip([f"{a:.1f}" for a in alphas], coverages, strict=True)
+        ),
         "mean_tarp_calibration_error": float(tarp_deviation),
         "coverage_certified": bool(is_certified),
         "status": "PASSED" if is_certified else "FAILED",
@@ -329,7 +331,9 @@ def main() -> int:
     args = parser.parse_args()
 
     results: dict[str, Any] = {}
-    cards_to_run = list(CARD_DISPATCH.keys()) if (args.run_all or args.card == "all") else [args.card]
+    cards_to_run = (
+        list(CARD_DISPATCH.keys()) if (args.run_all or args.card == "all") else [args.card]
+    )
 
     print("=" * 80)
     print("EWM ENGINE: SCIENTIFIC RESULTS REPRODUCTION HARNESS")
@@ -356,7 +360,9 @@ def main() -> int:
     run_hash = hashlib.sha256(summary_bytes).hexdigest()
     print("\n" + "-" * 80)
     print(f"Cryptographic Verification Fingerprint: sha256:{run_hash}")
-    print(f"Overall Status: {'SUCCESS (All Cards Verified Bit-for-Bit)' if all_passed else 'FAILURE'}")
+    print(
+        f"Overall Status: {'SUCCESS (All Cards Verified Bit-for-Bit)' if all_passed else 'FAILURE'}"
+    )
     print("-" * 80)
 
     if args.out:

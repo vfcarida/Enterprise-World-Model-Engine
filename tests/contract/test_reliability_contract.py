@@ -139,7 +139,14 @@ def test_contract_epistemic_abstention_in_decisions() -> None:
     space = ParameterSpace(
         name="ContractSpace",
         parameters=(
-            ParameterDef(name="w_a", type="continuous", bounds=(50.0, 150.0), default=100.0, target="resource", target_id="warehouse_a"),
+            ParameterDef(
+                name="w_a",
+                type="continuous",
+                bounds=(50.0, 150.0),
+                default=100.0,
+                target="resource",
+                target_id="warehouse_a",
+            ),
         ),
     )
 
@@ -148,7 +155,11 @@ def test_contract_epistemic_abstention_in_decisions() -> None:
         "policy_transfer": Action(
             id="transfer_act",
             type="transfer_resource",
-            parameters={"source_resource": "warehouse_a", "target_resource": "warehouse_b", "quantity": 15.0},
+            parameters={
+                "source_resource": "warehouse_a",
+                "target_resource": "warehouse_b",
+                "quantity": 15.0,
+            },
         ),
     }
 
@@ -181,8 +192,14 @@ def test_contract_anti_overclaiming_and_physics_iq_philosophy() -> None:
 
     # Invariants on the report
     assert report.evidence_disclaimer is not None
-    assert "Passing reliability gates certifies model internal consistency" in report.evidence_disclaimer
-    assert "It does NOT assert observational point forecasts are infallible" in report.evidence_disclaimer
+    assert (
+        "Passing reliability gates certifies model internal consistency"
+        in report.evidence_disclaimer
+    )
+    assert (
+        "It does NOT assert observational point forecasts are infallible"
+        in report.evidence_disclaimer
+    )
     assert "EvidenceLevel" in report.evidence_disclaimer
 
     md = report.to_markdown()

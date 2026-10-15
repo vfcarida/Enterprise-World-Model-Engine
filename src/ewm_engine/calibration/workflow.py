@@ -165,9 +165,15 @@ class CalibrationWorkflow:
             curves = rollout_curves[rid]
             if curves:
                 arr_curves = np.array(curves, dtype=np.float64)
-                predictive_series[rid]["predictive_mean"] = [float(v) for v in np.mean(arr_curves, axis=0)]
-                predictive_series[rid]["ci_5"] = [float(v) for v in np.percentile(arr_curves, 5, axis=0)]
-                predictive_series[rid]["ci_95"] = [float(v) for v in np.percentile(arr_curves, 95, axis=0)]
+                predictive_series[rid]["predictive_mean"] = [
+                    float(v) for v in np.mean(arr_curves, axis=0)
+                ]
+                predictive_series[rid]["ci_5"] = [
+                    float(v) for v in np.percentile(arr_curves, 5, axis=0)
+                ]
+                predictive_series[rid]["ci_95"] = [
+                    float(v) for v in np.percentile(arr_curves, 95, axis=0)
+                ]
 
         # Step 8: Build reproducible run manifest
         run_manifest = {

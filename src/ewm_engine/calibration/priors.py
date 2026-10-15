@@ -19,7 +19,9 @@ class CalibrationPrior(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    name: str = Field(description="Parameter identifier (e.g. 'initial_stock_wh1', 'transfer_rate').")
+    name: str = Field(
+        description="Parameter identifier (e.g. 'initial_stock_wh1', 'transfer_rate')."
+    )
     target: Literal["resource", "parameter", "rule", "context"] = Field(
         default="resource", description="Target component type in WorldSpec."
     )
@@ -68,7 +70,9 @@ class CalibrationPrior(BaseModel):
             safe_low = max(low, 1e-8)
             safe_high = max(high, safe_low + 1e-8)
             in_pos = in_bounds & (vals > 0)
-            logp[in_pos] = -math.log(math.log(safe_high) - math.log(safe_low)) - np.log(vals[in_pos])
+            logp[in_pos] = -math.log(math.log(safe_high) - math.log(safe_low)) - np.log(
+                vals[in_pos]
+            )
         elif self.distribution == "gaussian":
             m = self.mean if self.mean is not None else 0.5 * (low + high)
             s = self.std if self.std is not None else (high - low) / 4.0

@@ -43,7 +43,9 @@ def run_calibrated_warehouse_demo() -> None:
 
     # 1. Load declarative WorldSpec
     spec = WorldSpec.from_yaml(spec_path)
-    print(f"[1] Loaded WorldSpec: '{spec.world.name}' with {len(spec.resources)} tracked resources.")
+    print(
+        f"[1] Loaded WorldSpec: '{spec.world.name}' with {len(spec.resources)} tracked resources."
+    )
 
     # 2. Load Bayesian Priors
     priors_raw = yaml.safe_load(priors_path.read_text(encoding="utf-8"))
@@ -104,7 +106,9 @@ def run_calibrated_warehouse_demo() -> None:
     print(f"    Status:          {refusal_report.certificate.status}")
     print(f"    Is Certified:    {refusal_report.certificate.is_certified}")
     print(f"    Decision Usable: {refusal_report.certificate.decision_usable}")
-    print(f"    Misspecification Score: {refusal_report.certificate.misspecification_score:.1f} std")
+    print(
+        f"    Misspecification Score: {refusal_report.certificate.misspecification_score:.1f} std"
+    )
     print(f"    Refusal Reason:  {refusal_report.certificate.refusal_reason}")
 
     print("\n======================================================================")

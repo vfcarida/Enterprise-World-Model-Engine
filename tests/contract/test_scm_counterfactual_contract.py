@@ -92,10 +92,7 @@ def test_contract_fingerprint_equivalence_under_coupled_noise() -> None:
     assert cf1.abduction.fingerprint == cf2.abduction.fingerprint
     # 4. Bit-identical state values
     for r_id in ("stock_main", "stock_secondary", "isolated_reserve"):
-        assert (
-            cf1.final_state.resources[r_id].current
-            == cf2.final_state.resources[r_id].current
-        )
+        assert cf1.final_state.resources[r_id].current == cf2.final_state.resources[r_id].current
 
 
 @pytest.mark.contract
@@ -169,7 +166,9 @@ def test_contract_validate_causal_claim_guardrails() -> None:
     # Downgrades to PREDICTIVE with warning when strict=False
     from ewm_engine.core.trust import InsufficientCausalEvidenceWarning
 
-    with pytest.warns(InsufficientCausalEvidenceWarning, match="Automatically downgrading to PREDICTIVE"):
+    with pytest.warns(
+        InsufficientCausalEvidenceWarning, match="Automatically downgrading to PREDICTIVE"
+    ):
         downgraded = validate_causal_claim(
             claimed_level=EvidenceLevel.COUNTERFACTUAL,
             is_identifiable=False,

@@ -12,7 +12,9 @@ license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [
     { name = "Vinicius Caridá", email = "vfcarida@gmail.com" },
-    { name = "Enterprise World Model Engine Maintainers", email = "maintainers@ewm-engine.org" },
+]
+maintainers = [
+    { name = "Vinicius Caridá", email = "vfcarida@gmail.com" },
 ]
 keywords = [
     "deterministic-simulation",

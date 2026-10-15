@@ -39,6 +39,7 @@ Decorate deprecated functions, methods, or classes with `@deprecated`:
 ```python
 from ewm_engine.core.deprecation import deprecated
 
+
 @deprecated(
     since="1.5.0",
     removed_in="1.7.0",
@@ -60,6 +61,7 @@ For deprecating specific arguments or conditional branches inside active functio
 
 ```python
 from ewm_engine.core.deprecation import deprecate
+
 
 def run_simulation(world: World, scenario: Scenario, legacy_mode: bool = False) -> SimulationResult:
     if legacy_mode:

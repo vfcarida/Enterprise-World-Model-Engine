@@ -42,7 +42,7 @@ class Example:
 - Invariant check: Any new fields must be optional with default values; existing fields cannot be removed in `1.x`.
 
 ## 4. Backwards Compatibility & Migration Strategy
-- **Is this a breaking change?** (Note: Breaking changes to Stable symbols are prohibited in 1.x per [Stability Policy](docs/stability-policy.md)).
+- **Is this a breaking change?** (Note: Breaking changes to Stable symbols are prohibited in 1.x per [Stability Policy](../docs/stability-policy.md)).
 - **Deprecation lifecycle:** (If deprecating, specify deprecation warning, documentation in CHANGELOG, and expected removal target).
 - **Migration instructions:** [Step-by-step guidance for callers migrating to the updated API].
 

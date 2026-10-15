@@ -26,8 +26,22 @@ def test_decision_engine_fingerprint_equivalence_contract() -> None:
     space = ParameterSpace(
         name="ContractUncertainty",
         parameters=(
-            ParameterDef(name="warehouse_a_initial", type="continuous", bounds=(50.0, 150.0), default=100.0, target="resource", target_id="warehouse_a"),
-            ParameterDef(name="warehouse_b_initial", type="continuous", bounds=(10.0, 80.0), default=20.0, target="resource", target_id="warehouse_b"),
+            ParameterDef(
+                name="warehouse_a_initial",
+                type="continuous",
+                bounds=(50.0, 150.0),
+                default=100.0,
+                target="resource",
+                target_id="warehouse_a",
+            ),
+            ParameterDef(
+                name="warehouse_b_initial",
+                type="continuous",
+                bounds=(10.0, 80.0),
+                default=20.0,
+                target="resource",
+                target_id="warehouse_b",
+            ),
         ),
     )
 
@@ -36,7 +50,11 @@ def test_decision_engine_fingerprint_equivalence_contract() -> None:
         "policy_transfer": Action(
             id="transfer_act",
             type="transfer_resource",
-            parameters={"source_resource": "warehouse_a", "target_resource": "warehouse_b", "quantity": 25.0},
+            parameters={
+                "source_resource": "warehouse_a",
+                "target_resource": "warehouse_b",
+                "quantity": 25.0,
+            },
         ),
     }
 
@@ -75,8 +93,22 @@ def test_anti_overclaiming_and_no_forbidden_phrases() -> None:
     space = ParameterSpace(
         name="ContractUncertainty",
         parameters=(
-            ParameterDef(name="warehouse_a_initial", type="continuous", bounds=(50.0, 150.0), default=100.0, target="resource", target_id="warehouse_a"),
-            ParameterDef(name="warehouse_b_initial", type="continuous", bounds=(10.0, 80.0), default=20.0, target="resource", target_id="warehouse_b"),
+            ParameterDef(
+                name="warehouse_a_initial",
+                type="continuous",
+                bounds=(50.0, 150.0),
+                default=100.0,
+                target="resource",
+                target_id="warehouse_a",
+            ),
+            ParameterDef(
+                name="warehouse_b_initial",
+                type="continuous",
+                bounds=(10.0, 80.0),
+                default=20.0,
+                target="resource",
+                target_id="warehouse_b",
+            ),
         ),
     )
 
@@ -85,7 +117,11 @@ def test_anti_overclaiming_and_no_forbidden_phrases() -> None:
         "policy_transfer": Action(
             id="transfer_act",
             type="transfer_resource",
-            parameters={"source_resource": "warehouse_a", "target_resource": "warehouse_b", "quantity": 25.0},
+            parameters={
+                "source_resource": "warehouse_a",
+                "target_resource": "warehouse_b",
+                "quantity": 25.0,
+            },
         ),
     }
 

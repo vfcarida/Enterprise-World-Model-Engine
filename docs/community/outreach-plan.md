@@ -37,7 +37,7 @@ EWM Engine actively interfaces with and complements existing tools in the scient
 - **DoWhy / PyWhy**: EWM Engine handles time-series rollout simulation and twin-rollout counterfactuals; integration harnesses allow validating graphs with DoWhy's refutation tests.
 - **EMA-Workbench**: EWM's `ewm decide` exports run ensembles directly compatible with exploratory modeling and analysis workflows.
 - **Scikit-learn**: Follows scikit-learn API design principles (`fit`, `predict`, `score`), example gallery structure, and documentation clarity.
-- **NumFOCUS**: Long-term governance roadmap aims for NumFOCUS Affiliated Project status (see [NumFOCUS Sponsorship Roadmap](docs/numfocus-sponsorship.md)).
+- **NumFOCUS**: Long-term governance roadmap aims for NumFOCUS Affiliated Project status (see [NumFOCUS Sponsorship Roadmap](../numfocus-sponsorship.md)).
 
 ---
 

@@ -72,8 +72,22 @@ def test_log_uniform_prior() -> None:
 
 
 def test_prior_set_multivariate() -> None:
-    p1 = CalibrationPrior(name="theta_1", target="resource", target_id="r1", distribution="uniform", bounds=(0.0, 10.0))
-    p2 = CalibrationPrior(name="theta_2", target="parameter", target_id="p2", distribution="gaussian", bounds=(10.0, 20.0), mean=15.0, std=1.0)
+    p1 = CalibrationPrior(
+        name="theta_1",
+        target="resource",
+        target_id="r1",
+        distribution="uniform",
+        bounds=(0.0, 10.0),
+    )
+    p2 = CalibrationPrior(
+        name="theta_2",
+        target="parameter",
+        target_id="p2",
+        distribution="gaussian",
+        bounds=(10.0, 20.0),
+        mean=15.0,
+        std=1.0,
+    )
 
     prior_set = PriorSet(priors=(p1, p2))
     assert prior_set.dim == 2

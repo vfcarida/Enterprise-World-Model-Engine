@@ -118,9 +118,7 @@ class DecisionEngine:
                     elif isinstance(cand_action, Action):
                         cand_scenario = cand_scenario.model_copy(
                             update={
-                                "scheduled_actions": (
-                                    ScheduledAction(step=0, action=cand_action),
-                                )
+                                "scheduled_actions": (ScheduledAction(step=0, action=cand_action),)
                             }
                         )
                     elif isinstance(cand_action, Sequence):

@@ -110,9 +110,7 @@ def test_neuro_symbolic_flywheel_self_whitening(sample_world_state: WorldState) 
     known_model = DeterministicTransferDynamics()
 
     # Reality has an unmodeled leakage of 4.0 boxes in stock_wh1
-    leakage_estimator = CallableResidualEstimator(
-        fn=lambda s, a, e, next_s: {"stock_wh1": -4.0}
-    )
+    leakage_estimator = CallableResidualEstimator(fn=lambda s, a, e, next_s: {"stock_wh1": -4.0})
 
     grey_box = GreyBoxDynamics(
         known_model=known_model,

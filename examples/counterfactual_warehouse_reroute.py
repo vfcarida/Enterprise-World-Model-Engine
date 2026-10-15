@@ -74,13 +74,27 @@ def build_supply_chain_world() -> World:
     """Construct the initial supply chain world with North, South, and Treasury entities."""
     state = WorldState(
         resources=[
-            Resource(id="warehouse_north", current=15.0, min_value=0.0, max_value=200.0, unit="crates"),
-            Resource(id="warehouse_south", current=120.0, min_value=0.0, max_value=500.0, unit="crates"),
-            Resource(id="central_treasury", current=50000.0, min_value=0.0, max_value=1000000.0, unit="USD"),
+            Resource(
+                id="warehouse_north", current=15.0, min_value=0.0, max_value=200.0, unit="crates"
+            ),
+            Resource(
+                id="warehouse_south", current=120.0, min_value=0.0, max_value=500.0, unit="crates"
+            ),
+            Resource(
+                id="central_treasury",
+                current=50000.0,
+                min_value=0.0,
+                max_value=1000000.0,
+                unit="USD",
+            ),
         ],
         entities=[
-            Entity(id="hub_north", type="warehouse", attributes={"region": "north", "manager": "Alice"}),
-            Entity(id="hub_south", type="warehouse", attributes={"region": "south", "manager": "Bob"}),
+            Entity(
+                id="hub_north", type="warehouse", attributes={"region": "north", "manager": "Alice"}
+            ),
+            Entity(
+                id="hub_south", type="warehouse", attributes={"region": "south", "manager": "Bob"}
+            ),
             Entity(id="hq_finance", type="finance", attributes={"audit_status": "certified"}),
         ],
     )
@@ -162,15 +176,23 @@ def run_warehouse_reroute_counterfactual() -> CounterfactualResult:
     print(f"  Locality Preserved:            {cf_result.locality_preserved}")
 
     print("\n--- Comparison (Factual vs Counterfactual) ---")
-    print(f"  Warehouse North Stock:  {factual_north:.1f} -> {cf_north:.1f} crates (Delta: +{cf_result.target_divergences.get('warehouse_north', 0.0):.1f})")
-    print(f"  Warehouse South Stock:  {factual_south:.1f} -> {cf_south:.1f} crates (Delta: {cf_result.target_divergences.get('warehouse_south', 0.0):.1f})")
-    print(f"  Central Treasury (Off): ${factual_treasury:,.2f} -> ${cf_treasury:,.2f} (Delta: {cf_result.off_target_divergences.get('central_treasury', 0.0):.1f})")
+    print(
+        f"  Warehouse North Stock:  {factual_north:.1f} -> {cf_north:.1f} crates (Delta: +{cf_result.target_divergences.get('warehouse_north', 0.0):.1f})"
+    )
+    print(
+        f"  Warehouse South Stock:  {factual_south:.1f} -> {cf_south:.1f} crates (Delta: {cf_result.target_divergences.get('warehouse_south', 0.0):.1f})"
+    )
+    print(
+        f"  Central Treasury (Off): ${factual_treasury:,.2f} -> ${cf_treasury:,.2f} (Delta: {cf_result.off_target_divergences.get('central_treasury', 0.0):.1f})"
+    )
 
     # Invariant checks
     assert cf_result.evidence_level == EvidenceLevel.COUNTERFACTUAL
     assert cf_result.is_noise_coupled is True
     assert cf_result.locality_preserved is True
-    assert cf_treasury == factual_treasury, "Structural locality violation: unrelated treasury modified!"
+    assert cf_treasury == factual_treasury, (
+        "Structural locality violation: unrelated treasury modified!"
+    )
     assert cf_north > factual_north, "Warehouse North should have higher inventory under rerouting!"
 
     # 3. Export Systemic Divergence Trace in Mermaid notation

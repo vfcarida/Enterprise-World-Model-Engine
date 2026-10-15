@@ -64,7 +64,9 @@ class CoverageCertificate(BaseModel):
     tarp_max_discrepancy: float = Field(
         description="Maximum absolute discrepancy between nominal and empirical TARP coverage."
     )
-    tarp_ks_pvalue: float = Field(description="Kolmogorov-Smirnov p-value for TARP coverage probabilities.")
+    tarp_ks_pvalue: float = Field(
+        description="Kolmogorov-Smirnov p-value for TARP coverage probabilities."
+    )
     sbc_rank_ks_pvalue: float = Field(
         description="Kolmogorov-Smirnov p-value for Posterior-SBC normalized ranks."
     )
@@ -78,7 +80,9 @@ class CoverageCertificate(BaseModel):
         default=None, description="Auditable rationale when calibration certification is refused."
     )
     nominal_alphas: tuple[float, ...] = Field(description="Tested nominal credibility levels.")
-    empirical_coverages: tuple[float, ...] = Field(description="Empirically observed coverage rates.")
+    empirical_coverages: tuple[float, ...] = Field(
+        description="Empirically observed coverage rates."
+    )
     max_discrepancy_threshold: float = Field(
         default=0.28, description="Threshold tolerance for TARP max discrepancy."
     )
@@ -180,10 +184,7 @@ def compute_posterior_sbc(
         re_samples = re_post.get_samples_array()
 
         # Average fractional rank across parameter dimensions
-        dim_ranks = [
-            float(np.mean(re_samples[:, j] <= t_k[j]))
-            for j in range(len(names))
-        ]
+        dim_ranks = [float(np.mean(re_samples[:, j] <= t_k[j])) for j in range(len(names))]
         ranks[k] = float(np.mean(dim_ranks))
 
     _, ks_pvalue = _kolmogorov_smirnov_uniform(ranks)

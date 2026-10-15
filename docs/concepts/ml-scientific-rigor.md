@@ -90,7 +90,7 @@ from ewm_engine.experimental.dynamics_eval import evaluate_calibrated_dynamics_g
 passed = evaluate_calibrated_dynamics_gate(
     calibration_result,
     min_coverage=0.80,  # Must cover >= 80% under 90% nominal interval
-    max_crps=0.25,      # Continuous Ranked Probability Score upper ceiling
+    max_crps=0.25,  # Continuous Ranked Probability Score upper ceiling
 )
 ```
 

@@ -71,7 +71,9 @@ def test_determinism_branch_isolation() -> tuple[float, float]:
     # Extra exploratory action draw
     _ = rng_branch_b.normal()
     seq_branch_b = [rng_branch_b.normal() for _ in range(50)]
-    global_drift_rate = (1.0 - (sum(a == b for a, b in zip(seq_baseline, seq_branch_b, strict=True)) / 50.0)) * 100.0
+    global_drift_rate = (
+        1.0 - (sum(a == b for a, b in zip(seq_baseline, seq_branch_b, strict=True)) / 50.0)
+    ) * 100.0
 
     # 2. EWM Hierarchical SeedSequence Tree
     ss_base = np.random.SeedSequence(42)
@@ -85,7 +87,9 @@ def test_determinism_branch_isolation() -> tuple[float, float]:
     rng_alt = np.random.default_rng(child_alt)
     vals_alt = [rng_alt.normal() for _ in range(50)]
 
-    ewm_drift_rate = (1.0 - (sum(a == b for a, b in zip(vals_base, vals_alt, strict=True)) / 50.0)) * 100.0
+    ewm_drift_rate = (
+        1.0 - (sum(a == b for a, b in zip(vals_base, vals_alt, strict=True)) / 50.0)
+    ) * 100.0
 
     return global_drift_rate, ewm_drift_rate
 
@@ -131,6 +135,7 @@ def test_throughput() -> float:
 
 def main() -> int:
     import argparse
+
     parser = argparse.ArgumentParser(description="Reproducible competitive comparison harness.")
     parser.add_argument("--json", action="store_true", help="Output raw JSON results")
     args = parser.parse_args()
@@ -182,9 +187,15 @@ def main() -> int:
     print("-" * 80)
     print(f"{'Evaluation Metric':<40} | {'Baseline Paradigm':<20} | {'EWM Engine':<15}")
     print("-" * 80)
-    print(f"{'Conservation Law Violation Rate':<40} | {f'{uncons_rate:.1f}%':<20} | {f'{ewm_cons_rate:.1f}%':<15}")
-    print(f"{'Branch PRNG Phase Drift':<40} | {f'{glob_drift:.1f}%':<20} | {f'{ewm_drift:.1f}%':<15}")
-    print(f"{'Refusal on Confounded Causal Claim':<40} | {f'{naive_refusal:.1f}%':<20} | {f'{ewm_refusal:.1f}%':<15}")
+    print(
+        f"{'Conservation Law Violation Rate':<40} | {f'{uncons_rate:.1f}%':<20} | {f'{ewm_cons_rate:.1f}%':<15}"
+    )
+    print(
+        f"{'Branch PRNG Phase Drift':<40} | {f'{glob_drift:.1f}%':<20} | {f'{ewm_drift:.1f}%':<15}"
+    )
+    print(
+        f"{'Refusal on Confounded Causal Claim':<40} | {f'{naive_refusal:.1f}%':<20} | {f'{ewm_refusal:.1f}%':<15}"
+    )
     print(f"{'90% Conformal Coverage Accuracy':<40} | {'64.1%':<20} | {'90.2%':<15}")
     print(f"{'Throughput (Steps / Sec)':<40} | {'N/A':<20} | {f'{throughput:,.0f}':<15}")
     print("-" * 80)
@@ -194,4 +205,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(main())

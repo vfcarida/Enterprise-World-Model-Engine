@@ -129,10 +129,12 @@ manifest = create_run_manifest(
 print(f"Canonical Run Manifest Hash: {manifest.manifest_hash}")
 print(f"Reproducibility Checklist Items Passed: {len(manifest.reproducibility_checklist)}")
 
+
 # 3. Multi-seed evaluation reporting mean ± 95% bootstrap confidence intervals
 def simulate_loss(rng, seed):
     # Deterministic simulation function per seed
     return float(rng.normal(loc=100.0, scale=12.0))
+
 
 report = evaluate_multiseed(
     run_fn=simulate_loss,
@@ -143,7 +145,9 @@ report = evaluate_multiseed(
 )
 
 metric = report.metrics["downstream_loss"]
-print(f"Downstream Loss: {metric.mean:.2f} (95% CI: [{metric.ci_lower:.2f}, {metric.ci_upper:.2f}])")
+print(
+    f"Downstream Loss: {metric.mean:.2f} (95% CI: [{metric.ci_lower:.2f}, {metric.ci_upper:.2f}])"
+)
 ```
 
 ---

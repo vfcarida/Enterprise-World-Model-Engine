@@ -79,15 +79,23 @@ class WorldModelReliabilityReport(BaseModel):
         lines.append("World Model Reliability Report (Beyond Rollout Error)")
         lines.append("=" * 76)
         status = "[PASS]" if self.is_reliable else "[FAIL]"
-        lines.append(f"Overall Gate Verdict:        {status} {'CERTIFIED RELIABLE' if self.is_reliable else 'UNRELIABLE / VIOLATIONS'}")
-        lines.append(f"Causal Selectivity Pass Rate: {self.causal_report.pass_rate * 100:.1f}% ({'PASS' if self.causal_report.is_causally_correct else 'FAIL'})")
-        lines.append(f"Metamorphic Pass Rate:        {self.metamorphic_report.pass_rate * 100:.1f}% ({self.metamorphic_report.passed_cards}/{self.metamorphic_report.total_cards})")
+        lines.append(
+            f"Overall Gate Verdict:        {status} {'CERTIFIED RELIABLE' if self.is_reliable else 'UNRELIABLE / VIOLATIONS'}"
+        )
+        lines.append(
+            f"Causal Selectivity Pass Rate: {self.causal_report.pass_rate * 100:.1f}% ({'PASS' if self.causal_report.is_causally_correct else 'FAIL'})"
+        )
+        lines.append(
+            f"Metamorphic Pass Rate:        {self.metamorphic_report.pass_rate * 100:.1f}% ({self.metamorphic_report.passed_cards}/{self.metamorphic_report.total_cards})"
+        )
         lines.append(f"Mutation Adequacy Score:      {self.mutation_adequacy_score * 100:.1f}%")
         lines.append(f"Mean Epistemic Competence:    {self.mean_competence_score * 100:.1f}%")
         lines.append(f"Epistemic Abstention Rate:    {self.epistemic_abstention_rate * 100:.1f}%")
         lines.append(f"Physics-IQ Score:             {self.physics_iq_score * 100:.1f}%")
         lines.append("-" * 76)
-        lines.append("Physics-IQ Guardrail: Plausibility/realism is NEVER used as a correctness proxy.")
+        lines.append(
+            "Physics-IQ Guardrail: Plausibility/realism is NEVER used as a correctness proxy."
+        )
         lines.append(f"Audit Note: {self.evidence_disclaimer}")
         lines.append("=" * 76)
         return "\n".join(lines)
@@ -129,31 +137,35 @@ class WorldModelReliabilityReport(BaseModel):
             lines.append(f"| {v.mr_id} | {v.name} | {status} | {v.discrepancy:.2e} | {v.details} |")
 
         if self.causal_report.violations:
-            lines.extend([
-                "",
-                "## Detected Causal Violations",
-                "",
-                "| Intervened Variable | Affected Variable | Step | Violation Type | Delta |",
-                "|---|---|---|---|---|",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "## Detected Causal Violations",
+                    "",
+                    "| Intervened Variable | Affected Variable | Step | Violation Type | Delta |",
+                    "|---|---|---|---|---|",
+                ]
+            )
             for viol in self.causal_report.violations:
                 lines.append(
                     f"| {viol.intervened_variable} | {viol.affected_variable} | {viol.step} | {viol.violation_type} | {viol.observed_delta:+.4f} |"
                 )
 
-        lines.extend([
-            "",
-            "## Scientific Doctrine: Physics-IQ & Epistemic Honesty",
-            "",
-            "> [!IMPORTANT]",
-            "> **Anti-Plausibility Guardrail**: Under no circumstances is visual realism or high generative",
-            "> likelihood treated as evidence of physical correctness. Models can generate visually plausible",
-            "> rollouts while catastrophically violating conservation laws and directional causality.",
-            "> Correctness is certified solely against the symbolic rule kernel and structural invariants.",
-            "",
-            "> [!NOTE]",
-            f"> **Evidence Disclaimer**: {self.evidence_disclaimer}",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Scientific Doctrine: Physics-IQ & Epistemic Honesty",
+                "",
+                "> [!IMPORTANT]",
+                "> **Anti-Plausibility Guardrail**: Under no circumstances is visual realism or high generative",
+                "> likelihood treated as evidence of physical correctness. Models can generate visually plausible",
+                "> rollouts while catastrophically violating conservation laws and directional causality.",
+                "> Correctness is certified solely against the symbolic rule kernel and structural invariants.",
+                "",
+                "> [!NOTE]",
+                f"> **Evidence Disclaimer**: {self.evidence_disclaimer}",
+            ]
+        )
         return "\n".join(lines)
 
     def to_json(self, indent: int = 2) -> str:
@@ -198,10 +210,12 @@ def evaluate_world_model_reliability(
         test_interventions = list(interventions)
     elif spec.resources:
         for r in spec.resources[:2]:
-            test_interventions.append({
-                "target_variable": f"resource:{r.id}",
-                "value": float(r.current * 1.5 + 5.0),
-            })
+            test_interventions.append(
+                {
+                    "target_variable": f"resource:{r.id}",
+                    "value": float(r.current * 1.5 + 5.0),
+                }
+            )
 
     # 2. Causal Correctness Gate
     causal_gate = CausalCorrectnessGate()

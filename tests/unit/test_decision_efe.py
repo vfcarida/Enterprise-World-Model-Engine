@@ -28,7 +28,9 @@ def test_efe_pragmatic_vs_epistemic_tradeoff() -> None:
 
     # 1. Pure exploitation (beta = 0.0)
     scorer_exploit = ActiveInferenceScorer(weight_epistemic=0.0)
-    scores_exploit = scorer_exploit.score(candidate_outcomes, parameter_points, higher_is_better=False)
+    scores_exploit = scorer_exploit.score(
+        candidate_outcomes, parameter_points, higher_is_better=False
+    )
 
     assert isinstance(scores_exploit["action_exploit"], ExpectedFreeEnergyScore)
     # Action exploit has better (lower) mean cost, so pragmatic value = 1.0
@@ -38,14 +40,21 @@ def test_efe_pragmatic_vs_epistemic_tradeoff() -> None:
 
     # 2. Pure exploration / active sensing (beta = 1.0)
     scorer_explore = ActiveInferenceScorer(weight_epistemic=1.0)
-    scores_explore = scorer_explore.score(candidate_outcomes, parameter_points, higher_is_better=False)
+    scores_explore = scorer_explore.score(
+        candidate_outcomes, parameter_points, higher_is_better=False
+    )
 
     # Action probe produces wide variance revealing theta, so epistemic value is higher
-    assert scores_explore["action_probe"].epistemic_value > scores_explore["action_exploit"].epistemic_value
+    assert (
+        scores_explore["action_probe"].epistemic_value
+        > scores_explore["action_exploit"].epistemic_value
+    )
     assert scores_explore["action_probe"].total_efe > scores_explore["action_exploit"].total_efe
 
     # 3. Balanced active inference (beta = 0.3)
     scorer_balanced = ActiveInferenceScorer(weight_epistemic=0.3)
-    scores_balanced = scorer_balanced.score(candidate_outcomes, parameter_points, higher_is_better=False)
+    scores_balanced = scorer_balanced.score(
+        candidate_outcomes, parameter_points, higher_is_better=False
+    )
     assert 0.0 <= scores_balanced["action_exploit"].total_efe <= 1.0
     assert 0.0 <= scores_balanced["action_probe"].total_efe <= 1.0

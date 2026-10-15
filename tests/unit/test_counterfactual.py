@@ -153,7 +153,9 @@ def test_counterfactual_with_intervention_object() -> None:
     )
 
     assert cf_res.target_divergences["warehouse_stock"] == 300.0
-    assert cf_res.counterfactual_trajectory.final_state.resources["warehouse_stock"].current >= 400.0
+    assert (
+        cf_res.counterfactual_trajectory.final_state.resources["warehouse_stock"].current >= 400.0
+    )
 
 
 def test_counterfactual_trace_diff_and_mermaid() -> None:

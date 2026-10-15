@@ -142,11 +142,21 @@ class ExogenousVariable(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    id: str = Field(description="Unique addressable identifier of the exogenous variable (e.g. 'u:event:power_outage').")
-    step: int = Field(default=0, description="Discrete step at which this exogenous variable operates.")
-    mechanism_id: str = Field(description="Identifier of the generating mechanism (event source, dynamics, actor).")
-    target_variable: str = Field(description="Name of the endogenous variable directly influenced by this noise.")
-    distribution: str = Field(default="empirical", description="Prior distributional assumption over U_i.")
+    id: str = Field(
+        description="Unique addressable identifier of the exogenous variable (e.g. 'u:event:power_outage')."
+    )
+    step: int = Field(
+        default=0, description="Discrete step at which this exogenous variable operates."
+    )
+    mechanism_id: str = Field(
+        description="Identifier of the generating mechanism (event source, dynamics, actor)."
+    )
+    target_variable: str = Field(
+        description="Name of the endogenous variable directly influenced by this noise."
+    )
+    distribution: str = Field(
+        default="empirical", description="Prior distributional assumption over U_i."
+    )
     invertibility: InvertibilityType = Field(
         default=InvertibilityType.EXACT,
         description="Whether U_i can be algebraically inverted from observed outcomes.",
@@ -155,7 +165,9 @@ class ExogenousVariable(BaseModel):
         default_factory=dict,
         description="Distributional parameters (e.g. mean, variance, scale, support).",
     )
-    fingerprint: str = Field(default="", description="Canonical SHA-256 fingerprint of the exogenous variable spec.")
+    fingerprint: str = Field(
+        default="", description="Canonical SHA-256 fingerprint of the exogenous variable spec."
+    )
 
 
 class StructuralAssignment(BaseModel):
@@ -163,7 +175,9 @@ class StructuralAssignment(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    target: str = Field(description="Target endogenous variable name (e.g. 'resource:stock_A', 'entity:node_1:status').")
+    target: str = Field(
+        description="Target endogenous variable name (e.g. 'resource:stock_A', 'entity:node_1:status')."
+    )
     parents: tuple[str, ...] = Field(
         default_factory=tuple,
         description="Direct parent endogenous variables PA_i in the structural causal DAG.",
@@ -172,7 +186,9 @@ class StructuralAssignment(BaseModel):
         default=None,
         description="Identifier of the coupled exogenous noise variable U_i, if stochastic.",
     )
-    mechanism_id: str = Field(description="Identifier of the generating rule, dynamics model, or constraint.")
+    mechanism_id: str = Field(
+        description="Identifier of the generating rule, dynamics model, or constraint."
+    )
     invertibility: InvertibilityType = Field(
         default=InvertibilityType.EXACT,
         description="Invertibility classification governing Pearl's abduction step.",
@@ -189,7 +205,9 @@ class StructuralAssignment(BaseModel):
         default="",
         description="Human-readable mathematical or structural description of the mechanism.",
     )
-    fingerprint: str = Field(default="", description="Canonical SHA-256 fingerprint of the assignment.")
+    fingerprint: str = Field(
+        default="", description="Canonical SHA-256 fingerprint of the assignment."
+    )
 
     def evaluate(self, parent_values: dict[str, Any], u_value: Any = None) -> Any:
         """Evaluate structural assignment under given parent and exogenous noise values."""
@@ -242,7 +260,9 @@ class AbductionResult(BaseModel):
         default_factory=dict,
         description="Candidate posterior noise sample distributions when abduction is non-unique.",
     )
-    fingerprint: str = Field(default="", description="Canonical SHA-256 fingerprint of the abduced noise profile.")
+    fingerprint: str = Field(
+        default="", description="Canonical SHA-256 fingerprint of the abduced noise profile."
+    )
 
 
 class StructuralCausalModel(BaseModel):
@@ -271,7 +291,9 @@ class StructuralCausalModel(BaseModel):
         default_factory=CausalGraph,
         description="Directed acyclic graph of structural mechanism dependencies.",
     )
-    fingerprint: str = Field(default="", description="Canonical SHA-256 fingerprint of the compiled SCM.")
+    fingerprint: str = Field(
+        default="", description="Canonical SHA-256 fingerprint of the compiled SCM."
+    )
 
     @classmethod
     def from_world(cls, world: World, horizon: int = 1) -> StructuralCausalModel:
@@ -510,7 +532,11 @@ class StructuralCausalModel(BaseModel):
                     noise_draws[asgn.exogenous_id] = u_val
                     if not is_unique:
                         non_unique_vars.append(asgn.target)
-                        candidate_posteriors[asgn.target] = (float(u_val) - 1.0, float(u_val), float(u_val) + 1.0)
+                        candidate_posteriors[asgn.target] = (
+                            float(u_val) - 1.0,
+                            float(u_val),
+                            float(u_val) + 1.0,
+                        )
                         warnings.warn(
                             f"Non-unique abduction for target '{asgn.target}' with mechanism '{asgn.mechanism_id}'. "
                             f"Returning counterfactual posterior distribution with is_unique=False.",

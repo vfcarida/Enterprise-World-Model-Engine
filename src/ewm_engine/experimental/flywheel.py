@@ -44,7 +44,9 @@ class SINDyFitResult(BaseModel):
 
     target_resource: ResourceId = Field(description="Target resource whose residual was regressed.")
     formula: str = Field(description="Discovered human-readable closed-form equation.")
-    terms: dict[str, float] = Field(description="Dictionary mapping basis term names to coefficients.")
+    terms: dict[str, float] = Field(
+        description="Dictionary mapping basis term names to coefficients."
+    )
     r2_score: float = Field(description="Coefficient of determination R^2.")
     mse: float = Field(description="Mean squared error.")
     bic: float = Field(description="Bayesian Information Criterion (penalizes parameter count).")
@@ -221,9 +223,12 @@ class AdvisoryEquationPrior(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     name: str = Field(description="Name or title of candidate hypothesis.")
-    expression_template: str = Field(description="Candidate functional form, e.g. 'c0 * inventory'.")
+    expression_template: str = Field(
+        description="Candidate functional form, e.g. 'c0 * inventory'."
+    )
     proposed_by: str = Field(
-        default="LLM-SR-Advisory", description="Originator of hypothesis (e.g. LLM-SR, human expert)."
+        default="LLM-SR-Advisory",
+        description="Originator of hypothesis (e.g. LLM-SR, human expert).",
     )
     rationale: str = Field(description="Theoretical or empirical motivation for the hypothesis.")
     is_advisory_only: bool = Field(

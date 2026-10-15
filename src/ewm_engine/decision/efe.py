@@ -67,9 +67,7 @@ class ActiveInferenceScorer:
                 Default: 0.3 (moderate exploration bonus).
         """
         if not (0.0 <= weight_epistemic <= 1.0):
-            raise ValueError(
-                f"weight_epistemic must be in [0.0, 1.0], got {weight_epistemic}"
-            )
+            raise ValueError(f"weight_epistemic must be in [0.0, 1.0], got {weight_epistemic}")
         self.weight_epistemic = weight_epistemic
 
     def score(

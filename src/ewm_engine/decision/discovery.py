@@ -273,10 +273,7 @@ def run_prim(
             cand_mask_low = mask & (X[:, j] >= q_low)
             cand_support_low = int(np.sum(cand_mask_low))
 
-            if (
-                cand_support_low >= min_support
-                and cand_support_low < current_support
-            ):
+            if cand_support_low >= min_support and cand_support_low < current_support:
                 cand_failures_low = int(np.sum(y[cand_mask_low]))
                 cand_dens_low = cand_failures_low / cand_support_low
                 if cand_dens_low > best_density:
@@ -291,10 +288,7 @@ def run_prim(
             cand_mask_high = mask & (X[:, j] <= q_high)
             cand_support_high = int(np.sum(cand_mask_high))
 
-            if (
-                cand_support_high >= min_support
-                and cand_support_high < current_support
-            ):
+            if cand_support_high >= min_support and cand_support_high < current_support:
                 cand_failures_high = int(np.sum(y[cand_mask_high]))
                 cand_dens_high = cand_failures_high / cand_support_high
                 if cand_dens_high > best_density:
@@ -334,8 +328,7 @@ def run_prim(
         trajectory.append(peel_step)
 
         frozen_bounds = {
-            dim: (float(current_bounds[dim][0]), float(current_bounds[dim][1]))
-            for dim in dims
+            dim: (float(current_bounds[dim][0]), float(current_bounds[dim][1])) for dim in dims
         }
         boxes_on_path.append((frozen_bounds, new_coverage, new_density, new_support))
 
@@ -468,9 +461,12 @@ def run_cart(
                 baseline_density = total_failures / n_samples
                 if density > baseline_density and node_failures > 0:
                     coverage = node_failures / total_failures
-                    frozen_bounds = {dim: (bounds[0], bounds[1]) for dim, bounds in current_bounds.items()}
+                    frozen_bounds = {
+                        dim: (bounds[0], bounds[1]) for dim, bounds in current_bounds.items()
+                    }
                     restricted = [
-                        dim for dim in dims
+                        dim
+                        for dim in dims
                         if frozen_bounds[dim][0] > initial_bounds[dim][0]
                         or frozen_bounds[dim][1] < initial_bounds[dim][1]
                     ]
@@ -482,7 +478,9 @@ def run_cart(
                         support=node_samples,
                         total_samples=n_samples,
                         restricted_dimensions=tuple(restricted),
-                        quasi_p_value=_calculate_quasi_p_value(node_failures, node_samples, total_failures, n_samples),
+                        quasi_p_value=_calculate_quasi_p_value(
+                            node_failures, node_samples, total_failures, n_samples
+                        ),
                         description=f"CART leaf at depth {depth} (density={density:.2f})",
                     )
                     discovered_boxes.append(box)

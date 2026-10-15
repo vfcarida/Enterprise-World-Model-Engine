@@ -62,9 +62,9 @@ from ewm_engine.decision.robustness import RobustDecisionEngine
 # 1. Payoff matrix: 3 candidate strategies evaluated across 4 divergent futures ($M NPV)
 payoffs = [
     # World 1 (Global Boom), World 2 (Fragmented), World 3 (Stagnation), World 4 (Green Mandate)
-    [120.0, 15.0, 30.0, 45.0],   # Strategy 1: Aggressive Global Expansion
-    [85.0,  70.0, 55.0, 80.0],   # Strategy 2: Modular Regional Resilience
-    [60.0,  40.0, 50.0, 55.0],   # Strategy 3: Digital-First Asset-Light
+    [120.0, 15.0, 30.0, 45.0],  # Strategy 1: Aggressive Global Expansion
+    [85.0, 70.0, 55.0, 80.0],  # Strategy 2: Modular Regional Resilience
+    [60.0, 40.0, 50.0, 55.0],  # Strategy 3: Digital-First Asset-Light
 ]
 
 # 2. Evaluate Minimax Regret and Satisficing (Hurdle Rate >= $50M)

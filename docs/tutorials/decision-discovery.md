@@ -30,9 +30,9 @@ strategies = ["Aggressive Expansion", "Modular Resilience", "Conservative Cash"]
 # 2. Define 4 deeply uncertain future macro regimes (World 1..4)
 # Payoff matrix ($M Net Present Value across regimes)
 payoffs = [
-    [120.0, 15.0, 30.0, 45.0],   # Aggressive Expansion
-    [85.0,  70.0, 55.0, 80.0],   # Modular Resilience
-    [50.0,  50.0, 50.0, 50.0],   # Conservative Cash
+    [120.0, 15.0, 30.0, 45.0],  # Aggressive Expansion
+    [85.0, 70.0, 55.0, 80.0],  # Modular Resilience
+    [50.0, 50.0, 50.0, 50.0],  # Conservative Cash
 ]
 
 # 3. Evaluate Robustness via Minimax Regret & Satisficing (Hurdle = $60M)

@@ -78,7 +78,10 @@ class CallableResidualEstimator:
 
     def __init__(
         self,
-        fn: Callable[[WorldState, Sequence[Action], Sequence[ExogenousEvent], WorldState], dict[ResourceId, float]],
+        fn: Callable[
+            [WorldState, Sequence[Action], Sequence[ExogenousEvent], WorldState],
+            dict[ResourceId, float],
+        ],
     ) -> None:
         self._fn = fn
 

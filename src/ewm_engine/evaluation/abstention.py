@@ -37,13 +37,15 @@ class EpistemicCompetence(BaseModel):
         description="Continuous competence score in [0.0, 1.0]. 1.0 = fully grounded, 0.0 = pure hallucination."
     )
     abstention_step: int | None = Field(
-        default=None, description="Simulation step where the model first crossed the abstention threshold."
+        default=None,
+        description="Simulation step where the model first crossed the abstention threshold.",
     )
     abstention_reason: str | None = Field(
         default=None, description="Explicit rationale for epistemic abstention."
     )
     diagnostics: dict[str, float] = Field(
-        default_factory=dict, description="Supporting metrics: horizon decay, boundary proximity, entropy."
+        default_factory=dict,
+        description="Supporting metrics: horizon decay, boundary proximity, entropy.",
     )
 
 
@@ -99,7 +101,9 @@ class CompetenceEstimator:
             val = float(r.current)
             if r.min_value > -float("inf") and val < r.min_value:
                 score *= 0.1
-                reasons.append(f"Resource '{rid}' violated non-negativity constraint ({val:.2f} < {r.min_value}).")
+                reasons.append(
+                    f"Resource '{rid}' violated non-negativity constraint ({val:.2f} < {r.min_value})."
+                )
 
         score = max(0.0, min(1.0, float(score)))
         return score, reasons
@@ -121,7 +125,11 @@ class CompetenceEstimator:
 
             if score_t < self.abstention_threshold and abstention_step is None:
                 abstention_step = idx
-                primary_reason = reasons[0] if reasons else f"Competence score {score_t:.3f} fell below threshold {self.abstention_threshold}."
+                primary_reason = (
+                    reasons[0]
+                    if reasons
+                    else f"Competence score {score_t:.3f} fell below threshold {self.abstention_threshold}."
+                )
 
         is_competent = min_score >= self.abstention_threshold
 
@@ -201,9 +209,7 @@ class PhysicsIQGuardrail:
                 group_violated = False
                 for idx, s in enumerate(states[1:], 1):
                     step_sum = sum(
-                        float(s.resources[r].current)
-                        for r in group_set
-                        if r in s.resources
+                        float(s.resources[r].current) for r in group_set if r in s.resources
                     )
                     drift = abs(step_sum - init_sum)
                     if drift > self.conservation_tolerance:

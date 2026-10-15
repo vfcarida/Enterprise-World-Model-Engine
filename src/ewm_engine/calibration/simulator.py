@@ -40,7 +40,9 @@ class ForwardSimulatorWrapper:
     def apply_parameters_to_spec(self, theta_dict: dict[str, float]) -> WorldSpec:
         """Create a new WorldSpec with parameters from theta_dict applied."""
         new_resources = list(self.spec.resources)
-        new_dynamics = self.spec.dynamics.model_copy(deep=True) if self.spec.dynamics is not None else None
+        new_dynamics = (
+            self.spec.dynamics.model_copy(deep=True) if self.spec.dynamics is not None else None
+        )
         new_world_meta = self.spec.world.model_copy(deep=True)
 
         for prior in self.prior_set.priors:
@@ -89,11 +91,7 @@ class ForwardSimulatorWrapper:
         if self.summary_statistic_mode == "moments":
             # Extract mean, variance, min, max, final level for each tracked resource
             for rid in self.tracked_resources:
-                vals = [
-                    float(s.resources[rid].current)
-                    for s in states
-                    if rid in s.resources
-                ]
+                vals = [float(s.resources[rid].current) for s in states if rid in s.resources]
                 if not vals:
                     features.extend([0.0, 0.0, 0.0, 0.0, 0.0])
                     continue
@@ -135,15 +133,9 @@ class ForwardSimulatorWrapper:
 
         # Collect full series for plotting/predictive overlay
         series: dict[str, list[float]] = {}
-        states = [traj.initial_state] + [
-            step.transition_result.next_state for step in traj.steps
-        ]
+        states = [traj.initial_state] + [step.transition_result.next_state for step in traj.steps]
         for rid in self.tracked_resources:
-            series[rid] = [
-                float(s.resources[rid].current)
-                for s in states
-                if rid in s.resources
-            ]
+            series[rid] = [float(s.resources[rid].current) for s in states if rid in s.resources]
 
         return summary_stats, series
 
