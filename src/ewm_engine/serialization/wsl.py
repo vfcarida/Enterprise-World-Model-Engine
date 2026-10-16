@@ -178,6 +178,10 @@ class WSLDocument(BaseModel):
             )
         return v
 
+    def to_yaml(self) -> str:
+        """Serialize this WSLDocument to a safe, canonical YAML string."""
+        return safe_dump_yaml(self)
+
 
 def parse_wsl_yaml(yaml_str: str) -> WSLDocument:
     """Parse a YAML string into a strictly validated WSLDocument.
@@ -227,7 +231,8 @@ def compile_wsl(doc: WSLDocument, registry: ComponentRegistry | None = None) -> 
     relationships: list[Relationship] = []
     for r in doc.relationships:
         attrs = dict(r.attributes)
-        attrs["weight"] = r.weight
+        if r.weight != 1.0 and "weight" not in attrs:
+            attrs["weight"] = r.weight
         if r.temporal_valid_from is not None:
             attrs["temporal_valid_from"] = r.temporal_valid_from
         if r.temporal_valid_until is not None:
@@ -252,7 +257,7 @@ def compile_wsl(doc: WSLDocument, registry: ComponentRegistry | None = None) -> 
     initial_state = WorldState(
         step=0,
         timestamp=0.0,
-        schema_version="2.0.0",
+        schema_version="1.0.0",
         entities=entities,
         relationships=relationships,
         resources=resources,
@@ -271,7 +276,12 @@ def compile_wsl(doc: WSLDocument, registry: ComponentRegistry | None = None) -> 
 
     # 5. Resolve constraints
     for c_spec in doc.constraints:
-        c_instance = reg.build_constraint(c_spec.type_id, c_spec.parameters)
+        c_params = dict(c_spec.parameters)
+        if "id" not in c_params:
+            c_params["id"] = c_spec.id
+        if "severity" not in c_params:
+            c_params["severity"] = c_spec.severity
+        c_instance = reg.build_constraint(c_spec.type_id, c_params)
         world.add_constraint(c_instance)
 
     return world
@@ -327,6 +337,77 @@ def export_wsl(world: World, metadata: WSLMetadata | None = None) -> WSLDocument
         for res in state.resources.values()
     ]
 
+    # Dynamics serialization
+    dynamics_spec: WSLComponentSpec | None = None
+    if world.dynamics is not None:
+        dyn = world.dynamics
+        dyn_cls = dyn.__class__.__name__
+        dyn_params: dict[str, Any] = {}
+        for attr in (
+            "action_type",
+            "name",
+            "resource_id",
+            "source_resource",
+            "target_resource",
+            "quantity",
+            "drift",
+            "mean_demand",
+            "std_demand",
+            "demand",
+            "leak_rate",
+        ):
+            if hasattr(dyn, attr):
+                dyn_params[attr] = getattr(dyn, attr)
+        if hasattr(dyn, "models"):
+            sub_models = []
+            for sub in getattr(dyn, "models", []):
+                sub_p: dict[str, Any] = {}
+                for attr in (
+                    "action_type",
+                    "name",
+                    "resource_id",
+                    "mean_demand",
+                    "std_demand",
+                    "demand",
+                    "leak_rate",
+                ):
+                    if hasattr(sub, attr):
+                        sub_p[attr] = getattr(sub, attr)
+                sub_models.append({"type": sub.__class__.__name__, "parameters": sub_p})
+            dyn_params["models"] = sub_models
+
+        evidence_str = "ASSUMED"
+        if hasattr(dyn, "evidence_level"):
+            ev = dyn.evidence_level
+            evidence_str = ev.value if hasattr(ev, "value") else str(ev)
+
+        dynamics_spec = WSLComponentSpec(
+            type_id=dyn_cls,
+            parameters=dyn_params,
+            evidence_level=evidence_str,
+        )
+
+    # Constraints serialization
+    constraint_specs: list[WSLConstraintSpec] = []
+    if world.constraints is not None:
+        for c in world.constraints:
+            c_cls = c.__class__.__name__
+            c_id = getattr(c, "constraint_id", f"constraint_{len(constraint_specs)}")
+            c_params: dict[str, Any] = {}
+            for attr in ("resource_id", "action_type", "version"):
+                if hasattr(c, attr):
+                    c_params[attr] = getattr(c, attr)
+            c_sev = getattr(c, "severity", "HARD")
+            c_sev_str = c_sev.value if hasattr(c_sev, "value") else str(c_sev)
+            constraint_specs.append(
+                WSLConstraintSpec(
+                    id=c_id,
+                    type_id=c_cls,
+                    parameters=c_params,
+                    severity=c_sev_str.upper(),
+                )
+            )
+
     return WSLDocument(
         schema_version="wsl/2.0.0",
         metadata=metadata or WSLMetadata(),
@@ -334,6 +415,6 @@ def export_wsl(world: World, metadata: WSLMetadata | None = None) -> WSLDocument
         entities=entities,
         relationships=relationships,
         resources=resources,
-        dynamics=None,
-        constraints=[],
+        dynamics=dynamics_spec,
+        constraints=constraint_specs,
     )

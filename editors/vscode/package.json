@@ -1,0 +1,37 @@
+{
+  "name": "enterprise-world-model-wsl",
+  "displayName": "Enterprise World Model - WSL Language Support",
+  "description": "Language support, syntax highlighting, live diagnostics, and autocompletion for World Specification Language (.wsl)",
+  "version": "1.0.0",
+  "publisher": "vfcarida",
+  "license": "Apache-2.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "wsl",
+        "aliases": [
+          "World Specification Language",
+          "wsl"
+        ],
+        "extensions": [
+          ".wsl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "wsl",
+        "scopeName": "source.wsl",
+        "path": "./syntaxes/wsl.tmLanguage.json"
+      }
+    ]
+  }
+}

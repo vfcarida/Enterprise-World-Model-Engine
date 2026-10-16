@@ -1,0 +1,75 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "World Specification Language",
+  "scopeName": "source.wsl",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#constants"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.wsl",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.declaration.wsl",
+          "match": "\\b(world|temporal|entity|resource|relationship|constraint|scenario|parameters)\\b"
+        },
+        {
+          "name": "support.type.property-name.wsl",
+          "match": "\\b(id|name|version|description|author|time_unit|step_duration|default_horizon|type|tags|current|min|max|unit|source|target|weight|severity|horizon|samples|seed)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.wsl",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.wsl",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.wsl",
+          "match": "\\b[0-9]+\\.[0-9]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.wsl",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.wsl",
+          "match": "\\b(true|false|HARD|SOFT|hard|soft)\\b"
+        }
+      ]
+    }
+  }
+}

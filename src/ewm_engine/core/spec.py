@@ -598,16 +598,49 @@ class ComponentRegistry:
                 name=p.get("name", "PermutationBiasDynamics"),
             )
 
+        def _make_fixed_transfer_dynamics(p: dict[str, Any]) -> DynamicsModel:
+            from ewm_engine.dynamics.deterministic import DeterministicFixedTransferDynamics
+
+            return DeterministicFixedTransferDynamics(
+                source_resource=str(p.get("source_resource", "stock_a")),
+                target_resource=str(p.get("target_resource", "stock_b")),
+                quantity=float(p.get("quantity", 0.0)),
+                name=p.get("name", "DeterministicFixedTransferDynamics"),
+            )
+
+        def _make_drift_dynamics(p: dict[str, Any]) -> DynamicsModel:
+            from ewm_engine.dynamics.deterministic import DeterministicDriftDynamics
+
+            return DeterministicDriftDynamics(
+                resource_id=str(p.get("resource_id", "liquid_tgt")),
+                drift=float(p.get("drift", 0.0)),
+                name=p.get("name", "DeterministicDriftDynamics"),
+            )
+
         self.register_dynamics("deterministic_transfer", _make_transfer_dynamics)
+        self.register_dynamics("deterministictransferdynamics", _make_transfer_dynamics)
         self.register_dynamics("transfer", _make_transfer_dynamics)
+        self.register_dynamics("fixed_transfer", _make_fixed_transfer_dynamics)
+        self.register_dynamics("deterministic_fixed_transfer", _make_fixed_transfer_dynamics)
+        self.register_dynamics("deterministicfixedtransferdynamics", _make_fixed_transfer_dynamics)
+        self.register_dynamics("drift", _make_drift_dynamics)
+        self.register_dynamics("deterministic_drift", _make_drift_dynamics)
+        self.register_dynamics("deterministicdriftdynamics", _make_drift_dynamics)
         self.register_dynamics("deterministic", _make_deterministic_dynamics)
+        self.register_dynamics("deterministicdynamics", _make_deterministic_dynamics)
         self.register_dynamics("deterministic_demand", _make_demand_dynamics)
+        self.register_dynamics("deterministicdemanddynamics", _make_demand_dynamics)
         self.register_dynamics("demand", _make_demand_dynamics)
         self.register_dynamics("stochastic_demand", _make_stochastic_demand)
+        self.register_dynamics("stochasticdemanddynamics", _make_stochastic_demand)
         self.register_dynamics("composite", _make_composite_dynamics)
+        self.register_dynamics("compositedynamics", _make_composite_dynamics)
         self.register_dynamics("unmetered_leakage", _make_leakage_dynamics)
+        self.register_dynamics("unmeteredleakagedynamics", _make_leakage_dynamics)
         self.register_dynamics("unseeded_jitter", _make_jitter_dynamics)
+        self.register_dynamics("unseededjitterdynamics", _make_jitter_dynamics)
         self.register_dynamics("permutation_bias", _make_bias_dynamics)
+        self.register_dynamics("permutationbiasdynamics", _make_bias_dynamics)
 
         # Constraints
         def _parse_severity(s: str | None) -> ConstraintSeverity:
@@ -647,10 +680,15 @@ class ComponentRegistry:
 
         self.register_constraint("capacity", _make_capacity_constraint)
         self.register_constraint("resource_capacity", _make_capacity_constraint)
+        self.register_constraint("resourcecapacityconstraint", _make_capacity_constraint)
         self.register_constraint("non_negative", _make_non_negative_constraint)
         self.register_constraint("resource_non_negative", _make_non_negative_constraint)
+        self.register_constraint("resourcenonnegativeconstraint", _make_non_negative_constraint)
         self.register_constraint("transfer_availability", _make_transfer_avail_constraint)
         self.register_constraint("action_transfer_availability", _make_transfer_avail_constraint)
+        self.register_constraint(
+            "actiontransferavailabilityconstraint", _make_transfer_avail_constraint
+        )
 
 
 class WorldFactory:

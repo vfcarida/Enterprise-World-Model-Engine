@@ -256,6 +256,7 @@ nav:
           - "ADR-048: Causal & Dynamics Induction with GPL Isolation": adr/ADR-048-causal-and-dynamics-induction-with-gpl-isolation.md
           - "ADR-049: Induction Honesty, Validation & Refusal Gate": adr/ADR-049-induction-honesty-validation-and-refusal-gate.md
           - "ADR-050: Batched Scale & Cross-Backend Bit-Identical Fingerprints": adr/ADR-050-cross-backend-bit-identical-fingerprints-and-batched-scale.md
+          - "ADR-051: World Model Interchange Format & Conformance Standard": adr/ADR-051-world-model-interchange-format-and-conformance-standard.md
 
   - Community & Governance:
       - "Community Health & CHAOSS": community-health.md
@@ -304,6 +305,9 @@ nav:
           - "Graph Neural Dynamics (GNN)": cards/graph-neural-dynamics.md
           - "CivicFlow Disaster Scenario Card": cards/civicflow-disaster-response.md
           - "Neural Baseline Model Card": models/neural-residual-baseline.md
+      - Specifications & Standards:
+          - "WMIF Specification (v1.0 Proposed)": specs/wmif-v1.md
+          - "WSL Language Specification (v2.0)": specs/wsl-v2.md
       - Engineering Audit & Convergence:
           - "v1.0.0 Convergence Review": specs/v1-convergence.md
           - "Repository Audit Report": audit/repository-audit-report.md

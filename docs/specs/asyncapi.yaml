@@ -1,0 +1,172 @@
+asyncapi: "3.0.0"
+info:
+  title: "Enterprise World Model Engine - Simulation Event Streaming API"
+  version: "1.0.0"
+  description: |
+    AsyncAPI 3.0 specification for real-time streaming of long-running Monte Carlo simulations,
+    trajectory transitions, constraint evaluation events, and completion notifications.
+    Operates over WebSockets, Server-Sent Events (SSE), or message brokers (Kafka/RabbitMQ).
+  contact:
+    name: "Enterprise World Model Engine Team"
+    url: "https://github.com/vfcarida/Enterprise-World-Model-Engine"
+  license:
+    name: "Apache-2.0"
+    url: "https://www.apache.org/licenses/LICENSE-2.0.html"
+
+servers:
+  localWs:
+    host: "localhost:8000"
+    pathname: "/ws/simulations/{job_id}"
+    protocol: "ws"
+    description: "Local WebSocket development server for simulation event streaming."
+    variables:
+      job_id:
+        description: "Unique simulation job execution identifier."
+
+channels:
+  simulationProgress:
+    address: "simulations/{job_id}/progress"
+    messages:
+      progressUpdate:
+        $ref: "#/components/messages/ProgressUpdateMessage"
+    description: "Periodic progress updates emitting step fraction, completed samples, and throughput metrics."
+
+  rolloutStepStream:
+    address: "simulations/{job_id}/steps"
+    messages:
+      stepRecord:
+        $ref: "#/components/messages/StepRecordMessage"
+    description: "Fine-grained per-step transition events including state fingerprints and action executions."
+
+  simulationCompleted:
+    address: "simulations/{job_id}/completed"
+    messages:
+      completionSummary:
+        $ref: "#/components/messages/CompletionSummaryMessage"
+    description: "Final terminal event published when all ensemble rollouts complete, containing golden fingerprints and Croissant dataset link."
+
+operations:
+  streamProgress:
+    action: "receive"
+    channel:
+      $ref: "#/channels/simulationProgress"
+    summary: "Subscribe to coarse simulation progress events."
+
+  streamSteps:
+    action: "receive"
+    channel:
+      $ref: "#/channels/rolloutStepStream"
+    summary: "Subscribe to fine-grained discrete step transitions across ensemble branches."
+
+  receiveCompletion:
+    action: "receive"
+    channel:
+      $ref: "#/channels/simulationCompleted"
+    summary: "Receive terminal completion event with SHA-256 fingerprint audit block."
+
+components:
+  messages:
+    ProgressUpdateMessage:
+      name: "ProgressUpdate"
+      title: "Simulation Job Progress"
+      summary: "Progress heartbeat emitted during long Monte Carlo simulations."
+      payload:
+        $ref: "#/components/schemas/ProgressPayload"
+
+    StepRecordMessage:
+      name: "StepRecord"
+      title: "Discrete Simulation Step Event"
+      summary: "Discrete step transition emitted during branch rollout."
+      payload:
+        $ref: "#/components/schemas/StepRecordPayload"
+
+    CompletionSummaryMessage:
+      name: "CompletionSummary"
+      title: "Simulation Run Completion Summary"
+      summary: "Terminal completion event with canonical SHA-256 fingerprint."
+      payload:
+        $ref: "#/components/schemas/CompletionPayload"
+
+  schemas:
+    ProgressPayload:
+      type: "object"
+      required:
+        - "job_id"
+        - "percent_complete"
+        - "completed_samples"
+        - "total_samples"
+        - "elapsed_seconds"
+      properties:
+        job_id:
+          type: "string"
+        percent_complete:
+          type: "number"
+          minimum: 0.0
+          maximum: 100.0
+        completed_samples:
+          type: "integer"
+        total_samples:
+          type: "integer"
+        elapsed_seconds:
+          type: "number"
+        current_steps_per_sec:
+          type: "number"
+
+    StepRecordPayload:
+      type: "object"
+      required:
+        - "job_id"
+        - "sample_id"
+        - "step"
+        - "timestamp"
+        - "state_hash"
+      properties:
+        job_id:
+          type: "string"
+        sample_id:
+          type: "integer"
+        step:
+          type: "integer"
+        timestamp:
+          type: "number"
+        state_hash:
+          type: "string"
+          pattern: "^[a-f0-9]{64}$"
+          description: "Canonical SHA-256 fingerprint of the world state at this step."
+        constraint_violations:
+          type: "array"
+          items:
+            type: "string"
+        step_metrics:
+          type: "object"
+          additionalProperties:
+            type: "number"
+
+    CompletionPayload:
+      type: "object"
+      required:
+        - "job_id"
+        - "scenario_id"
+        - "status"
+        - "fingerprint"
+        - "duration_seconds"
+      properties:
+        job_id:
+          type: "string"
+        scenario_id:
+          type: "string"
+        status:
+          type: "string"
+          enum: ["completed", "failed", "invalid"]
+        fingerprint:
+          type: "string"
+          pattern: "^[a-f0-9]{64}$"
+          description: "Bit-exact simulation result fingerprint."
+        total_rollouts:
+          type: "integer"
+        duration_seconds:
+          type: "number"
+        croissant_manifest_url:
+          type: "string"
+          format: "uri"
+          description: "URL or path to the MLCommons Croissant JSON-LD dataset manifest."

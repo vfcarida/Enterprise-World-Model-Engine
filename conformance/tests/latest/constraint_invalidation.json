@@ -1,0 +1,18 @@
+{
+  "name": "Constraint Saturation Invalidation",
+  "category": "constraints",
+  "level": 1,
+  "description": "Fail-closed invalidation when capacity hard limit is exceeded at step 1",
+  "reference_world": "constraint_stress",
+  "scenario": {
+    "scenario_id": "ref_constraint_stress_scen",
+    "name": "Constraint Stress Scenario",
+    "horizon": 3,
+    "samples": 1,
+    "seed": 999
+  },
+  "expected_fingerprint": "c51a1b7ed371c3745967046cf716dd60a38e19c2affc9e26d5eae4d2c57830a0",
+  "expected_status": "invalid",
+  "expected_total_violations": 1,
+  "valid": true
+}

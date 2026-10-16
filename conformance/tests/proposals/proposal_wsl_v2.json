@@ -1,0 +1,8 @@
+{
+  "name": "WSL Version 2.0 Syntax Proposal",
+  "category": "proposals",
+  "level": 2,
+  "description": "Forward-looking grammar and typed AST specification for WSL 2.0 authoring",
+  "valid": true,
+  "status": "Draft/RFC"
+}

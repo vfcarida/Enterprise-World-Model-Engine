@@ -1,0 +1,20 @@
+{
+  "name": "Deterministic Trivial Rollout",
+  "category": "deterministic",
+  "level": 1,
+  "description": "5-step deterministic conservation transfer between two depot nodes with seed 42",
+  "reference_world": "seed_trivial",
+  "scenario": {
+    "scenario_id": "ref_seed_trivial_scen",
+    "name": "Seed Trivial Scenario",
+    "horizon": 5,
+    "samples": 1,
+    "seed": 42
+  },
+  "expected_fingerprint": "5dbb3db473211cc725a549e714449a2ac43c7d563e301470a70447f323e72dda",
+  "expected_branch_fingerprints": [
+    "78e3fff97818dbe1422fbeb1a09a263edc2fbeb2076937ac228e673122675274"
+  ],
+  "expected_status": "completed",
+  "valid": true
+}

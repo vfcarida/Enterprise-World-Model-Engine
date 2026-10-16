@@ -1,0 +1,17 @@
+{
+  "name": "PkgCausal Counterfactual Interventions",
+  "category": "optional",
+  "package": "PkgCausal",
+  "level": 1,
+  "description": "Validates twin-rollout noise coupling under do-operator intervention",
+  "reference_world": "seed_trivial",
+  "scenario": {
+    "scenario_id": "ref_causal_cf_scen",
+    "name": "Causal Counterfactual Test",
+    "horizon": 5,
+    "samples": 1,
+    "seed": 42
+  },
+  "valid": true,
+  "requires_package": "PkgCausal"
+}

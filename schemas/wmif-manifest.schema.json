@@ -1,0 +1,192 @@
+{
+  "$defs": {
+    "WMIFPackage": {
+      "additionalProperties": false,
+      "description": "Specification of an optional or required SBML-style extension package.",
+      "properties": {
+        "description": {
+          "default": "",
+          "description": "Narrative description of the package capability.",
+          "title": "Description",
+          "type": "string"
+        },
+        "name": {
+          "description": "Package name (e.g. 'PkgCausal', 'PkgCosim').",
+          "title": "Name",
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "description": "Whether supporting this package is mandatory to run the world.",
+          "title": "Required",
+          "type": "boolean"
+        },
+        "version": {
+          "default": "1.0.0",
+          "description": "Semantic version of the package.",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "WMIFPackage",
+      "type": "object"
+    },
+    "WMIFReferenceResult": {
+      "additionalProperties": false,
+      "description": "Reference execution golden record keyed by seed and fingerprint.",
+      "properties": {
+        "fingerprint": {
+          "title": "Fingerprint",
+          "type": "string"
+        },
+        "horizon": {
+          "title": "Horizon",
+          "type": "integer"
+        },
+        "per_branch_fingerprints": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Per Branch Fingerprints",
+          "type": "array"
+        },
+        "result_path": {
+          "default": "",
+          "title": "Result Path",
+          "type": "string"
+        },
+        "samples": {
+          "title": "Samples",
+          "type": "integer"
+        },
+        "scenario_id": {
+          "title": "Scenario Id",
+          "type": "string"
+        },
+        "seed": {
+          "title": "Seed",
+          "type": "integer"
+        },
+        "summary_metrics": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Summary Metrics",
+          "type": "object"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "seed",
+        "samples",
+        "horizon",
+        "fingerprint"
+      ],
+      "title": "WMIFReferenceResult",
+      "type": "object"
+    }
+  },
+  "$id": "https://ewm-engine.org/schemas/v1/wmif-manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Root metadata manifest (modelDescription.json) for a WMIF container.",
+  "properties": {
+    "author": {
+      "default": "Enterprise World Model Engine",
+      "description": "Model creator.",
+      "title": "Author",
+      "type": "string"
+    },
+    "created_at": {
+      "default": "",
+      "description": "ISO-8601 timestamp of package creation.",
+      "title": "Created At",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "description": "Narrative description of the enterprise model.",
+      "title": "Description",
+      "type": "string"
+    },
+    "format": {
+      "default": "WMIF/1.0",
+      "description": "Container format identifier.",
+      "title": "Format",
+      "type": "string"
+    },
+    "level": {
+      "default": 1,
+      "description": "SBML-style specification Level.",
+      "title": "Level",
+      "type": "integer"
+    },
+    "model_file": {
+      "default": "model.wsl",
+      "description": "Relative path to model definition payload.",
+      "title": "Model File",
+      "type": "string"
+    },
+    "model_fingerprint": {
+      "default": "",
+      "description": "SHA-256 fingerprint of the model definition.",
+      "title": "Model Fingerprint",
+      "type": "string"
+    },
+    "model_id": {
+      "description": "Unique world model identifier.",
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_name": {
+      "description": "Human-readable model name.",
+      "title": "Model Name",
+      "type": "string"
+    },
+    "packages": {
+      "description": "Active SBML-style extension packages.",
+      "items": {
+        "$ref": "#/$defs/WMIFPackage"
+      },
+      "title": "Packages",
+      "type": "array"
+    },
+    "provenance": {
+      "additionalProperties": true,
+      "description": "Creation provenance metadata.",
+      "title": "Provenance",
+      "type": "object"
+    },
+    "reference_results": {
+      "description": "Golden reference simulation runs for conformance verification.",
+      "items": {
+        "$ref": "#/$defs/WMIFReferenceResult"
+      },
+      "title": "Reference Results",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "description": "Draft 2020-12 schema version.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "default": "Proposed/Experimental",
+      "description": "Standardization status (e.g., 'Proposed/Experimental').",
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "model_id",
+    "model_name",
+    "schema_version"
+  ],
+  "title": "WMIFManifest",
+  "type": "object"
+}

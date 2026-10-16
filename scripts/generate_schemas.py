@@ -25,6 +25,7 @@ from ewm_engine.durability.events import TransitionEvent
 from ewm_engine.experimentation.params import ParameterSpace
 from ewm_engine.provenance.metadata import Provenance
 from ewm_engine.reporting.model import ReportModel
+from ewm_engine.serialization.wmif import WMIFManifest
 from ewm_engine.simulation.scenario import Scenario
 from ewm_engine.simulation.trajectory import Trajectory
 from ewm_engine.verification.spec import PropertySpec
@@ -46,6 +47,7 @@ SCHEMA_REGISTRY: dict[str, type[BaseModel]] = {
     "property-spec.schema.json": PropertySpec,
     "parameter-space.schema.json": ParameterSpace,
     "report-model.schema.json": ReportModel,
+    "wmif-manifest.schema.json": WMIFManifest,
 }
 
 

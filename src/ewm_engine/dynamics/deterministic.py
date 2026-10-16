@@ -168,3 +168,76 @@ class DeterministicDemandDynamics:
             evidence_level=self.evidence_level,
             model_name=self.name,
         )
+
+
+class DeterministicFixedTransferDynamics:
+    """Executes a fixed resource transfer from source to target resource at each step."""
+
+    def __init__(
+        self,
+        source_resource: str,
+        target_resource: str,
+        quantity: float,
+        name: str = "DeterministicFixedTransferDynamics",
+        evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL,
+    ) -> None:
+        self.source_resource = source_resource
+        self.target_resource = target_resource
+        self.quantity = max(0.0, float(quantity))
+        self.name = name
+        self.evidence_level = evidence_level
+
+    def transition(
+        self,
+        state: WorldState,
+        actions: Sequence[Action],
+        exogenous_events: Sequence[ExogenousEvent],
+        rng: RandomGenerator,
+    ) -> TransitionResult:
+        src = state.get_resource(self.source_resource)
+        tgt = state.get_resource(self.target_resource)
+        actual = min(
+            self.quantity,
+            max(0.0, src.current - src.min_value),
+            max(0.0, tgt.max_value - tgt.current),
+        )
+        next_state = state.update_resource(self.source_resource, delta=-actual).update_resource(
+            self.target_resource, delta=actual
+        )
+        return TransitionResult(
+            next_state=next_state,
+            applied_changes={"transferred": actual},
+            evidence_level=self.evidence_level,
+            model_name=self.name,
+        )
+
+
+class DeterministicDriftDynamics:
+    """Applies a constant deterministic drift on a resource at each step."""
+
+    def __init__(
+        self,
+        resource_id: str,
+        drift: float,
+        name: str = "DeterministicDriftDynamics",
+        evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL,
+    ) -> None:
+        self.resource_id = resource_id
+        self.drift = float(drift)
+        self.name = name
+        self.evidence_level = evidence_level
+
+    def transition(
+        self,
+        state: WorldState,
+        actions: Sequence[Action],
+        exogenous_events: Sequence[ExogenousEvent],
+        rng: RandomGenerator,
+    ) -> TransitionResult:
+        next_state = state.update_resource(self.resource_id, delta=self.drift)
+        return TransitionResult(
+            next_state=next_state,
+            applied_changes={"drift": self.drift},
+            evidence_level=self.evidence_level,
+            model_name=self.name,
+        )

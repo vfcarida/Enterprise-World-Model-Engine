@@ -444,3 +444,13 @@ class SimulationResult:
             f"{metric_table}"
             f"</div>"
         )
+
+    def to_croissant(
+        self,
+        dataset_name: str | None = None,
+        license_url: str = "https://creativecommons.org/licenses/by/4.0/",
+    ) -> dict[str, Any]:
+        """Generate a Croissant 1.0 JSON-LD dataset manifest for this simulation result."""
+        from ewm_engine.reporting.croissant import generate_croissant_manifest
+
+        return generate_croissant_manifest(self, dataset_name=dataset_name, license_url=license_url)

@@ -10,6 +10,14 @@ from ewm_engine.serialization.json import (
     load_model_json,
     to_json_file,
 )
+from ewm_engine.serialization.wmif import (
+    WMIFManifest,
+    WMIFPackage,
+    WMIFReferenceResult,
+    export_wmif,
+    import_wmif,
+    verify_wmif_conformance,
+)
 from ewm_engine.serialization.wsl import (
     WSLComponentSpec,
     WSLConstraintSpec,
@@ -35,6 +43,9 @@ from ewm_engine.serialization.yaml import (
 )
 
 __all__ = [
+    "WMIFManifest",
+    "WMIFPackage",
+    "WMIFReferenceResult",
     "WSLComponentSpec",
     "WSLConstraintSpec",
     "WSLDocument",
@@ -50,8 +61,10 @@ __all__ = [
     "dump_model_json",
     "dump_model_yaml",
     "dump_wsl_yaml",
+    "export_wmif",
     "export_wsl",
     "from_json_file",
+    "import_wmif",
     "load_model_json",
     "load_model_yaml",
     "load_pickle",
@@ -60,4 +73,5 @@ __all__ = [
     "safe_dump_yaml",
     "safe_load_yaml",
     "to_json_file",
+    "verify_wmif_conformance",
 ]

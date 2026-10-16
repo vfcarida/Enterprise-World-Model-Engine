@@ -1,0 +1,22 @@
+{
+  "name": "Stochastic Gaussian Ensemble",
+  "category": "stochastic",
+  "level": 1,
+  "description": "5-step 3-branch stochastic Gaussian demand rollout with master seed 1337",
+  "reference_world": "closed_form_stochastic",
+  "scenario": {
+    "scenario_id": "ref_stochastic_scen",
+    "name": "Stochastic Demand Scenario",
+    "horizon": 5,
+    "samples": 3,
+    "seed": 1337
+  },
+  "expected_fingerprint": "7a811e8a2a765dad0299b632007a4bd03bcf0baee95eafd1745e9669b09d3ee2",
+  "expected_branch_fingerprints": [
+    "9f0e71cbd1952535a9928f545781874d461a55b6401a85bf42ca6d478acf7ea7",
+    "f48c3058f510cb4b4f09edbacd612b44908563462d22172b8a3896d1089bbe3b",
+    "1ab7f46a83f860e131773f9605b99e281d31822601b5d21ffd3a5ea5652164ca"
+  ],
+  "expected_status": "completed",
+  "valid": true
+}
