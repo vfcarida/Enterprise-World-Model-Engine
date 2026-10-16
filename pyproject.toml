@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ewm-engine"
 dynamic = ["version"]
-description = "Deterministic, auditable structural simulation kernel for organizational systems. The only world-model engine scored on being right about its own uncertainty."
+description = "Deterministic, auditable what-if simulation kernel for socio-technical systems — no GPU/LLM required"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
@@ -25,7 +25,8 @@ keywords = [
     "decision-intelligence",
     "what-if",
     "monte-carlo",
-    "structural-world-model",
+    "simulation",
+    "counterfactual",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -196,7 +197,7 @@ erroranalysis = [
     "erroranalysis>=0.5.0; python_version < '3.12'",
 ]
 decision = [
-    "ema-workbench>=3.0.0",
+    "ema-workbench>=3.0.0; python_version >= '3.12'",
 ]
 interop = [
     "simpy>=4.1.0",
@@ -241,7 +242,7 @@ ewm = "ewm_engine.cli.main:main"
 ewm-engine = "ewm_engine.cli.main:main"
 
 [project.urls]
-Homepage = "https://github.com/vfcarida/Enterprise-World-Model-Engine"
+Homepage = "https://vfcarida.github.io/Enterprise-World-Model-Engine/"
 Documentation = "https://vfcarida.github.io/Enterprise-World-Model-Engine/"
 Repository = "https://github.com/vfcarida/Enterprise-World-Model-Engine"
 Issues = "https://github.com/vfcarida/Enterprise-World-Model-Engine/issues"

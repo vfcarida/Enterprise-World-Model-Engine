@@ -1,11 +1,14 @@
 site_name: Enterprise World Model Engine
-site_description: An open-source framework for building executable, action-conditioned models of complex organizational dynamics.
-site_author: Enterprise World Model Engine Maintainers
+site_url: https://vfcarida.github.io/Enterprise-World-Model-Engine/
+site_description: Deterministic, auditable what-if simulation kernel for socio-technical systems — no GPU/LLM required.
+site_author: Vinicius Caridá
 repo_url: https://github.com/vfcarida/Enterprise-World-Model-Engine
 repo_name: vfcarida/Enterprise-World-Model-Engine
 
 theme:
   name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
   palette:
     - scheme: default
       primary: indigo

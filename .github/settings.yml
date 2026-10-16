@@ -1,0 +1,28 @@
+# GitHub Repository Settings
+# Reference: https://github.com/repository-settings/app
+
+repository:
+  name: Enterprise-World-Model-Engine
+  description: "Deterministic, auditable what-if simulation kernel for socio-technical systems — no GPU/LLM required"
+  homepage: https://vfcarida.github.io/Enterprise-World-Model-Engine/
+  topics:
+    - deterministic-simulation
+    - provenance
+    - causal
+    - digital-twin
+    - scenario-planning
+    - decision-intelligence
+    - what-if
+    - monte-carlo
+    - simulation
+    - counterfactual
+  has_issues: true
+  has_projects: false
+  has_wiki: false
+  has_downloads: true
+  has_discussions: true
+  default_branch: main
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: false
+  delete_branch_on_merge: true

@@ -4,6 +4,13 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      test_pypi_only:
+        description: "Publish to TestPyPI only (dry run)"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -45,6 +52,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Assert Version Equals Git Tag & Reject .dev/Local Builds (Truth Gate)
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           TAG_NAME: ${{ github.ref_name }}
         run: |
@@ -72,6 +80,12 @@ jobs:
       - name: Verify package metadata with twine check
         run: uv run twine check dist/*
 
+      - name: Verify clean wheel installation & README Quickstart execution
+        run: |
+          uv venv /tmp/clean-test-env
+          uv pip install --python /tmp/clean-test-env dist/*.whl
+          uv run --python /tmp/clean-test-env python scripts/test_doc_snippets.py
+
       - name: Generate CycloneDX SBOM (JSON)
         run: uvx --from cyclonedx-bom cyclonedx-py environment --output-format json --outfile dist/cyclonedx-bom.json
 
@@ -87,13 +101,24 @@ jobs:
         with:
           subject-path: "dist/*"
 
+      - name: Publish to TestPyPI (Dry-run / Staging)
+        if: github.event.inputs.test_pypi_only == 'true' || github.event_name == 'workflow_dispatch'
+        uses: pypa/gh-action-pypi-publish@261df0ce7f0b48e1255aa78fccc69e7d929a6572 # v1.14.0
+        continue-on-error: true
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist/
+          attestations: false
+
       - name: Publish to PyPI (Trusted Publishing via OIDC + PEP 740 Attestations)
+        if: github.event.inputs.test_pypi_only != 'true' && startsWith(github.ref, 'refs/tags/v')
         uses: pypa/gh-action-pypi-publish@261df0ce7f0b48e1255aa78fccc69e7d929a6572 # v1.14.0
         with:
           packages-dir: dist/
           attestations: true
 
       - name: Create GitHub Release with Artifacts, SBOMs & Provenance
+        if: github.event.inputs.test_pypi_only != 'true' && startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ github.ref_name }}

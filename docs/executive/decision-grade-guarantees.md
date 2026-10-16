@@ -71,7 +71,7 @@ Point estimates ("revenue will grow 8.2%") hide catastrophic downside tails. A m
 
 #### Shipped Evidence & Runnable Proof
 * **Feature Module:** [`ewm_engine.evaluation.uncertainty`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/evaluation/uncertainty.py) & [`ewm_engine.evaluation.abstention`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/evaluation/abstention.py).
-* **Executable Proof:** See the CI-generated hero asset [`assets/hero-proof-dark.svg`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/assets/hero-proof-dark.svg) showing empirical conformal bands.
+* **Executable Proof:** See the CI-generated hero asset [`assets/hero-proof-dark.svg`](../assets/hero-proof-dark.svg) showing empirical conformal bands.
 * **Automated Contract Test:** [`tests/contract/test_calibration_contract.py`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/tests/contract/test_calibration_contract.py).
 
 ---

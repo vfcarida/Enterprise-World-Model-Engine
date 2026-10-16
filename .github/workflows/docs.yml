@@ -44,6 +44,9 @@ jobs:
       - name: Install docs dependencies
         run: uv sync --extra docs
 
+      - name: Verify documentation and README link integrity
+        run: uv run python scripts/check_readme_links.py
+
       - name: Build documentation in strict mode
         run: uv run mkdocs build --strict
 

@@ -7,13 +7,16 @@
 </p>
 
 <p align="center">
-  <em>Deterministic, auditable structural simulation kernel for organizational systems.</em><br>
+  <em>Deterministic, auditable what-if simulation kernel for socio-technical systems — no GPU/LLM required.</em><br>
   <strong>The only world-model engine scored on being right about its own uncertainty.</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/vfcarida/Enterprise-World-Model-Engine/ci.yml?branch=main&label=CI&style=flat" alt="CI Status"></a>
+  <a href="https://pypi.org/project/ewm-engine/"><img src="https://img.shields.io/pypi/v/ewm-engine?color=blue&label=PyPI" alt="PyPI Version"></a>
   <a href="https://pypi.org/project/ewm-engine/"><img src="https://img.shields.io/pypi/pyversions/ewm-engine?style=flat" alt="Python Versions"></a>
+  <a href="https://pepy.tech/project/ewm-engine"><img src="https://static.pepy.tech/badge/ewm-engine" alt="PyPI Downloads"></a>
+  <a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/vfcarida/Enterprise-World-Model-Engine/ci.yml?branch=main&label=CI&style=flat" alt="CI Status"></a>
+  <a href="https://vfcarida.github.io/Enterprise-World-Model-Engine/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue?style=flat" alt="Documentation"></a>
   <a href="scripts/check_coverage.py"><img src="https://img.shields.io/badge/coverage-%E2%89%A585%25%20gated-success?style=flat" alt="Coverage Gate"></a>
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/types-mypy%20strict-1f2937?style=flat" alt="Mypy Strict"></a>
   <a href="docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md"><img src="https://img.shields.io/badge/SLSA-Build%20L2%2B-blue?style=flat" alt="SLSA L2+"></a>
@@ -207,6 +210,18 @@ flowchart LR
 ---
 
 ## Five-Minute Quickstart
+
+### Installation
+
+```bash
+pip install ewm-engine
+```
+
+Or using `uv`:
+
+```bash
+uv add ewm-engine
+```
 
 The following complete, runnable Python snippet initializes a two-warehouse world, executes a status-quo baseline rollout, branches the world to apply a resource transfer intervention, and evaluates distributional deltas:
 

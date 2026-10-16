@@ -48,8 +48,8 @@ Any numerical solver or neural dynamics model that leaks or creates individuals 
 ## 3. Visual Overlay
 
 See the responsive hero proof visual:
-* Dark theme: [`assets/hero-proof-dark.svg`](../../assets/hero-proof-dark.svg)
-* Light theme: [`assets/hero-proof-light.svg`](../../assets/hero-proof-light.svg)
+* Dark theme: [`assets/hero-proof-dark.svg`](../assets/hero-proof-dark.svg)
+* Light theme: [`assets/hero-proof-light.svg`](../assets/hero-proof-light.svg)
 
 ---
 

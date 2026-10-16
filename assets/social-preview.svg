@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" style="font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19" />
+      <stop offset="100%" stop-color="#121826" />
+    </linearGradient>
+    <linearGradient id="indigo-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0.0" />
+    </linearGradient>
+    <linearGradient id="cyan-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="url(#bg)" rx="16" stroke="#2b354f" stroke-width="2" />
+  <circle cx="100" cy="80" r="320" fill="url(#indigo-glow)" />
+  <circle cx="1180" cy="560" r="280" fill="url(#cyan-glow)" />
+
+  <!-- Header -->
+  <text x="64" y="96" font-size="46" font-weight="800" fill="#f0f6fc" letter-spacing="-0.5">Enterprise World Model Engine</text>
+  <text x="64" y="140" font-size="22" font-weight="400" fill="#94a3b8">Deterministic, auditable what-if simulation kernel for socio-technical systems — no GPU/LLM required.</text>
+
+  <!-- Badges -->
+  <g transform="translate(64, 168)">
+    <rect width="310" height="38" rx="8" fill="#1e293b" stroke="#6366f1" stroke-width="1" />
+    <text x="18" y="24" font-family="monospace" font-size="16" font-weight="600" fill="#a5b4fc">$ pip install ewm-engine</text>
+
+    <rect x="326" width="160" height="38" rx="8" fill="#111827" stroke="#334155" stroke-width="1" />
+    <text x="344" y="24" font-size="15" font-weight="600" fill="#cbd5e1">Python &gt;= 3.11</text>
+
+    <rect x="502" width="120" height="38" rx="8" fill="#111827" stroke="#334155" stroke-width="1" />
+    <text x="518" y="24" font-size="15" font-weight="600" fill="#cbd5e1">Apache-2.0</text>
+
+    <rect x="638" width="120" height="38" rx="8" fill="#111827" stroke="#334155" stroke-width="1" />
+    <text x="654" y="24" font-size="15" font-weight="600" fill="#38bdf8">SLSA L2+</text>
+  </g>
+
+  <!-- Pillar Cards -->
+  <!-- Card 1 -->
+  <g transform="translate(64, 236)">
+    <rect width="360" height="310" rx="12" fill="#111827" fill-opacity="0.9" stroke="#1f2937" stroke-width="1" />
+    <line x1="16" y1="0" x2="344" y2="0" stroke="#6366f1" stroke-width="3" />
+    <text x="24" y="38" font-size="20" font-weight="700" fill="#f3f4f6">Structural World Model</text>
+    <text x="24" y="66" font-size="14" font-weight="600" fill="#6366f1">Known state + explicit rules</text>
+    <line x1="24" y1="84" x2="336" y2="84" stroke="#1f2937" stroke-width="1" />
+    <text x="24" y="116" font-size="15" fill="#9ca3af">Typed relational graph and</text>
+    <text x="24" y="142" font-size="15" fill="#9ca3af">bounded continuous resources.</text>
+    <text x="24" y="168" font-size="15" fill="#9ca3af">Physical &amp; accounting conservation</text>
+    <text x="24" y="194" font-size="15" fill="#9ca3af">laws hold by construction with</text>
+    <text x="24" y="220" font-size="15" font-weight="700" fill="#10b981">0.000000 mass balance drift.</text>
+  </g>
+
+  <!-- Card 2 -->
+  <g transform="translate(450, 236)">
+    <rect width="360" height="310" rx="12" fill="#111827" fill-opacity="0.9" stroke="#1f2937" stroke-width="1" />
+    <line x1="16" y1="0" x2="344" y2="0" stroke="#10b981" stroke-width="3" />
+    <text x="24" y="38" font-size="20" font-weight="700" fill="#f3f4f6">Epistemic Honesty</text>
+    <text x="24" y="66" font-size="14" font-weight="600" fill="#10b981">Scored on uncertainty</text>
+    <line x1="24" y1="84" x2="336" y2="84" stroke="#1f2937" stroke-width="1" />
+    <text x="24" y="116" font-size="15" fill="#9ca3af">Non-parametric bootstrap CIs,</text>
+    <text x="24" y="142" font-size="15" fill="#9ca3af">finite-sample conformal coverage</text>
+    <text x="24" y="168" font-size="15" fill="#9ca3af">bands, anytime-valid E-values,</text>
+    <text x="24" y="194" font-size="15" fill="#9ca3af">and automated causal refusal</text>
+    <text x="24" y="220" font-size="15" fill="#9ca3af">when non-identifiable.</text>
+  </g>
+
+  <!-- Card 3 -->
+  <g transform="translate(836, 236)">
+    <rect width="360" height="310" rx="12" fill="#111827" fill-opacity="0.9" stroke="#1f2937" stroke-width="1" />
+    <line x1="16" y1="0" x2="344" y2="0" stroke="#06b6d4" stroke-width="3" />
+    <text x="24" y="38" font-size="20" font-weight="700" fill="#f3f4f6">Cryptographic Audit</text>
+    <text x="24" y="66" font-size="14" font-weight="600" fill="#06b6d4">Bit-for-bit replayability</text>
+    <line x1="24" y1="84" x2="336" y2="84" stroke="#1f2937" stroke-width="1" />
+    <text x="24" y="116" font-size="15" fill="#9ca3af">Deterministic SeedSequence PRNG.</text>
+    <text x="24" y="142" font-size="15" fill="#9ca3af">Every state transition and policy</text>
+    <text x="24" y="168" font-size="15" fill="#9ca3af">branch generates an immutable</text>
+    <text x="24" y="194" font-size="15" fill="#9ca3af">canonical SHA-256 fingerprint</text>
+    <text x="24" y="220" font-size="15" fill="#9ca3af">for regulatory compliance.</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="64" y="596" font-size="14" fill="#64748b">Principal Architect: Vinicius Caridá (@vfcarida) · github.com/vfcarida/Enterprise-World-Model-Engine</text>
+</svg>
