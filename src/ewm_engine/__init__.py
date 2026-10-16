@@ -49,7 +49,7 @@ except ImportError:
 
         __version__ = _get_version("ewm-engine")
     except Exception:
-        __version__ = "1.0.0"
+        __version__ = "1.6.0"
 
 __all__ = [
     "Action",
