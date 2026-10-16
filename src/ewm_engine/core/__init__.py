@@ -29,10 +29,12 @@ from ewm_engine.core.spec import (
 )
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.trust import (
+    INDUCTION_EVIDENCE_LADDER,
     BarePointEstimateWarning,
     DecisionBlockedError,
     ExtrapolationWarning,
     GateValidationReport,
+    InductionRefusalError,
     InsufficientCausalEvidenceWarning,
     ResponsibleAIGate,
     ResponsibleAIWarning,
@@ -40,6 +42,7 @@ from ewm_engine.core.trust import (
     UncertaintyRequiredError,
     UnqualifiedCausalClaimError,
     WideUncertaintyWarning,
+    is_evidence_at_least,
     validate_causal_claim,
 )
 from ewm_engine.core.types import (
@@ -57,6 +60,7 @@ from ewm_engine.core.types import (
 from ewm_engine.core.world import World
 
 __all__ = [
+    "INDUCTION_EVIDENCE_LADDER",
     "AbductionResult",
     "Action",
     "ActionId",
@@ -76,6 +80,7 @@ __all__ = [
     "ExogenousVariable",
     "ExtrapolationWarning",
     "GateValidationReport",
+    "InductionRefusalError",
     "InsufficientCausalEvidenceWarning",
     "Intervention",
     "InvertibilityType",
@@ -105,5 +110,6 @@ __all__ = [
     "WorldState",
     "deprecate",
     "deprecated",
+    "is_evidence_at_least",
     "validate_causal_claim",
 ]

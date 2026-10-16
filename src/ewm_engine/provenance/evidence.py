@@ -26,7 +26,9 @@ class EvidenceLevel(StrEnum):
     ASSUMED = "assumed"
     # World-model induction and causal equivalence class standings
     ASSERTED = "asserted"
+    PROVISIONAL = "provisional"
     DIRECTIONAL_UNCERTAIN = "directional_uncertain"
+    UNIDENTIFIED = "unidentified"
     CONFOUNDED = "confounded"
     CALIBRATED = "calibrated"
     HYPOTHETICAL = "hypothetical"

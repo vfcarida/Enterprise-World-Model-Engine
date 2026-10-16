@@ -254,6 +254,30 @@ class CausalEquivalenceClass(BaseModel):
             )
         return "\n".join(lines)
 
+    def to_summary(self) -> Any:
+        """Convert equivalence class to structured CausalEquivalenceClassSummary."""
+        from ewm_engine.induction.report import CausalEquivalenceClassSummary
+
+        return CausalEquivalenceClassSummary(
+            variables=self.variables,
+            is_dag=self.is_dag,
+            markov_equivalent_dags_count=self.markov_equivalent_dags_count,
+            asserted_edges_count=len(self.asserted_edges()),
+            directional_uncertain_edges_count=len(self.directional_uncertain_edges()),
+            confounded_edges_count=len(self.confounded_edges()),
+            edges=[
+                {
+                    "source": e.source,
+                    "target": e.target,
+                    "type": e.edge_type.value,
+                    "support": e.posterior_support,
+                    "level": e.evidence_level.value,
+                    "interventional": e.is_interventional,
+                }
+                for e in self.edges
+            ],
+        )
+
 
 # ---------------------------------------------------------------------------
 # Causal Discovery Ensemble Engines (Native pure-NumPy + optional library wrappers)

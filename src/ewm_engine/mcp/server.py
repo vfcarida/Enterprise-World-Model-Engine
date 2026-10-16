@@ -70,10 +70,11 @@ class EwmMcpServer:
         self.config = config or ServerConfig()
         self.policy = ProvenanceStrictPolicy(enabled=self.config.provenance_strict)
 
-        # In-memory stores for runs, traces, and worlds
+        # In-memory stores for runs, traces, worlds, and induction reports
         self._runs_store: dict[str, dict[str, Any]] = {}
         self._traces_store: dict[str, dict[str, Any]] = {}
         self._worlds_store: dict[str, str] = {}
+        self._induction_reports_store: dict[str, dict[str, Any]] = {}
 
         # Instantiate native MCPServer from official SDK
         try:
@@ -462,11 +463,13 @@ class EwmMcpServer:
             return self._traces_store[ident]
         if ident in self._runs_store:
             return self._runs_store[ident]
+        if ident in self._induction_reports_store:
+            return self._induction_reports_store[ident]
 
         return {
             "identifier": ident,
             "status": "NOT_FOUND",
-            "message": f"No stored trace or run manifest matching '{ident}'.",
+            "message": f"No stored trace, run manifest, or induction report matching '{ident}'.",
         }
 
     def get_world(self, world_id: str) -> str:
@@ -486,6 +489,23 @@ class EwmMcpServer:
         if trace_id in self._traces_store:
             return json.dumps(self._traces_store[trace_id], indent=2)
         return json.dumps({"error": f"Trace '{trace_id}' not found."})
+
+    def register_induction_report(self, report: Any) -> str:
+        """Register an InductionReport in the MCP store."""
+        rep_dict = report.to_dict() if hasattr(report, "to_dict") else dict(report)
+        fp = rep_dict.get("sha256_fingerprint", "")
+        if fp:
+            self._induction_reports_store[fp] = rep_dict
+        val_fp = rep_dict.get("validation_fingerprint")
+        if val_fp:
+            self._induction_reports_store[val_fp] = rep_dict
+        return fp
+
+    def get_induction_report(self, fingerprint: str) -> str:
+        """Read a cryptographically fingerprinted InductionReport."""
+        if fingerprint in self._induction_reports_store:
+            return json.dumps(self._induction_reports_store[fingerprint], indent=2)
+        return json.dumps({"error": f"Induction report '{fingerprint}' not found."})
 
     def author_what_if(self, topic: str = "inventory_transfer") -> str:
         """Prompt template guiding an LLM to formulate a valid EWM what-if intervention."""
@@ -532,6 +552,7 @@ class EwmMcpServer:
         self._server.resource("ewm://worlds/{world_id}")(self.get_world)
         self._server.resource("ewm://runs/{run_id}")(self.get_run)
         self._server.resource("ewm://traces/{trace_id}")(self.get_trace)
+        self._server.resource("ewm://induction/{fingerprint}")(self.get_induction_report)
 
     def _register_prompts(self) -> None:
         """Register MCP prompt templates."""

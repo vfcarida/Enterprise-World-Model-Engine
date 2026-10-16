@@ -651,6 +651,9 @@ def _run_induce(
     ocel_path: str | None = None,
     trajectories_path: str | None = None,
     interventions_path: str | None = None,
+    spec_path: str | None = None,
+    held_out_path: str | None = None,
+    strict: bool = False,
     engine: str = "native",
     as_of: str | None = None,
     id_col: str | None = None,
@@ -667,6 +670,8 @@ def _run_induce(
     seed: int = 42,
     output_path: str | None = None,
     report_path: str | None = None,
+    report_out_path: str | None = None,
+    markdown_out_path: str | None = None,
 ) -> int:
     """Execute world-model induction from DataFrame, SQL schema, OCEL 2.0 log, causal discovery, or dynamics/invariants."""
     from ewm_engine.core.spec import (
@@ -677,12 +682,15 @@ def _run_induce(
         WorldMetadataSpec,
         WorldSpec,
     )
-    from ewm_engine.induction.causal import CausalEdgeType, induce_causal
+    from ewm_engine.induction.causal import induce_causal
     from ewm_engine.induction.connectors import DataFrameSchemaMapping, induce_from_dataframe
     from ewm_engine.induction.dynamics import induce_dynamics
     from ewm_engine.induction.invariants import induce_invariants
     from ewm_engine.induction.process import induce_process
+    from ewm_engine.induction.report import InductionReport
     from ewm_engine.induction.schema import induce_schema
+    from ewm_engine.induction.validation import InductionValidationGate, validate_induction
+    from ewm_engine.provenance.evidence import EvidenceLevel
     from ewm_engine.serialization.yaml import safe_dump_yaml
 
     def _load_data_file(p_str: str) -> list[dict[str, Any]]:
@@ -774,6 +782,12 @@ def _run_induce(
                 asserted_threshold=threshold,
                 seed=seed,
             )
+            gate = InductionValidationGate(min_causal_support=threshold, fail_closed=True)
+            admitted_edges, refused_edges, open_qs, _ = gate.validate_causal(
+                equiv_class=equiv_class,
+                data=c_data,
+                seed=seed,
+            )
             entities = [
                 EntitySpec(id=v, type="variable", attributes={"domain": "continuous"})
                 for v in equiv_class.variables
@@ -782,24 +796,26 @@ def _run_induce(
                 RelationshipSpec(
                     source=e.source,
                     target=e.target,
-                    type=(
-                        "directed_dependency"
-                        if e.edge_type == CausalEdgeType.DIRECTED
-                        else "associated_with"
-                    ),
+                    type="directed_dependency",
                     attributes={
                         "posterior_support": e.posterior_support,
-                        "evidence_level": e.evidence_level.value,
+                        "evidence_level": EvidenceLevel.ASSERTED.value,
                         "edge_type": e.edge_type.value,
                     },
                 )
-                for e in equiv_class.edges
+                for e in admitted_edges
             ]
             spec = WorldSpec(
                 world=WorldMetadataSpec(name=name or "InducedCausalWorld"),
                 entities=entities,
                 relationships=relationships,
             )
+            report.validation_passed = len(refused_edges) == 0
+            report.refused_elements_count = len(refused_edges)
+            report.open_questions_count = len(open_qs)
+            report.refused_elements = [r.model_dump(mode="json") for r in refused_edges]
+            report.open_questions = [q.model_dump(mode="json") for q in open_qs]
+            report.sha256_fingerprint = report.compute_fingerprint()
         elif target_type == "dynamics":
             traj_p = trajectories_path or data_path
             if not traj_p:
@@ -870,16 +886,81 @@ def _run_induce(
                 )
                 for v in var_names
             ]
-            constraints = [h.to_constraint_spec() for h in hypotheses]
+            gate = InductionValidationGate(invariant_tolerance=tolerance, fail_closed=True)
+            admitted_hypo, refused_invs, open_qs, _ = gate.validate_invariants(hypotheses)
+            constraints = [h.to_constraint_spec() for h in admitted_hypo]
             spec = WorldSpec(
                 world=WorldMetadataSpec(name=name or "InducedInvariantWorld"),
                 entities=entities,
                 resources=resources,
                 constraints=constraints,
             )
+            report.validation_passed = len(refused_invs) == 0
+            report.refused_elements_count = len(refused_invs)
+            report.open_questions_count = len(open_qs)
+            report.refused_elements = [r.model_dump(mode="json") for r in refused_invs]
+            report.open_questions = [q.model_dump(mode="json") for q in open_qs]
+            report.sha256_fingerprint = report.compute_fingerprint()
+        elif target_type == "validate":
+            rep_file = report_path
+            spec_file = spec_path
+            if not rep_file and not spec_file:
+                sys.stderr.write("Error: Must provide --report or --spec for validation.\n")
+                return 1
+
+            loaded_report = None
+            if rep_file:
+                rp = Path(rep_file)
+                if not rp.exists():
+                    sys.stderr.write(f"Error: Report file not found: {rep_file}\n")
+                    return 1
+                loaded_report = InductionReport.model_validate_json(rp.read_text(encoding="utf-8"))
+
+            loaded_spec = None
+            if spec_file:
+                loaded_spec = WorldSpec.from_yaml(spec_file)
+
+            c_data = None
+            if data_path:
+                c_data = _load_data_file(data_path)
+
+            held_out = None
+            if held_out_path:
+                held_out = _load_data_file(held_out_path)
+
+            spec, val_report = validate_induction(
+                spec_or_report=loaded_report or loaded_spec,
+                data=c_data,
+                held_out_trajectories=held_out,
+                report=loaded_report,
+                strict=strict,
+                seed=seed,
+            )
+            report = loaded_report or InductionReport(
+                source=spec.world.name,
+                source_type="causal",
+                seed=seed,
+                validation_passed=val_report.passed,
+                refused_elements_count=val_report.refused_elements_count,
+                open_questions_count=len(val_report.open_questions),
+                refused_elements=[r.model_dump(mode="json") for r in val_report.refused_elements],
+                open_questions=[q.model_dump(mode="json") for q in val_report.open_questions],
+            )
+
+            if markdown_out_path:
+                md_p = Path(markdown_out_path)
+                md_p.parent.mkdir(parents=True, exist_ok=True)
+                md_p.write_text(val_report.to_markdown(), encoding="utf-8")
+                sys.stdout.write(f"Validation Markdown audit written to: {markdown_out_path}\n")
+
+            if report_out_path:
+                ro_p = Path(report_out_path)
+                ro_p.parent.mkdir(parents=True, exist_ok=True)
+                ro_p.write_text(val_report.model_dump_json(indent=2), encoding="utf-8")
+                sys.stdout.write(f"Validation report JSON written to: {report_out_path}\n")
         else:
             sys.stderr.write(
-                f"Unknown induction target: {target_type}. Use 'schema', 'process', 'dataframe', 'causal', 'dynamics', or 'invariants'.\n"
+                f"Unknown induction target: {target_type}. Use 'schema', 'process', 'dataframe', 'causal', 'dynamics', 'invariants', or 'validate'.\n"
             )
             return 1
 
@@ -1347,6 +1428,66 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--report", type=str, default=None, help="Output JSON file for InductionReport"
     )
 
+    # 9g. Honesty and validation gate
+    ind_val = induce_subparsers.add_parser(
+        "validate",
+        help="Validate induced world specifications and reports (the honesty gate)",
+    )
+    ind_val.add_argument(
+        "--report",
+        type=str,
+        default=None,
+        help="Path to JSON InductionReport to validate",
+    )
+    ind_val.add_argument(
+        "--spec",
+        type=str,
+        default=None,
+        help="Path to YAML WorldSpec to validate",
+    )
+    ind_val.add_argument(
+        "--data",
+        type=str,
+        default=None,
+        help="Optional path to observational/interventional dataset for DoWhy refutations",
+    )
+    ind_val.add_argument(
+        "--held-out",
+        type=str,
+        default=None,
+        help="Optional path to held-out trajectory dataset for dynamics validation",
+    )
+    ind_val.add_argument(
+        "--strict",
+        action="store_true",
+        default=False,
+        help="Fail closed: raise an error if any proposed structure is refused",
+    )
+    ind_val.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Deterministic random seed (default: 42)",
+    )
+    ind_val.add_argument(
+        "--out",
+        type=str,
+        default=None,
+        help="Output YAML file for validated WorldSpec",
+    )
+    ind_val.add_argument(
+        "--report-out",
+        type=str,
+        default=None,
+        help="Output JSON file for InductionValidationReport",
+    )
+    ind_val.add_argument(
+        "--markdown-out",
+        type=str,
+        default=None,
+        help="Output Markdown file for human-readable audit",
+    )
+
     args = parser.parse_args(argv)
 
     if args.command == "example":
@@ -1418,6 +1559,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             ocel_path=getattr(args, "ocel", None),
             trajectories_path=getattr(args, "trajectories", None),
             interventions_path=getattr(args, "interventions", None),
+            spec_path=getattr(args, "spec", None),
+            held_out_path=getattr(args, "held_out", None),
+            strict=getattr(args, "strict", False),
             engine=getattr(args, "engine", "native"),
             as_of=getattr(args, "as_of", None),
             id_col=getattr(args, "id_col", None),
@@ -1434,6 +1578,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             seed=getattr(args, "seed", 42),
             output_path=getattr(args, "out", None),
             report_path=getattr(args, "report", None),
+            report_out_path=getattr(args, "report_out", None),
+            markdown_out_path=getattr(args, "markdown_out", None),
         )
 
     parser.print_help()

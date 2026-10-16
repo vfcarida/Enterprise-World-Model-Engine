@@ -61,9 +61,34 @@ class DecisionBlockedError(RuntimeError):
         self.reasons = reasons
 
 
+class InductionRefusalError(DecisionBlockedError):
+    """Raised when unasserted/unidentifiable elements attempt to enter a WorldSpec."""
+
+
 # ==============================================================================
-# 2. Causal Evidence Level Anti-Auto-Promotion Guard
+# 2. Epistemic Ladder & Evidence Ranking for Induction
 # ==============================================================================
+
+INDUCTION_EVIDENCE_LADDER: tuple[EvidenceLevel, ...] = (
+    EvidenceLevel.ASSERTED,
+    EvidenceLevel.PROVISIONAL,
+    EvidenceLevel.DIRECTIONAL_UNCERTAIN,
+    EvidenceLevel.UNIDENTIFIED,
+    EvidenceLevel.CONFOUNDED,
+)
+
+_INDUCTION_LADDER_RANKS: dict[EvidenceLevel, int] = {
+    EvidenceLevel.ASSERTED: 5,
+    EvidenceLevel.PROVISIONAL: 4,
+    EvidenceLevel.DIRECTIONAL_UNCERTAIN: 3,
+    EvidenceLevel.UNIDENTIFIED: 2,
+    EvidenceLevel.CONFOUNDED: 1,
+}
+
+
+def is_evidence_at_least(level: EvidenceLevel, min_level: EvidenceLevel) -> bool:
+    """Check if an evidence level meets or exceeds the minimum required rank."""
+    return _INDUCTION_LADDER_RANKS.get(level, 0) >= _INDUCTION_LADDER_RANKS.get(min_level, 0)
 
 
 def validate_causal_claim(

@@ -114,6 +114,15 @@ class InductionReport(BaseModel):
     provisional_links: list[ProvisionalLink] = Field(default_factory=list)
     causal_equivalence_class: CausalEquivalenceClassSummary | None = None
     induced_rate_laws: list[InducedRateLawSummary] = Field(default_factory=list)
+
+    # T06 Induction Honesty and Refusal Gate fields
+    validation_passed: bool | None = None
+    refused_elements_count: int = 0
+    open_questions_count: int = 0
+    refused_elements: list[dict[str, Any]] = Field(default_factory=list)
+    open_questions: list[dict[str, Any]] = Field(default_factory=list)
+    validation_fingerprint: str | None = None
+
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     sha256_fingerprint: str = ""
@@ -181,6 +190,19 @@ class InductionReport(BaseModel):
                     f"{r.target_variable}:{r.expression}:{round(r.r_squared, 4)}"
                     for r in self.induced_rate_laws
                 ]
+            )
+        if self.validation_fingerprint:
+            payload["validation_fingerprint"] = self.validation_fingerprint
+        if self.refused_elements:
+            payload["refused_elements"] = sorted(
+                [
+                    f"{r.get('element_type')}:{r.get('identifier')}:{r.get('refusal_reason')}"
+                    for r in self.refused_elements
+                ]
+            )
+        if self.open_questions:
+            payload["open_questions"] = sorted(
+                [f"{q.get('id')}:{q.get('topic')}" for q in self.open_questions]
             )
         canonical_str = json.dumps(payload, sort_keys=True)
         return hashlib.sha256(canonical_str.encode("utf-8")).hexdigest()
@@ -296,6 +318,52 @@ class InductionReport(BaseModel):
                     f"| `{r.target_variable}` | `{r.expression}` | {r.r_squared:.3f} | {r.complexity} | `{r.evidence_level}` |"
                 )
 
+        if self.validation_passed is not None:
+            gate_status = (
+                "PASSED (Clean Induction)"
+                if self.validation_passed
+                else "REFUSALS PRESENT (Fails Closed)"
+            )
+            lines.extend(
+                [
+                    "",
+                    "## Induction Honesty & Refusal Gate (T06)",
+                    "",
+                    f"- **Gate Status**: `{gate_status}`",
+                    f"- **Refused Elements**: {self.refused_elements_count}",
+                    f"- **Surfaced Open Questions**: {self.open_questions_count}",
+                ]
+            )
+            if self.refused_elements:
+                lines.extend(
+                    [
+                        "",
+                        "### Refused Elements",
+                        "",
+                        "| Type | Identifier | Reason | Alternatives |",
+                        "| :--- | :--- | :--- | :--- |",
+                    ]
+                )
+                for r in self.refused_elements:
+                    alts = (
+                        "; ".join(r.get("candidate_alternatives", []))
+                        if r.get("candidate_alternatives")
+                        else "-"
+                    )
+                    lines.append(
+                        f"| `{r.get('element_type')}` | `{r.get('identifier')}` | {r.get('refusal_reason')} | {alts} |"
+                    )
+            if self.open_questions:
+                lines.extend(
+                    [
+                        "",
+                        "### Open Questions for Human Modeler",
+                        "",
+                    ]
+                )
+                for q in self.open_questions:
+                    lines.append(f"- **{q.get('id')} ({q.get('topic')})**: {q.get('description')}")
+
         return "\n".join(lines)
 
     def _repr_html_(self) -> str:
@@ -345,7 +413,16 @@ class InductionReport(BaseModel):
             f"<div>"
             f"<span style='font-weight: 700; font-size: 15px; color: #0f172a;'>InductionReport</span>"
             f"<span style='background: #eff6ff; color: #1d4ed8; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 8px;'>{self.source_type}</span>"
-            f"</div>"
+            + (
+                "<span style='background: #f0fdf4; color: #166534; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 6px;'>GATE: PASSED</span>"
+                if self.validation_passed is True
+                else (
+                    f"<span style='background: #fef2f2; color: #991b1b; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 6px;'>GATE: {self.refused_elements_count} REFUSED</span>"
+                    if self.validation_passed is False
+                    else ""
+                )
+            )
+            + f"</div>"
             f"<code style='font-size: 11px; color: #64748b;'>{fp_short}...</code>"
             f"</div>"
             f"<div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 12px 0; font-size: 12px; text-align: center;'>"

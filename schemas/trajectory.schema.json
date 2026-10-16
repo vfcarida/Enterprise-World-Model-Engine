@@ -234,7 +234,9 @@
         "predictive",
         "assumed",
         "asserted",
+        "provisional",
         "directional_uncertain",
+        "unidentified",
         "confounded",
         "calibrated",
         "hypothetical"
