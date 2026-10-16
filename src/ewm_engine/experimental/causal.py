@@ -16,7 +16,7 @@ Epistemic Invariant:
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Self
+from typing import Any, Self
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -307,6 +307,20 @@ class NotIdentifiableResult(BaseModel):
     identifiability: IdentifiabilityResult
     causal_level: EvidenceLevel = Field(default=EvidenceLevel.PREDICTIVE)
     diagnostic_message: str
+
+    def to_teaching_error(self) -> Any:
+        """Convert a non-identifiable causal diagnosis into an actionable TeachingError."""
+        from ewm_engine.exceptions import NonIdentifiableCausalQueryError
+
+        return NonIdentifiableCausalQueryError(
+            treatment=self.treatment,
+            outcome=self.outcome,
+            open_backdoor_paths=self.identifiability.open_backdoor_paths,
+        )
+
+    def raise_for_status(self) -> None:
+        """Raise NonIdentifiableCausalQueryError since this query cannot be identified."""
+        raise self.to_teaching_error()
 
 
 def query_observational(

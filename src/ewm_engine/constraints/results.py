@@ -91,3 +91,24 @@ class ConstraintResult(BaseModel):
             object.__setattr__(self, "entity_ids", self.violating_entities)
         elif not self.violating_entities and self.entity_ids:
             object.__setattr__(self, "violating_entities", self.entity_ids)
+
+    def to_teaching_error(self) -> Any:
+        """Convert an unsatisfied hard constraint result into an actionable TeachingError."""
+        from ewm_engine.exceptions import ConstraintViolationTeachingError
+
+        return ConstraintViolationTeachingError(
+            constraint_id=self.constraint_id,
+            step=self.step,
+            violating_entities=list(self.violating_entities),
+            reason=self.message or f"Hard invariant '{self.constraint_id}' violated.",
+            remediation=(
+                "Adjust proposed action parameters (e.g. quantity or allocation) to respect "
+                "conservation boundaries, or register this invariant with severity=ConstraintSeverity.SOFT."
+            ),
+            metadata=self.metadata,
+        )
+
+    def raise_for_status(self) -> None:
+        """Raise ConstraintViolationTeachingError if this constraint failed with HARD severity."""
+        if not self.satisfied and self.severity == ConstraintSeverity.HARD:
+            raise self.to_teaching_error()

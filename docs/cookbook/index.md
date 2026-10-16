@@ -1,4 +1,4 @@
-# EWM Engine Cookbook: Task-Oriented Recipes
+# EWM Engine Cookbook: By-Question Recipes
 
 > *"Copy-pasteable, verified engineering recipes for common simulation-based decision workflows in Python."*
 
@@ -6,17 +6,21 @@
 
 ## 1. Overview
 
-The **EWM Engine Cookbook** provides focused, task-oriented code recipes to solve specific operational problems. Unlike conceptual guides or tutorials, every recipe provides a concise, production-ready pattern you can adapt to your own domain.
+The **EWM Engine Cookbook** is organized around concrete operational **questions**. Every headline capability has an isolated, runnable recipe with explicit verification and audit guarantees.
 
 ---
 
-## 2. Available Recipes
+## 2. Recipe Gallery (Organized by Question)
 
-| Recipe | Primary Capability | When to Use | Link |
-| :--- | :--- | :--- | :--- |
-| **Constrained Multi-Hub Inventory Reroute** | Conservation Invariants & Interventions | Balancing logistics networks under sudden regional stockout risks. | [View Recipe](recipe-supply-reroute.md) |
-| **Macroeconomic Stress Testing with PRIM** | Scenario Discovery (`ewm decide`) | Automatically finding the failure subspace across multi-variate parameter shocks. | [View Recipe](recipe-stress-test.md) |
-| **Auditing Counterfactuals with Mermaid Diffs** | Twin-Rollout SCM & Provenance | Producing inspectable visual causal graphs for board and audit committees. | [View Recipe](recipe-counterfactual-audit.md) |
+| Question | Capability | Link |
+| :--- | :--- | :--- |
+| **"How do I test a policy change before deploying it?"** | Counterfactual Branching & Bootstrap CIs | [View Recipe](policy-change.md) |
+| **"How do I calibrate my world model to historical event logs?"** | SBI Amortized Posterior & TARP Coverage | [View Recipe](historical-calibration.md) |
+| **"How do I enforce strict conservation and accounting laws?"** | Bounded Resources & Hard Invariant Gates | [View Recipe](conservation-laws.md) |
+| **"How do I connect autonomous LLM agents via MCP?"** | Model Context Protocol Tool Interface | [View Recipe](agentic-mcp.md) |
+| **"How do I discover failure scenarios under deep uncertainty?"** | Scenario Discovery & PRIM Patient Rule Induction | [View Recipe](recipe-stress-test.md) |
+| **"How do I audit counterfactuals with visual diffs?"** | Twin-Rollouts & Mermaid Causal Graphs | [View Recipe](recipe-counterfactual-audit.md) |
+| **"How do I rebalance multi-hub inventories under supply shocks?"** | Constrained Inventory Reroute | [View Recipe](recipe-supply-reroute.md) |
 
 ---
 
@@ -24,5 +28,5 @@ The **EWM Engine Cookbook** provides focused, task-oriented code recipes to solv
 
 Every recipe follows a 3-step pattern:
 1. **The Scenario:** The concrete problem and assumptions.
-2. **The Recipe Code:** A modular, self-contained Python function or script.
-3. **Verification & Audit:** How to verify that physical conservation and determinism hold.
+2. **The Recipe Code:** A modular, self-contained Python script or function.
+3. **Verification & Audit:** How to verify that physical conservation, determinism, and epistemic honesty hold.

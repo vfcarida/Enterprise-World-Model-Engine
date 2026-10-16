@@ -90,6 +90,23 @@ class CoverageCertificate(BaseModel):
         default=0.01, description="Minimum p-value threshold for Kolmogorov-Smirnov test."
     )
 
+    def to_teaching_error(self) -> Any:
+        """Convert an uncertified coverage assessment into an actionable TeachingError."""
+        from ewm_engine.exceptions import UncertifiedCalibrationError
+
+        avg_emp = float(np.mean(self.empirical_coverages)) if self.empirical_coverages else 0.0
+        avg_nom = float(np.mean(self.nominal_alphas)) if self.nominal_alphas else 0.5
+        return UncertifiedCalibrationError(
+            empirical_coverage=avg_emp,
+            target_coverage=avg_nom,
+            refusal_reason=self.refusal_reason,
+        )
+
+    def raise_for_status(self) -> None:
+        """Raise UncertifiedCalibrationError if this posterior is not certified."""
+        if not self.is_certified:
+            raise self.to_teaching_error()
+
 
 def compute_tarp_coverage(
     test_thetas: np.ndarray,

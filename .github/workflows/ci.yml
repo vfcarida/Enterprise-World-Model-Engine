@@ -556,6 +556,14 @@ jobs:
       - name: Install documentation dependencies
         run: uv sync --extra docs
 
+      - name: Verify Reproducible Proof-Hero SVGs
+        run: |
+          uv run python scripts/generate_hero_proof.py
+          git diff --exit-code assets/hero-proof-dark.svg assets/hero-proof-light.svg
+
+      - name: Test Documentation Snippets
+        run: uv run python scripts/test_doc_snippets.py
+
       - name: Build Documentation (Strict)
         run: uv run mkdocs build --strict
 

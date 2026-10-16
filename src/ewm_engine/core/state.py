@@ -288,3 +288,55 @@ class WorldState(BaseModel):
         from ewm_engine.core.scm import StructuralCausalModel
 
         return StructuralCausalModel.from_world_state(self)
+
+    def _repr_html_(self) -> str:
+        """Render a rich, styled HTML card representation for interactive notebooks."""
+        short_hash = self.state_hash[:12] if self.state_hash else "unknown"
+        res_rows: list[str] = []
+        for r_id, r in sorted(self.resources.items()):
+            pct = min(100.0, max(0.0, r.utilization * 100.0))
+            bar_color = "#3b82f6" if pct < 85 else ("#f59e0b" if pct < 95 else "#ef4444")
+            res_rows.append(
+                f"<tr>"
+                f"<td style='padding: 6px 12px; font-weight: 500;'><code>{r_id}</code></td>"
+                f"<td style='padding: 6px 12px; text-align: right; font-family: monospace;'>{r.current:.2f}</td>"
+                f"<td style='padding: 6px 12px; text-align: right; font-family: monospace; color: #64748b;'>[{r.min_value:.1f}, {r.max_value:.1f}]</td>"
+                f"<td style='padding: 6px 12px; min-width: 120px;'>"
+                f"<div style='background: #e2e8f0; border-radius: 4px; overflow: hidden; height: 8px;'>"
+                f"<div style='background: {bar_color}; width: {pct:.1f}%; height: 8px;'></div>"
+                f"</div>"
+                f"</td>"
+                f"</tr>"
+            )
+        res_table = (
+            (
+                f"<table style='width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px;'>"
+                f"<thead><tr style='border-bottom: 1px solid #cbd5e1; text-align: left; color: #64748b; font-size: 11px; text-transform: uppercase;'>"
+                f"<th style='padding: 6px 12px;'>Resource</th><th style='padding: 6px 12px; text-align: right;'>Current</th>"
+                f"<th style='padding: 6px 12px; text-align: right;'>Bounds</th><th style='padding: 6px 12px;'>Capacity</th></tr></thead>"
+                f"<tbody>{''.join(res_rows)}</tbody></table>"
+            )
+            if res_rows
+            else "<p style='color: #94a3b8; font-size: 12px; margin: 8px 0;'>No active resources.</p>"
+        )
+
+        return (
+            f"<div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; "
+            f"border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; background: #ffffff; "
+            f"box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 640px; margin: 8px 0; color: #1e293b;'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;'>"
+            f"<div>"
+            f"<span style='font-weight: 700; font-size: 15px; color: #0f172a;'>WorldState</span>"
+            f"<span style='background: #e0e7ff; color: #4338ca; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 8px;'>t={self.step}</span>"
+            f"</div>"
+            f"<code style='background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #64748b;' title='SHA-256 fingerprint'>{short_hash}…</code>"
+            f"</div>"
+            f"<div style='display: flex; gap: 16px; margin: 12px 0; font-size: 12px; color: #64748b;'>"
+            f"<div><strong>Entities:</strong> {len(self.entities)}</div>"
+            f"<div><strong>Relationships:</strong> {len(self.relationships)}</div>"
+            f"<div><strong>Resources:</strong> {len(self.resources)}</div>"
+            f"<div><strong>Timestamp:</strong> {self.timestamp:.1f}s</div>"
+            f"</div>"
+            f"{res_table}"
+            f"</div>"
+        )

@@ -108,12 +108,17 @@ nav:
 
   - Explorables:
       - "Interactive World Model Explainer": explorables/interactive-world-model.md
+      - "Client-Side WASM Playground": playground.md
 
   - Cookbook:
-      - "Overview": cookbook/index.md
-      - "Supply Reroute with Invariants": cookbook/recipe-supply-reroute.md
+      - "Question Index": cookbook/index.md
+      - "Testing a Policy Change": cookbook/policy-change.md
+      - "Calibrating to Telemetry": cookbook/historical-calibration.md
+      - "Enforcing Conservation Laws": cookbook/conservation-laws.md
+      - "Connecting LLM Agents via MCP": cookbook/agentic-mcp.md
       - "Macro Stress Testing with PRIM": cookbook/recipe-stress-test.md
-      - "Counterfactual Audit with Mermaid Diffs": cookbook/recipe-counterfactual-audit.md
+      - "Counterfactual Audit with Diffs": cookbook/recipe-counterfactual-audit.md
+      - "Supply Reroute with Invariants": cookbook/recipe-supply-reroute.md
 
   - Tutorials:
       - Getting Started: getting-started.md
@@ -241,6 +246,7 @@ nav:
           - "ADR-043: Amortized Calibration with Certified Coverage": adr/ADR-043-amortized-calibration-certified-coverage.md
           - "ADR-044: Causal-Correctness & Metamorphic Evaluation": adr/ADR-044-causal-correctness-metamorphic-evaluation.md
           - "ADR-045: MCP Server & Deterministic Agentic Substrate": adr/ADR-045-model-context-protocol-server-and-agentic-substrate.md
+          - "ADR-046: Developer Experience, Teaching Errors & WASM Playground": adr/ADR-046-developer-experience-teaching-errors-and-wasm-playground.md
 
   - Community & Governance:
       - "Community Health & CHAOSS": community-health.md
@@ -250,6 +256,7 @@ nav:
       - "NIST AI RMF & EU AI Act Compliance": governance/compliance-mapping.md
       - "Open-Source Governance (ADR-038)": adr/ADR-038-open-source-governance-community-health-and-rfc-process.md
       - "Launch Announcement": community/launch-announcement.md
+      - "Coordinated Launch Pack": community/launch-pack.md
       - "Outreach & Ecosystem Plan": community/outreach-plan.md
 
   - Explanation:

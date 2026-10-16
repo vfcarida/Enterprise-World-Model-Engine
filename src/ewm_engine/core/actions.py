@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import uuid
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Annotated, Any
 
@@ -45,7 +46,10 @@ class Action(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     schema_version: str = Field(default="1.0.0", description="Semantic schema version.")
-    id: ActionId = Field(description="Unique action instance identifier.")
+    id: ActionId = Field(
+        default_factory=lambda: f"act_{uuid.uuid4().hex[:8]}",
+        description="Unique action instance identifier.",
+    )
     type: str = Field(description="Action category or schema type identifier.")
     actor_id: ActorId | None = Field(
         default=None,

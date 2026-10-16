@@ -54,7 +54,6 @@
     }
   },
   "required": [
-    "id",
     "schema_version",
     "type"
   ],

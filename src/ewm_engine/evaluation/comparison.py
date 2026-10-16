@@ -172,6 +172,95 @@ class ScenarioComparison:
 
         return "\n".join(lines)
 
+    def _repr_html_(self) -> str:
+        """Render a rich, styled HTML card representation for interactive notebooks."""
+        all_metrics = (
+            list(next(iter(self.results_by_scenario.values())).keys())
+            if self.results_by_scenario
+            else []
+        )
+        cand_names = [k for k in self.results_by_scenario.keys() if k != self.baseline_name]
+
+        rows: list[str] = []
+        for metric in all_metrics:
+            base_dist = self.results_by_scenario[self.baseline_name][metric]
+            rows.append(
+                f"<tr style='background: #f8fafc; font-weight: 500; border-top: 1px solid #e2e8f0;'>"
+                f"<td style='padding: 6px 12px;'><code>{metric}</code></td>"
+                f"<td style='padding: 6px 12px;'><span style='color: #64748b;'>{self.baseline_name}</span> (base)</td>"
+                f"<td style='padding: 6px 12px; text-align: right; font-family: monospace;'>{base_dist.mean:.2f}</td>"
+                f"<td style='padding: 6px 12px; text-align: right; font-family: monospace; color: #64748b;'>[{base_dist.p05:.2f}, {base_dist.p95:.2f}]</td>"
+                f"<td style='padding: 6px 12px; text-align: center; color: #94a3b8;'>—</td>"
+                f"</tr>"
+            )
+            for scn_name in cand_names:
+                dist = self.results_by_scenario[scn_name][metric]
+                delta_info = self.deltas[scn_name][metric]
+                abs_delta = delta_info["absolute_delta"]
+                pct_delta = delta_info["percent_delta"]
+
+                ci_str = ""
+                sig_badge = ""
+                if scn_name in self.bootstrap_deltas and metric in self.bootstrap_deltas[scn_name]:
+                    b_delta = self.bootstrap_deltas[scn_name][metric]
+                    ci_str = f" <small style='color: #64748b;'>[{b_delta.ci_lower:+.2f}, {b_delta.ci_upper:+.2f}]</small>"
+                    if b_delta.is_significant:
+                        sig_badge = " <span style='color: #16a34a; font-weight: bold;'>*</span>"
+
+                delta_color = (
+                    "#16a34a" if abs_delta > 0 else ("#dc2626" if abs_delta < 0 else "#64748b")
+                )
+                pct_str = f" ({pct_delta:+.1f}%)" if abs(pct_delta) < 10000 else ""
+
+                rows.append(
+                    f"<tr style='border-top: 1px dashed #f1f5f9;'>"
+                    f"<td style='padding: 6px 12px;'></td>"
+                    f"<td style='padding: 6px 12px; font-weight: 600;'>{scn_name}</td>"
+                    f"<td style='padding: 6px 12px; text-align: right; font-family: monospace;'>{dist.mean:.2f}</td>"
+                    f"<td style='padding: 6px 12px; text-align: right; font-family: monospace; color: #64748b;'>[{dist.p05:.2f}, {dist.p95:.2f}]</td>"
+                    f"<td style='padding: 6px 12px; text-align: right; font-family: monospace; color: {delta_color};'>"
+                    f"{abs_delta:+.2f}{pct_str}{ci_str}{sig_badge}"
+                    f"</td>"
+                    f"</tr>"
+                )
+
+        table_html = (
+            f"<table style='width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px;'>"
+            f"<thead><tr style='border-bottom: 2px solid #cbd5e1; text-align: left; color: #475569; font-size: 11px; text-transform: uppercase;'>"
+            f"<th style='padding: 6px 12px;'>Metric</th><th style='padding: 6px 12px;'>Scenario</th>"
+            f"<th style='padding: 6px 12px; text-align: right;'>Mean</th><th style='padding: 6px 12px; text-align: right;'>p05 - p95</th>"
+            f"<th style='padding: 6px 12px; text-align: right;'>Delta vs Base [CI]</th></tr></thead>"
+            f"<tbody>{''.join(rows)}</tbody></table>"
+        )
+
+        pareto_html = ""
+        if self.pareto_frontier is not None:
+            frontier_pills = " ".join(
+                f"<span style='background: #f0fdf4; color: #166534; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 11px;'>{cand}</span>"
+                for cand in self.pareto_frontier.frontier
+            )
+            pareto_html = (
+                f"<div style='margin-top: 12px; padding: 10px; background: #f8fafc; border-radius: 6px; font-size: 12px;'>"
+                f"<strong>Pareto Non-Dominated Frontier:</strong> {frontier_pills}"
+                f"</div>"
+            )
+
+        return (
+            f"<div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; "
+            f"border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; background: #ffffff; "
+            f"box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 720px; margin: 8px 0; color: #1e293b;'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;'>"
+            f"<div>"
+            f"<span style='font-weight: 700; font-size: 15px; color: #0f172a;'>ScenarioComparison</span>"
+            f"<span style='background: #e0e7ff; color: #4338ca; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 8px;'>Baseline: {self.baseline_name}</span>"
+            f"</div>"
+            f"<span style='font-size: 12px; color: #64748b;'>{len(cand_names)} candidate(s) evaluated</span>"
+            f"</div>"
+            f"{table_html}"
+            f"{pareto_html}"
+            f"</div>"
+        )
+
 
 def compare_scenarios(
     baseline: SimulationResult,

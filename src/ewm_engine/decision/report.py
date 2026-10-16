@@ -186,3 +186,54 @@ class DecisionReport(BaseModel):
     def to_json(self, indent: int = 2) -> str:
         """Serialize report to JSON string."""
         return json.dumps(normalize_canonical_value(self.model_dump()), indent=indent)
+
+    def _repr_html_(self) -> str:
+        """Render a rich, styled HTML card representation for interactive notebooks."""
+        short_fp = self.fingerprint[:12] if self.fingerprint else "unknown"
+        if self.robustness.refusal_to_rank:
+            status_badge = "<span style='background: #fef2f2; color: #991b1b; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px;'>Refusal to Rank (Disagreement)</span>"
+        else:
+            status_badge = f"<span style='background: #f0fdf4; color: #166534; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px;'>Consensus: {self.robustness.dominant_action}</span>"
+
+        cand_rows: list[str] = []
+        for act_id in self.candidates:
+            s = self.robustness.scores.get(act_id)
+            if s:
+                cand_rows.append(
+                    f"<tr>"
+                    f"<td style='padding: 6px 12px; font-weight: 600;'><code>{act_id}</code></td>"
+                    f"<td style='padding: 6px 12px; text-align: right; font-family: monospace;'>{s.max_regret:.2f}</td>"
+                    f"<td style='padding: 6px 12px; text-align: right; font-family: monospace;'>{s.cvar_regret_90:.2f}</td>"
+                    f"<td style='padding: 6px 12px; text-align: right; font-family: monospace;'>{s.satisficing_rate * 100.0:.1f}%</td>"
+                    f"<td style='padding: 6px 12px; text-align: right; font-family: monospace;'>{s.mean_outcome:.2f}</td>"
+                    f"</tr>"
+                )
+
+        table_html = (
+            f"<table style='width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px;'>"
+            f"<thead><tr style='border-bottom: 2px solid #cbd5e1; text-align: left; color: #475569; font-size: 11px; text-transform: uppercase;'>"
+            f"<th style='padding: 6px 12px;'>Candidate</th><th style='padding: 6px 12px; text-align: right;'>Max Regret</th>"
+            f"<th style='padding: 6px 12px; text-align: right;'>CVaR(90)</th><th style='padding: 6px 12px; text-align: right;'>Satisficing</th>"
+            f"<th style='padding: 6px 12px; text-align: right;'>Mean Outcome</th></tr></thead>"
+            f"<tbody>{''.join(cand_rows)}</tbody></table>"
+        )
+
+        return (
+            f"<div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; "
+            f"border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; background: #ffffff; "
+            f"box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 720px; margin: 8px 0; color: #1e293b;'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;'>"
+            f"<div>"
+            f"<span style='font-weight: 700; font-size: 15px; color: #0f172a;'>DecisionReport</span>"
+            f"<span style='background: #e0e7ff; color: #4338ca; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 8px;'>{self.world_name}</span>"
+            f"</div>"
+            f"{status_badge}"
+            f"</div>"
+            f"<div style='display: flex; gap: 16px; margin: 10px 0; font-size: 12px; color: #64748b;'>"
+            f"<div><strong>Uncertainty Space:</strong> {self.uncertainty_space_name}</div>"
+            f"<div><strong>Samples:</strong> N={self.sample_count}</div>"
+            f"<div><strong>Fingerprint:</strong> <code>{short_fp}…</code></div>"
+            f"</div>"
+            f"{table_html}"
+            f"</div>"
+        )

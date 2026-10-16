@@ -100,6 +100,7 @@ from ewm_engine.integrations.pydantic_ai import EwmAgentToolset
 
 toolset = EwmAgentToolset(provenance_strict=True)
 
+
 def simulate_policy_node(state: dict) -> dict:
     result = toolset.ewm_simulate(
         world_yaml=state["world_spec"],
@@ -125,9 +126,7 @@ from agents.mcp import StdioServerTransport
 strategy_agent = Agent(
     name="Enterprise Supply Chain Arbiter",
     instructions="Use EWM MCP tools to simulate consequences before recommending actions.",
-    mcp_transports=[
-        StdioServerTransport(command="ewm", args=["mcp", "--provenance-strict"])
-    ],
+    mcp_transports=[StdioServerTransport(command="ewm", args=["mcp", "--provenance-strict"])],
 )
 ```
 

@@ -196,6 +196,41 @@ class WorldSpec(BaseModel):
 
         return StructuralCausalModel.from_world_spec(self, horizon=horizon)
 
+    def _repr_html_(self) -> str:
+        """Render a rich, styled HTML card representation for interactive notebooks."""
+        dyn_str = self.dynamics.type if self.dynamics else "None"
+        constraints_str = f"{len(self.constraints)} active" if self.constraints else "None"
+        events_str = f"{len(self.event_sources)} sources" if self.event_sources else "None"
+
+        res_pills = "".join(
+            f"<span style='background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 6px; font-size: 11px; margin: 2px 4px 2px 0; display: inline-block;'><code>{r.id}</code> ({r.current:.1f}/{r.max_value:.1f})</span>"
+            for r in self.resources[:6]
+        )
+        if len(self.resources) > 6:
+            res_pills += f"<span style='color: #64748b; font-size: 11px;'> +{len(self.resources) - 6} more</span>"
+        none_span = "<span style='color: #94a3b8; font-size: 12px;'>None</span>"
+        res_content = res_pills if self.resources else none_span
+
+        return (
+            f"<div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; "
+            f"border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; background: #ffffff; "
+            f"box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 640px; margin: 8px 0; color: #1e293b;'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;'>"
+            f"<div>"
+            f"<span style='font-weight: 700; font-size: 15px; color: #0f172a;'>WorldSpec</span>"
+            f"<span style='background: #f0fdf4; color: #166534; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 8px;'>v{self.schema_version}</span>"
+            f"</div>"
+            f"<span style='font-size: 13px; font-weight: 600; color: #334155;'>{self.world.name}</span>"
+            f"</div>"
+            f"<div style='display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 12px 0; font-size: 12px;'>"
+            f"<div style='background: #f8fafc; padding: 8px; border-radius: 6px;'><strong>Entities:</strong> {len(self.entities)}<br><small style='color: #64748b;'>{len(self.relationships)} relations</small></div>"
+            f"<div style='background: #f8fafc; padding: 8px; border-radius: 6px;'><strong>Dynamics:</strong> <code>{dyn_str}</code><br><small style='color: #64748b;'>{events_str}</small></div>"
+            f"<div style='background: #f8fafc; padding: 8px; border-radius: 6px;'><strong>Constraints:</strong> {constraints_str}<br><small style='color: #64748b;'>Step: {self.world.step}</small></div>"
+            f"</div>"
+            f"<div style='margin-top: 8px;'><strong>Resources:</strong><div style='margin-top: 4px;'>{res_content}</div></div>"
+            f"</div>"
+        )
+
 
 # Backward-compatible aliases
 WorldSpecification = WorldSpec

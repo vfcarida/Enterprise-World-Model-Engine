@@ -175,6 +175,33 @@ class Trajectory(BaseModel):
             return 0.0
         return self.steps[-1].step_metrics.get(metric_name, 0.0)
 
+    def _repr_html_(self) -> str:
+        """Render a rich, styled HTML card representation for interactive notebooks."""
+        status_color = (
+            "#16a34a"
+            if self.status == TrajectoryStatus.COMPLETED
+            else ("#dc2626" if self.status == TrajectoryStatus.INVALID else "#f59e0b")
+        )
+        return (
+            f"<div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; "
+            f"border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; background: #ffffff; "
+            f"box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 600px; margin: 8px 0; color: #1e293b;'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;'>"
+            f"<div>"
+            f"<span style='font-weight: 700; font-size: 14px;'>Trajectory #{self.sample_id}</span>"
+            f"<span style='background: {status_color}1a; color: {status_color}; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 8px;'>{self.status.value.upper()}</span>"
+            f"</div>"
+            f"<span style='font-size: 12px; color: #64748b;'>Seed: <code>{self.seed}</code></span>"
+            f"</div>"
+            f"<div style='display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: #475569;'>"
+            f"<div><strong>Steps:</strong> {len(self.steps)}</div>"
+            f"<div><strong>Hard Violations:</strong> {self.hard_violations}</div>"
+            f"<div><strong>Trace Nodes:</strong> {len(self.systemic_trace.nodes)}</div>"
+            f"<div><strong>Trace Edges:</strong> {len(self.systemic_trace.edges)}</div>"
+            f"</div>"
+            f"</div>"
+        )
+
 
 class SimulationResult:
     """The complete result set of a multi-sample Monte Carlo simulation experiment."""
@@ -352,3 +379,68 @@ class SimulationResult:
         from ewm_engine.evaluation.comparison import compare_scenarios
 
         return compare_scenarios(baseline=baseline, candidates=[self], metrics=metrics)
+
+    def _repr_html_(self) -> str:
+        """Render a rich, styled HTML card representation for interactive notebooks."""
+        scn = self.scenario
+        total = len(self.trajectories)
+        completed = self.completed_count
+        invalid = self.invalid_count
+        failed = self.failed_count
+
+        # Extract top 5 metrics if available
+        metric_rows = []
+        if self.trajectories and self.trajectories[0].steps:
+            for m_name in list(self.trajectories[0].steps[-1].step_metrics.keys())[:5]:
+                dist = self.get_metric_distribution(m_name)
+                metric_rows.append(
+                    f"<tr>"
+                    f"<td style='padding: 5px 10px; font-weight: 500;'><code>{m_name}</code></td>"
+                    f"<td style='padding: 5px 10px; text-align: right; font-family: monospace;'>{dist.mean:.2f}</td>"
+                    f"<td style='padding: 5px 10px; text-align: right; font-family: monospace; color: #64748b;'>{dist.std:.2f}</td>"
+                    f"<td style='padding: 5px 10px; text-align: right; font-family: monospace;'>[{dist.p05:.2f}, {dist.p95:.2f}]</td>"
+                    f"</tr>"
+                )
+        metric_table = (
+            (
+                f"<table style='width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px;'>"
+                f"<thead><tr style='border-bottom: 1px solid #cbd5e1; text-align: left; color: #64748b; font-size: 11px; text-transform: uppercase;'>"
+                f"<th style='padding: 5px 10px;'>Metric</th><th style='padding: 5px 10px; text-align: right;'>Mean</th>"
+                f"<th style='padding: 5px 10px; text-align: right;'>Std</th><th style='padding: 5px 10px; text-align: right;'>p05 - p95</th></tr></thead>"
+                f"<tbody>{''.join(metric_rows)}</tbody></table>"
+            )
+            if metric_rows
+            else ""
+        )
+
+        invalid_badge = (
+            f"<div><strong style='color: #dc2626;'>Invalid:</strong> {invalid}</div>"
+            if invalid
+            else ""
+        )
+        failed_badge = (
+            f"<div><strong style='color: #ea580c;'>Failed:</strong> {failed}</div>"
+            if failed
+            else ""
+        )
+
+        return (
+            f"<div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; "
+            f"border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; background: #ffffff; "
+            f"box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 640px; margin: 8px 0; color: #1e293b;'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;'>"
+            f"<div>"
+            f"<span style='font-weight: 700; font-size: 15px; color: #0f172a;'>SimulationResult</span>"
+            f"<span style='background: #e0e7ff; color: #4338ca; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 8px;'>{scn.name}</span>"
+            f"</div>"
+            f"<span style='font-size: 12px; color: #64748b;'>Horizon: {scn.horizon} steps | Seed: {scn.seed}</span>"
+            f"</div>"
+            f"<div style='display: flex; gap: 16px; margin: 12px 0; font-size: 12px;'>"
+            f"<div><strong>Rollouts:</strong> {total}</div>"
+            f"<div><strong style='color: #16a34a;'>Completed:</strong> {completed}</div>"
+            f"{invalid_badge}"
+            f"{failed_badge}"
+            f"</div>"
+            f"{metric_table}"
+            f"</div>"
+        )

@@ -104,6 +104,41 @@ class CounterfactualResult(BaseModel):
         """True if exogenous noise was successfully coupled between factual and counterfactual rollouts."""
         return self.trace_diff.is_noise_coupled
 
+    def _repr_html_(self) -> str:
+        """Render a rich, styled HTML card representation for interactive notebooks."""
+        int_desc = (
+            getattr(self.intervention, "description", None)
+            or getattr(self.intervention, "type", None)
+            or str(self.intervention)
+        )
+        coupled_badge = (
+            "<span style='background: #f0fdf4; color: #166534; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px;'>Noise Coupled (Twin-Rollout)</span>"
+            if self.is_noise_coupled
+            else "<span style='background: #fef2f2; color: #991b1b; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px;'>Uncoupled</span>"
+        )
+        return (
+            f"<div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; "
+            f"border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; background: #ffffff; "
+            f"box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 640px; margin: 8px 0; color: #1e293b;'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;'>"
+            f"<div>"
+            f"<span style='font-weight: 700; font-size: 15px; color: #0f172a;'>CounterfactualResult</span>"
+            f"<span style='background: #e0e7ff; color: #4338ca; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 8px;'>Rung-3 Causal</span>"
+            f"</div>"
+            f"{coupled_badge}"
+            f"</div>"
+            f"<div style='margin: 10px 0; font-size: 13px;'><strong>Intervention:</strong> <code>{int_desc}</code></div>"
+            f"<div style='display: flex; gap: 16px; margin: 10px 0; font-size: 12px; color: #64748b;'>"
+            f"<div><strong>Locality Preserved:</strong> {'Yes' if self.locality_preserved else 'No'}</div>"
+            f"<div><strong>Off-Target Divergence:</strong> {self.total_off_target_divergence:.4f}</div>"
+            f"<div><strong>Abduction Unique:</strong> {'Yes' if self.abduction.is_unique else 'Non-unique'}</div>"
+            f"</div>"
+            f"<div style='background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 8px 12px; margin-top: 10px; font-size: 11px; color: #92400e;'>"
+            f"<strong>Epistemic Note:</strong> {self.disclaimer}"
+            f"</div>"
+            f"</div>"
+        )
+
 
 class CounterfactualEngine:
     """Executes Pearl's three-step counterfactual algorithm on an Enterprise World Model."""

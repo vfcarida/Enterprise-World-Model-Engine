@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
-from ewm_engine.core.actions import Intervention
+from ewm_engine.core.actions import Action, Intervention
 from ewm_engine.core.events import ExogenousEventSource
 from ewm_engine.core.state import WorldState
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from ewm_engine.constraints.base import Constraint
     from ewm_engine.constraints.registry import ConstraintRegistry
     from ewm_engine.dynamics.base import DynamicsModel
-    from ewm_engine.simulation.scenario import Scenario
+    from ewm_engine.simulation.scenario import Scenario, ScheduledAction
     from ewm_engine.simulation.trajectory import SimulationResult
 
 
@@ -124,29 +124,57 @@ class World:
         self,
         scenario: Scenario | None = None,
         intervention: Intervention | None = None,
+        actions: Sequence[Action | ScheduledAction] | Action | ScheduledAction | None = None,
         horizon: int = 10,
         samples: int = 1,
         seed: int = 42,
+        name: str | None = None,
         executor: Any = None,
     ) -> SimulationResult:
         """Execute a forward Monte Carlo simulation of this world under a given scenario.
 
         If scenario is not provided, a default Scenario is created with the given
-        horizon, samples, and seed.
+        horizon, samples, seed, and optional actions. Actions provided without an explicit
+        step schedule are scheduled at step 0 (immediate execution).
         """
         from ewm_engine.simulation.engine import SimulationEngine
-        from ewm_engine.simulation.scenario import Scenario
+        from ewm_engine.simulation.scenario import Scenario, ScheduledAction
+
+        scheduled: list[ScheduledAction] = []
+        if actions is not None:
+            if isinstance(actions, (Action, ScheduledAction)):
+                action_items = [actions]
+            else:
+                action_items = list(actions)
+            for item in action_items:
+                if isinstance(item, ScheduledAction):
+                    scheduled.append(item)
+                else:
+                    scheduled.append(ScheduledAction(step=0, action=item))
 
         if scenario is None:
+            is_cf = bool(scheduled or intervention)
+            default_name = "Counterfactual" if is_cf else "Baseline"
+            default_id = "counterfactual" if is_cf else "baseline"
             scenario = Scenario(
-                name="AdHocSimulation",
+                name=name or default_name,
+                scenario_id=(name.lower().replace(" ", "_") if name else default_id),
                 horizon=horizon,
                 samples=samples,
                 seed=seed,
                 intervention=intervention,
+                scheduled_actions=tuple(scheduled),
             )
-        elif intervention is not None and scenario.intervention is None:
-            scenario = scenario.with_intervention(intervention)
+        else:
+            if intervention is not None and scenario.intervention is None:
+                scenario = scenario.with_intervention(intervention)
+            if scheduled:
+                scenario = scenario.branch(
+                    scenario_id=scenario.scenario_id,
+                    scheduled_actions=(*scenario.scheduled_actions, *scheduled),
+                )
+            if name is not None:
+                scenario = scenario.branch(scenario_id=name.lower().replace(" ", "_"), name=name)
 
         engine = SimulationEngine(executor=executor)
         return engine.run(world=self, scenario=scenario)

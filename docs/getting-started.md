@@ -28,95 +28,62 @@ pip install "ewm-engine[all]"
 
 ---
 
-## 5-Minute Minimal Example
+## 60-Second Minimal Example
 
-The following self-contained script demonstrates defining a two-warehouse world, attaching conservation dynamics, executing a baseline rollout, branching a scenario intervention, and comparing outcomes:
+Try it directly in your browser without installing: **[Open WASM Playground](playground.md)** · **[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vfcarida/Enterprise-World-Model-Engine/blob/main/notebooks/quickstart.ipynb)**
+
+The following self-contained script initializes a world state with bounded resources, simulates baseline dynamics, branches an interventional scenario, and outputs calibrated counterfactual deltas with bootstrap error bars in **12 lines of code**:
 
 ```python
-from ewm_engine import (
-    Action,
-    Entity,
-    Relationship,
-    Resource,
-    Scenario,
-    SimulationEngine,
-    World,
-    WorldState,
-    compare_scenarios,
-)
-from ewm_engine.constraints.standard import ResourceCapacityConstraint
+import ewm_engine as ewm
 from ewm_engine.dynamics.deterministic import DeterministicTransferDynamics
-from ewm_engine.simulation.scenario import ScheduledAction
 
-# 1. Initialize World State S_0
-state = WorldState(
-    entities=[
-        Entity(id="wh_north", type="warehouse", attributes={"region": "north"}),
-        Entity(id="wh_south", type="warehouse", attributes={"region": "south"}),
-    ],
-    relationships=[
-        Relationship(source="wh_north", target="wh_south", type="connected_to"),
-    ],
-    resources=[
-        Resource(id="stock_north", current=100.0, min_value=0.0, max_value=200.0),
-        Resource(id="stock_south", current=20.0, min_value=0.0, max_value=200.0),
-    ],
-)
-
-# 2. Attach Constraints and Dynamics
-world = World(
-    state=state,
-    dynamics=DeterministicTransferDynamics(),
-    constraints=[
-        ResourceCapacityConstraint(resource_id="stock_north"),
-        ResourceCapacityConstraint(resource_id="stock_south"),
-    ],
-)
-
-# 3. Simulate Baseline Scenario (Status Quo)
-engine = SimulationEngine()
-scenario_baseline = Scenario(
-    scenario_id="baseline",
-    name="Status Quo",
-    horizon=2,
-    samples=1,
-    seed=42,
-)
-res_baseline = engine.run(world, scenario_baseline)
-
-# 4. Branch and Simulate Scenario Intervention
-world_alt = world.branch()
-scenario_intervention = Scenario(
-    scenario_id="intervention",
-    name="Transfer 30 North -> South",
-    horizon=2,
-    samples=1,
-    seed=42,
-    scheduled_actions=(
-        ScheduledAction(
-            step=1,
-            action=Action(
-                id="act_transfer",
-                type="transfer_resource",
-                parameters={
-                    "source_resource": "stock_north",
-                    "target_resource": "stock_south",
-                    "quantity": 30.0,
-                },
-            ),
-        ),
+# 1. Initialize world state with bounded resources
+world = ewm.World(
+    state=ewm.WorldState(
+        resources=[
+            ewm.Resource(id="stock_a", current=100.0, max_value=200.0),
+            ewm.Resource(id="stock_b", current=20.0, max_value=200.0),
+        ]
     ),
+    dynamics=DeterministicTransferDynamics(),
 )
-res_intervention = engine.run(world_alt, scenario_intervention)
-
-# 5. Evaluate and Compare Scenarios
-comparison = compare_scenarios(
-    baseline=res_baseline,
-    candidates=[res_intervention],
-    metrics=["resource_stock_north", "resource_stock_south", "violations_count"],
+# 2. Simulate baseline vs counterfactual policy branch
+baseline = world.simulate(horizon=5, seed=42)
+counterfactual = world.branch().simulate(
+    actions=[
+        ewm.Action(
+            type="transfer_resource",
+            parameters={
+                "quantity": 30.0,
+                "source_resource": "stock_a",
+                "target_resource": "stock_b",
+            },
+        )
+    ],
+    horizon=5,
+    seed=42,
 )
+# 3. Evaluate counterfactual delta with certified bootstrap confidence intervals
+diff = ewm.compare_scenarios(
+    baseline, [counterfactual], metrics=["resource_stock_a", "resource_stock_b"]
+)
+print(diff.summary_table())
+```
 
-print(comparison.summary_table())
+### Execution Output
+
+```text
+=== Scenario Comparison (Baseline: Baseline) ===
+---------------------------------------------------------------------------------------------------------------------------
+Metric                    | Scenario             | Mean (Std)         | p50 [p05, p95]       | Delta vs Base [CI] (*sig)   
+---------------------------------------------------------------------------------------------------------------------------
+resource_stock_a          | Baseline             | 100.00 (+/-0.00)   | 100.00 [100.00, 100.00] | -                           
+                          | Counterfactual       | 70.00 (+/-0.00)    | 70.00 [70.00, 70.00] | -30.00 (-30.0%) [-30.00, -30.00] *
+---------------------------------------------------------------------------------------------------------------------------
+resource_stock_b          | Baseline             | 20.00 (+/-0.00)    | 20.00 [20.00, 20.00] | -                           
+                          | Counterfactual       | 50.00 (+/-0.00)    | 50.00 [50.00, 50.00] | +30.00 (+150.0%) [+30.00, +30.00] *
+---------------------------------------------------------------------------------------------------------------------------
 ```
 
 ---

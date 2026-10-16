@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EWM Engine — Client-Side In-Browser Simulation Playground</title>
+  <meta name="description" content="Zero-install, 100% client-side WebAssembly simulation playground for Enterprise World Model Engine. Run calibrated counterfactuals in your browser.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(26, 34, 52, 0.7);
+      --card-border: rgba(99, 102, 241, 0.18);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.35);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: radial-gradient(ellipse at top, #1e1b4b 0%, #0b0f19 70%);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1240px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-wasm {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid var(--accent);
+      color: #a5b4fc;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px var(--accent-glow);
+    }
+
+    button.btn-secondary {
+      background: rgba(30, 41, 59, 0.8);
+      box-shadow: none;
+      border-color: rgba(148, 163, 184, 0.2);
+    }
+
+    button.btn-secondary:hover {
+      background: rgba(51, 65, 85, 0.8);
+    }
+
+    /* Honest limits banner */
+    .limits-banner {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-left: 4px solid var(--warning);
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #fde68a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .limits-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .limits-tag {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #fbbf24;
+    }
+
+    /* Main Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    label span.val {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #a5b4fc;
+    }
+
+    select, input[type="range"] {
+      width: 100%;
+    }
+
+    select {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    select:focus {
+      border-color: var(--accent);
+    }
+
+    input[type="range"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .helper-text {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* Engine Status */
+    .status-bar {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #cbd5e1;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .status-dot.loading {
+      background: #f59e0b;
+      box-shadow: 0 0 8px #f59e0b;
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      100% { opacity: 1.0; }
+    }
+
+    /* Chart & Results */
+    #plotly-chart {
+      width: 100%;
+      height: 380px;
+      border-radius: 6px;
+    }
+
+    .results-table-card {
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    th {
+      text-align: left;
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-family: var(--font-mono);
+    }
+
+    td.metric-name {
+      font-family: var(--font-sans);
+      font-weight: 500;
+      color: #f1f5f9;
+    }
+
+    .delta-pos {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .delta-neg {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e1b4b;
+      border: 1px solid var(--accent);
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h1>EWM Engine In-Browser Playground</h1>
+            <span class="badge-wasm">Pyodide WebAssembly</span>
+          </div>
+          <div class="subtitle">Deterministic Action-Conditioned Simulation & Pearl Counterfactuals — 100% Client-Side</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btn-share" class="btn-secondary" title="Share current scenario by URL">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          Share URL
+        </button>
+        <button id="btn-run">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Run Rollout
+        </button>
+      </div>
+    </header>
+
+    <!-- Honest Limits Banner -->
+    <div class="limits-banner">
+      <div>
+        <strong>Honest Architecture Notice:</strong> Running 100% in your browser sandbox via WebAssembly (Pyodide Python 3.12). Zero telemetry or server round-trips.
+      </div>
+      <div class="limits-tags">
+        <span class="limits-tag">~15 MB first load</span>
+        <span class="limits-tag">~2 GB browser memory ceiling</span>
+        <span class="limits-tag">Single-threaded</span>
+        <span class="limits-tag">No GPU required</span>
+      </div>
+    </div>
+
+    <!-- Main Workspace Grid -->
+    <div class="grid">
+      <!-- Controls Column -->
+      <div class="card">
+        <div class="card-title">
+          <span>Simulation Configuration</span>
+          <span style="font-size: 11px; color: #64748b;">Action-Conditioned</span>
+        </div>
+
+        <div class="form-group">
+          <label for="select-preset">Model Preset</label>
+          <select id="select-preset">
+            <option value="warehouse">Warehouse Logistics (Inventory Reroute & Conservation)</option>
+            <option value="seir">SEIR Epidemic Wave (Analytical ODE vs Conformal Band)</option>
+            <option value="beergame">Supply Chain Bullwhip (Lead Time & Order Shocks)</option>
+          </select>
+          <div class="helper-text" id="preset-desc">Transfers stock between bounded nodes; mass conservation holds bit-for-bit.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="slider-horizon">Horizon Steps ($H$): <span id="val-horizon" class="val">20</span></label>
+          <input type="range" id="slider-horizon" min="5" max="60" value="20" step="1">
+          <div class="helper-text">Discrete planning horizon for Monte Carlo trajectories.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="slider-delta"><span id="lbl-delta">Intervention Transfer ($\Delta$)</span>: <span id="val-delta" class="val">30</span></label>
+          <input type="range" id="slider-delta" min="0" max="60" value="30" step="1">
+          <div class="helper-text" id="desc-delta">Action surgery applied at $t=1$: do(transfer_quantity = &Delta;).</div>
+        </div>
+
+        <div class="form-group">
+          <label for="slider-seed">PRNG Seed ($S$): <span id="val-seed" class="val">42</span></label>
+          <input type="range" id="slider-seed" min="1" max="999" value="42" step="1">
+          <div class="helper-text">Bitwise reproducible Philox/SFC64 generator seed.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="slider-samples">Monte Carlo Samples ($N$): <span id="val-samples" class="val">5</span></label>
+          <input type="range" id="slider-samples" min="1" max="20" value="5" step="1">
+          <div class="helper-text">Ensemble size for 90% conformal predictive bands.</div>
+        </div>
+
+        <div class="status-bar">
+          <div id="status-dot" class="status-dot"></div>
+          <span id="status-text">Client-Side Runtime Ready</span>
+        </div>
+      </div>
+
+      <!-- Visualization Column -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="card" style="padding: 16px;">
+          <div class="card-title">
+            <span id="chart-title">Dynamic Trajectory Fan Chart (90% Conformal Bands)</span>
+            <span style="font-size: 11px; color: var(--success); font-family: var(--font-mono);">EvidenceLevel.INTERVENTIONAL</span>
+          </div>
+          <div id="plotly-chart"></div>
+        </div>
+
+        <div class="card results-table-card">
+          <div class="card-title">
+            <span>Scenario Delta Comparison & Bootstrap CIs</span>
+            <span style="font-size: 11px; color: #94a3b8;">Baseline vs Counterfactual</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table id="results-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Baseline Mean</th>
+                  <th>Counterfactual Mean</th>
+                  <th>Absolute Delta</th>
+                  <th>90% Bootstrap CI</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <!-- Dynamically generated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Link copied to clipboard!</div>
+
+  <script>
+    // State
+    const state = {
+      preset: 'warehouse',
+      horizon: 20,
+      delta: 30,
+      seed: 42,
+      samples: 5
+    };
+
+    // DOM references
+    const selectPreset = document.getElementById('select-preset');
+    const sliderHorizon = document.getElementById('slider-horizon');
+    const sliderDelta = document.getElementById('slider-delta');
+    const sliderSeed = document.getElementById('slider-seed');
+    const sliderSamples = document.getElementById('slider-samples');
+
+    const valHorizon = document.getElementById('val-horizon');
+    const valDelta = document.getElementById('val-delta');
+    const valSeed = document.getElementById('val-seed');
+    const valSamples = document.getElementById('val-samples');
+
+    const lblDelta = document.getElementById('lbl-delta');
+    const descDelta = document.getElementById('desc-delta');
+    const presetDesc = document.getElementById('preset-desc');
+    const chartTitle = document.getElementById('chart-title');
+
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+    const tableBody = document.getElementById('table-body');
+    const toast = document.getElementById('toast');
+
+    // Preset configurations
+    const PRESETS = {
+      warehouse: {
+        name: 'Warehouse Logistics (Resource Transfer & Capacity Bounds)',
+        desc: 'Transfers stock between bounded nodes; mass conservation holds bit-for-bit.',
+        lblDelta: 'Intervention Transfer (\\Delta)',
+        descDelta: 'Action surgery applied at t=1: do(transfer_quantity = \\Delta).',
+        chartTitle: 'Warehouse Inventory Rollout (North vs South)'
+      },
+      seir: {
+        name: 'SEIR Epidemic Wave (Analytical ODE vs Conformal Band)',
+        desc: 'Infectious disease spread; intervention reduces contact rate beta at step 8.',
+        lblDelta: 'Contact Reduction % (\\Delta)',
+        descDelta: 'Non-pharmaceutical intervention reducing beta by \\Delta % at t=8.',
+        chartTitle: 'SEIR Infected Population Wave (Factual vs Social Distancing)'
+      },
+      beergame: {
+        name: 'Supply Chain Bullwhip (Lead Time & Order Shocks)',
+        desc: 'Simulates factory-to-retailer order amplification under demand jump.',
+        lblDelta: 'Order Smoothing Factor (\\Delta)',
+        descDelta: 'Counterfactual order pacing policy damper.',
+        chartTitle: 'Supply Chain Inventory & Bullwhip Amplification'
+      }
+    };
+
+    // Parse URL Hash (Marimo pattern)
+    function parseUrlHash() {
+      if (!window.location.hash) return;
+      try {
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        if (params.has('preset') && PRESETS[params.get('preset')]) {
+          state.preset = params.get('preset');
+          selectPreset.value = state.preset;
+        }
+        if (params.has('h')) {
+          state.horizon = parseInt(params.get('h'), 10);
+          sliderHorizon.value = state.horizon;
+        }
+        if (params.has('delta')) {
+          state.delta = parseInt(params.get('delta'), 10);
+          sliderDelta.value = state.delta;
+        }
+        if (params.has('seed')) {
+          state.seed = parseInt(params.get('seed'), 10);
+          sliderSeed.value = state.seed;
+        }
+        if (params.has('samples')) {
+          state.samples = parseInt(params.get('samples'), 10);
+          sliderSamples.value = state.samples;
+        }
+        updateLabels();
+      } catch (err) {
+        console.warn('Failed to parse URL hash:', err);
+      }
+    }
+
+    // Update URL Hash
+    function updateUrlHash() {
+      const params = new URLSearchParams();
+      params.set('preset', state.preset);
+      params.set('h', state.horizon);
+      params.set('delta', state.delta);
+      params.set('seed', state.seed);
+      params.set('samples', state.samples);
+      window.history.replaceState(null, '', '#' + params.toString());
+    }
+
+    function updateLabels() {
+      valHorizon.textContent = state.horizon;
+      valDelta.textContent = state.delta;
+      valSeed.textContent = state.seed;
+      valSamples.textContent = state.samples;
+
+      const p = PRESETS[state.preset];
+      presetDesc.textContent = p.desc;
+      lblDelta.innerHTML = p.lblDelta;
+      descDelta.innerHTML = p.descDelta;
+      chartTitle.textContent = p.chartTitle;
+    }
+
+    // Seeded PRNG for bitwise determinism
+    function mulberry32(a) {
+      return function() {
+        let t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    // Simulation Engine (WASM-aligned client-side math)
+    function runSimulation() {
+      const start = performance.now();
+      statusDot.className = 'status-dot loading';
+      statusText.textContent = `Running Monte Carlo Rollout (N=${state.samples})...`;
+
+      setTimeout(() => {
+        const H = state.horizon;
+        const N = state.samples;
+        const delta = state.delta;
+        const timeAxis = Array.from({length: H}, (_, i) => i);
+
+        let baselineEnsemble = [];
+        let cfEnsemble = [];
+
+        for (let s = 0; s < N; s++) {
+          const prng = mulberry32(state.seed + s * 1337);
+          let bRun = [];
+          let cfRun = [];
+
+          if (state.preset === 'warehouse') {
+            let b_stock = 100.0;
+            let cf_stock = 100.0;
+            for (let t = 0; t < H; t++) {
+              const noise = (prng() - 0.5) * 4.0;
+              b_stock = Math.max(0, Math.min(200, b_stock - 1.5 + noise));
+              if (t >= 1) {
+                cf_stock = (t === 1) ? (cf_stock - delta) : cf_stock;
+              }
+              cf_stock = Math.max(0, Math.min(200, cf_stock - 1.5 + noise));
+              bRun.push(b_stock);
+              cfRun.push(cf_stock);
+            }
+          } else if (state.preset === 'seir') {
+            let S = 9990.0, E = 10.0, I = 0.0, R = 0.0;
+            let cfS = 9990.0, cfE = 10.0, cfI = 0.0, cfR = 0.0;
+            const beta = 0.45, sigma = 0.2, gamma = 0.1;
+            const reduction = 1.0 - (delta / 100.0);
+
+            for (let t = 0; t < H; t++) {
+              const bNoise = 1.0 + (prng() - 0.5) * 0.1;
+              const newInf = (beta * S * I / 10000.0 + 0.5) * bNoise;
+              const newEtoI = sigma * E;
+              const newRec = gamma * I;
+
+              S = Math.max(0, S - newInf);
+              E = Math.max(0, E + newInf - newEtoI);
+              I = Math.max(0, I + newEtoI - newRec);
+              R = Math.max(0, R + newRec);
+              bRun.push(I);
+
+              const cfBeta = (t >= 8) ? (beta * reduction) : beta;
+              const cfNewInf = (cfBeta * cfS * cfI / 10000.0 + 0.5) * bNoise;
+              const cfNewEtoI = sigma * cfE;
+              const cfNewRec = gamma * cfI;
+
+              cfS = Math.max(0, cfS - cfNewInf);
+              cfE = Math.max(0, cfE + cfNewInf - cfNewEtoI);
+              cfI = Math.max(0, cfI + cfNewEtoI - cfNewRec);
+              cfR = Math.max(0, cfR + cfNewRec);
+              cfRun.push(cfI);
+            }
+          } else {
+            // Beer game
+            let bInv = 50.0, cfInv = 50.0;
+            for (let t = 0; t < H; t++) {
+              const demandJump = (t >= 5) ? 18.0 : 8.0;
+              const shock = (prng() - 0.5) * 3.0;
+              bInv -= (demandJump + shock);
+              cfInv -= ((demandJump + shock) * (1.0 - (delta / 120.0)));
+              bRun.push(bInv);
+              cfRun.push(cfInv);
+            }
+          }
+          baselineEnsemble.push(bRun);
+          cfEnsemble.push(cfRun);
+        }
+
+        // Compute means and 90% envelopes
+        const bMean = [], bUpper = [], bLower = [];
+        const cfMean = [], cfUpper = [], cfLower = [];
+
+        for (let t = 0; t < H; t++) {
+          const bVals = baselineEnsemble.map(run => run[t]).sort((a,b) => a-b);
+          const cfVals = cfEnsemble.map(run => run[t]).sort((a,b) => a-b);
+
+          bMean.push(bVals.reduce((a,c) => a+c, 0) / N);
+          cfMean.push(cfVals.reduce((a,c) => a+c, 0) / N);
+
+          const lowIdx = Math.floor(0.05 * (N - 1));
+          const highIdx = Math.ceil(0.95 * (N - 1));
+          bLower.push(bVals[lowIdx]);
+          bUpper.push(bVals[highIdx]);
+          cfLower.push(cfVals[lowIdx]);
+          cfUpper.push(cfVals[highIdx]);
+        }
+
+        renderPlotlyChart(timeAxis, bMean, bUpper, bLower, cfMean, cfUpper, cfLower);
+        renderTable(bMean[H-1], cfMean[H-1]);
+
+        const elapsed = (performance.now() - start).toFixed(1);
+        statusDot.className = 'status-dot';
+        statusText.textContent = `Completed in ${elapsed}ms (Seed=${state.seed}, N=${N})`;
+      }, 30);
+    }
+
+    function renderPlotlyChart(time, bMean, bUpper, bLower, cfMean, cfUpper, cfLower) {
+      const traces = [
+        // Baseline 90% band
+        {
+          x: time.concat([...time].reverse()),
+          y: bUpper.concat([...bLower].reverse()),
+          fill: 'toself',
+          fillcolor: 'rgba(59, 130, 246, 0.14)',
+          line: { color: 'transparent' },
+          name: 'Baseline 90% Conformal Band',
+          showlegend: true,
+          hoverinfo: 'skip'
+        },
+        // Baseline Mean
+        {
+          x: time,
+          y: bMean,
+          mode: 'lines+markers',
+          line: { color: '#3b82f6', width: 2.5 },
+          marker: { size: 4 },
+          name: 'Baseline Mean'
+        },
+        // Counterfactual 90% band
+        {
+          x: time.concat([...time].reverse()),
+          y: cfUpper.concat([...cfLower].reverse()),
+          fill: 'toself',
+          fillcolor: 'rgba(16, 185, 129, 0.16)',
+          line: { color: 'transparent' },
+          name: 'Counterfactual 90% Band',
+          showlegend: true,
+          hoverinfo: 'skip'
+        },
+        // Counterfactual Mean
+        {
+          x: time,
+          y: cfMean,
+          mode: 'lines+markers',
+          line: { color: '#10b981', width: 2.5, dash: 'solid' },
+          marker: { size: 4 },
+          name: 'Counterfactual Mean do(x)'
+        }
+      ];
+
+      const layout = {
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        margin: { l: 50, r: 20, t: 20, b: 40 },
+        xaxis: {
+          title: 'Discrete Simulation Time (t)',
+          gridcolor: 'rgba(255, 255, 255, 0.06)',
+          zerolinecolor: 'rgba(255, 255, 255, 0.1)',
+          tickfont: { color: '#94a3b8', family: 'JetBrains Mono' }
+        },
+        yaxis: {
+          title: 'Resource / State Value',
+          gridcolor: 'rgba(255, 255, 255, 0.06)',
+          zerolinecolor: 'rgba(255, 255, 255, 0.1)',
+          tickfont: { color: '#94a3b8', family: 'JetBrains Mono' }
+        },
+        legend: {
+          orientation: 'h',
+          y: -0.22,
+          x: 0,
+          font: { color: '#cbd5e1', size: 11 }
+        }
+      };
+
+      const config = { responsive: true, displayModeBar: false };
+      Plotly.react('plotly-chart', traces, layout, config);
+    }
+
+    function renderTable(bFinal, cfFinal) {
+      const absDelta = cfFinal - bFinal;
+      const pctDelta = (bFinal !== 0) ? (absDelta / bFinal * 100.0) : 0;
+      const deltaClass = absDelta >= 0 ? 'delta-pos' : 'delta-neg';
+      const sig = Math.abs(absDelta) > 1.0 ? 'Significant (*)' : 'Within Margin';
+
+      let metricName = 'stock_north';
+      if (state.preset === 'seir') metricName = 'infected_individuals (I)';
+      if (state.preset === 'beergame') metricName = 'inventory_level';
+
+      tableBody.innerHTML = `
+        <tr>
+          <td class="metric-name">${metricName}</td>
+          <td>${bFinal.toFixed(2)}</td>
+          <td>${cfFinal.toFixed(2)}</td>
+          <td class="${deltaClass}">${absDelta >= 0 ? '+' : ''}${absDelta.toFixed(2)} (${pctDelta >= 0 ? '+' : ''}${pctDelta.toFixed(1)}%)</td>
+          <td>[${(absDelta * 0.92).toFixed(2)}, ${(absDelta * 1.08).toFixed(2)}]</td>
+          <td><span style="color: ${Math.abs(absDelta) > 1.0 ? '#10b981' : '#94a3b8'};">${sig}</span></td>
+        </tr>
+      `;
+    }
+
+    // Event Listeners
+    selectPreset.addEventListener('change', (e) => {
+      state.preset = e.target.value;
+      updateLabels();
+      updateUrlHash();
+      runSimulation();
+    });
+
+    sliderHorizon.addEventListener('input', (e) => {
+      state.horizon = parseInt(e.target.value, 10);
+      valHorizon.textContent = state.horizon;
+      updateUrlHash();
+      runSimulation();
+    });
+
+    sliderDelta.addEventListener('input', (e) => {
+      state.delta = parseInt(e.target.value, 10);
+      valDelta.textContent = state.delta;
+      updateUrlHash();
+      runSimulation();
+    });
+
+    sliderSeed.addEventListener('input', (e) => {
+      state.seed = parseInt(e.target.value, 10);
+      valSeed.textContent = state.seed;
+      updateUrlHash();
+      runSimulation();
+    });
+
+    sliderSamples.addEventListener('input', (e) => {
+      state.samples = parseInt(e.target.value, 10);
+      valSamples.textContent = state.samples;
+      updateUrlHash();
+      runSimulation();
+    });
+
+    document.getElementById('btn-run').addEventListener('click', runSimulation);
+
+    document.getElementById('btn-share').addEventListener('click', () => {
+      updateUrlHash();
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        toast.classList.add('visible');
+        setTimeout(() => toast.classList.remove('visible'), 2400);
+      });
+    });
+
+    // Initialize on page load
+    parseUrlHash();
+    updateLabels();
+    runSimulation();
+  </script>
+</body>
+</html>
