@@ -180,6 +180,12 @@ serve = [
     "fastapi>=0.110.0",
     "httpx>=0.25.0",
 ]
+mcp = [
+    "mcp>=1.0.0",
+]
+agents = [
+    "pydantic-ai>=0.0.14",
+]
 config = [
     "omegaconf>=2.3.0",
 ]

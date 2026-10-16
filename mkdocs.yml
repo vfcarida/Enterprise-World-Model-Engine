@@ -154,6 +154,7 @@ nav:
       - "Continuous Optimization (SciPy)": integrations/scipy.md
       - "Formal SMT Verification (Z3)": integrations/z3-smt.md
       - "Reinforcement Learning (Gymnasium)": integrations/gymnasium.md
+      - "Model Context Protocol (MCP) & Agents": integrations/mcp.md
 
   - Reference:
       - API Reference:
@@ -239,6 +240,7 @@ nav:
           - "ADR-042: Grey-Box Conservation Layer & Neuro-Symbolic Flywheel": adr/ADR-042-grey-box-conservation-flywheel.md
           - "ADR-043: Amortized Calibration with Certified Coverage": adr/ADR-043-amortized-calibration-certified-coverage.md
           - "ADR-044: Causal-Correctness & Metamorphic Evaluation": adr/ADR-044-causal-correctness-metamorphic-evaluation.md
+          - "ADR-045: MCP Server & Deterministic Agentic Substrate": adr/ADR-045-model-context-protocol-server-and-agentic-substrate.md
 
   - Community & Governance:
       - "Community Health & CHAOSS": community-health.md

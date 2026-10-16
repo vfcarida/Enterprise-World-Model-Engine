@@ -606,6 +606,43 @@ def _run_calibrate(
         return 1
 
 
+def _run_mcp(
+    provenance_strict: bool = False,
+    transport: str = "stdio",
+    host: str = "127.0.0.1",
+    port: int = 8000,
+) -> int:
+    """Launch the Model Context Protocol (MCP) server for agentic integrations."""
+    from ewm_engine.mcp.server import create_mcp_server, is_mcp_available
+
+    if not is_mcp_available():
+        sys.stderr.write(
+            "Error: The Model Context Protocol SDK is required to run the MCP server.\n"
+            "Install via `pip install ewm-engine[mcp]`.\n"
+        )
+        return 1
+
+    server = create_mcp_server(provenance_strict=provenance_strict)
+    if transport == "stdio":
+        server.run_stdio()
+        return 0
+    elif transport == "sse":
+        if hasattr(server.server, "run_sse_async"):
+            import asyncio
+
+            asyncio.run(server.server.run_sse_async(host=host, port=port))
+            return 0
+        elif hasattr(server.server, "run_sse"):
+            server.server.run_sse(host=host, port=port)
+            return 0
+        else:
+            sys.stderr.write("Error: SSE transport is not supported by the installed MCP SDK.\n")
+            return 1
+    else:
+        sys.stderr.write(f"Unknown transport: {transport}. Use 'stdio' or 'sse'.\n")
+        return 1
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Main CLI entrypoint for `ewm` command."""
     parser = argparse.ArgumentParser(
@@ -805,6 +842,34 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Do not exit with error code if coverage test fails",
     )
 
+    # 8. `ewm mcp [--provenance-strict] [--transport stdio|sse] [--host HOST] [--port PORT]`
+    mcp_parser = subparsers.add_parser(
+        "mcp", help="Run the Model Context Protocol (MCP) server for agentic hosts"
+    )
+    mcp_parser.add_argument(
+        "--provenance-strict",
+        action="store_true",
+        help="Enforce strict causal provenance and default LLM specs to low evidence level",
+    )
+    mcp_parser.add_argument(
+        "--transport",
+        choices=["stdio", "sse"],
+        default="stdio",
+        help="Transport protocol to use (default: stdio)",
+    )
+    mcp_parser.add_argument(
+        "--host",
+        type=str,
+        default="127.0.0.1",
+        help="Host address for SSE transport (default: 127.0.0.1)",
+    )
+    mcp_parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port number for SSE transport (default: 8000)",
+    )
+
     args = parser.parse_args(argv)
 
     if args.command == "example":
@@ -856,6 +921,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _handle_schema(args.action, args.name)
     elif args.command == "import-sd":
         return _import_sd(args.model_file, out_path_str=args.out)
+    elif args.command == "mcp":
+        return _run_mcp(
+            provenance_strict=args.provenance_strict,
+            transport=args.transport,
+            host=args.host,
+            port=args.port,
+        )
 
     parser.print_help()
     return 0
