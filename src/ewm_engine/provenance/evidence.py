@@ -24,3 +24,9 @@ class EvidenceLevel(StrEnum):
     QUASI_CAUSAL = "quasi_causal"
     PREDICTIVE = "predictive"
     ASSUMED = "assumed"
+    # World-model induction and causal equivalence class standings
+    ASSERTED = "asserted"
+    DIRECTIONAL_UNCERTAIN = "directional_uncertain"
+    CONFOUNDED = "confounded"
+    CALIBRATED = "calibrated"
+    HYPOTHETICAL = "hypothetical"

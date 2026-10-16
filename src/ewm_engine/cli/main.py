@@ -7,7 +7,7 @@ import json
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import ewm_engine
 from ewm_engine.core.spec import WorldFactory, WorldSpec
@@ -649,6 +649,8 @@ def _run_induce(
     db_path: str | None = None,
     ddl_str: str | None = None,
     ocel_path: str | None = None,
+    trajectories_path: str | None = None,
+    interventions_path: str | None = None,
     engine: str = "native",
     as_of: str | None = None,
     id_col: str | None = None,
@@ -656,16 +658,62 @@ def _run_induce(
     ts_col: str | None = None,
     link_prediction: bool = True,
     threshold: float = 0.7,
+    alpha: float = 0.05,
+    min_support: float = 0.5,
+    degree: int = 2,
+    tolerance: float = 1e-3,
+    mc_samples: int = 10,
     name: str | None = None,
     seed: int = 42,
     output_path: str | None = None,
     report_path: str | None = None,
 ) -> int:
-    """Execute world-model induction from DataFrame, SQL schema, or OCEL 2.0 event log."""
+    """Execute world-model induction from DataFrame, SQL schema, OCEL 2.0 log, causal discovery, or dynamics/invariants."""
+    from ewm_engine.core.spec import (
+        ComponentSpec,
+        EntitySpec,
+        RelationshipSpec,
+        ResourceSpec,
+        WorldMetadataSpec,
+        WorldSpec,
+    )
+    from ewm_engine.induction.causal import CausalEdgeType, induce_causal
     from ewm_engine.induction.connectors import DataFrameSchemaMapping, induce_from_dataframe
+    from ewm_engine.induction.dynamics import induce_dynamics
+    from ewm_engine.induction.invariants import induce_invariants
     from ewm_engine.induction.process import induce_process
     from ewm_engine.induction.schema import induce_schema
     from ewm_engine.serialization.yaml import safe_dump_yaml
+
+    def _load_data_file(p_str: str) -> list[dict[str, Any]]:
+        p = Path(p_str)
+        if not p.exists():
+            raise FileNotFoundError(f"Data file not found: {p_str}")
+        if p.suffix.lower() == ".csv":
+            import csv
+
+            with open(p, encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                return list(reader)
+        elif p.suffix.lower() in (".json", ".jsonl"):
+            content = p.read_text(encoding="utf-8")
+            if p.suffix.lower() == ".jsonl":
+                return [json.loads(line) for line in content.splitlines() if line.strip()]
+            else:
+                loaded = json.loads(content)
+                return loaded if isinstance(loaded, list) else [loaded]
+        elif p.suffix.lower() == ".parquet":
+            try:
+                import pyarrow.parquet as pq
+
+                table = pq.read_table(p)
+                return table.to_pylist()
+            except ImportError as err:
+                raise ImportError("pyarrow is required to read Parquet files.") from err
+        else:
+            raise ValueError(
+                f"Unsupported file format: {p.suffix}. Use .csv, .json, .jsonl, or .parquet."
+            )
 
     try:
         if target_type == "schema":
@@ -694,37 +742,7 @@ def _run_induce(
             if not data_path:
                 sys.stderr.write("Error: Must provide --data path for dataframe induction.\n")
                 return 1
-            p = Path(data_path)
-            if not p.exists():
-                sys.stderr.write(f"Error: Data file not found: {data_path}\n")
-                return 1
-
-            if p.suffix.lower() == ".csv":
-                import csv
-
-                with open(p, encoding="utf-8") as f:
-                    reader = csv.DictReader(f)
-                    df_data = list(reader)
-            elif p.suffix.lower() in (".json", ".jsonl"):
-                content = p.read_text(encoding="utf-8")
-                if p.suffix.lower() == ".jsonl":
-                    df_data = [json.loads(line) for line in content.splitlines() if line.strip()]
-                else:
-                    df_data = json.loads(content)
-            elif p.suffix.lower() == ".parquet":
-                try:
-                    import pyarrow.parquet as pq
-
-                    df_data = pq.read_table(p)
-                except ImportError:
-                    sys.stderr.write("Error: pyarrow is required to read Parquet files.\n")
-                    return 1
-            else:
-                sys.stderr.write(
-                    f"Unsupported file format: {p.suffix}. Use .csv, .json, .jsonl, or .parquet.\n"
-                )
-                return 1
-
+            df_data = _load_data_file(data_path)
             mapping = DataFrameSchemaMapping(
                 entity_id_col=id_col,
                 entity_type_col=type_col,
@@ -737,9 +755,131 @@ def _run_induce(
                 name=name or "InducedDataFrameWorld",
                 seed=seed,
             )
+        elif target_type == "causal":
+            if not data_path:
+                sys.stderr.write("Error: Must provide --data path for causal induction.\n")
+                return 1
+            c_data = _load_data_file(data_path)
+            interv_data = None
+            if interventions_path:
+                interv_p = Path(interventions_path)
+                if interv_p.exists():
+                    interv_data = json.loads(interv_p.read_text(encoding="utf-8"))
+
+            equiv_class, report = induce_causal(
+                data=c_data,
+                interventional_data=interv_data,
+                alpha=alpha,
+                min_support=min_support,
+                asserted_threshold=threshold,
+                seed=seed,
+            )
+            entities = [
+                EntitySpec(id=v, type="variable", attributes={"domain": "continuous"})
+                for v in equiv_class.variables
+            ]
+            relationships = [
+                RelationshipSpec(
+                    source=e.source,
+                    target=e.target,
+                    type=(
+                        "directed_dependency"
+                        if e.edge_type == CausalEdgeType.DIRECTED
+                        else "associated_with"
+                    ),
+                    attributes={
+                        "posterior_support": e.posterior_support,
+                        "evidence_level": e.evidence_level.value,
+                        "edge_type": e.edge_type.value,
+                    },
+                )
+                for e in equiv_class.edges
+            ]
+            spec = WorldSpec(
+                world=WorldMetadataSpec(name=name or "InducedCausalWorld"),
+                entities=entities,
+                relationships=relationships,
+            )
+        elif target_type == "dynamics":
+            traj_p = trajectories_path or data_path
+            if not traj_p:
+                sys.stderr.write(
+                    "Error: Must provide --trajectories or --data path for dynamics induction.\n"
+                )
+                return 1
+            traj_data = _load_data_file(traj_p)
+            rate_laws, report = induce_dynamics(
+                trajectories_or_dataset=traj_data,
+                degree=degree,
+                threshold=threshold,
+                seed=seed,
+            )
+            entities = [
+                EntitySpec(
+                    id=r.target_variable,
+                    type="resource_entity",
+                    attributes={"domain": "continuous"},
+                )
+                for r in rate_laws
+            ]
+            resources = [
+                ResourceSpec(
+                    id=r.target_variable,
+                    current=100.0,
+                    min_value=0.0,
+                    max_value=1e9,
+                    unit="units",
+                )
+                for r in rate_laws
+            ]
+            spec = WorldSpec(
+                world=WorldMetadataSpec(name=name or "InducedDynamicsWorld"),
+                entities=entities,
+                resources=resources,
+                dynamics=ComponentSpec(
+                    type="DeterministicDynamics",
+                    id="InducedDeterministicDynamics",
+                ),
+            )
+        elif target_type == "invariants":
+            traj_p = trajectories_path or data_path
+            if not traj_p:
+                sys.stderr.write(
+                    "Error: Must provide --trajectories or --data path for invariant induction.\n"
+                )
+                return 1
+            traj_data = _load_data_file(traj_p)
+            hypotheses, report = induce_invariants(
+                trajectories_or_dataset=traj_data,
+                tolerance=tolerance,
+                mc_samples=mc_samples,
+                seed=seed,
+            )
+            var_names = list(traj_data[0].keys()) if traj_data else []
+            entities = [
+                EntitySpec(id=v, type="resource_entity", attributes={"domain": "continuous"})
+                for v in var_names
+            ]
+            resources = [
+                ResourceSpec(
+                    id=v,
+                    current=float(traj_data[0].get(v, 100.0)) if traj_data else 100.0,
+                    min_value=0.0,
+                    max_value=1e9,
+                    unit="units",
+                )
+                for v in var_names
+            ]
+            constraints = [h.to_constraint_spec() for h in hypotheses]
+            spec = WorldSpec(
+                world=WorldMetadataSpec(name=name or "InducedInvariantWorld"),
+                entities=entities,
+                resources=resources,
+                constraints=constraints,
+            )
         else:
             sys.stderr.write(
-                f"Unknown induction target: {target_type}. Use 'schema', 'process', or 'dataframe'.\n"
+                f"Unknown induction target: {target_type}. Use 'schema', 'process', 'dataframe', 'causal', 'dynamics', or 'invariants'.\n"
             )
             return 1
 
@@ -1092,6 +1232,121 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--report", type=str, default=None, help="Output JSON file for InductionReport"
     )
 
+    # 9d. Causal structure induction
+    ind_causal = induce_subparsers.add_parser(
+        "causal",
+        help="Induce causal Markov equivalence class (CPDAG/PAG) from observational data",
+    )
+    ind_causal.add_argument(
+        "--data", type=str, required=True, help="Path to CSV, JSON, JSONL, or Parquet data file"
+    )
+    ind_causal.add_argument(
+        "--interventions",
+        type=str,
+        default=None,
+        help="Optional path to JSON file with experimental A/B test / intervention data",
+    )
+    ind_causal.add_argument(
+        "--alpha",
+        type=float,
+        default=0.05,
+        help="Significance level for independence tests (default: 0.05)",
+    )
+    ind_causal.add_argument(
+        "--min-support",
+        type=float,
+        default=0.5,
+        help="Minimum ensemble posterior support (default: 0.5)",
+    )
+    ind_causal.add_argument(
+        "--threshold",
+        type=float,
+        default=0.7,
+        help="Posterior threshold for ASSERTED status (default: 0.7)",
+    )
+    ind_causal.add_argument(
+        "--name", type=str, default="InducedCausalWorld", help="World specification name"
+    )
+    ind_causal.add_argument(
+        "--seed", type=int, default=42, help="Deterministic random seed (default: 42)"
+    )
+    ind_causal.add_argument("--out", type=str, default=None, help="Output YAML file for WorldSpec")
+    ind_causal.add_argument(
+        "--report", type=str, default=None, help="Output JSON file for InductionReport"
+    )
+
+    # 9e. Dynamics induction
+    ind_dyn = induce_subparsers.add_parser(
+        "dynamics",
+        help="Induce governing rate laws via SINDy and symbolic regression",
+    )
+    ind_dyn.add_argument(
+        "--trajectories",
+        "--data",
+        dest="trajectories",
+        type=str,
+        required=True,
+        help="Path to CSV, JSON, JSONL, or Parquet state transition trajectories file",
+    )
+    ind_dyn.add_argument(
+        "--degree",
+        type=int,
+        default=2,
+        help="Maximum polynomial degree for SINDy feature library (default: 2)",
+    )
+    ind_dyn.add_argument(
+        "--threshold",
+        type=float,
+        default=0.05,
+        help="SINDy sparse regression threshold (default: 0.05)",
+    )
+    ind_dyn.add_argument(
+        "--name", type=str, default="InducedDynamicsWorld", help="World specification name"
+    )
+    ind_dyn.add_argument(
+        "--seed", type=int, default=42, help="Deterministic random seed (default: 42)"
+    )
+    ind_dyn.add_argument("--out", type=str, default=None, help="Output YAML file for WorldSpec")
+    ind_dyn.add_argument(
+        "--report", type=str, default=None, help="Output JSON file for InductionReport"
+    )
+
+    # 9f. Invariant / conservation induction
+    ind_inv = induce_subparsers.add_parser(
+        "invariants",
+        help="Induce conservation laws via AI-Poincaré nullspace and Monte Carlo stress testing",
+    )
+    ind_inv.add_argument(
+        "--trajectories",
+        "--data",
+        dest="trajectories",
+        type=str,
+        required=True,
+        help="Path to CSV, JSON, JSONL, or Parquet state transition trajectories file",
+    )
+    ind_inv.add_argument(
+        "--tolerance",
+        type=float,
+        default=1e-3,
+        help="Numerical tolerance for hard constraint promotion (default: 1e-3)",
+    )
+    ind_inv.add_argument(
+        "--mc-samples",
+        type=int,
+        default=10,
+        help="Number of Monte Carlo stress testing perturbation rollouts (default: 10)",
+    )
+    ind_inv.add_argument(
+        "--name", type=str, default="InducedInvariantWorld", help="World specification name"
+    )
+    ind_inv.add_argument(
+        "--seed", type=int, default=42, help="Deterministic random seed (default: 42)"
+    )
+    ind_inv.add_argument("--out", type=str, default=None, help="Output YAML file for WorldSpec")
+    ind_inv.add_argument(
+        "--report", type=str, default=None, help="Output JSON file for InductionReport"
+    )
+
     args = parser.parse_args(argv)
 
     if args.command == "example":
@@ -1161,6 +1416,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             db_path=getattr(args, "db", None),
             ddl_str=getattr(args, "ddl", None),
             ocel_path=getattr(args, "ocel", None),
+            trajectories_path=getattr(args, "trajectories", None),
+            interventions_path=getattr(args, "interventions", None),
             engine=getattr(args, "engine", "native"),
             as_of=getattr(args, "as_of", None),
             id_col=getattr(args, "id_col", None),
@@ -1168,6 +1425,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             ts_col=getattr(args, "ts_col", None),
             link_prediction=getattr(args, "link_prediction", True),
             threshold=getattr(args, "threshold", 0.7),
+            alpha=getattr(args, "alpha", 0.05),
+            min_support=getattr(args, "min_support", 0.5),
+            degree=getattr(args, "degree", 2),
+            tolerance=getattr(args, "tolerance", 1e-3),
+            mc_samples=getattr(args, "mc_samples", 10),
             name=getattr(args, "name", None),
             seed=getattr(args, "seed", 42),
             output_path=getattr(args, "out", None),

@@ -430,16 +430,18 @@ class StructuralCausalModel(BaseModel):
         intervened_map: dict[str, Any] = {}
         if isinstance(intervention, dict):
             for k, v in intervention.items():
-                target_key = k if ":" in k else f"resource:{k}"
+                target_key = k if (":" in k or k in self.causal_graph.nodes) else f"resource:{k}"
                 intervened_map[target_key] = v
         elif isinstance(intervention, Intervention):
             for k, v in intervention.parameters.items():
-                target_key = k if ":" in k else f"resource:{k}"
+                target_key = k if (":" in k or k in self.causal_graph.nodes) else f"resource:{k}"
                 intervened_map[target_key] = v
         elif isinstance(intervention, Sequence):
             for act in intervention:
                 for k, v in act.parameters.items():
-                    target_key = k if ":" in k else f"resource:{k}"
+                    target_key = (
+                        k if (":" in k or k in self.causal_graph.nodes) else f"resource:{k}"
+                    )
                     intervened_map[target_key] = v
 
         # 2. Clone causal graph and sever incoming edges to intervened variables

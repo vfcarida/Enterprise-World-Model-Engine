@@ -227,6 +227,151 @@ class WorldSpec(BaseModel):
         )
         return spec
 
+    @classmethod
+    def from_causal(
+        cls,
+        data: Any,
+        var_names: list[str] | None = None,
+        interventional_data: dict[str, Any] | None = None,
+        name: str = "InducedFromCausal",
+        seed: int = 42,
+    ) -> WorldSpec:
+        """Induce a WorldSpec from observational and interventional data.
+
+        Runs an ensemble of constraint-based (PC/FCI), score-based (DAGMA),
+        and functional (DirectLiNGAM) discovery algorithms reconciled via DiBS
+        Bayesian aggregation into an equivalence class.
+        """
+        from ewm_engine.induction.causal import CausalEdgeType, induce_causal
+
+        equiv_class, _report = induce_causal(
+            data=data,
+            var_names=var_names,
+            interventional_data=interventional_data,
+            seed=seed,
+        )
+        entities = [
+            EntitySpec(id=v, type="variable", attributes={"domain": "continuous"})
+            for v in equiv_class.variables
+        ]
+        relationships = [
+            RelationshipSpec(
+                source=e.source,
+                target=e.target,
+                type=(
+                    "directed_dependency"
+                    if e.edge_type == CausalEdgeType.DIRECTED
+                    else "associated_with"
+                ),
+                attributes={
+                    "posterior_support": e.posterior_support,
+                    "evidence_level": e.evidence_level.value,
+                    "edge_type": e.edge_type.value,
+                },
+            )
+            for e in equiv_class.edges
+        ]
+        return cls(
+            world=WorldMetadataSpec(name=name),
+            entities=entities,
+            relationships=relationships,
+        )
+
+    @classmethod
+    def from_dynamics(
+        cls,
+        trajectories: Any,
+        target_resources: list[str] | None = None,
+        degree: int = 2,
+        threshold: float = 0.05,
+        name: str = "InducedFromDynamics",
+        seed: int = 42,
+    ) -> WorldSpec:
+        """Induce a WorldSpec with governing rate laws from state trajectories via SINDy."""
+        from ewm_engine.induction.dynamics import induce_dynamics
+
+        rate_laws, _report = induce_dynamics(
+            trajectories_or_dataset=trajectories,
+            target_resources=target_resources,
+            degree=degree,
+            threshold=threshold,
+            seed=seed,
+        )
+        entities = [
+            EntitySpec(
+                id=r.target_variable,
+                type="resource_entity",
+                attributes={"domain": "continuous"},
+            )
+            for r in rate_laws
+        ]
+        resources = [
+            ResourceSpec(
+                id=r.target_variable,
+                current=100.0,
+                min_value=0.0,
+                max_value=1e9,
+                unit="units",
+            )
+            for r in rate_laws
+        ]
+        return cls(
+            world=WorldMetadataSpec(name=name),
+            entities=entities,
+            resources=resources,
+            dynamics=ComponentSpec(
+                type="DeterministicDynamics",
+                id="InducedDeterministicDynamics",
+            ),
+        )
+
+    @classmethod
+    def from_invariants(
+        cls,
+        trajectories: Any,
+        resource_ids: list[str] | None = None,
+        tolerance: float = 1e-3,
+        mc_samples: int = 10,
+        name: str = "InducedFromInvariants",
+        seed: int = 42,
+    ) -> WorldSpec:
+        """Induce a WorldSpec with conservation laws verified via Monte Carlo stress testing."""
+        from ewm_engine.induction.invariants import induce_invariants
+
+        hypotheses, _report = induce_invariants(
+            trajectories_or_dataset=trajectories,
+            resource_ids=resource_ids,
+            tolerance=tolerance,
+            mc_samples=mc_samples,
+            seed=seed,
+        )
+        res_names = (
+            list(resource_ids)
+            if resource_ids
+            else (list(hypotheses[0].weights.keys()) if hypotheses else [])
+        )
+        entities = [
+            EntitySpec(id=v, type="resource_entity", attributes={"domain": "continuous"})
+            for v in res_names
+        ]
+        resources = [
+            ResourceSpec(
+                id=v,
+                current=100.0,
+                min_value=0.0,
+                max_value=1e9,
+                unit="units",
+            )
+            for v in res_names
+        ]
+        constraints = [h.to_constraint_spec() for h in hypotheses]
+        return cls(
+            world=WorldMetadataSpec(name=name),
+            entities=entities,
+            resources=resources,
+            constraints=constraints,
+        )
+
     def build_state(self) -> WorldState:
         """Build an immutable WorldState from this specification."""
         entities = [

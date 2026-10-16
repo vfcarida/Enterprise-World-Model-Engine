@@ -232,7 +232,12 @@
         "interventional",
         "quasi_causal",
         "predictive",
-        "assumed"
+        "assumed",
+        "asserted",
+        "directional_uncertain",
+        "confounded",
+        "calibrated",
+        "hypothetical"
       ],
       "title": "EvidenceLevel",
       "type": "string"

@@ -150,6 +150,7 @@ nav:
       - "Sensitivity Analysis": guides/sensitivity.md
       - "Simulation Calibration": guides/calibration.md
       - "OCEL 2.0 Process Induction": guides/ocel-induction.md
+      - "Causal & Dynamics Induction": guides/causal-dynamics-induction.md
       - "Optimize Interventions": guides/optimize-interventions.md
       - "Co-Simulation & FMI": guides/co-simulation.md
       - "Multi-Agent Simulation": guides/multi-agent.md
@@ -250,6 +251,7 @@ nav:
           - "ADR-045: MCP Server & Deterministic Agentic Substrate": adr/ADR-045-model-context-protocol-server-and-agentic-substrate.md
           - "ADR-046: Developer Experience, Teaching Errors & WASM Playground": adr/ADR-046-developer-experience-teaching-errors-and-wasm-playground.md
           - "ADR-047: World-Model Induction & AGPL Isolation": adr/ADR-047-world-model-induction-and-agpl-isolation.md
+          - "ADR-048: Causal & Dynamics Induction with GPL Isolation": adr/ADR-048-causal-and-dynamics-induction-with-gpl-isolation.md
 
   - Community & Governance:
       - "Community Health & CHAOSS": community-health.md

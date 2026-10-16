@@ -57,19 +57,48 @@ class ConformanceScore(BaseModel):
     evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL
 
 
+class CausalEquivalenceClassSummary(BaseModel):
+    """Summary of discovered causal Markov equivalence class (CPDAG/PAG)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    variables: list[str]
+    is_dag: bool = False
+    markov_equivalent_dags_count: int = 1
+    asserted_edges_count: int = 0
+    directional_uncertain_edges_count: int = 0
+    confounded_edges_count: int = 0
+    edges: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class InducedRateLawSummary(BaseModel):
+    """Summary of discovered governing differential or difference rate law."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    target_variable: str
+    expression: str
+    r_squared: float
+    complexity: int
+    evidence_level: str
+
+
 class InductionReport(BaseModel):
     """Auditable, reproducible report produced during world-model induction.
 
     Contains empirical conformance scores, candidate conservation laws,
-    provisional links, and a cryptographic SHA-256 fingerprint guaranteeing
-    that two runs on the same input data with the same seed yield identical results.
+    provisional links, causal equivalence classes, induced rate laws,
+    and a cryptographic SHA-256 fingerprint guaranteeing that two runs
+    on the same input data with the same seed yield identical results.
     """
 
     model_config = ConfigDict(extra="forbid")
 
     schema_version: str = "1.0.0"
     source: str
-    source_type: Literal["dataframe", "sql", "relational_schema", "ocel_2_0"]
+    source_type: Literal[
+        "dataframe", "sql", "relational_schema", "ocel_2_0", "causal", "dynamics", "invariants"
+    ]
     induced_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     seed: int = 42
     point_in_time_cutoff: str | None = None
@@ -83,6 +112,8 @@ class InductionReport(BaseModel):
     conformance: dict[str, ConformanceScore] = Field(default_factory=dict)
     candidate_invariants: list[CandidateInvariant] = Field(default_factory=list)
     provisional_links: list[ProvisionalLink] = Field(default_factory=list)
+    causal_equivalence_class: CausalEquivalenceClassSummary | None = None
+    induced_rate_laws: list[InducedRateLawSummary] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     sha256_fingerprint: str = ""
@@ -94,7 +125,7 @@ class InductionReport(BaseModel):
 
     def compute_fingerprint(self) -> str:
         """Calculate canonical SHA-256 hash over the deterministic fields."""
-        payload = {
+        payload: dict[str, Any] = {
             "schema_version": self.schema_version,
             "source": self.source,
             "source_type": self.source_type,
@@ -133,6 +164,24 @@ class InductionReport(BaseModel):
                 )
             ],
         }
+        if self.causal_equivalence_class is not None:
+            payload["causal_equivalence_class"] = {
+                "variables": sorted(self.causal_equivalence_class.variables),
+                "is_dag": self.causal_equivalence_class.is_dag,
+                "edges": sorted(
+                    [
+                        f"{e.get('source')}->{e.get('target')}:{e.get('type')}:{e.get('level')}"
+                        for e in self.causal_equivalence_class.edges
+                    ]
+                ),
+            }
+        if self.induced_rate_laws:
+            payload["induced_rate_laws"] = sorted(
+                [
+                    f"{r.target_variable}:{r.expression}:{round(r.r_squared, 4)}"
+                    for r in self.induced_rate_laws
+                ]
+            )
         canonical_str = json.dumps(payload, sort_keys=True)
         return hashlib.sha256(canonical_str.encode("utf-8")).hexdigest()
 
@@ -209,6 +258,44 @@ class InductionReport(BaseModel):
         if not self.provisional_links:
             lines.append("| *None* | - | - | - | - |")
 
+        if self.causal_equivalence_class:
+            lines.extend(
+                [
+                    "",
+                    "## Discovered Causal Structure (CPDAG / PAG)",
+                    "",
+                    f"- **Variables**: {len(self.causal_equivalence_class.variables)}",
+                    f"- **Estimated Markov DAGs**: {self.causal_equivalence_class.markov_equivalent_dags_count}",
+                    f"- **Asserted Edges**: {self.causal_equivalence_class.asserted_edges_count}",
+                    f"- **Directional-Uncertain Edges**: {self.causal_equivalence_class.directional_uncertain_edges_count}",
+                    f"- **Confounded Edges**: {self.causal_equivalence_class.confounded_edges_count}",
+                    "",
+                    "| Source | Target | Edge Type | Support | Evidence Level | Interventional |",
+                    "| :--- | :--- | :--- | :--- | :--- | :--- |",
+                ]
+            )
+            for e in self.causal_equivalence_class.edges:
+                lines.append(
+                    f"| `{e.get('source')}` | `{e.get('target')}` | `{e.get('type')}` | {e.get('support', 0.0):.2f} | `{e.get('level')}` | {e.get('interventional', False)} |"
+                )
+            if not self.causal_equivalence_class.edges:
+                lines.append("| *None* | - | - | - | - | - |")
+
+        if self.induced_rate_laws:
+            lines.extend(
+                [
+                    "",
+                    "## Induced Dynamics Rate Laws (SINDy / Symbolic Regression)",
+                    "",
+                    "| Target Variable | Rate Law Equation | R² | Complexity | Evidence Level |",
+                    "| :--- | :--- | :--- | :--- | :--- |",
+                ]
+            )
+            for r in self.induced_rate_laws:
+                lines.append(
+                    f"| `{r.target_variable}` | `{r.expression}` | {r.r_squared:.3f} | {r.complexity} | `{r.evidence_level}` |"
+                )
+
         return "\n".join(lines)
 
     def _repr_html_(self) -> str:
@@ -233,6 +320,23 @@ class InductionReport(BaseModel):
             else "<p style='color: #94a3b8; font-size: 12px; margin: 4px 0;'>No process conformance data.</p>"
         )
 
+        causal_snippet = ""
+        if self.causal_equivalence_class:
+            causal_snippet = (
+                f"<div style='margin-top: 10px; padding: 8px; background: #f8fafc; border-radius: 6px; font-size: 12px;'>"
+                f"<strong>Causal Structure:</strong> {self.causal_equivalence_class.asserted_edges_count} ASSERTED, "
+                f"{self.causal_equivalence_class.directional_uncertain_edges_count} UNCERTAIN, "
+                f"{self.causal_equivalence_class.confounded_edges_count} CONFOUNDED "
+                f"(~{self.causal_equivalence_class.markov_equivalent_dags_count} Markov DAGs)</div>"
+            )
+
+        dynamics_snippet = ""
+        if self.induced_rate_laws:
+            dynamics_snippet = (
+                f"<div style='margin-top: 10px; padding: 8px; background: #f8fafc; border-radius: 6px; font-size: 12px;'>"
+                f"<strong>Induced Rate Laws:</strong> {len(self.induced_rate_laws)} discovered governing equations</div>"
+            )
+
         return (
             f"<div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; "
             f"border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; background: #ffffff; "
@@ -250,6 +354,8 @@ class InductionReport(BaseModel):
             f"<div style='background: #f8fafc; padding: 8px; border-radius: 6px;'><strong>Resources</strong><br><span style='font-size: 16px; font-weight: 700;'>{self.resources_count}</span></div>"
             f"<div style='background: #f8fafc; padding: 8px; border-radius: 6px;'><strong>Invariants</strong><br><span style='font-size: 16px; font-weight: 700;'>{len(self.candidate_invariants)}</span></div>"
             f"</div>"
+            f"{causal_snippet}"
+            f"{dynamics_snippet}"
             f"<div style='margin-top: 10px;'><strong>Process Conformance Replay:</strong>{conf_table}</div>"
             f"<div style='margin-top: 8px; font-size: 11px; color: #64748b;'>Source: <code>{self.source}</code> | Seed: <code>{self.seed}</code></div>"
             f"</div>"
