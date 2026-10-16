@@ -1,4 +1,4 @@
-# EWM Engine — Transformative Architecture & Scientific Frontier Roadmap (v1.6 → v2.0)
+# Frontier Architecture & Causal Roadmap (v1.6 → v2.0)
 
 > Architectural specification mapping transformative capabilities across causal structural models, decision intelligence, certified calibration, and neuro-symbolic grey-box dynamics onto the engine's declared milestone frontier.
 > Anchored to the master release plan: `v1.5.0` (Shipped) · `v1.6.0` (Active: Learned Dynamics & Causal Epistemics) · `v1.7.0` (Decision Intelligence) · `v1.8.0` (Calibration to Reality) · `v1.9.0` (Neuro-Symbolic Maturation) · `v2.0.0` (Reference Architecture & Standard).

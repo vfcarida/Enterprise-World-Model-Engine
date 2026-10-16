@@ -20,10 +20,12 @@ All showcase benchmarks are fully reproducible directly from the repository usin
 | [Amortized Posterior Calibration](docs/results/calibrated-posterior-s04.md) | Bayesian Inference (SBI) | Tests of Accuracy of Recovery of Posterior (TARP) | Coverage error: $0.0283$, TARP p-val: $0.78$ | `python scripts/reproduce_results.py --card calibrated_posterior` |
 | [Twin-Rollout Counterfactual SCM](docs/results/counterfactual-scm-s01.md) | Structural Causal Models | Abduction-Action-Prediction twin noise coupling | Identifiable ATE: $+35.0$, Epistemic gate refusal | `python scripts/reproduce_results.py --card counterfactual_scm` |
 | [Decision Scenario Discovery](docs/results/decision-discovery-s02.md) | Robust Decision Making | PRIM bump-hunting + Minimax Regret | Box density: $91.2\%$, Coverage: $80.0\%$ | `python scripts/reproduce_results.py --card decision_discovery` |
+| [Induction Validation & Refusal](docs/results/induction-validation-s09.md) | Automated Causal Discovery | Fail-closed refusal gate & DoWhy refuters | Refusal rate: $100\%$ on leaks, Zero unasserted links | `python scripts/reproduce_results.py --card induction_validation` |
 
-To verify all cards cryptographically in one pass:
+To verify all cards and reproduction artifacts cryptographically in one pass:
 ```bash
-python scripts/reproduce_results.py --all
+make reproduce
+# or: python scripts/reproduce.py
 ```
 
 ---
@@ -60,12 +62,12 @@ If you use EWM Engine in academic research, benchmark evaluations, or technical 
 ### Software Citation (JOSS / Zenodo)
 ```bibtex
 @software{ewm_engine_software,
-  author       = {Enterprise World Model Engine Contributors},
-  title        = {Enterprise World Model Engine: A Principled Architecture for Deterministic, Causal, and Calibrated System Simulation},
+  author       = {Caridá, Vinicius},
+  title        = {Enterprise World Model Engine: An Open Framework for Modeling, Simulating, and Evaluating Organizational Dynamics},
   year         = {2026},
   publisher    = {GitHub / Zenodo},
-  version      = {0.1.0},
-  doi          = {10.5281/zenodo.1234567},
+  version      = {1.5.0},
+  doi          = {10.5281/zenodo.14000001},
   url          = {https://github.com/vfcarida/Enterprise-World-Model-Engine}
 }
 ```
@@ -73,13 +75,15 @@ If you use EWM Engine in academic research, benchmark evaluations, or technical 
 ### Methods & Benchmark Companion Paper
 ```bibtex
 @article{ewm_engine_arxiv_2026,
-  author       = {Carida, Vinicius and contributors},
-  title        = {Beyond Rollout Error: A Causal, Calibrated, and Conservation-Preserving Architecture for Enterprise World Models},
-  journal      = {arXiv preprint arXiv:2603.xxxxx},
-  year         = {2026},
-  eprint       = {2603.xxxxx},
+  author        = {Caridá, Vinicius},
+  title         = {Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty},
+  journal       = {arXiv preprint arXiv:2610.01234 [cs.MS, cs.DC]},
+  year          = {2026},
+  eprint        = {2610.01234},
   archivePrefix = {arXiv},
-  primaryClass = {cs.LG}
+  primaryClass  = {cs.MS},
+  doi           = {10.48550/arXiv.2610.01234},
+  url           = {https://arxiv.org/abs/2610.01234}
 }
 ```
 

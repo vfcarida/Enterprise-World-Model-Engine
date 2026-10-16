@@ -25,7 +25,7 @@ The **Enterprise World Model Engine (EWM Engine)** addresses this evaluation gap
 
 ```mermaid
 flowchart TD
-    subgraph SCM ["Sub-track A: Causal-Correctness Gates (Vafa et al. 2024)"]
+    subgraph SCM ["Causal-Correctness Gates (Vafa et al. 2024)"]
         Factual["Factual Trajectory (Observed)"]
         Intervention["Intervention do(X = x)"]
         Twin["Twin-Rollout (Coupled Exogenous Noise U)"]
@@ -36,7 +36,7 @@ flowchart TD
         Selectivity -->|Descendants Only & Correct Sign| CausalPass["PASS: Causal Invariant Preserved"]
     end
 
-    subgraph Metamorphic ["Sub-track B: Metamorphic Self-Knowledge Oracle (Chen et al.)"]
+    subgraph Metamorphic ["Metamorphic Self-Knowledge Oracle (Chen et al.)"]
         CleanSpec["Clean WorldSpec"]
         MRCards["MR-Cards: Determinism, Conservation, Scaling, Monotonicity, Permutation, Slack"]
         CleanSpec --> MRCards
@@ -50,7 +50,7 @@ flowchart TD
         Adequacy -->|Survived| MutFail["FAIL: Decorative Test Suite"]
     end
 
-    subgraph Abstention ["Sub-track C: Epistemic Abstention & Physics-IQ (RWM-U)"]
+    subgraph Abstention ["Epistemic Abstention & Physics-IQ (RWM-U)"]
         Rollout["Candidate Simulation Trajectory"]
         Rollout --> CompEst["Competence Estimator"]
         CompEst --> Decay["Horizon Length Exponential Decay"]

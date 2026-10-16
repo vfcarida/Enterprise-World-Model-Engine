@@ -301,6 +301,8 @@ nav:
       - "Experimentation Suite": concepts/experimentation.md
       - "Interop & Ecosystem": concepts/interop.md
       - "Architecture Overview": architecture/overview.md
+      - "Platform Capability Tracks (T1–T9)": architecture/platform-tracks.md
+      - "Frontier Architecture & Causal Roadmap": architecture/frontier-roadmap.md
       - "State Management & Formalism": architecture/state-management.md
       - "Simulation Lifecycle": architecture/simulation-lifecycle.md
       - "Observability Layer": architecture/observability.md

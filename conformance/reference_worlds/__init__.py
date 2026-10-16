@@ -1,4 +1,4 @@
-"""Reference Worlds suite for Enterprise World Model Engine (T08)."""
+"""Reference Worlds suite for Enterprise World Model Engine."""
 
 from __future__ import annotations
 

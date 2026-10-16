@@ -1,4 +1,4 @@
-"""World Model Interchange Format (WMIF) self-describing container standard (T08, ADR-051).
+"""World Model Interchange Format (WMIF) self-describing container standard (ADR-051).
 
 Architectural Anchors:
 - FMI 3.0 / Reference-FMUs model: Self-describing PKZIP container (.wmif) encapsulating

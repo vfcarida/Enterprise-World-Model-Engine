@@ -1,4 +1,4 @@
-"""Unit tests for World Model Interchange Format (WMIF) container standard (T08)."""
+"""Unit tests for World Model Interchange Format (WMIF) container standard."""
 
 from __future__ import annotations
 

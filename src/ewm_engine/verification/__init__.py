@@ -1,6 +1,6 @@
 """Trajectory verification subsystem: Oracle Graph and Signal Temporal Logic.
 
-Conforms to Track T3 in 01_EXPANDED_ROADMAP.md.
+Conforms to Track T3 (Trajectory Verification) in docs/architecture/platform-tracks.md.
 """
 
 from __future__ import annotations

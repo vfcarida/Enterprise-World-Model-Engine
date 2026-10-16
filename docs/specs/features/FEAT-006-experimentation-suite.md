@@ -3,7 +3,7 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.4.0 "Experimentation Suite"
 - **Authors:** Research Methods & Decision Optimization Team
-- **Governance:** `01_EXPANDED_ROADMAP.md` (Track T4), ADR-028, ACP-007
+- **Governance:** [`platform-tracks.md`](../../architecture/platform-tracks.md) (Track T4), ADR-028, ACP-007
 - **Dependencies:** Core engine (Zero new dependencies: stdlib, NumPy, Pydantic); Optional extras: `[sensitivity]` (SALib), `[calibrate]` (SciPy, scikit-learn), `[opt-evolutionary]` (pycma, nevergrad), `[opt-pareto]` (pymoo), `[surrogate]` (scikit-learn)
 
 ---

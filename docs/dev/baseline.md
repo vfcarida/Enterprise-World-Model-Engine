@@ -162,4 +162,4 @@ The following roadmap items are tracked for subsequent release milestones:
 - **Distributed Execution (v1.1.0):** Distributed Monte Carlo execution (Ray / multiprocessing with per-rollout `SeedSequence` bitwise equivalence tests).
 - **Observability (v1.1.0):** OpenTelemetry lifecycle hook span exporter (zero core dependencies).
 - **Decision & Solvers (v1.1.0):** Graduate solver/Gym adapters from Alpha to Beta; implement OR-Tools CP-SAT and SciPy action planners with execution time bounds.
-- **Platform Tracks (v1.2–v1.6):** Architectural tracks from `01_EXPANDED_ROADMAP.md` (TraceLog, ResultStore, Oracle-graph verifier, DoE suite, Co-simulation, Cards).
+- **Platform Tracks (v1.2–v1.6):** Architectural tracks from [platform-tracks.md](../architecture/platform-tracks.md) (TraceLog, ResultStore, Oracle-graph verifier, DoE suite, Co-simulation, Cards).

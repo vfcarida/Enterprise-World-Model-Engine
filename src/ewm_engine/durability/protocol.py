@@ -1,6 +1,6 @@
 """Protocols for EventStore and ResultStore.
 
-Conforms to Tracks T1 & T2 in 01_EXPANDED_ROADMAP.md:
+Conforms to Tracks T1 & T2 in docs/architecture/platform-tracks.md:
 - EventStore: append/read/fold abstractions enabling in-memory, SQLite, and future
   adapters (e.g. eventsourcing, KurrentDB) without core modifications.
 - ResultStore: get/put/contains/delete keyed by canonical simulation fingerprint.

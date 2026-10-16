@@ -1,4 +1,4 @@
-"""Comprehensive reproduction orchestrator for EWM Engine (T09).
+"""Comprehensive reproduction orchestrator for EWM Engine.
 
 Regenerates all scientific result cards, verifies SHA-256 simulation fingerprints
 across reference worlds and batched backends, generates vector SVG visual artifacts,
@@ -296,8 +296,8 @@ def reproduce_all() -> dict[str, Any]:
             cards_passed = False
             print(f"  [FAIL] Card '{name}': {exc}")
 
-    # 2. Conformance Reference Worlds (T08 WMIF standard)
-    print("\n[PHASE 2] Executing Standalone Conformance Reference Worlds (T08)...")
+    # 2. Conformance Reference Worlds (WMIF standard)
+    print("\n[PHASE 2] Executing Standalone Conformance Reference Worlds...")
     ref_world_results: dict[str, Any] = {}
     conformance_passed = True
     tmp_dir = REPO_ROOT / "build" / "conformance_reproduction"
@@ -329,8 +329,8 @@ def reproduce_all() -> dict[str, Any]:
         badge = "[PASS]" if passed else "[FAIL]"
         print(f"  {badge} Reference World '{name}': Bit-Exact Conformance")
 
-    # 3. Batched Scale Tensor Bit-Identity (T07)
-    print("\n[PHASE 3] Verifying Batched Scale SoA State Tensor (T07)...")
+    # 3. Batched Scale Tensor Bit-Identity
+    print("\n[PHASE 3] Verifying Batched Scale SoA State Tensor...")
     from ewm_engine.simulation.batched import SoAStateTensor
 
     state = world.snapshot()

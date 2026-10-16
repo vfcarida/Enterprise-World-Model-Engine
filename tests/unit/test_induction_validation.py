@@ -1,4 +1,4 @@
-"""Unit tests for induction honesty, validation, and refusal gate (T06).
+"""Unit tests for induction honesty, validation, and refusal gate.
 
 Verifies that:
 1. Observational symmetry / directional uncertainty is refused from WorldSpec directed edges.

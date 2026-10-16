@@ -3,7 +3,7 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.8.0 "Grey-Box Conservation Layer & Neuro-Symbolic Flywheel"
 - **Authors:** Hybrid Dynamics, Causal Systems & Verification Teams
-- **Governance:** `02_ROUND5_EXPANDED_ROADMAP.md` (Grey-Box Dynamics), ADR-042, ACP-011
+- **Governance:** [frontier-roadmap.md](../../architecture/frontier-roadmap.md) (Grey-Box Dynamics), ADR-042, ACP-011
 - **Dependencies:** Core engine (Zero new mandatory dependencies: stdlib, NumPy, Pydantic); Optional extras: `[ml]` (torch), `[symbolic]` (pysr)
 
 ---
@@ -27,7 +27,7 @@ FEAT-010 operationalizes the state-of-the-art hybrid-dynamics literature (Rackau
 
 ## 2. Requirements & Acceptance Criteria
 
-### Sub-track 1: Residual-Only Learned Dynamics (Track A / PR 1)
+### Sub-track 1: Residual-Only Learned Dynamics
 - **AC-066 (UDE Residual Interface & Invariant 5 Bit-Identity):**
   - Implement `GreyBoxDynamics` conforming to `DynamicsModel`.
   - Reframe learned dynamics to estimate only residual deltas $\Delta_\theta(s, a, e)$ over the output of `known_model: DynamicsModel`.
@@ -35,7 +35,7 @@ FEAT-010 operationalizes the state-of-the-art hybrid-dynamics literature (Rackau
   - Epistemic Status: Transitions with zero residual retain `EvidenceLevel.STRUCTURAL`. Applying empirical residuals shifts the step result to `EvidenceLevel.PREDICTIVE`.
   - Implement `ResidualEstimator` protocol with `ZeroResidualEstimator`, `CallableResidualEstimator`, and `LinearResidualEstimator`.
 
-### Sub-track 2: Architectural Conservation Layer (Track B / PR 2)
+### Sub-track 2: Architectural Conservation Layer
 - **AC-067 (Exact Conservation Projection Layer):**
   - Implement `LinearConservationLaw` capturing linear equality constraints ($A \Delta = \mathbf{b}$), with factory helpers for zero-sum flows ($\sum \Delta_i = 0$) and double-entry balance ($\sum \text{debit} - \sum \text{credit} = 0$).
   - Implement `ConservationProjectionLayer` computing the Moore-Penrose / KKT orthogonal projection onto the nullspace of $A$:
@@ -46,7 +46,7 @@ FEAT-010 operationalizes the state-of-the-art hybrid-dynamics literature (Rackau
   - Implement `evaluate_conservation_honesty(...)` producing `ConservationHonestyReport`.
   - Report must confirm that the grey-box equipped with the conservation projection layer achieves a `violation_rate == 0.0` (structurally zero), contrasted with non-zero violation rates on unconstrained learned baselines.
 
-### Sub-track 3: Neuro-Symbolic Flywheel & Audited Promotion (Track C / PR 3)
+### Sub-track 3: Neuro-Symbolic Flywheel & Audited Promotion
 - **AC-069 (SINDy Sparse Symbolic Regression Engine):**
   - Implement `SINDyRegressor` using Sequential Thresholded Least Squares (STLSQ) in pure NumPy with candidate polynomial libraries up to degree 2/3.
   - Compute normalized column projections for scale-invariant sparse term selection.

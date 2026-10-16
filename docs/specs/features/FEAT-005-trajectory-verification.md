@@ -3,7 +3,7 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.3.0 "Trajectory Verification"
 - **Authors:** Verification Engineering & Formal Methods Team
-- **Governance:** `01_EXPANDED_ROADMAP.md` (Track T3), ADR-027, ACP-006
+- **Governance:** [`platform-tracks.md`](../../architecture/platform-tracks.md) (Track T3), ADR-027, ACP-006
 - **Dependencies:** Core engine (Zero new dependencies: stdlib, NumPy, Pydantic); Optional extra `[stl]` (`rtamt`)
 
 ---

@@ -1,6 +1,6 @@
 """Structure-of-Arrays (SoA) batched simulation kernel and cross-backend engine.
 
-EWM Performance Architecture (T07):
+EWM Performance Architecture:
 Provides a vectorized, high-throughput Monte Carlo engine where the ensemble of N branches
 is represented in Structure-of-Arrays (SoA) format.
 

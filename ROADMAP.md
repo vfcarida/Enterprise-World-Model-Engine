@@ -90,8 +90,8 @@ Capabilities in EWM Engine are classified under explicit, strictly enforced matu
 
 ## Platform Completeness & Transformative Roadmap (v1.2 — v2.0)
 
-See [01_EXPANDED_ROADMAP.md](01_EXPANDED_ROADMAP.md) for platform tracks T1–T9.
-See [02_ROUND5_EXPANDED_ROADMAP.md](02_ROUND5_EXPANDED_ROADMAP.md) for transformative architecture capabilities and milestone sequencing.
+See [Platform Capability Tracks (T1–T9)](docs/architecture/platform-tracks.md) for detailed platform track specifications.
+See [Frontier Architecture & Causal Roadmap](docs/architecture/frontier-roadmap.md) for transformative architecture capabilities and milestone sequencing.
 
 ### v1.2.0 — Durability & Reproducibility (Tracks T1, T2, T9) [Shipped]
 - **T1: Event-Sourced `TraceLog` & Replay (CORE)**: Append-only transition log with versioned canonical event schemas; `EventStore` protocol (`append/read/fold`) with stdlib SQLite and JSON/YAML backends. Columnar sink to Parquet/DuckDB (`[analytics]` extra).

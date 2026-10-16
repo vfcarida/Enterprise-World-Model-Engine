@@ -115,7 +115,7 @@ class InductionReport(BaseModel):
     causal_equivalence_class: CausalEquivalenceClassSummary | None = None
     induced_rate_laws: list[InducedRateLawSummary] = Field(default_factory=list)
 
-    # T06 Induction Honesty and Refusal Gate fields
+    # Induction Honesty and Refusal Gate fields
     validation_passed: bool | None = None
     refused_elements_count: int = 0
     open_questions_count: int = 0
@@ -266,14 +266,14 @@ class InductionReport(BaseModel):
         lines.extend(
             [
                 "",
-                "## Provisional Inferred Links (T06 Gating Required)",
+                "## Provisional Inferred Links (Validation Gating Required)",
                 "",
                 "| Source Entity | Target Entity | Relationship | Confidence | Status |",
                 "| :--- | :--- | :--- | :--- | :--- |",
             ]
         )
         for pl in self.provisional_links:
-            status = "APPROVED" if pl.clears_gate else "PENDING_T06_GATE"
+            status = "APPROVED" if pl.clears_gate else "PENDING_VALIDATION_GATE"
             lines.append(
                 f"| `{pl.source_entity}` | `{pl.target_entity}` | `{pl.relationship_type}` | {pl.confidence:.2f} | `{status}` |"
             )
@@ -327,7 +327,7 @@ class InductionReport(BaseModel):
             lines.extend(
                 [
                     "",
-                    "## Induction Honesty & Refusal Gate (T06)",
+                    "## Induction Honesty & Refusal Gate",
                     "",
                     f"- **Gate Status**: `{gate_status}`",
                     f"- **Refused Elements**: {self.refused_elements_count}",

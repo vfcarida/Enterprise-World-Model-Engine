@@ -1,6 +1,6 @@
 """Native reproducibility cards (ScenarioCard, ModelCard, DatasetCard) and renderers.
 
-Conforms to Track T9 in 01_EXPANDED_ROADMAP.md.
+Conforms to Track T9 in docs/architecture/platform-tracks.md.
 """
 
 from __future__ import annotations

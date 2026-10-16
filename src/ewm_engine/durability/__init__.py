@@ -1,6 +1,6 @@
 """Durability, event-sourcing, replay, and result store facilities for EWM Engine.
 
-Conforms to Tracks T1 & T2 in 01_EXPANDED_ROADMAP.md.
+Conforms to Tracks T1 & T2 in docs/architecture/platform-tracks.md.
 """
 
 from __future__ import annotations

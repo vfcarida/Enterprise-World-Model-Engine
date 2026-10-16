@@ -2,7 +2,7 @@
 
 ## Context and Problem Statement
 
-Automated world-model induction (`T04` process/schema, `T05` causal/dynamics) is a powerful capability for creating digital twins from enterprise telemetry. However, unconstrained automated induction presents severe epistemic and operational hazards:
+Automated world-model induction (process/schema and causal/dynamics) is a powerful capability for creating digital twins from enterprise telemetry. However, unconstrained automated induction presents severe epistemic and operational hazards:
 
 1. **Observational Equivalence Overclaiming**: Observational data identifies only a Markov equivalence class (CPDAG or PAG), never a single unique Directed Acyclic Graph (DAG) (Spirtes et al., 2000; arXiv:2305.10032). Continuous score-based discoverers (e.g. NOTEARS) are vulnerable to variance scale ordering manipulation (arXiv:2206.07195). Asserting a single directed causal mechanism without interventional disambiguation or functional asymmetry is scientifically invalid.
 2. **Spurious Invariants & Overfitting**: Symbolic regression and nullspace discovery can identify numerical regularities in training data that fail under real-world dynamics or out-of-distribution rollouts. Promoting an empirical regularity to a hard conservation law without rigorous stress testing produces fragile, invalid simulations.
@@ -20,7 +20,7 @@ Enterprise World Model Engine must be **the only auto-modeler that refuses to ov
    - Output raw discovery tables and require a human engineer to transcribe each relationship into `WorldSpec`.
    - *Rejected*: Impractical for enterprise systems with hundreds of entities and thousands of transitions.
 3. **Mandatory, Fail-Closed Validation & Refusal Gate (`ewm induce validate`)**:
-   - Establish a unified, mandatory gate every induction path (`T04`, `T05`) must pass through.
+   - Establish a unified, mandatory gate every induction path must pass through.
    - Represent candidate structures honestly as equivalence classes (CPDAG/PAG) with posterior probabilities (DiBS, arXiv:2105.11839).
    - Apply shared empirical validators:
      - **DoWhy-style causal refuters** (placebo treatment, random common cause, data subset).

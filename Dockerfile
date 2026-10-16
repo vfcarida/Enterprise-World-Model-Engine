@@ -1,4 +1,4 @@
-# Pinned deterministic reproduction container for Enterprise World Model Engine (T09)
+# Pinned deterministic reproduction container for Enterprise World Model Engine
 FROM python:3.11-slim-bookworm
 
 LABEL org.opencontainers.image.title="Enterprise World Model Engine" \

@@ -1,6 +1,6 @@
 """Contract test for scale, Structure-of-Arrays batched execution, and cross-backend bit-identity.
 
-Enforces Invariant #5 and T07 requirements:
+Enforces Invariant #5 and batched scale requirements:
 1. Certified backends (NumPy, JAX CPU/GPU with Threefry) guarantee bit-identical SHA-256 fingerprints.
 2. Residual float-nondeterministic backends (CUDA/CuPy) are explicitly labeled throughput-only.
 3. Order-independent reduction under distributed parallel execution (Ray / Dask / Multiprocessing).

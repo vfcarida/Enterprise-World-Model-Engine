@@ -1,4 +1,4 @@
-"""Unit tests for world-model induction subsystem (T04).
+"""Unit tests for world-model induction subsystem.
 
 Tests:
     1. Arrow/DataFrame connectors with point-in-time correctness

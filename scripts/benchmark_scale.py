@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Automated scaling curve benchmark generator for EWM Engine (T07).
+"""Automated scaling curve benchmark generator for EWM Engine.
 
 Measures simulation throughput across ensemble sizes and execution backends:
 1. Sequential Pure-Python (SerialExecutor, canonical oracle)

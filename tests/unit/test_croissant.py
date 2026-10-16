@@ -1,4 +1,4 @@
-"""Unit tests for MLCommons Croissant 1.0 JSON-LD dataset manifest generator (T08)."""
+"""Unit tests for MLCommons Croissant 1.0 JSON-LD dataset manifest generator."""
 
 from __future__ import annotations
 

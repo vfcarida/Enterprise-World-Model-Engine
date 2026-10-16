@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Standalone Conformance Test Runner for Enterprise World Model Engine (T08).
+"""Standalone Conformance Test Runner for Enterprise World Model Engine.
 
 Evaluates simulation engines against the EWM Conformance Suite.
 Adopts the JSON Schema Test Suite operational model:
@@ -182,7 +182,7 @@ def main() -> int:
     else:
         suite_dir = TESTS_DIR / "latest"
     print("=" * 70)
-    print("Enterprise World Model Engine - Conformance Suite Runner (T08)")
+    print("Enterprise World Model Engine - Conformance Suite Runner")
     print(f"Target Directory: {suite_dir}")
     if args.category:
         print(f"Category Filter:  {args.category}")

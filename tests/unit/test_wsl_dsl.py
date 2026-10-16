@@ -1,4 +1,4 @@
-"""Unit tests for WSL DSL Lark parser and Language Server Protocol diagnostics (T08)."""
+"""Unit tests for WSL DSL Lark parser and Language Server Protocol diagnostics."""
 
 from __future__ import annotations
 

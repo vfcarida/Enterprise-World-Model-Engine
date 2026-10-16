@@ -3,7 +3,7 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.6.0 "Twin-Rollout SCM Kernel & Native Pearl Counterfactuals"
 - **Authors:** Causal Simulation Engineering & Platform Architecture
-- **Governance:** `02_ROUND5_EXPANDED_ROADMAP.md` (Causal Epistemics), ADR-040, ACP-009
+- **Governance:** [`frontier-roadmap.md`](../../architecture/frontier-roadmap.md) (Causal Epistemics), ADR-040, ACP-009
 - **Dependencies:** Core engine (Zero new dependencies: stdlib, NumPy, Pydantic); Optional extras: `[causal]` (DoWhy, Causal-Learn)
 
 ---
@@ -23,14 +23,14 @@ Prior to FEAT-008, EWM Engine treated causality primarily as an evaluation and c
 
 ## 2. Requirements & Acceptance Criteria
 
-### Sub-track 1: Typed Graph to Structural Causal Model Compilation (Track A)
+### 1. Typed Graph to Structural Causal Model Compilation
 - **AC-058 (SCM View & Structural Assignments):**
   - Compile `World`, `WorldSpec`, and `WorldState` into an immutable `StructuralCausalModel` view without creating a disjoint mutable state model.
   - Model every rule, transition, and dynamic update as a structural assignment $V_i := f_i(\text{PA}_i, U_i)$, where $\text{PA}_i$ are endogenous parent variables and $U_i$ are addressable exogenous noise variables.
   - Derive exogenous noise streams deterministically from the hierarchical `SeedSequence` tree; forbid global unseeded RNGs.
   - Record addressable exogenous noise draws in `SystemicTrace.exogenous_noise` with canonical SHA-256 fingerprinting (`exogenous_noise_fingerprint`).
 
-### Sub-track 2: Native Pearl Counterfactuals & Twin-Rollout Coupling (Track B)
+### 2. Native Pearl Counterfactuals & Twin-Rollout Coupling
 - **AC-059 (Abduction–Action–Prediction Engine):**
   - Implement Pearl's three-step counterfactual algorithm natively in `CounterfactualEngine` and expose via `world.counterfactual(observed_trajectory, intervention=...)`:
     1. **Abduction:** Given an observed trajectory $\tau_{\text{fact}}$, invert structural assignments to recover or sample the posterior over exogenous noise $P(U \mid \tau_{\text{fact}})$.
@@ -39,7 +39,7 @@ Prior to FEAT-008, EWM Engine treated causality primarily as an evaluation and c
   - Enforce **Twin-Rollout coupling**: factual and counterfactual branches share exogenous noise bit-for-bit, ensuring that observed differences are purely attributable to the causal intervention.
   - Enforce **Invariant 5 (Bit-Level Reproducibility)**: identical factual trajectories and interventions produce bit-identical counterfactual states and fingerprints across independent runs.
 
-### Sub-track 3: Epistemic Honesty Guardrails (Track C)
+### 3. Epistemic Honesty Guardrails
 - **AC-060 (Rung-3 Evidence Scoping & Identifiability Guard):**
   - Tag all counterfactual outputs with `EvidenceLevel.COUNTERFACTUAL = "counterfactual"`.
   - Attach a mandatory epistemic disclaimer: counterfactuals are evaluated strictly within the simulated SCM and represent *model-counterfactuals*, not validated real-world counterfactuals without empirical ground truth.
@@ -47,7 +47,7 @@ Prior to FEAT-008, EWM Engine treated causality primarily as an evaluation and c
   - Integrate with the population ID-gate: refuse population-level causal claims if the graph structure fails mathematical identifiability (e.g. unobserved confounding across treatment and outcome).
   - Strictly prohibit emitting synthetic `"causes"` graph relationships.
 
-### Sub-track 4: Legibility & Trace Divergence (Track D)
+### 4. Legibility & Trace Divergence
 - **AC-061 (Systemic Trace Divergence & Visualization):**
   - Implement `TraceDiff` and `SystemicTrace.diff()` calculating structural divergence between factual and counterfactual executions.
   - Isolate invariant nodes, divergent target nodes, and unobserved noise variables.

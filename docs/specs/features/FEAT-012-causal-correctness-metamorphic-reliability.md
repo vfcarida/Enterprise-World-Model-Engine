@@ -3,7 +3,7 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.9.0 "Model Reliability Beyond Rollout Error"
 - **Authors:** Simulation Architecture, Evaluation & Verification Teams
-- **Governance:** `02_ROUND5_EXPANDED_ROADMAP.md` (Causal Correctness), ADR-044
+- **Governance:** [frontier-roadmap.md](../../architecture/frontier-roadmap.md) (Causal Correctness), ADR-044
 - **Dependencies:** Core engine (Zero mandatory heavy dependencies: stdlib, pure NumPy, Pydantic); integrates with SCM Kernel and Decision Engine (`ewm decide`)
 
 ---
@@ -24,7 +24,7 @@ FEAT-012 transforms world-model reliability into **first-class scored features**
 
 ## 2. Requirements & Acceptance Criteria
 
-### Sub-track 1: Causal-Correctness & Intervention Selectivity Gates (Track A / PR 1)
+### Sub-track 1: Causal-Correctness & Intervention Selectivity Gates
 - **AC-076 (Descendant Selectivity):**
   - Given an SCM compiled from `WorldSpec`, for any intervention $do(X = x)$, assert that only descendants of $X$ diverge between factual and counterfactual rollouts under coupled exogenous noise.
   - All non-descendant variables $Y \notin \text{Descendants}(X) \cup \{X\}$ must strictly satisfy $|Y_{cf}(t) - Y_{factual}(t)| \le \text{tolerance}$ across all steps.
@@ -35,7 +35,7 @@ FEAT-012 transforms world-model reliability into **first-class scored features**
 - **AC-078 (Anti-Overclaiming Gate):**
   - Passing causal gates certifies consistency with the assumed structural graph; it does not claim to have discovered unconditional physical truth, nor does it automatically upgrade `EvidenceLevel`.
 
-### Sub-track 2: Metamorphic Relations & Mutation Adequacy (Track B / PR 2)
+### Sub-track 2: Metamorphic Relations & Mutation Adequacy
 - **AC-079 (Standard MR-Cards):**
   - Implement executable MR-cards:
     - `MR_DETERMINISM`: Identical seed + config $\implies$ bit-identical state hashes.
@@ -51,7 +51,7 @@ FEAT-012 transforms world-model reliability into **first-class scored features**
     - `PermutationBiasDynamics` (entity bias mutant)
   - Assert that the metamorphic suite kills synthetic mutants with a mutation adequacy score $\ge 80\%$.
 
-### Sub-track 3: Epistemic Abstention & Decision Wiring (Track C / PR 3)
+### Sub-track 3: Epistemic Abstention & Decision Wiring
 - **AC-081 (Competence Estimator & Epistemic Abstention):**
   - Implement `CompetenceEstimator` evaluating continuous competence score $C \in [0, 1]$ based on exponential horizon decay, historical support bounds, and non-negativity constraint proximity.
   - Emit `EpistemicCompetence` with explicit `abstention_step` and `abstention_reason`.
@@ -62,7 +62,7 @@ FEAT-012 transforms world-model reliability into **first-class scored features**
   - Implement `PhysicsIQGuardrail` auditing physical invariants (non-negativity of mass, conservation of closed resource groups).
   - Explicit doctrine: Output plausibility and perceptual realism are never used as correctness proxies.
 
-### Sub-track 4: Unified Reliability Report & CI Verification (Track D / PR 4)
+### Sub-track 4: Unified Reliability Report & CI Verification
 - **AC-084 (WorldModelReliabilityReport):**
   - Implement `WorldModelReliabilityReport` aggregating causal report, metamorphic report, mutation adequacy, competence/abstention rate, and Physics-IQ score.
   - Provide `summary_table()`, `to_markdown()`, and `to_json()`.

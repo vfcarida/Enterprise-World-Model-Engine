@@ -27,7 +27,7 @@ Every result card below is backed by a committed, seeded Python test harness and
    conservation.       multiplier.    depletion.    coverage.          coupling.
      │                                                                 │
      ▼                                                                 ▼
-6. Decision Discovery (PRIM)                               7. Induction Validation (T06)
+6. Decision Discovery (PRIM)                               7. Induction Validation
    Subspace vulnerability analysis.                           Honest refusal gate & refuters.
 ```
 
@@ -43,7 +43,7 @@ Every result card below is backed by a committed, seeded Python test harness and
 | **Amortized SBI Calibration** | Simulation-Based Inference (Papamakarios et al. 2019) | **TARP Error = 0.028**<br>(Certified Coverage) | `python scripts/reproduce_results.py --card calibrated_posterior` | [View Card](calibrated-posterior-s04.md) |
 | **Twin-Rollout Counterfactual** | Causal SCM noise coupling (Richens & Everitt, ICLR 2024) | **Noise Coupling = 100%**<br>(Net ATE Isolated) | `python scripts/reproduce_results.py --card counterfactual_scm` | [View Card](counterfactual-scm-s01.md) |
 | **Scenario Discovery (PRIM)** | Robust Decision Making & Regret (Friedman & Fisher 1999) | **Box Density = 91.2%**<br>(Coverage = 80.0%) | `python scripts/reproduce_results.py --card decision_discovery` | [View Card](decision-discovery-s02.md) |
-| **Induction Validation & Refusal** | Automated Causal Discovery (T04–T06, Pearl Rung-3) | **Refusal Rate = 100% on Leaks**<br>(Zero Unasserted Links) | `python scripts/reproduce_results.py --card induction_validation` | [View Card](induction-validation-s09.md) |
+| **Induction Validation & Refusal** | Automated Causal Discovery (Pearl Rung-3) | **Refusal Rate = 100% on Leaks**<br>(Zero Unasserted Links) | `python scripts/reproduce_results.py --card induction_validation` | [View Card](induction-validation-s09.md) |
 
 ---
 

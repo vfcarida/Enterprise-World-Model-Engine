@@ -1,8 +1,7 @@
-# EWM Engine Coordinated Single-Day Launch Pack
+# EWM Engine Coordinated Release & Launch Operations
 
-> **Role:** Open-Source GTM & Developer Experience Lead.  
-> **Core Rule:** *The launch fires only once — fire it when install (`T01`), docs, MCP (`T02`), and the demo playground (`T03`) are all live.*  
-> **Citable Thesis:** *Richens & Everitt (ICLR 2024 oral, arXiv:2402.10877): Any agent that robustly generalizes across distribution shifts must learn an approximate causal world model separating structural rules from exogenous variations. EWM Engine builds that model explicitly and auditably.*
+> **Release Governance:** *Coordinated release sequencing mandates that package installation, documentation, MCP services, and the interactive demo playground are all live and verified before public distribution.*  
+> **Scientific Thesis:** *Richens & Everitt (ICLR 2024 oral, arXiv:2402.10877): Any agent that robustly generalizes across distribution shifts must learn an approximate causal world model separating structural rules from exogenous variations. EWM Engine builds that model explicitly and auditably.*
 
 ---
 

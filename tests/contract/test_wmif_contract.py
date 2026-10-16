@@ -1,4 +1,4 @@
-"""Contract tests for World Model Interchange Format (WMIF) and Conformance Suite (T08).
+"""Contract tests for World Model Interchange Format (WMIF) and Conformance Suite.
 
 Enforces:
 1. WMIF manifest conforms strictly to Draft 2020-12 schema contract.

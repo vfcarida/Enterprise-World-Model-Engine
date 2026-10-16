@@ -575,7 +575,7 @@ Capabilities in EWM Engine advance through strictly governed stability tiers def
 | **Heterogeneous Graph State & GNN** | **Planned (v2.0.0-alpha)** | Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
 | **World Specification Language** | **Planned (v2.0.0-alpha)** | Declarative safe YAML/JSON grammar, validator, compiler, and exporter (FEAT-003, ADR-023) |
 
-See [ROADMAP.md](ROADMAP.md), [01_EXPANDED_ROADMAP.md](01_EXPANDED_ROADMAP.md), and [02_ROUND5_EXPANDED_ROADMAP.md](02_ROUND5_EXPANDED_ROADMAP.md) for detailed milestone descriptions and architectural tracking.
+See [ROADMAP.md](ROADMAP.md), [Platform Tracks](docs/architecture/platform-tracks.md), and [Frontier Roadmap](docs/architecture/frontier-roadmap.md) for detailed milestone descriptions and architectural tracking.
 Track active delivery on the **[Pinned GitHub Project](https://github.com/users/vfcarida/projects/1)** and milestones ([v1.5.0 Shipped](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/1), [v1.6.0 Active](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/2), [v2.0-alpha Horizon](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/3)).
 
 ---

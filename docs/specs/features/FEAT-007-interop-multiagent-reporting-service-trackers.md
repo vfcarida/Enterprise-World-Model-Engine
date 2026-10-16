@@ -3,7 +3,7 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.5.0 "Interop, Multi-Agent, Viz, Serving & Trackers"
 - **Authors:** Platform, Interoperability & Ecosystem Engineering Teams
-- **Governance:** `01_EXPANDED_ROADMAP.md` (Tracks T5, T6, T7, T8, T9), ADR-029, ACP-008
+- **Governance:** [`platform-tracks.md`](../../architecture/platform-tracks.md) (Tracks T5, T6, T7, T8, T9), ADR-029, ACP-008
 - **Dependencies:** Core engine (Zero new dependencies: stdlib, NumPy, Pydantic); Optional extras: `[fmi]` (fmpy), `[simpy]` (simpy), `[mesa]` (mesa), `[sd]` (pysd), `[game]` (nashpy), `[cli]` (rich), `[viz]` (plotly), `[viz-export]` (kaleido), `[serve]` (fastapi, httpx), `[config]` (omegaconf), `[trackers]` (mlflow, wandb)
 
 ---

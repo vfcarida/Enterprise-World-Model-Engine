@@ -1,4 +1,4 @@
-# EWM Engine — Platform Architecture & Capability Roadmap
+# Platform Architecture & Capability Tracks (T1–T9)
 
 > Architectural specification defining the platform-completeness tracks (T1–T9) extending EWM Engine with event-sourced persistence, trajectory verification, scientific experimentation, co-simulation, multi-agent coordination, and provenance.
 > Every capability is classified as **CORE** (adhering strictly to the `pydantic`/`numpy`/`pyyaml` runtime dependency budget), **EXTRA** (optional package extra), or **ADAPTER** (isolated plugin with strict timeout/boundary safeguards).

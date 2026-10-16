@@ -3,7 +3,7 @@
 - **Status:** Approved / Implemented
 - **Horizon:** v1.2.0 "Durability & Reproducibility"
 - **Authors:** Platform Engineering & Scientific Reproducibility Team
-- **Governance:** `01_EXPANDED_ROADMAP.md` (Tracks T1, T2, T9), ADR-026, ACP-005
+- **Governance:** [`platform-tracks.md`](../../architecture/platform-tracks.md) (Tracks T1, T2, T9), ADR-026, ACP-005
 - **Dependencies:** Core engine (Zero new dependencies: stdlib `sqlite3`, `numpy`, `pydantic`, `pyyaml` only)
 
 ---
