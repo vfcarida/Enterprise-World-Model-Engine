@@ -1,0 +1,256 @@
+"""Induction report, audit metadata, and deterministic fingerprinting for induced world models."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from datetime import UTC, datetime
+from typing import Any, Literal
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from ewm_engine.provenance.evidence import EvidenceLevel
+
+
+class CandidateInvariant(BaseModel):
+    """Candidate hard conservation law or bounded-resource constraint discovered during induction."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    target_resource: str
+    invariant_type: str = "conservation"
+    equation: str
+    support_ratio: float = Field(ge=0.0, le=1.0)
+    max_observed_violation: float = 0.0
+    evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL
+    parameters: dict[str, Any] = Field(default_factory=dict)
+
+
+class ProvisionalLink(BaseModel):
+    """Provisional latent relationship proposed via link prediction / relational learning."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    source_entity: str
+    target_entity: str
+    relationship_type: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    method: str = "jaccard_co_occurrence"
+    evidence_level: EvidenceLevel = EvidenceLevel.PREDICTIVE
+    clears_gate: bool = False
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ConformanceScore(BaseModel):
+    """Trace replay alignment metrics quantifying process model fidelity."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    object_type: str
+    fitness: float = Field(ge=0.0, le=1.0, description="Fraction of log traces replayable by model")
+    precision: float = Field(
+        ge=0.0, le=1.0, description="Fraction of model behavior witnessed in log"
+    )
+    traces_analyzed: int = 0
+    replay_errors: int = 0
+    evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL
+
+
+class InductionReport(BaseModel):
+    """Auditable, reproducible report produced during world-model induction.
+
+    Contains empirical conformance scores, candidate conservation laws,
+    provisional links, and a cryptographic SHA-256 fingerprint guaranteeing
+    that two runs on the same input data with the same seed yield identical results.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: str = "1.0.0"
+    source: str
+    source_type: Literal["dataframe", "sql", "relational_schema", "ocel_2_0"]
+    induced_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+    seed: int = 42
+    point_in_time_cutoff: str | None = None
+
+    entities_count: int = 0
+    relationships_count: int = 0
+    resources_count: int = 0
+    constraints_count: int = 0
+
+    evidence_distribution: dict[str, int] = Field(default_factory=dict)
+    conformance: dict[str, ConformanceScore] = Field(default_factory=dict)
+    candidate_invariants: list[CandidateInvariant] = Field(default_factory=list)
+    provisional_links: list[ProvisionalLink] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    sha256_fingerprint: str = ""
+
+    def model_post_init(self, __context: Any) -> None:
+        """Compute SHA-256 fingerprint if not explicitly provided."""
+        if not self.sha256_fingerprint:
+            self.sha256_fingerprint = self.compute_fingerprint()
+
+    def compute_fingerprint(self) -> str:
+        """Calculate canonical SHA-256 hash over the deterministic fields."""
+        payload = {
+            "schema_version": self.schema_version,
+            "source": self.source,
+            "source_type": self.source_type,
+            "seed": self.seed,
+            "point_in_time_cutoff": self.point_in_time_cutoff,
+            "entities_count": self.entities_count,
+            "relationships_count": self.relationships_count,
+            "resources_count": self.resources_count,
+            "constraints_count": self.constraints_count,
+            "evidence_distribution": sorted(self.evidence_distribution.items()),
+            "conformance": {
+                k: {
+                    "fitness": round(v.fitness, 4),
+                    "precision": round(v.precision, 4),
+                    "evidence_level": v.evidence_level.value,
+                }
+                for k, v in sorted(self.conformance.items())
+            },
+            "candidate_invariants": [
+                {
+                    "name": inv.name,
+                    "target_resource": inv.target_resource,
+                    "equation": inv.equation,
+                    "support_ratio": round(inv.support_ratio, 4),
+                }
+                for inv in sorted(self.candidate_invariants, key=lambda x: x.name)
+            ],
+            "provisional_links": [
+                {
+                    "source": pl.source_entity,
+                    "target": pl.target_entity,
+                    "confidence": round(pl.confidence, 4),
+                }
+                for pl in sorted(
+                    self.provisional_links, key=lambda x: (x.source_entity, x.target_entity)
+                )
+            ],
+        }
+        canonical_str = json.dumps(payload, sort_keys=True)
+        return hashlib.sha256(canonical_str.encode("utf-8")).hexdigest()
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert report to serializable dictionary."""
+        return self.model_dump(mode="json")
+
+    def to_json(self, indent: int = 2) -> str:
+        """Serialize report to formatted JSON."""
+        return json.dumps(self.to_dict(), indent=indent)
+
+    def to_markdown(self) -> str:
+        """Generate human-readable Markdown summary of the induction audit."""
+        lines = [
+            "# World Model Induction Audit Report",
+            "",
+            f"- **Source**: `{self.source}` ({self.source_type})",
+            f"- **Induced At**: `{self.induced_at}`",
+            f"- **Seed**: `{self.seed}`",
+            f"- **Point-in-Time Cutoff**: `{self.point_in_time_cutoff or 'None (Full Horizon)'}`",
+            f"- **SHA-256 Fingerprint**: `{self.sha256_fingerprint}`",
+            "",
+            "## Proposed World Topology",
+            "",
+            "| Element | Count |",
+            "| :--- | :--- |",
+            f"| **Entities** | {self.entities_count} |",
+            f"| **Relationships** | {self.relationships_count} |",
+            f"| **Resources** | {self.resources_count} |",
+            f"| **Candidate Constraints** | {self.constraints_count} |",
+            "",
+            "## Conformance & Replay Alignment",
+            "",
+            "| Object Type | Fitness | Precision | Evidence Level | Traces Replayed |",
+            "| :--- | :--- | :--- | :--- | :--- |",
+        ]
+        for obj_type, conf in self.conformance.items():
+            lines.append(
+                f"| `{obj_type}` | {conf.fitness:.3f} | {conf.precision:.3f} | `{conf.evidence_level.value}` | {conf.traces_analyzed} |"
+            )
+        if not self.conformance:
+            lines.append("| *None* | - | - | - | - |")
+
+        lines.extend(
+            [
+                "",
+                "## Discovered Conservation Invariants",
+                "",
+                "| Invariant | Target Resource | Candidate Equation | Support Ratio | Evidence |",
+                "| :--- | :--- | :--- | :--- | :--- |",
+            ]
+        )
+        for inv in self.candidate_invariants:
+            lines.append(
+                f"| `{inv.name}` | `{inv.target_resource}` | `{inv.equation}` | {inv.support_ratio:.1%} | `{inv.evidence_level.value}` |"
+            )
+        if not self.candidate_invariants:
+            lines.append("| *None* | - | - | - | - |")
+
+        lines.extend(
+            [
+                "",
+                "## Provisional Inferred Links (T06 Gating Required)",
+                "",
+                "| Source Entity | Target Entity | Relationship | Confidence | Status |",
+                "| :--- | :--- | :--- | :--- | :--- |",
+            ]
+        )
+        for pl in self.provisional_links:
+            status = "APPROVED" if pl.clears_gate else "PENDING_T06_GATE"
+            lines.append(
+                f"| `{pl.source_entity}` | `{pl.target_entity}` | `{pl.relationship_type}` | {pl.confidence:.2f} | `{status}` |"
+            )
+        if not self.provisional_links:
+            lines.append("| *None* | - | - | - | - |")
+
+        return "\n".join(lines)
+
+    def _repr_html_(self) -> str:
+        """Render a rich interactive HTML card for Jupyter and Marimo notebooks."""
+        fp_short = self.sha256_fingerprint[:12] if self.sha256_fingerprint else "uncomputed"
+        conf_rows = "".join(
+            f"<tr><td style='padding: 6px 10px;'><code>{k}</code></td>"
+            f"<td style='padding: 6px 10px; text-align: right;'>{v.fitness:.3f}</td>"
+            f"<td style='padding: 6px 10px; text-align: right;'>{v.precision:.3f}</td>"
+            f"<td style='padding: 6px 10px;'><span style='background: #f0fdf4; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 11px;'>{v.evidence_level.value}</span></td></tr>"
+            for k, v in self.conformance.items()
+        )
+        conf_table = (
+            (
+                f"<table style='width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px;'>"
+                f"<thead><tr style='border-bottom: 1px solid #cbd5e1; text-align: left; color: #64748b; font-size: 11px;'>"
+                f"<th style='padding: 6px 10px;'>Type</th><th style='padding: 6px 10px; text-align: right;'>Fitness</th>"
+                f"<th style='padding: 6px 10px; text-align: right;'>Precision</th><th style='padding: 6px 10px;'>Evidence</th></tr></thead>"
+                f"<tbody>{conf_rows}</tbody></table>"
+            )
+            if self.conformance
+            else "<p style='color: #94a3b8; font-size: 12px; margin: 4px 0;'>No process conformance data.</p>"
+        )
+
+        return (
+            f"<div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; "
+            f"border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; background: #ffffff; "
+            f"box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 680px; margin: 8px 0; color: #1e293b;'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;'>"
+            f"<div>"
+            f"<span style='font-weight: 700; font-size: 15px; color: #0f172a;'>InductionReport</span>"
+            f"<span style='background: #eff6ff; color: #1d4ed8; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 8px;'>{self.source_type}</span>"
+            f"</div>"
+            f"<code style='font-size: 11px; color: #64748b;'>{fp_short}...</code>"
+            f"</div>"
+            f"<div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 12px 0; font-size: 12px; text-align: center;'>"
+            f"<div style='background: #f8fafc; padding: 8px; border-radius: 6px;'><strong>Entities</strong><br><span style='font-size: 16px; font-weight: 700;'>{self.entities_count}</span></div>"
+            f"<div style='background: #f8fafc; padding: 8px; border-radius: 6px;'><strong>Relations</strong><br><span style='font-size: 16px; font-weight: 700;'>{self.relationships_count}</span></div>"
+            f"<div style='background: #f8fafc; padding: 8px; border-radius: 6px;'><strong>Resources</strong><br><span style='font-size: 16px; font-weight: 700;'>{self.resources_count}</span></div>"
+            f"<div style='background: #f8fafc; padding: 8px; border-radius: 6px;'><strong>Invariants</strong><br><span style='font-size: 16px; font-weight: 700;'>{len(self.candidate_invariants)}</span></div>"
+            f"</div>"
+            f"<div style='margin-top: 10px;'><strong>Process Conformance Replay:</strong>{conf_table}</div>"
+            f"<div style='margin-top: 8px; font-size: 11px; color: #64748b;'>Source: <code>{self.source}</code> | Seed: <code>{self.seed}</code></div>"
+            f"</div>"
+        )

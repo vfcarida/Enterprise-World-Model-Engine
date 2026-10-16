@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -152,6 +152,80 @@ class WorldSpec(BaseModel):
                 f"YAML specification must define a top-level dictionary, got {type(data).__name__}"
             )
         return cls.from_dict(data)
+
+    @classmethod
+    def from_dataframe(
+        cls,
+        df: Any,
+        schema: Any | None = None,
+        as_of: Any | None = None,
+        name: str = "InducedFromDataFrame",
+        seed: int = 42,
+    ) -> WorldSpec:
+        """Induce a validated, point-in-time correct WorldSpec from a DataFrame or Arrow Table.
+
+        Accepts pyarrow.Table, pandas.DataFrame, polars.DataFrame, or list of dicts.
+        """
+        from ewm_engine.induction.connectors import induce_from_dataframe
+
+        spec, _report = induce_from_dataframe(
+            df=df,
+            schema=schema,
+            as_of=as_of,
+            name=name,
+            seed=seed,
+        )
+        return spec
+
+    @classmethod
+    def from_sql(
+        cls,
+        query: str,
+        con: Any,
+        as_of: Any | None = None,
+        schema: Any | None = None,
+        name: str = "InducedFromSQL",
+        seed: int = 42,
+    ) -> WorldSpec:
+        """Execute a SQL query with point-in-time correctness and induce a WorldSpec.
+
+        Supports DuckDB, SQLite, SQLAlchemy, and Python DB-API 2.0 connections.
+        """
+        from ewm_engine.induction.connectors import induce_from_sql
+
+        spec, _report = induce_from_sql(
+            query=query,
+            con=con,
+            as_of=as_of,
+            schema=schema,
+            name=name,
+            seed=seed,
+        )
+        return spec
+
+    @classmethod
+    def from_ocel(
+        cls,
+        ocel_data: str | Path | dict[str, Any],
+        engine: Literal["native", "pm4py"] = "native",
+        name: str = "InducedFromOCEL",
+        seed: int = 42,
+    ) -> WorldSpec:
+        """Ingest an OCEL 2.0 event log and induce a validated WorldSpec.
+
+        Uses Inductive Miner (soundness-guaranteed) to discover transitions,
+        mines bounded-resource conservation laws, and assigns EvidenceLevels
+        derived from replay alignment conformance checking.
+        """
+        from ewm_engine.induction.process import induce_process
+
+        spec, _report = induce_process(
+            ocel_data=ocel_data,
+            engine=engine,
+            name=name,
+            seed=seed,
+        )
+        return spec
 
     def build_state(self) -> WorldState:
         """Build an immutable WorldState from this specification."""

@@ -643,6 +643,136 @@ def _run_mcp(
         return 1
 
 
+def _run_induce(
+    target_type: str,
+    data_path: str | None = None,
+    db_path: str | None = None,
+    ddl_str: str | None = None,
+    ocel_path: str | None = None,
+    engine: str = "native",
+    as_of: str | None = None,
+    id_col: str | None = None,
+    type_col: str | None = None,
+    ts_col: str | None = None,
+    link_prediction: bool = True,
+    threshold: float = 0.7,
+    name: str | None = None,
+    seed: int = 42,
+    output_path: str | None = None,
+    report_path: str | None = None,
+) -> int:
+    """Execute world-model induction from DataFrame, SQL schema, or OCEL 2.0 event log."""
+    from ewm_engine.induction.connectors import DataFrameSchemaMapping, induce_from_dataframe
+    from ewm_engine.induction.process import induce_process
+    from ewm_engine.induction.schema import induce_schema
+    from ewm_engine.serialization.yaml import safe_dump_yaml
+
+    try:
+        if target_type == "schema":
+            if not db_path and not ddl_str:
+                sys.stderr.write("Error: Must provide --db or --ddl for schema induction.\n")
+                return 1
+            spec, report = induce_schema(
+                db=db_path,
+                ddl=ddl_str,
+                link_prediction=link_prediction,
+                link_threshold=threshold,
+                name=name or "InducedSchemaWorld",
+                seed=seed,
+            )
+        elif target_type == "process":
+            if not ocel_path:
+                sys.stderr.write("Error: Must provide --ocel path for process induction.\n")
+                return 1
+            spec, report = induce_process(
+                ocel_data=Path(ocel_path),
+                engine="pm4py" if engine == "pm4py" else "native",
+                name=name or "InducedProcessWorld",
+                seed=seed,
+            )
+        elif target_type == "dataframe":
+            if not data_path:
+                sys.stderr.write("Error: Must provide --data path for dataframe induction.\n")
+                return 1
+            p = Path(data_path)
+            if not p.exists():
+                sys.stderr.write(f"Error: Data file not found: {data_path}\n")
+                return 1
+
+            if p.suffix.lower() == ".csv":
+                import csv
+
+                with open(p, encoding="utf-8") as f:
+                    reader = csv.DictReader(f)
+                    df_data = list(reader)
+            elif p.suffix.lower() in (".json", ".jsonl"):
+                content = p.read_text(encoding="utf-8")
+                if p.suffix.lower() == ".jsonl":
+                    df_data = [json.loads(line) for line in content.splitlines() if line.strip()]
+                else:
+                    df_data = json.loads(content)
+            elif p.suffix.lower() == ".parquet":
+                try:
+                    import pyarrow.parquet as pq
+
+                    df_data = pq.read_table(p)
+                except ImportError:
+                    sys.stderr.write("Error: pyarrow is required to read Parquet files.\n")
+                    return 1
+            else:
+                sys.stderr.write(
+                    f"Unsupported file format: {p.suffix}. Use .csv, .json, .jsonl, or .parquet.\n"
+                )
+                return 1
+
+            mapping = DataFrameSchemaMapping(
+                entity_id_col=id_col,
+                entity_type_col=type_col,
+                timestamp_col=ts_col,
+            )
+            spec, report = induce_from_dataframe(
+                df=df_data,
+                schema=mapping,
+                as_of=as_of,
+                name=name or "InducedDataFrameWorld",
+                seed=seed,
+            )
+        else:
+            sys.stderr.write(
+                f"Unknown induction target: {target_type}. Use 'schema', 'process', or 'dataframe'.\n"
+            )
+            return 1
+
+        # Format spec as YAML
+        yaml_content = safe_dump_yaml(spec.model_dump(mode="json"))
+
+        if output_path:
+            out_p = Path(output_path)
+            out_p.parent.mkdir(parents=True, exist_ok=True)
+            out_p.write_text(yaml_content, encoding="utf-8")
+            sys.stdout.write(f"World specification written to: {output_path}\n")
+        else:
+            sys.stdout.write(yaml_content)
+
+        if report_path:
+            rep_p = Path(report_path)
+            rep_p.parent.mkdir(parents=True, exist_ok=True)
+            rep_p.write_text(report.to_json(), encoding="utf-8")
+            sys.stdout.write(f"Induction report written to: {report_path}\n")
+
+        sys.stdout.write(
+            f"\nInduction Successful:\n"
+            f"  Entities: {report.entities_count}\n"
+            f"  Relationships: {report.relationships_count}\n"
+            f"  Resources: {report.resources_count}\n"
+            f"  Fingerprint: {report.sha256_fingerprint}\n"
+        )
+        return 0
+    except Exception as exc:
+        sys.stderr.write(f"Induction failed: {exc}\n")
+        return 1
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Main CLI entrypoint for `ewm` command."""
     parser = argparse.ArgumentParser(
@@ -870,6 +1000,98 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Port number for SSE transport (default: 8000)",
     )
 
+    # 9. `ewm induce <schema|process|dataframe> [options]`
+    induce_parser = subparsers.add_parser(
+        "induce",
+        help="Propose a validated WorldSpec from relational schema, event log, or tabular data",
+    )
+    induce_subparsers = induce_parser.add_subparsers(dest="target", help="Induction target type")
+
+    # 9a. Schema
+    ind_schema = induce_subparsers.add_parser(
+        "schema", help="Induce typed-graph skeleton from relational database or DDL"
+    )
+    ind_schema.add_argument(
+        "--db", type=str, default=None, help="SQLite database path or connection string"
+    )
+    ind_schema.add_argument(
+        "--ddl", type=str, default=None, help="Path to SQL DDL file or inline DDL string"
+    )
+    ind_schema.add_argument(
+        "--link-prediction",
+        action="store_true",
+        default=True,
+        help="Propose latent edges via relational link discovery",
+    )
+    ind_schema.add_argument(
+        "--threshold",
+        type=float,
+        default=0.7,
+        help="Confidence threshold for provisional links (default: 0.7)",
+    )
+    ind_schema.add_argument(
+        "--name", type=str, default="InducedSchemaWorld", help="World specification name"
+    )
+    ind_schema.add_argument(
+        "--seed", type=int, default=42, help="Deterministic random seed (default: 42)"
+    )
+    ind_schema.add_argument("--out", type=str, default=None, help="Output YAML file for WorldSpec")
+    ind_schema.add_argument(
+        "--report", type=str, default=None, help="Output JSON file for InductionReport"
+    )
+
+    # 9b. Process
+    ind_proc = induce_subparsers.add_parser(
+        "process", help="Induce process model and invariants from OCEL 2.0 event log"
+    )
+    ind_proc.add_argument(
+        "--ocel", type=str, required=True, help="Path to OCEL 2.0 JSON or JSONL file"
+    )
+    ind_proc.add_argument(
+        "--engine",
+        choices=["native", "pm4py"],
+        default="native",
+        help="Induction miner engine (default: native)",
+    )
+    ind_proc.add_argument(
+        "--name", type=str, default="InducedProcessWorld", help="World specification name"
+    )
+    ind_proc.add_argument(
+        "--seed", type=int, default=42, help="Deterministic random seed (default: 42)"
+    )
+    ind_proc.add_argument("--out", type=str, default=None, help="Output YAML file for WorldSpec")
+    ind_proc.add_argument(
+        "--report", type=str, default=None, help="Output JSON file for InductionReport"
+    )
+
+    # 9c. Dataframe
+    ind_df = induce_subparsers.add_parser(
+        "dataframe", help="Induce WorldSpec from tabular CSV, Parquet, or JSON"
+    )
+    ind_df.add_argument(
+        "--data", type=str, required=True, help="Path to CSV, JSON, JSONL, or Parquet file"
+    )
+    ind_df.add_argument(
+        "--as-of", type=str, default=None, help="Point-in-time timestamp/step cutoff"
+    )
+    ind_df.add_argument(
+        "--id-col", type=str, default=None, help="Column identifying entity instances"
+    )
+    ind_df.add_argument(
+        "--type-col", type=str, default=None, help="Column identifying entity types"
+    )
+    ind_df.add_argument("--ts-col", type=str, default=None, help="Column identifying timestamps")
+    ind_df.add_argument(
+        "--name", type=str, default="InducedDataFrameWorld", help="World specification name"
+    )
+    ind_df.add_argument(
+        "--seed", type=int, default=42, help="Deterministic random seed (default: 42)"
+    )
+    ind_df.add_argument("--out", type=str, default=None, help="Output YAML file for WorldSpec")
+    ind_df.add_argument(
+        "--report", type=str, default=None, help="Output JSON file for InductionReport"
+    )
+
     args = parser.parse_args(argv)
 
     if args.command == "example":
@@ -927,6 +1149,29 @@ def main(argv: Sequence[str] | None = None) -> int:
             transport=args.transport,
             host=args.host,
             port=args.port,
+        )
+    elif args.command == "induce":
+        target = getattr(args, "target", None)
+        if not target:
+            induce_parser.print_help()
+            return 1
+        return _run_induce(
+            target_type=target,
+            data_path=getattr(args, "data", None),
+            db_path=getattr(args, "db", None),
+            ddl_str=getattr(args, "ddl", None),
+            ocel_path=getattr(args, "ocel", None),
+            engine=getattr(args, "engine", "native"),
+            as_of=getattr(args, "as_of", None),
+            id_col=getattr(args, "id_col", None),
+            type_col=getattr(args, "type_col", None),
+            ts_col=getattr(args, "ts_col", None),
+            link_prediction=getattr(args, "link_prediction", True),
+            threshold=getattr(args, "threshold", 0.7),
+            name=getattr(args, "name", None),
+            seed=getattr(args, "seed", 42),
+            output_path=getattr(args, "out", None),
+            report_path=getattr(args, "report", None),
         )
 
     parser.print_help()

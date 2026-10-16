@@ -149,6 +149,7 @@ nav:
       - "Backtesting & Validation": guides/backtesting.md
       - "Sensitivity Analysis": guides/sensitivity.md
       - "Simulation Calibration": guides/calibration.md
+      - "OCEL 2.0 Process Induction": guides/ocel-induction.md
       - "Optimize Interventions": guides/optimize-interventions.md
       - "Co-Simulation & FMI": guides/co-simulation.md
       - "Multi-Agent Simulation": guides/multi-agent.md
@@ -181,6 +182,7 @@ nav:
           - Reproducibility Cards: reference/api/cards.md
       - "CLI Command Reference": reference/cli.md
       - "JSON Schemas Reference": reference/schemas.md
+      - "Enterprise Data Connectors": reference/connectors.md
       - "Stability Policy (SemVer 2.0.0)": stability-policy.md
       - "Deprecation Policy (NEP-23)": deprecation-policy.md
       - "SPEC 0 Support Policy": spec0-policy.md
@@ -247,6 +249,7 @@ nav:
           - "ADR-044: Causal-Correctness & Metamorphic Evaluation": adr/ADR-044-causal-correctness-metamorphic-evaluation.md
           - "ADR-045: MCP Server & Deterministic Agentic Substrate": adr/ADR-045-model-context-protocol-server-and-agentic-substrate.md
           - "ADR-046: Developer Experience, Teaching Errors & WASM Playground": adr/ADR-046-developer-experience-teaching-errors-and-wasm-playground.md
+          - "ADR-047: World-Model Induction & AGPL Isolation": adr/ADR-047-world-model-induction-and-agpl-isolation.md
 
   - Community & Governance:
       - "Community Health & CHAOSS": community-health.md

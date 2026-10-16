@@ -1,0 +1,128 @@
+{
+  "objectTypes": [
+    {
+      "name": "order",
+      "attributes": [
+        {"name": "total_amount", "type": "float"},
+        {"name": "customer_tier", "type": "string"}
+      ]
+    },
+    {
+      "name": "package",
+      "attributes": [
+        {"name": "weight_kg", "type": "float"},
+        {"name": "carrier", "type": "string"}
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "id": "ord_101",
+      "type": "order",
+      "attributes": {"total_amount": 150.0, "customer_tier": "gold"},
+      "relationships": []
+    },
+    {
+      "id": "ord_102",
+      "type": "order",
+      "attributes": {"total_amount": 420.0, "customer_tier": "silver"},
+      "relationships": []
+    },
+    {
+      "id": "ord_103",
+      "type": "order",
+      "attributes": {"total_amount": 75.0, "customer_tier": "bronze"},
+      "relationships": []
+    },
+    {
+      "id": "pkg_501",
+      "type": "package",
+      "attributes": {"weight_kg": 2.5, "carrier": "DHL"},
+      "relationships": [{"objectId": "ord_101", "qualifier": "fulfills"}]
+    },
+    {
+      "id": "pkg_502",
+      "type": "package",
+      "attributes": {"weight_kg": 6.8, "carrier": "FedEx"},
+      "relationships": [{"objectId": "ord_102", "qualifier": "fulfills"}]
+    }
+  ],
+  "eventTypes": [
+    {"name": "create_order", "attributes": [{"name": "item_count", "type": "integer"}]},
+    {"name": "review_approval", "attributes": [{"name": "queue_time_min", "type": "float"}]},
+    {"name": "pick_and_pack", "attributes": [{"name": "pack_time_min", "type": "float"}]},
+    {"name": "dispatch_shipment", "attributes": [{"name": "dispatch_delay", "type": "float"}]}
+  ],
+  "events": [
+    {
+      "id": "e_01",
+      "type": "create_order",
+      "time": 10.0,
+      "attributes": {"item_count": 2, "inventory_stock": 100.0},
+      "relationships": [{"objectId": "ord_101"}]
+    },
+    {
+      "id": "e_02",
+      "type": "review_approval",
+      "time": 25.0,
+      "attributes": {"queue_time_min": 15.0, "inventory_stock": 98.0},
+      "relationships": [{"objectId": "ord_101"}]
+    },
+    {
+      "id": "e_03",
+      "type": "pick_and_pack",
+      "time": 40.0,
+      "attributes": {"pack_time_min": 15.0, "inventory_stock": 98.0},
+      "relationships": [{"objectId": "ord_101"}, {"objectId": "pkg_501"}]
+    },
+    {
+      "id": "e_04",
+      "type": "dispatch_shipment",
+      "time": 60.0,
+      "attributes": {"dispatch_delay": 20.0, "inventory_stock": 98.0},
+      "relationships": [{"objectId": "pkg_501"}]
+    },
+    {
+      "id": "e_05",
+      "type": "create_order",
+      "time": 12.0,
+      "attributes": {"item_count": 5, "inventory_stock": 98.0},
+      "relationships": [{"objectId": "ord_102"}]
+    },
+    {
+      "id": "e_06",
+      "type": "review_approval",
+      "time": 32.0,
+      "attributes": {"queue_time_min": 20.0, "inventory_stock": 93.0},
+      "relationships": [{"objectId": "ord_102"}]
+    },
+    {
+      "id": "e_07",
+      "type": "pick_and_pack",
+      "time": 50.0,
+      "attributes": {"pack_time_min": 18.0, "inventory_stock": 93.0},
+      "relationships": [{"objectId": "ord_102"}, {"objectId": "pkg_502"}]
+    },
+    {
+      "id": "e_08",
+      "type": "dispatch_shipment",
+      "time": 75.0,
+      "attributes": {"dispatch_delay": 25.0, "inventory_stock": 93.0},
+      "relationships": [{"objectId": "pkg_502"}]
+    },
+    {
+      "id": "e_09",
+      "type": "create_order",
+      "time": 15.0,
+      "attributes": {"item_count": 1, "inventory_stock": 93.0},
+      "relationships": [{"objectId": "ord_103"}]
+    },
+    {
+      "id": "e_10",
+      "type": "review_approval",
+      "time": 28.0,
+      "attributes": {"queue_time_min": 13.0, "inventory_stock": 92.0},
+      "relationships": [{"objectId": "ord_103"}]
+    }
+  ]
+}
