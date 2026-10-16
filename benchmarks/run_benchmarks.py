@@ -22,6 +22,7 @@ from ewm_engine.core.world import World
 from ewm_engine.dynamics.composite import CompositeDynamics
 from ewm_engine.dynamics.deterministic import DeterministicTransferDynamics
 from ewm_engine.dynamics.stochastic import StochasticDemandDynamics
+from ewm_engine.simulation.batched import BatchedExecutor
 from ewm_engine.simulation.executors import (
     MultiprocessingExecutor,
     RolloutExecutor,
@@ -146,6 +147,14 @@ def main() -> None:
     base_results = benchmark_simulation_throughput(num_nodes=30, horizon=25, samples=20)
     print(
         f"Base Single-Core:  {base_results['steps_per_second']:.1f} steps/s ({base_results['elapsed_seconds']:.3f} s)"
+    )
+
+    print("\nRunning Batched SoA Vectorized Execution (40 rollouts, 25 steps)...")
+    batch_res = benchmark_simulation_throughput(
+        num_nodes=30, horizon=25, samples=40, executor=BatchedExecutor(backend="numpy")
+    )
+    print(
+        f"Batched SoA:       {batch_res['steps_per_second']:.1f} steps/s ({batch_res['elapsed_seconds']:.3f} s)"
     )
 
     print("\nRunning Scale-Out Parallel Comparison (40 rollouts, 25 steps)...")

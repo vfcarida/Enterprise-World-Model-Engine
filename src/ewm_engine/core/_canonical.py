@@ -78,3 +78,28 @@ def canonical_sha256(obj: Any) -> str:
     """Produce a deterministic SHA-256 hexadecimal digest over canonical JSON."""
     encoded = canonical_json_dumps(obj).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def is_native_accel_available() -> bool:
+    """Check if compiled native (Rust/PyO3 or C) canonical hashing acceleration is present."""
+    import importlib.util
+
+    return importlib.util.find_spec("ewm_engine_native") is not None
+
+
+def fast_canonical_sha256(obj: Any) -> str:
+    """Optimized canonical SHA-256 fingerprint computation.
+
+    Uses native acceleration if present; strictly falls back to canonical_sha256.
+    Guarantees bit-identical SHA-256 digests across native and pure-Python paths.
+    """
+    if is_native_accel_available():
+        try:
+            import ewm_engine_native  # type: ignore[import-not-found]
+
+            res = ewm_engine_native.canonical_sha256(obj)
+            if isinstance(res, str) and len(res) == 64:
+                return res
+        except Exception:
+            pass
+    return canonical_sha256(obj)

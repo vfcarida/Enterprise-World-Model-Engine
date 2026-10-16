@@ -106,6 +106,21 @@ dev = [
 ]
 distributed = [
     "ray>=2.9.0",
+    "dask>=2024.1.0",
+    "distributed>=2024.1.0",
+]
+dask = [
+    "dask>=2024.1.0",
+    "distributed>=2024.1.0",
+]
+jax = [
+    "jax>=0.4.20",
+]
+cuda = [
+    "cupy>=13.0.0",
+]
+array-api = [
+    "array-api-compat>=1.9.0",
 ]
 otel = [
     "opentelemetry-api>=1.25.0",

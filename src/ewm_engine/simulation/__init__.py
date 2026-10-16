@@ -2,6 +2,20 @@
 
 from __future__ import annotations
 
+from ewm_engine.simulation.backends import (
+    ArrayBackend,
+    BackendType,
+    CertificationStatus,
+    CuPyBackend,
+    JaxBackend,
+    NumPyBackend,
+    resolve_backend,
+)
+from ewm_engine.simulation.batched import (
+    BatchedExecutor,
+    BatchedSimulationEngine,
+    SoAStateTensor,
+)
 from ewm_engine.simulation.branching import branch_scenario, branch_world
 from ewm_engine.simulation.counterfactual import (
     CounterfactualEngine,
@@ -9,6 +23,7 @@ from ewm_engine.simulation.counterfactual import (
 )
 from ewm_engine.simulation.engine import SimulationEngine
 from ewm_engine.simulation.executors import (
+    DaskExecutor,
     MultiprocessingExecutor,
     RayExecutor,
     RolloutExecutor,
@@ -30,10 +45,19 @@ from ewm_engine.simulation.trajectory import (
 )
 
 __all__ = [
+    "ArrayBackend",
+    "BackendType",
+    "BatchedExecutor",
+    "BatchedSimulationEngine",
+    "CertificationStatus",
     "CounterfactualEngine",
     "CounterfactualResult",
+    "CuPyBackend",
+    "DaskExecutor",
+    "JaxBackend",
     "MPCDecisionRecord",
     "MultiprocessingExecutor",
+    "NumPyBackend",
     "RayExecutor",
     "RecedingHorizonResult",
     "RecedingHorizonSimulator",
@@ -45,9 +69,11 @@ __all__ = [
     "SerialExecutor",
     "SimulationEngine",
     "SimulationResult",
+    "SoAStateTensor",
     "StepRecord",
     "Trajectory",
     "TrajectoryStatus",
     "branch_scenario",
     "branch_world",
+    "resolve_backend",
 ]

@@ -233,3 +233,26 @@ class PeakMemoryWorld:
             trace=self.trace,
             scenario=self.scenario,
         )
+
+
+class TimeBatchedMonteCarlo:
+    """Benchmark Structure-of-Arrays (SoA) batched Monte Carlo simulation."""
+
+    params = (1, 10, 50)
+    param_names = ("samples",)
+
+    def setup(self, samples: int) -> None:
+        from ewm_engine.simulation.batched import BatchedSimulationEngine
+
+        self.world, _, _ = _build_env(num_nodes=20)
+        self.scenario = Scenario(
+            name="asv_batched_monte_carlo",
+            horizon=10,
+            samples=samples,
+            seed=42,
+        )
+        self.engine = BatchedSimulationEngine()
+
+    def time_batched_rollout(self, samples: int) -> None:
+        res = self.engine.run(self.world, self.scenario)
+        assert len(res.trajectories) == samples

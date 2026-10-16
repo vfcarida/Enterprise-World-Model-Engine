@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from ewm_engine.core._canonical import (
+    canonical_sha256,
+    fast_canonical_sha256,
+    is_native_accel_available,
+)
 from ewm_engine.core.actions import Action, Intervention
 from ewm_engine.core.deprecation import deprecate, deprecated
 from ewm_engine.core.entities import Entity, Relationship
@@ -108,8 +113,11 @@ __all__ = [
     "WorldSpec",
     "WorldSpecification",
     "WorldState",
+    "canonical_sha256",
     "deprecate",
     "deprecated",
+    "fast_canonical_sha256",
     "is_evidence_at_least",
+    "is_native_accel_available",
     "validate_causal_claim",
 ]

@@ -222,12 +222,67 @@ class RayExecutor:
         return results
 
 
+def _dask_worker_entrypoint(
+    world: World,
+    scenario: Scenario,
+    sample_idx: int,
+    child_seed: np.random.SeedSequence,
+) -> RolloutResult:
+    """Dask worker task entrypoint."""
+    return execute_single_rollout(
+        world=world,
+        scenario=scenario,
+        sample_idx=sample_idx,
+        child_seed=child_seed,
+    )
+
+
+class DaskExecutor:
+    """Distributed rollout executor using Dask Distributed.
+
+    Requires optional 'distributed' extra: `pip install ewm-engine[distributed]`.
+    Guarantees order-independent reduction: worker results are gathered and sorted
+    strictly by sample_id before returning, ensuring schedule-invariant fingerprints.
+    """
+
+    def __init__(self, client: Any = None) -> None:
+        self.client = client
+
+    def execute(
+        self,
+        world: World,
+        scenario: Scenario,
+        child_seeds: Sequence[np.random.SeedSequence],
+        *,
+        on_constraint_eval: Callable[[ConstraintResult, ConstraintPhase, int, int], None]
+        | None = None,
+        on_step_completed: Callable[[int, int, str, StepRecord, bool], None] | None = None,
+    ) -> list[RolloutResult]:
+        try:
+            import dask.distributed
+        except ImportError as exc:
+            raise ImportError(
+                "The 'dask' and 'distributed' packages are required to use DaskExecutor. "
+                "Install via 'pip install ewm-engine[distributed]'."
+            ) from exc
+
+        client = self.client or dask.distributed.default_client()
+        futures = [
+            client.submit(_dask_worker_entrypoint, world, scenario, idx, child_seeds[idx])
+            for idx in range(len(child_seeds))
+        ]
+        results: list[RolloutResult] = client.gather(futures)
+        # Order-independent reduction: strictly sort by sample_id
+        results.sort(key=lambda r: r.sample_id)
+        return results
+
+
 def resolve_executor(executor: RolloutExecutor | str | None) -> RolloutExecutor:
     """Resolve an executor parameter to a validated RolloutExecutor instance.
 
     Args:
         executor: An instance of RolloutExecutor, a string shorthand ('serial',
-            'multiprocessing', 'ray'), or None (defaulting to SerialExecutor).
+            'multiprocessing', 'ray', 'dask', 'batched'), or None (defaulting to SerialExecutor).
 
     Returns:
         A concrete RolloutExecutor instance.
@@ -241,9 +296,15 @@ def resolve_executor(executor: RolloutExecutor | str | None) -> RolloutExecutor:
         return MultiprocessingExecutor()
     if executor == "ray":
         return RayExecutor()
+    if executor == "dask":
+        return DaskExecutor()
+    if executor in ("batched", "soa"):
+        from ewm_engine.simulation.batched import BatchedExecutor
+
+        return BatchedExecutor()
     if isinstance(executor, RolloutExecutor):
         return executor
     raise SimulationConfigurationError(
         f"Unknown executor specification: {executor!r}. "
-        "Expected 'serial', 'multiprocessing', 'ray', or an instance of RolloutExecutor."
+        "Expected 'serial', 'multiprocessing', 'ray', 'dask', 'batched', or an instance of RolloutExecutor."
     )

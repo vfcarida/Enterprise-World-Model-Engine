@@ -81,6 +81,7 @@ nav:
       - "Counterfactual SCM": results/counterfactual-scm-s01.md
       - "Decision Scenario Discovery": results/decision-discovery-s02.md
       - "Induction Honesty & Validation (S09)": results/induction-validation-s09.md
+      - "Performance & Scaling Curves": performance.md
 
   - Executive & Strategy:
       - "Executive Briefing (One-Pager)": executive/index.md
@@ -254,6 +255,7 @@ nav:
           - "ADR-047: World-Model Induction & AGPL Isolation": adr/ADR-047-world-model-induction-and-agpl-isolation.md
           - "ADR-048: Causal & Dynamics Induction with GPL Isolation": adr/ADR-048-causal-and-dynamics-induction-with-gpl-isolation.md
           - "ADR-049: Induction Honesty, Validation & Refusal Gate": adr/ADR-049-induction-honesty-validation-and-refusal-gate.md
+          - "ADR-050: Batched Scale & Cross-Backend Bit-Identical Fingerprints": adr/ADR-050-cross-backend-bit-identical-fingerprints-and-batched-scale.md
 
   - Community & Governance:
       - "Community Health & CHAOSS": community-health.md
