@@ -1,0 +1,172 @@
+{
+  "schema_version": "1.0.0",
+  "title": "EWM Engine Universal Scientific Reproduction Manifest",
+  "timestamp_start": "2026-10-16T17:12:31.095197+00:00",
+  "timestamp_end": "2026-10-16T17:12:31.749720+00:00",
+  "overall_status": "SUCCESS",
+  "provenance": {
+    "git": {
+      "commit": "c9ab91ca8f8a0f94ba64019f1c6103cef25a96cf",
+      "branch": "main",
+      "dirty": "True"
+    },
+    "environment": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "system": "Windows",
+      "release": "11",
+      "machine": "AMD64",
+      "processor": "Intel64 Family 6 Model 142 Stepping 10, GenuineIntel",
+      "python_version": "3.12.10",
+      "python_implementation": "CPython",
+      "numpy_version": "2.5.2",
+      "uv_lock_sha256": "4059f4acd96fc8a31ca53527f4249c6ae55c9a6d6de3b6587beda15869958dc5",
+      "blas_config_summary": "{\"Compilers\": {\"c\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}, \"cython\": {\"name\": \"cython\", \"linker\": \"cython\", \"version\": \"3.2.9\", \"commands\": \"cython\"}, \"c++\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}}, \"Machine Information"
+    }
+  },
+  "results": {
+    "scientific_cards": {
+      "seir": {
+        "card": "seir_outbreak",
+        "steps": 80,
+        "population": 1000.0,
+        "peak_infections": 183.34932704279635,
+        "peak_step": 79,
+        "max_mass_balance_drift": 4.547473508864641e-13,
+        "physics_iq_score": 1.0,
+        "conformal_90_coverage": 1.0,
+        "status": "PASSED"
+      },
+      "beer_game": {
+        "card": "beer_game_bullwhip",
+        "steps": 36,
+        "retailer_peak_order": 8.363999999999983,
+        "factory_peak_order": 16.309799999999967,
+        "bullwhip_amplification_ratio": 3.8024999999999998,
+        "multi_tier_conservation": "VERIFIED",
+        "status": "PASSED"
+      },
+      "world3": {
+        "card": "world3_resource_depletion",
+        "steps": 100,
+        "initial_resources": 1000000000000.0,
+        "final_resources": 0.0,
+        "depletion_rate_pct": 100.0,
+        "industrial_peak_step": 99,
+        "feedback_loop_consistency": "VERIFIED",
+        "status": "PASSED"
+      },
+      "calibrated_posterior": {
+        "card": "calibrated_posterior_s04",
+        "test_simulations": 200,
+        "nominal_vs_empirical_coverage": {
+          "0.1": 0.115,
+          "0.2": 0.215,
+          "0.3": 0.295,
+          "0.4": 0.36,
+          "0.5": 0.42,
+          "0.6": 0.55,
+          "0.7": 0.695,
+          "0.8": 0.78,
+          "0.9": 0.875
+        },
+        "mean_tarp_calibration_error": 0.028333333333333353,
+        "coverage_certified": true,
+        "status": "PASSED"
+      },
+      "counterfactual_scm": {
+        "card": "counterfactual_scm_s01",
+        "factual_ending_stock": 15.0,
+        "counterfactual_ending_stock": 50.0,
+        "net_treatment_effect": 35.0,
+        "evidence_level": "counterfactual",
+        "noise_coupling_verified": true,
+        "status": "PASSED"
+      },
+      "decision_discovery": {
+        "card": "decision_discovery_s02",
+        "prim_box_density": 0.9116279069767442,
+        "prim_box_coverage": 0.8,
+        "minimax_regret_winner": "Robust",
+        "dominant_action": "Robust",
+        "status": "PASSED"
+      },
+      "induction_validation": {
+        "card": "induction_validation_s09",
+        "validation_passed": false,
+        "admitted_elements_count": 7,
+        "refused_elements_count": 2,
+        "open_questions_count": 2,
+        "refuters_executed": 3,
+        "refuters_passed_rate": 1.0,
+        "hard_constraint_leaks_admitted": 0,
+        "causes_string_emitted": 0,
+        "byte_identical_reproducibility": true,
+        "sha256_fingerprint": "478e28f89ffd0022ebc5d379307da85a85e234ac68a23f03efb249a793111d90",
+        "status": "PASSED"
+      }
+    },
+    "conformance_reference_worlds": {
+      "ref_seed_trivial": {
+        "passed": true,
+        "status": "PASSED",
+        "scenario_id": "ref_seed_trivial_scen",
+        "horizon": 5,
+        "samples": 1,
+        "seed": 42,
+        "scenarios": [
+          {
+            "scenario_id": "ref_seed_trivial_scen",
+            "expected_fingerprint": "5dbb3db473211cc725a549e714449a2ac43c7d563e301470a70447f323e72dda",
+            "actual_fingerprint": "5dbb3db473211cc725a549e714449a2ac43c7d563e301470a70447f323e72dda",
+            "passed": true,
+            "branch_count": 1
+          }
+        ]
+      },
+      "ref_closed_form_stochastic": {
+        "passed": true,
+        "status": "PASSED",
+        "scenario_id": "ref_stochastic_scen",
+        "horizon": 5,
+        "samples": 3,
+        "seed": 1337,
+        "scenarios": [
+          {
+            "scenario_id": "ref_stochastic_scen",
+            "expected_fingerprint": "7a811e8a2a765dad0299b632007a4bd03bcf0baee95eafd1745e9669b09d3ee2",
+            "actual_fingerprint": "7a811e8a2a765dad0299b632007a4bd03bcf0baee95eafd1745e9669b09d3ee2",
+            "passed": true,
+            "branch_count": 3
+          }
+        ]
+      },
+      "ref_constraint_stress": {
+        "passed": true,
+        "status": "PASSED",
+        "scenario_id": "ref_constraint_stress_scen",
+        "horizon": 3,
+        "samples": 1,
+        "seed": 999,
+        "scenarios": [
+          {
+            "scenario_id": "ref_constraint_stress_scen",
+            "expected_fingerprint": "c51a1b7ed371c3745967046cf716dd60a38e19c2affc9e26d5eae4d2c57830a0",
+            "actual_fingerprint": "c51a1b7ed371c3745967046cf716dd60a38e19c2affc9e26d5eae4d2c57830a0",
+            "passed": true,
+            "branch_count": 1
+          }
+        ]
+      }
+    },
+    "batched_scale_bit_identity": {
+      "tensor_roundtrip_bit_identical": true,
+      "verified_state_fingerprint": "89534de1e5536adc882f9422eaa42e1d4124fad3d6dfd7bab60b9e4a3e14ce7c"
+    }
+  },
+  "visual_artifacts": {
+    "ground_truth_overlay": "dee4deaaf24bfa9808d56b05d9cb8e51a8769bdabcb0cf6231e7a1e8e814f558",
+    "calibration_pit": "ab21ddab607af5dfe03fb9615170e3310f330f166e1f0832adabc765af846787",
+    "multiseed_error_bars": "1f4d6cdc53369cf9cb2f02df83d6b356d098efdcba4096c69faabb7129b092e9"
+  },
+  "reproduction_fingerprint": "d840bca7fabb585c9a5df4b2dd55427011d909718f462b563fe7dc90ada42392"
+}

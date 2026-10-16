@@ -82,6 +82,14 @@ nav:
       - "Decision Scenario Discovery": results/decision-discovery-s02.md
       - "Induction Honesty & Validation (S09)": results/induction-validation-s09.md
       - "Performance & Scaling Curves": performance.md
+      - Scientific Reproduction & Adoption:
+          - "Reproducibility & Citation Guide": reproducibility.md
+          - "Software Heritage (SWHID)": scientific/swhid.md
+          - "MLRC 2026 Replication Package": scientific/mlrc_2026_replication_pkg.md
+          - "ReScience C Submission Dossier": scientific/rescience_c_submission.md
+          - "ACM Artifact Review & Badging": scientific/acm_artifact_appendix.md
+          - "Pre-Registered Study Protocol": scientific/registered_report_protocol.md
+          - "Hugging Face Papers Discovery": scientific/huggingface_papers.md
 
   - Executive & Strategy:
       - "Executive Briefing (One-Pager)": executive/index.md
@@ -257,6 +265,7 @@ nav:
           - "ADR-049: Induction Honesty, Validation & Refusal Gate": adr/ADR-049-induction-honesty-validation-and-refusal-gate.md
           - "ADR-050: Batched Scale & Cross-Backend Bit-Identical Fingerprints": adr/ADR-050-cross-backend-bit-identical-fingerprints-and-batched-scale.md
           - "ADR-051: World Model Interchange Format & Conformance Standard": adr/ADR-051-world-model-interchange-format-and-conformance-standard.md
+          - "ADR-052: Scientific Reproduction, Persistent Identifiers & Adoption": adr/ADR-052-scientific-reproduction-and-citation-capstone.md
 
   - Community & Governance:
       - "Community Health & CHAOSS": community-health.md

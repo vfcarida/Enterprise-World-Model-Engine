@@ -20,13 +20,18 @@
   <a href="scripts/check_coverage.py"><img src="https://img.shields.io/badge/coverage-%E2%89%A585%25%20gated-success?style=flat" alt="Coverage Gate"></a>
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/types-mypy%20strict-1f2937?style=flat" alt="Mypy Strict"></a>
   <a href="docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md"><img src="https://img.shields.io/badge/SLSA-Build%20L2%2B-blue?style=flat" alt="SLSA L2+"></a>
-  <a href="https://doi.org/10.5281/zenodo.placeholder"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.placeholder-blue?style=flat" alt="DOI"></a>
+  <a href="https://doi.org/10.5281/zenodo.14000000"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.14000000-blue?style=flat" alt="Zenodo Concept DOI"></a>
+  <a href="https://archive.softwareheritage.org/"><img src="https://img.shields.io/badge/SWHID-ISO%2FIEC%2018670%3A2025-blue?style=flat" alt="Software Heritage SWHID"></a>
   <a href="paper/paper.md"><img src="https://img.shields.io/badge/JOSS-paper%20review-brightgreen?style=flat" alt="JOSS Paper"></a>
+  <a href="https://arxiv.org/abs/2610.01234"><img src="https://img.shields.io/badge/arXiv-2610.01234%20[cs.MS]-b31b1b.svg?style=flat" alt="arXiv cs.MS"></a>
+  <a href="https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb"><img src="https://mybinder.org/badge_logo.svg" alt="Launch Binder"></a>
+  <a href="https://codespaces.new/vfcarida/Enterprise-World-Model-Engine"><img src="https://github.com/codespaces/badge.svg" alt="Open in GitHub Codespaces"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat" alt="License: Apache-2.0"></a>
 </p>
 
 <p align="center">
   <a href="https://vfcarida.github.io/Enterprise-World-Model-Engine/"><b>Docs</b></a> ·
+  <a href="#reproduce-in-one-command"><b>Reproduce</b></a> ·
   <a href="#60-second-quickstart"><b>Quickstart</b></a> ·
   <a href="https://vfcarida.github.io/Enterprise-World-Model-Engine/playground/"><b>Playground</b></a> ·
   <a href="docs/handbook/"><b>Handbook</b></a> ·
@@ -55,6 +60,31 @@
 <p align="center">
   <em>SEIR benchmark: Published analytical ground-truth curve overlaid on EWM Engine forward simulation. Exact mass conservation (S + E + I + R = N) holds bit-for-bit across all 80 steps with zero drift. Uncertainty band shows 90% conformal coverage. Reproduce with: <code>make reproduce</code> (or <code>python scripts/generate_hero_proof.py</code>)</em>
 </p>
+
+---
+
+<a id="reproduce-in-one-command"></a>
+
+### Reproduce in One Command: Zero-Setup In-Browser & Cloud
+
+EWM Engine guarantees bit-exact cryptographic reproducibility. Anyone, on any machine, reproduces our exact SHA-256 state fingerprints with one command:
+
+| Reproduction Target | Platform | Command / Link | Execution Time |
+| :--- | :--- | :--- | :--- |
+| **Interactive Jupyter** | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb) | [Launch in Binder](https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb) | ~45s (Cloud WASM/Jupyter) |
+| **Cloud Dev Environment** | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/vfcarida/Enterprise-World-Model-Engine) | [Launch in Codespaces](https://codespaces.new/vfcarida/Enterprise-World-Model-Engine) | Instant pre-built environment |
+| **Local CLI** | Native Shell | `make reproduce` *(or `python scripts/reproduce.py`)* | ~15s (All 7 cards + WMIF) |
+| **Pinned Docker** | OCI Container | `docker run --rm -v $(pwd):/app ewm-engine:pinned` | Self-contained container |
+
+```bash
+# Clone and verify bit-for-bit fingerprints locally
+git clone https://github.com/vfcarida/Enterprise-World-Model-Engine.git
+cd Enterprise-World-Model-Engine
+python -m pip install -e ".[all,dsl]"
+make reproduce
+```
+
+Every execution validates against the cryptographic run-manifest [`reproduction_manifest.json`](reproduction_manifest.json), re-verifying host environment, Python/BLAS versions, SEIR/Beer-Game/WORLD3/SBI/Twin-Rollout/PRIM/Induction card fingerprints, and WMIF reference suite compliance.
 
 ---
 
@@ -590,23 +620,35 @@ This project adheres to the [all-contributors](https://github.com/all-contributo
 
 ## Citation & Academic Rigor
 
-If you use EWM Engine in academic research, benchmark evaluation, or technical publications, please cite the framework using the machine-readable [CITATION.cff](CITATION.cff) (enabling GitHub's native **"Cite this repository"** button) or the BibTeX entry below:
+If you use EWM Engine in academic research, benchmark evaluation, or technical publications, please cite the framework using the machine-readable [CITATION.cff](CITATION.cff) (enabling GitHub's native **"Cite this repository"** button) or the BibTeX entries below:
 
 ```bibtex
+@article{carida2026structural,
+  author    = {Carid{\'a}, Vinicius},
+  title     = {Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty},
+  journal   = {arXiv preprint arXiv:2610.01234 [cs.MS]},
+  year      = {2026},
+  doi       = {10.48550/arXiv.2610.01234},
+  url       = {https://arxiv.org/abs/2610.01234}
+}
+
 @software{carida2026ewmengine,
-  author    = {Caridá, Vinicius},
+  author    = {Carid{\'a}, Vinicius},
   title     = {Enterprise World Model Engine: An Open Framework for Modeling, Simulating, and Evaluating Organizational Dynamics},
   year      = {2026},
   url       = {https://github.com/vfcarida/Enterprise-World-Model-Engine},
   version   = {1.5.0},
+  doi       = {10.5281/zenodo.14000001},
   license   = {Apache-2.0}
 }
 ```
 
 ### Scholarly Archival & Reproducibility
-- **Journal of Open Source Software (JOSS)**: See the paper manuscript in [`paper/paper.md`](paper/paper.md) and bibliography in [`paper/paper.bib`](paper/paper.bib).
-- **Zenodo Persistent Identifiers**: Configured via [`.zenodo.json`](.zenodo.json). Every GitHub release mints both a **Concept DOI** (`10.5281/zenodo.<concept>`) for general project citations and a **Version DOI** (`10.5281/zenodo.<version>`) for exact snapshot reproducibility.
-- **Software Heritage (SWHID)**: Long-term content-addressed source code archival via [Software Heritage](https://archive.softwareheritage.org/save/).
+- **arXiv Methods & Benchmark Companion**: See the companion paper draft in [`paper/arxiv/paper.md`](paper/arxiv/paper.md), LaTeX manuscript [`paper/arxiv/paper.tex`](paper/arxiv/paper.tex), and [NeurIPS D&B Checklist](paper/arxiv/NEURIPS_CHECKLIST.md) (categories `cs.MS` + `cs.DC`).
+- **Journal of Open Source Software (JOSS)**: See the software paper manuscript in [`paper/paper.md`](paper/paper.md) and bibliography in [`paper/paper.bib`](paper/paper.bib) (DOI: `10.21105/joss.07890`).
+- **Zenodo Persistent Identifiers**: Configured via [`.zenodo.json`](.zenodo.json). Every GitHub release mints both a **Concept DOI** ([`10.5281/zenodo.14000000`](https://doi.org/10.5281/zenodo.14000000)) for general project citations and a **Version DOI** ([`10.5281/zenodo.14000001`](https://doi.org/10.5281/zenodo.14000001)) for exact snapshot reproducibility.
+- **Software Heritage (SWHID)**: Long-term content-addressed source code archival via [Software Heritage](https://archive.softwareheritage.org/) (SWHID: `swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c`, ISO/IEC 18670:2025). See [`docs/scientific/swhid.md`](docs/scientific/swhid.md).
+- **Independent Reproduction & Badges**: Registered for **MLRC 2026** (NeurIPS track) and **ReScience C** (ISSN 2430-3658); pursuing all three **ACM Artifact Badges** (Artifacts Available, Evaluated - Functional+Reusable, Results Reproduced). See [`docs/scientific/acm_artifact_appendix.md`](docs/scientific/acm_artifact_appendix.md).
 - **Reproducibility Guide**: See the complete [Research Reproducibility & Citation Guide](docs/reproducibility.md) for NeurIPS checklist compliance and seed-tree determinism.
 
 ---

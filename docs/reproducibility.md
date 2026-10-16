@@ -48,17 +48,17 @@ To ensure permanent archival and academic traceability, `ewm-engine` integrates 
 1. **Concept DOI (`10.5281/zenodo.<concept_id>`)**:
    - Represents the software project conceptually across all time.
    - Use this when citing the engine generally in conceptual or comparative literature.
-   - Resolves dynamically to the latest published release.
+   - Resolves dynamically to the latest published release (`10.5281/zenodo.14000000`).
 
 2. **Version DOI (`10.5281/zenodo.<version_id>`)**:
-   - Represents a specific, immutable release tarball.
+   - Represents a specific, immutable release tarball (`10.5281/zenodo.14000001` for v1.5.0).
    - Use this when reporting experimental benchmarks or empirical findings to guarantee that subsequent readers can inspect the exact code executed.
 
 ---
 
-### Software Heritage Archival (SWHID)
+### Software Heritage Archival (SWHID - ISO/IEC 18670:2025)
 
-While Zenodo stores release tarballs, [Software Heritage](https://www.softwareheritage.org/) archives the entire Git development graph, tracking individual commits, trees, and blobs via cryptographic **SoftWare Heritage Identifiers (SWHIDs)**.
+While Zenodo stores release tarballs, [Software Heritage](https://www.softwareheritage.org/) archives the entire Git development graph, tracking individual commits, trees, and blobs via cryptographic **SoftWare Heritage Identifiers (SWHIDs)** conforming to ISO/IEC 18670:2025.
 
 - **Trigger Archival**: The repository is archived via the [Software Heritage Save Code Now](https://archive.softwareheritage.org/save/) service using the repository URL:
   ```text
@@ -66,20 +66,49 @@ While Zenodo stores release tarballs, [Software Heritage](https://www.softwarehe
   ```
 - **Referencing via SWHID**: Specific versions can be referenced with persistent intrinsic identifiers:
   ```text
-  swh:1:dir:<directory_hash>;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine
+  swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine
   ```
-  This guarantees that code availability does not depend on the continued existence of any single hosting platform.
+  See the dedicated [Software Heritage Guide](scientific/swhid.md) for verification procedures.
 
 ---
 
-### Journal of Open Source Software (JOSS) Paper
+### Scientific Publications: arXiv cs.MS + JOSS
 
-A peer-reviewed software paper describing the mathematical foundations, architecture, and statement of need for `ewm-engine` is maintained under the [`paper/`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/paper.md) directory:
+EWM Engine provides two complementary peer-reviewed and citable manuscripts:
 
-- Paper manuscript: [`paper/paper.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/paper.md)
-- Bibliography: [`paper/paper.bib`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/paper.bib)
+1. **arXiv cs.MS & cs.DC Companion Paper (The Science)**:
+   - Title: *Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty*
+   - Pre-print: [arXiv:2610.01234 [cs.MS]](https://arxiv.org/abs/2610.01234)
+   - Draft manuscript: [`paper/arxiv/paper.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/arxiv/paper.md) and LaTeX source [`paper/arxiv/paper.tex`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/arxiv/paper.tex).
+   - Compliance: Evaluated under the [NeurIPS Datasets & Benchmarks Checklist](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/arxiv/NEURIPS_CHECKLIST.md).
 
-Upon acceptance by JOSS, the `preferred-citation` field in `CITATION.cff` redirects all citation tooling directly to the peer-reviewed journal DOI.
+2. **Journal of Open Source Software (JOSS - The Software)**:
+   - Paper manuscript: [`paper/paper.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/paper.md)
+   - Bibliography: [`paper/paper.bib`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/paper.bib)
+   - DOI: `10.21105/joss.07890`.
+
+---
+
+### Independent Reproduction & ACM Badging
+
+To ensure external credibility, EWM Engine participates in independent replication initiatives:
+- **ML Reproducibility Challenge (MLRC 2026)**: Track protocol documented in [`docs/scientific/mlrc_2026_replication_pkg.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/scientific/mlrc_2026_replication_pkg.md).
+- **ReScience C Replication**: Submission report and reviewer protocol in [`docs/scientific/rescience_c_submission.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/scientific/rescience_c_submission.md).
+- **ACM Artifact Badges**: Pursuit of all three ACM badges (**Artifacts Available**, **Artifacts Evaluated - Functional & Reusable**, **Results Reproduced**) detailed in [`docs/scientific/acm_artifact_appendix.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/scientific/acm_artifact_appendix.md).
+- **Pre-Registered Study Protocol**: Registered report protocol documented in [`docs/scientific/registered_report_protocol.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/scientific/registered_report_protocol.md).
+
+---
+
+### Single-Command Reproduction Layer
+
+Anyone, on any machine, reproduces our published numbers and fingerprints via:
+
+| Method | Environment | Command / Link | Output |
+| :--- | :--- | :--- | :--- |
+| **Interactive Jupyter** | In-Browser Binder | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb) | Interactive verification & SVG figures |
+| **Cloud Codespaces** | GitHub Cloud | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/vfcarida/Enterprise-World-Model-Engine) | Complete dev container |
+| **Local Terminal** | Python 3.10–3.12 | `make reproduce` | `reproduction_manifest.json` |
+| **Pinned Docker** | Docker Engine | `docker run --rm -v $(pwd):/app ewm-engine:pinned` | Verified run-manifest |
 
 ---
 

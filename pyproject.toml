@@ -375,6 +375,8 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "examples/*" = ["E402"]
+"notebooks/*" = ["E402"]
+"scripts/*" = ["E402"]
 
 [tool.mypy]
 python_version = "3.12"

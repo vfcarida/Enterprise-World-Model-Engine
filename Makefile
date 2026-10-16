@@ -15,7 +15,7 @@ help:
 
 reproduce:
 	python scripts/generate_hero_proof.py
-	python scripts/reproduce_results.py
+	python scripts/reproduce.py
 
 test:
 	pytest tests/unit/ tests/contract/

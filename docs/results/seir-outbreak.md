@@ -46,8 +46,10 @@ Any numerical solver or neural dynamics model that leaks or creates individuals 
 ---
 
 ## 3. Visual Overlay
+ 
+![Analytical Ground Truth vs EWM Rollout](artifacts/ground_truth_overlay.svg)
 
-See the responsive hero proof visual:
+Responsive hero assets:
 * Dark theme: [`assets/hero-proof-dark.svg`](../assets/hero-proof-dark.svg)
 * Light theme: [`assets/hero-proof-light.svg`](../assets/hero-proof-light.svg)
 
@@ -57,4 +59,6 @@ See the responsive hero proof visual:
 
 ```bash
 python scripts/reproduce_results.py --card seir
+# Or full reproduction suite:
+python scripts/reproduce.py
 ```

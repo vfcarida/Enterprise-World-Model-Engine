@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="100%" height="auto">
+  <style>text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }</style>
+  <rect width="800" height="400" rx="8" fill="#0f172a" />
+  <text x="30" y="40" font-size="16" font-weight="700" fill="#f8fafc">Multi-Seed Stochastic Ensembles: Deterministic SeedSequence Branching</text>
+  <text x="30" y="60" font-size="12" fill="#94a3b8">Bit-exact cross-backend branch fingerprints across seeds 42, 1337, 999</text>
+  <line x1="180" y1="156.0" x2="180" y2="114.0" stroke="#38bdf8" stroke-width="2" />
+  <line x1="165" y1="156.0" x2="195" y2="156.0" stroke="#38bdf8" stroke-width="2" />
+  <line x1="165" y1="114.0" x2="195" y2="114.0" stroke="#38bdf8" stroke-width="2" />
+  <circle cx="180" cy="135.0" r="6" fill="#f59e0b" />
+  <text x="155" y="360" font-size="12" fill="#f8fafc">Seed 42</text>
+  <text x="150" y="123.0" font-size="11" fill="#94a3b8">p50=102.5</text>
+  <line x1="360" y1="163.0" x2="360" y2="124.0" stroke="#38bdf8" stroke-width="2" />
+  <line x1="345" y1="163.0" x2="375" y2="163.0" stroke="#38bdf8" stroke-width="2" />
+  <line x1="345" y1="124.0" x2="375" y2="124.0" stroke="#38bdf8" stroke-width="2" />
+  <circle cx="360" cy="143.4" r="6" fill="#f59e0b" />
+  <text x="335" y="360" font-size="12" fill="#f8fafc">Seed 1337</text>
+  <text x="330" y="131.4" font-size="11" fill="#94a3b8">p50=98.3</text>
+  <line x1="540" y1="150.0" x2="540" y2="109.0" stroke="#38bdf8" stroke-width="2" />
+  <line x1="525" y1="150.0" x2="555" y2="150.0" stroke="#38bdf8" stroke-width="2" />
+  <line x1="525" y1="109.0" x2="555" y2="109.0" stroke="#38bdf8" stroke-width="2" />
+  <circle cx="540" cy="129.8" r="6" fill="#f59e0b" />
+  <text x="515" y="360" font-size="12" fill="#f8fafc">Seed 999</text>
+  <text x="510" y="117.80000000000001" font-size="11" fill="#94a3b8">p50=105.1</text>
+  <text x="30" y="379" font-size="11" fill="#94a3b8">Quantiles [p05, p50, p95] Under Pinned PCG64 Streams</text>
+  <text x="580" y="379" font-size="11" fill="#10b981">Determinism: BIT-EXACT</text>
+</svg>

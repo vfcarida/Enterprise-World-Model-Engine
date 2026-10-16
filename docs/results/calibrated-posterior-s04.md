@@ -43,8 +43,16 @@ Estimates the posterior distribution over unobservable simulator parameters (tra
 
 ---
 
-## 3. Single-Command Reproduction
+## 3. Visual TARP Diagnostic
+
+![Amortized SBI Calibration TARP Diagnostic](artifacts/calibration_pit.svg)
+
+---
+
+## 4. Single-Command Reproduction
 
 ```bash
 python scripts/reproduce_results.py --card calibrated_posterior
+# Or full reproduction suite:
+python scripts/reproduce.py
 ```

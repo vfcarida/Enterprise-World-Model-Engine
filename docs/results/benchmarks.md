@@ -60,6 +60,9 @@ The following table summarizes the operational and structural differences betwee
   Tested via the Tests of Accuracy of Recovery of Posterior (TARP) method ([Lemos et al., ICML 2023](https://arxiv.org/abs/2302.03026)).
 - **Result**: EWM Engine's calibrated posterior achieves $90.2\%$ empirical coverage for a nominal $90.0\%$ target (TARP error $< 0.03$), whereas an uncalibrated prior covers only $64.1\%$.
 
+### Multi-Seed Deterministic Scaling
+![Multi-Seed Stochastic Ensembles and Error Bars](artifacts/multiseed_error_bars.svg)
+
 ---
 
 ## 4. Performance & Scalability (Single-Core CPU)

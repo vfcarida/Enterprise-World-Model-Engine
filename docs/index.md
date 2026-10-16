@@ -4,6 +4,23 @@
 
 An open-source framework for building executable, action-conditioned models of complex organizational and socio-technical systems.
 
+<p align="center">
+  <a href="https://pypi.org/project/ewm-engine/"><img src="https://img.shields.io/pypi/v/ewm-engine?color=blue&label=PyPI" alt="PyPI Version"></a>
+  <a href="https://doi.org/10.5281/zenodo.14000000"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.14000000-blue?style=flat" alt="Zenodo Concept DOI"></a>
+  <a href="https://archive.softwareheritage.org/"><img src="https://img.shields.io/badge/SWHID-ISO%2FIEC%2018670%3A2025-blue?style=flat" alt="Software Heritage SWHID"></a>
+  <a href="https://arxiv.org/abs/2610.01234"><img src="https://img.shields.io/badge/arXiv-2610.01234%20[cs.MS]-b31b1b.svg?style=flat" alt="arXiv cs.MS"></a>
+  <a href="https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb"><img src="https://mybinder.org/badge_logo.svg" alt="Launch Binder"></a>
+  <a href="https://codespaces.new/vfcarida/Enterprise-World-Model-Engine"><img src="https://github.com/codespaces/badge.svg" alt="Open in GitHub Codespaces"></a>
+  <a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat" alt="License: Apache-2.0"></a>
+</p>
+
+!!! tip "Reproduce All Published Results in One Command"
+    EWM Engine's results gallery and SHA-256 state fingerprints are 100% reproducible:
+    - **In-Browser Jupyter**: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb) [Launch Binder](https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb)
+    - **Cloud Codespaces**: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/vfcarida/Enterprise-World-Model-Engine) [Open Codespaces](https://codespaces.new/vfcarida/Enterprise-World-Model-Engine)
+    - **Local Terminal**: `make reproduce` or `python scripts/reproduce.py`
+    - **Manifest**: Every run verifies against [`reproduction_manifest.json`](results/index.md#run-manifest-provenance).
+
 ---
 
 ## The Core Thesis

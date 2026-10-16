@@ -18,9 +18,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 sys.path.insert(0, str(REPO_ROOT))
 
-from tests.fuzz.fuzz_json_loader import TestOneInput as fuzz_json  # noqa: E402
-from tests.fuzz.fuzz_wsl_compiler import TestOneInput as fuzz_wsl  # noqa: E402
-from tests.fuzz.fuzz_yaml_loader import TestOneInput as fuzz_yaml  # noqa: E402
+from tests.fuzz.fuzz_json_loader import TestOneInput as fuzz_json
+from tests.fuzz.fuzz_wsl_compiler import TestOneInput as fuzz_wsl
+from tests.fuzz.fuzz_yaml_loader import TestOneInput as fuzz_yaml
 
 CORPUS_DIR = REPO_ROOT / "tests" / "fuzz" / "corpus"
 

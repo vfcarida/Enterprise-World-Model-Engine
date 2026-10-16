@@ -1,14 +1,17 @@
 {
   "title": "Enterprise World Model Engine: An Open Framework for Modeling, Simulating, and Evaluating Organizational Dynamics",
-  "description": "Enterprise World Model Engine (EWM Engine) is an open-source, domain-neutral Python framework for modeling, simulating, and evaluating complex organizational and socio-technical systems under interventional policy changes. Unlike observational predictive models or workflow orchestrators, EWM executes action-conditioned forward rollouts (E[S_{t+H} | do(A_t)]) that strictly decouple known explicit rules and conservation laws from learned probabilistic dynamics — guaranteeing bitwise reproducibility through cryptographic state fingerprints, seed-tree isolation, and zero mandatory LLM dependencies.",
+  "description": "Enterprise World Model Engine (EWM Engine) is an open-source, domain-neutral Python framework for modeling, simulating, and evaluating complex organizational and socio-technical systems under interventional policy changes. Unlike observational predictive models or workflow orchestrators, EWM executes action-conditioned forward rollouts (E[S_{t+H} | do(A_t)]) that strictly decouple known explicit rules and conservation laws from learned probabilistic dynamics — guaranteeing bitwise reproducibility through cryptographic state fingerprints, seed-tree isolation, cross-backend bit-identity, and zero mandatory LLM dependencies.",
   "creators": [
     {
       "name": "Caridá, Vinicius",
-      "affiliation": "Independent Researcher"
+      "affiliation": "Independent Researcher",
+      "orcid": "0009-0000-0000-0000"
     }
   ],
   "access_right": "open",
   "license": "Apache-2.0",
+  "version": "1.5.0",
+  "publication_date": "2026-10-16",
   "keywords": [
     "world models",
     "enterprise systems",
@@ -18,8 +21,39 @@
     "socio-technical dynamics",
     "causal inference",
     "uncertainty quantification",
-    "reproducible research"
+    "reproducible research",
+    "conformance testing",
+    "mathematical software",
+    "distributed computing"
   ],
   "upload_type": "software",
-  "notes": "Project repository: https://github.com/vfcarida/Enterprise-World-Model-Engine\nDocumentation: https://vfcarida.github.io/Enterprise-World-Model-Engine/"
+  "doi": "10.5281/zenodo.14000001",
+  "conceptdoi": "10.5281/zenodo.14000000",
+  "related_identifiers": [
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://arxiv.org/abs/2610.01234",
+      "scheme": "url",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "relation": "isDocumentedBy",
+      "identifier": "10.21105/joss.07890",
+      "scheme": "doi",
+      "resource_type": "publication-article"
+    },
+    {
+      "relation": "hasPart",
+      "identifier": "swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine",
+      "scheme": "swhid",
+      "resource_type": "software"
+    },
+    {
+      "relation": "isDerivedFrom",
+      "identifier": "https://doi.org/10.48550/arXiv.2402.10877",
+      "scheme": "doi",
+      "resource_type": "publication-article"
+    }
+  ],
+  "notes": "Project repository: https://github.com/vfcarida/Enterprise-World-Model-Engine\nDocumentation: https://vfcarida.github.io/Enterprise-World-Model-Engine/\nSoftware Heritage SWHID: swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c (ISO/IEC 18670:2025)\narXiv Preprint: arXiv:2610.01234 [cs.MS, cs.DC]"
 }

@@ -22,13 +22,13 @@
 \begin{abstract}
 Modern machine learning research in ``world models'' has focused heavily on continuous control, video generation, and latent-space imagination for robotics and games. Concurrently, enterprise organizations demand simulation tools to answer prescriptive interventional questions: \emph{``What would happen if we enact decision $a$ instead of baseline $a'$?''}
 
-When applied to organizational and socio-technical domains (such as supply chain resilience, capital allocation, and crisis logistics), unconstrained neural and generative world models suffer from catastrophic failure modes: they violate fundamental physical and accounting conservation laws, compound autoregressive rollout errors, and emit unjustified point forecasts.
+When applied to organizational and socio-technical domains (such as supply chain resilience, capital allocation, and crisis logistics), unconstrained neural and generative world models suffer from critical failure modes: they violate fundamental physical and accounting conservation laws, compound autoregressive rollout errors, and emit unjustified point forecasts.
 
-In this paper, we introduce the \textbf{Enterprise World Model Engine (EWM)}, an open-source, domain-neutral structural simulation kernel. EWM establishes an architectural firewall between \textbf{KNOWN explicit conservation laws} (enforced as hard algebraic invariants) and \textbf{LEARNED probabilistic dynamics} (restricted to conservative nullspace projections). We establish the theoretical license for this architecture via Richens \& Everitt's Causal World Model Theorem (ICLR 2024), showing that robust interventional planning requires structural causal models (SCMs). EWM operationalizes this via: (1) a native SCM kernel supporting Pearl's three-step counterfactual algorithm under Twin-Rollout exogenous noise coupling; (2) amortized Simulation-Based Inference (SBI) with certified coverage evaluated through the Test of Accuracy of Related Probabilities (TARP); and (3) a beyond-rollout-error evaluation suite scoring models on \textbf{epistemic honesty}. Across six empirical benchmarks, EWM achieves bit-for-bit determinism, zero mass-balance drift ($0.000000$), and certified coverage calibration without mandatory GPU or LLM dependencies.
+In this paper, we introduce the \textbf{Enterprise World Model Engine (EWM)}, an open-source, domain-neutral structural simulation kernel. EWM establishes an architectural firewall between \textbf{KNOWN explicit conservation laws} (enforced as hard algebraic invariants) and \textbf{LEARNED probabilistic dynamics} (restricted to conservative nullspace projections). We establish the theoretical license for this architecture via Richens \& Everitt's Causal World Model Theorem (ICLR 2024), showing that robust interventional planning requires structural causal models (SCMs). EWM operationalizes this via: (1) a native SCM kernel supporting Pearl's three-step counterfactual algorithm under Twin-Rollout exogenous noise coupling; (2) automated world-model induction from relational process logs with a fail-closed causal refusal gate; (3) amortized Simulation-Based Inference (SBI) with certified coverage evaluated through the Test of Accuracy of Related Probabilities (TARP); (4) Structure-of-Arrays (SoA) state layouts producing bit-identical SHA-256 state fingerprints across pure-Python, NumPy, and compiled JAX runtimes; and (5) the World Model Interchange Format (WMIF) standard and standalone conformance suite. Across seven empirical validation benchmarks, EWM achieves bit-for-bit determinism, zero mass-balance drift ($0.000000$), and certified calibration without mandatory GPU or LLM dependencies.
 \end{abstract}
 
 \section{Introduction}
-In recent years, the paradigm of world models \cite{hafner2023dreamerv3} has emerged as a promising frontier in artificial intelligence. However, applying unconstrained generative world models to enterprise decision systems reveals acute hazards: physical quantities are hallucinated, point forecasts mask solvency tail risks, and observational associations collapse under policy shifts \cite{pearl2009causality}. We propose \textbf{Structural World Models (SWM)} to address these limitations.
+In recent years, the paradigm of world models \cite{hafner2023dreamerv3, assran2025vjepa2} has emerged as an active frontier in artificial intelligence. However, applying unconstrained generative world models to enterprise decision systems reveals acute hazards: physical and accounting quantities are hallucinated, point forecasts mask solvency tail risks, and observational associations collapse under policy shifts \cite{pearl2009causality}. We propose \textbf{Structural World Models (SWM)} to address these limitations.
 
 \section{Theoretical License}
 The foundational theoretical justification for EWM is licensed by Richens \& Everitt \cite{richens2024robust}:
@@ -48,14 +48,21 @@ where $\mathcal{P}_{\text{null}}(\mathbf{v}) = (\mathbf{I} - \mathbf{A}_{\text{c
 \subsection{Twin-Rollout Counterfactual Kernel}
 EWM implements Pearl's three-step algorithm: Abduction of noise $\mathbf{U}$, Action via graph surgery $do(\mathbf{a}_t = \mathbf{a}')$, and Prediction under coupled noise $\mathbf{U}$. The net treatment effect $\Delta \tau = \tau_{\text{cf}} - \tau_{\text{fact}}$ is strictly isolated from random sampling noise divergence.
 
+\section{World-Model Induction with Honest Refusal Gate}
+EWM discovers transition topologies from event logs (OCEL 2.0) and validates structural identifiability (backdoor/frontdoor). When unobserved confounding threatens validity, or covariate overlap fails ($d \ge 5$) \cite{damour2021overlap}, the engine raises a fail-closed exception rather than emitting misleading estimates. Accepted claims are paired with VanderWeele \& Ding E-values \cite{vanderweele2017evalues} and audited via refutation testing.
+
 \section{Amortized Calibration with Certified Coverage}
 Parameters are calibrated via likelihood-free Simulation-Based Inference \cite{papamakarios2019sequential}. Credible coverage is certified using the TARP diagnostic \cite{lemos2023tarp}:
 \begin{equation}
 P(\boldsymbol{\theta}^* \in \mathcal{R}_\alpha(\mathbf{x})) = \alpha \quad \forall \alpha \in [0, 1]
 \end{equation}
+Hypothesis comparisons between scenarios report sequential E-values \cite{grunwald2024evalues} satisfying $\mathbb{E}_{H_0}[E] \le 1$.
 
-\section{Empirical Results}
-We evaluate EWM across six reproducible benchmarks:
+\section{Cross-Backend Bit-Identical Fingerprints \& WMIF Standard}
+To enable scale without compromising determinism, EWM introduces a Structure-of-Arrays (SoA) state tensor producing bit-identical SHA-256 state fingerprints across pure-Python, NumPy, and compiled JAX backends. The World Model Interchange Format (WMIF) standardizes model exchange with an executable conformance suite.
+
+\section{Empirical Validation Scorecard}
+We evaluate EWM across seven reproducible benchmarks:
 \begin{table}[h]
 \centering
 \small
@@ -63,19 +70,20 @@ We evaluate EWM across six reproducible benchmarks:
 \toprule
 \textbf{Benchmark} & \textbf{Domain} & \textbf{Key Invariant} & \textbf{Empirical Metric} & \textbf{Status} \\
 \midrule
-SEIR Outbreak & Epidemiology & $S+E+I+R = N$ & Max Drift $= 4.54 \times 10^{-13}$ & Passed \\
-Beer Game & Supply Chain & Multi-tier inventory & Bullwhip Ratio $= 3.80$ & Passed \\
-WORLD3 & Global Dynamics & Non-linear feedback & Inflection at $t=99$ & Passed \\
+SEIR Outbreak & Epidemiology & $S+E+I+R = N$ & Max Drift $= 4.54 \times 10^{-13}$ & Zero Drift \\
+Beer Game & Supply Chain & Inventory conservation & Bullwhip Ratio $= 3.80$ & Conserved \\
+WORLD3 & Global Dynamics & Non-linear feedback & Inflection at $t=99$ & Stable \\
 SBI Calibration & Bayesian Calibration & Credible coverage & TARP Error $= 0.028$ & Certified \\
-Twin-Rollout SCM & Logistics Surgery & Exogenous coupling & ATE $= +35.0$ units & Verified \\
-PRIM Discovery & Vulnerability & Subspace purity & Density $= 91.2\%$, Recall $= 80\%$ & Passed \\
+Twin-Rollout SCM & Logistics Surgery & Exogenous coupling & ATE $= +35.0$ units & Coupled \\
+PRIM Discovery & Vulnerability & Subspace purity & Density $= 91.2\%$, Recall $= 80\%$ & Audited \\
+Induction Honesty & Process Mining & Refusal integrity & Fails closed on confounding & Verified \\
 \bottomrule
 \end{tabular}
-\caption{Empirical verification scorecard across six benchmark cards.}
+\caption{Empirical verification scorecard across seven benchmark pillars.}
 \end{table}
 
-\section{Conclusion}
-EWM Engine demonstrates that scientific rigor, auditability, and causal honesty can be engineered directly into simulation software without sacrificing performance. The complete open-source implementation is available under Apache-2.0 at \url{https://github.com/vfcarida/Enterprise-World-Model-Engine}.
+\section{Conclusion \& Reproducibility}
+All results reproduce bit-for-bit with the single command \texttt{make reproduce}. In-browser execution is supported via Binder and GitHub Codespaces. The complete open-source implementation is available under Apache-2.0 at \url{https://github.com/vfcarida/Enterprise-World-Model-Engine}.
 
 \bibliographystyle{plain}
 \bibliography{references}

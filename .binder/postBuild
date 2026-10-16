@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -ex
+
+# Ensure package is editable-installed and run full scientific reproduction
+python -m pip install -e ".[all,dsl]"
+python scripts/reproduce.py
