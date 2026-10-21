@@ -159,7 +159,7 @@ def run_sindy_stlsq(
         Theta_active = Theta[:, active_indices]
         try:
             Xi_active = np.linalg.solve(
-                Theta_active.T @ Theta_active + alpha_ridge * np.eye(np.sum(active_indices)),
+                Theta_active.T @ Theta_active + alpha_ridge * np.eye(int(np.sum(active_indices))),
                 Theta_active.T @ Y_dot,
             )
             Xi[active_indices] = Xi_active
@@ -178,8 +178,8 @@ def run_sindy_stlsq(
         r2 = 1.0 if ss_res < 1e-6 else 0.0
 
     # Build formula string and non-zero coefficient map
-    active_terms = {}
-    term_strings = []
+    active_terms: dict[str, float] = {}
+    term_strings: list[str] = []
     for idx, name in enumerate(lib_names):
         coef = float(Xi[idx])
         if abs(coef) >= 1e-4:

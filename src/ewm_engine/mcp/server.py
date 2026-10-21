@@ -493,12 +493,12 @@ class EwmMcpServer:
     def register_induction_report(self, report: Any) -> str:
         """Register an InductionReport in the MCP store."""
         rep_dict = report.to_dict() if hasattr(report, "to_dict") else dict(report)
-        fp = rep_dict.get("sha256_fingerprint", "")
+        fp = str(rep_dict.get("sha256_fingerprint", ""))
         if fp:
             self._induction_reports_store[fp] = rep_dict
         val_fp = rep_dict.get("validation_fingerprint")
         if val_fp:
-            self._induction_reports_store[val_fp] = rep_dict
+            self._induction_reports_store[str(val_fp)] = rep_dict
         return fp
 
     def get_induction_report(self, fingerprint: str) -> str:

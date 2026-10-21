@@ -6,7 +6,15 @@ canonical fingerprint transition, and scientific grounding citations.
 
 from __future__ import annotations
 
-from ewm_engine.constraints.results import ConstraintResult, ConstraintSeverity
+from collections.abc import Sequence
+
+from ewm_engine.constraints.base import Constraint
+from ewm_engine.constraints.results import (
+    ConstraintPhase,
+    ConstraintResult,
+    ConstraintSeverity,
+)
+from ewm_engine.core.actions import Action
 from ewm_engine.core.resources import Resource
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.world import World
@@ -19,7 +27,9 @@ class MockViolatingConstraint:
 
     id = "mock_conservation_invariant"
     constraint_id = "mock_conservation_invariant"
+    version = "1.0.0"
     severity = ConstraintSeverity.HARD
+    description = "Mock conservation invariant"
 
     def check(self, state: WorldState) -> ConstraintResult:
         return ConstraintResult(
@@ -28,6 +38,15 @@ class MockViolatingConstraint:
             severity=ConstraintSeverity.HARD,
             message="Resource balance conservation violated: illegal deficit.",
         )
+
+    def evaluate(
+        self,
+        state: WorldState,
+        actions: Sequence[Action] = (),
+        *,
+        phase: ConstraintPhase = ConstraintPhase.POST_TRANSITION,
+    ) -> ConstraintResult:
+        return self.check(state)
 
 
 def _make_test_world(with_violation: bool = False) -> World:
@@ -40,7 +59,7 @@ def _make_test_world(with_violation: bool = False) -> World:
             Resource(id="stock_b", current=50.0, min_value=0.0, max_value=500.0),
         ],
     )
-    constraints = [MockViolatingConstraint()] if with_violation else []
+    constraints: list[Constraint] = [MockViolatingConstraint()] if with_violation else []
     return World(state=state, constraints=constraints)
 
 

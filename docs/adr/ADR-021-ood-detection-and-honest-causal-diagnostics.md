@@ -5,7 +5,7 @@ Accepted (v2.0.0-experimental)
 
 ## Context
 A major systemic risk in world-model simulation is the temptation to treat simulated outcomes as verified empirical forecasts or real-world causal proofs. Recent research in causal machine learning and world models highlights two foundational findings:
-1. **Unavoidable Interventional Error in Observational World Models** (Song & Cai, arXiv:2610.00012; arXiv:2608.11601):
+1. **Unavoidable Interventional Error in Observational World Models** (Bareinboim & Pearl, 2016; Richens & Everitt, ICLR 2024, arXiv:2402.10877):
    Action-conditioned world models ($P(S_{t+1} \mid S_t, A_t)$) trained on observational logs incur unavoidable bias when unobserved confounding or open backdoor paths exist. Action conditioning is not equivalent to causal intervention:
    $$P(Y \mid X) \neq P(Y \mid \text{do}(X))$$
 2. **Unbounded Autoregressive Extrapolation Outside Grounded Support**:
@@ -37,7 +37,7 @@ Previous versions of EWM Engine established the `EvidenceLevel` hierarchy (`STRU
    - Implement `check_positivity_overlap`: Evaluates propensity score distributions $e(X)$ across logged transitions and flags positivity violations where treatment was never observed.
    - Implement `report_confounding_sensitivity`: Implements sensitivity analysis (e.g. Rosenbaum bounds $\Gamma$) to report how strong an unobserved confounder would have to be to nullify an observed treatment delta.
 
-4. **Noise-Coupled Counterfactual Branching (Twin Rollouts, arXiv:2608.08982)**:
+4. **Noise-Coupled Counterfactual Branching (Twin-Network Rollouts; Balke & Pearl, 1994; Pearl, 2009)**:
    - Provide `twin_rollout_counterfactual`: Given a factual trajectory, couples the exact same deterministic pseudorandom noise stream across factual and counterfactual branches, making Judea Pearl's counterfactual abduction step exact by construction.
    - Compute and report **Off-Target Divergence (Locality)**: Measures whether non-targeted variables diverge between factual and counterfactual branches, surfacing unmodeled systemic coupling or confounding leakage.
 

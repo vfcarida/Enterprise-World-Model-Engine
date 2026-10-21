@@ -1,4 +1,4 @@
-"""Numerical reproducibility discipline, tolerance standards, and differential tests (R04 Task D).
+"""Numerical reproducibility discipline, tolerance standards, and differential tests (ADR-032).
 
 Discipline Anchors:
 1. Goldberg (1991): "What Every Computer Scientist Should Know About Floating-Point Arithmetic".

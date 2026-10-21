@@ -1,6 +1,6 @@
 """Pytest smoke tests for fuzz harnesses with structured mutation.
 
-In accordance with R03 Task 5:
+In accordance with ADR-031:
 - Validates seed corpus across all 3 fuzz harnesses (YAML, JSON, WSL).
 - Executes bounded structure-aware and random mutations to guarantee no crashes.
 """

@@ -80,7 +80,7 @@ nav:
       - "Calibrated Posterior": results/calibrated-posterior-s04.md
       - "Counterfactual SCM": results/counterfactual-scm-s01.md
       - "Decision Scenario Discovery": results/decision-discovery-s02.md
-      - "Induction Honesty & Validation (S09)": results/induction-validation-s09.md
+      - "Induction Honesty & Validation": results/induction-validation-s09.md
       - "Performance & Scaling Curves": performance.md
       - Scientific Reproduction & Adoption:
           - "Reproducibility & Citation Guide": reproducibility.md
@@ -181,6 +181,12 @@ nav:
           - Constraints Engine: reference/api/constraints.md
           - Pluggable Dynamics: reference/api/dynamics.md
           - Scenario Evaluation: reference/api/evaluation.md
+          - Decision Discovery & Robustness: reference/api/decision.md
+          - Amortized Calibration & TARP: reference/api/calibration.md
+          - World-Model Induction & Gate: reference/api/induction.md
+          - Serialization, WSL & WMIF: reference/api/serialization.md
+          - Model Context Protocol (MCP): reference/api/mcp.md
+          - Ecosystem Integrations: reference/api/integrations.md
           - Durability & Storage: reference/api/durability.md
           - Trajectory Verification: reference/api/verification.md
           - Experimentation Suite: reference/api/experimentation.md
@@ -194,6 +200,7 @@ nav:
       - "CLI Command Reference": reference/cli.md
       - "JSON Schemas Reference": reference/schemas.md
       - "Enterprise Data Connectors": reference/connectors.md
+      - "Verified Bibliography & References": REFERENCES.md
       - "Stability Policy (SemVer 2.0.0)": stability-policy.md
       - "Deprecation Policy (NEP-23)": deprecation-policy.md
       - "SPEC 0 Support Policy": spec0-policy.md

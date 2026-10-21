@@ -72,6 +72,7 @@ def test_causal_induction_report_contract_and_roundtrip() -> None:
     reloaded_report = InductionReport.model_validate(rep_data)
 
     assert reloaded_report.sha256_fingerprint == report.sha256_fingerprint
+    assert reloaded_report.causal_equivalence_class is not None
     assert reloaded_report.causal_equivalence_class.asserted_edges_count == (
         report.causal_equivalence_class.asserted_edges_count
     )

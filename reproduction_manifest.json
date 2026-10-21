@@ -1,26 +1,26 @@
 {
   "schema_version": "1.0.0",
   "title": "EWM Engine Universal Scientific Reproduction Manifest",
-  "timestamp_start": "2026-10-16T17:36:14.370624+00:00",
-  "timestamp_end": "2026-10-16T17:36:14.989052+00:00",
+  "timestamp_start": "2026-10-21T14:20:46.148567+00:00",
+  "timestamp_end": "2026-10-21T14:20:46.830281+00:00",
   "overall_status": "SUCCESS",
   "provenance": {
     "git": {
-      "commit": "aa0a2d36d1164e8340dee9d58e565c6292a717f9",
+      "commit": "8422cace64f2ac51746ff6222bcf208272fb3306",
       "branch": "main",
-      "dirty": "True"
+      "dirty": "False"
     },
     "environment": {
-      "platform": "Windows-11-10.0.26200-SP0",
+      "platform": "Windows-11-10.0.26300-SP0",
       "system": "Windows",
       "release": "11",
       "machine": "AMD64",
       "processor": "Intel64 Family 6 Model 142 Stepping 10, GenuineIntel",
       "python_version": "3.12.10",
       "python_implementation": "CPython",
-      "numpy_version": "2.5.2",
-      "uv_lock_sha256": "4059f4acd96fc8a31ca53527f4249c6ae55c9a6d6de3b6587beda15869958dc5",
-      "blas_config_summary": "{\"Compilers\": {\"c\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}, \"cython\": {\"name\": \"cython\", \"linker\": \"cython\", \"version\": \"3.2.9\", \"commands\": \"cython\"}, \"c++\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}}, \"Machine Information"
+      "numpy_version": "2.5.3",
+      "uv_lock_sha256": "e7f9c755d9cffca66771676793bb6970ecc5d4dddd0a977d5f6387f479e37543",
+      "blas_config_summary": "{\"Compilers\": {\"c\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}, \"cython\": {\"name\": \"cython\", \"linker\": \"cython\", \"version\": \"3.3.0\", \"commands\": \"cython\"}, \"c++\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}}, \"Machine Information"
     }
   },
   "results": {
@@ -168,5 +168,5 @@
     "calibration_pit": "ab21ddab607af5dfe03fb9615170e3310f330f166e1f0832adabc765af846787",
     "multiseed_error_bars": "1f4d6cdc53369cf9cb2f02df83d6b356d098efdcba4096c69faabb7129b092e9"
   },
-  "reproduction_fingerprint": "abd1d0c4e253483213b439fab93a0c29a282c0956d948e94935a10216af36013"
+  "reproduction_fingerprint": "7317d13ecf299e1abf3ea95687c8e022bc4f8516477909b90c559d9bae6316e3"
 }

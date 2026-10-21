@@ -1,4 +1,4 @@
-# Result Card: Induction Honesty & Validation Gate (S09)
+# Result Card: Induction Honesty & Validation Gate
 
 > **Identity & Scientific Domain**: Structural-Uncertainty Quantification, Equivalence-Class Honesty, Causal Refutation  
 > **Scientific Anchors**:  

@@ -210,7 +210,7 @@ The explosion of interest in **world models** across 2024–2026 encompasses two
 | **State Representation** | Symbolic + Hybrid: Heterogeneous relational graph ($G_t$), bounded continuous resources ($R_t$), memory ($M_t$), active rules ($\Gamma_t$). | High-dimensional visual tokens, pixel lattices, or 3D Gaussian splats ($V_t$). | Abstract continuous latent vector ($z_t$) without pixel reconstruction. |
 | **Physical & Business Laws** | **Strict Invariants**: Hard conservation laws, capacity limits, and legal constraints enforced by pre/post validation gates ($\mathcal{V}_{\text{pre}}$, $\mathcal{V}_{\text{post}}$). | **Statistical Illusion**: Invariants are learned implicitly from video; prone to physical hallucinations, object vanishing, and balance breaches. | **Loss Penalties**: Invariants approximated via latent regularization; no hard guarantees. |
 | **Dynamics Mechanism** | **Pluggable Hybrid**: Structural mechanical rules + OR solvers + optional learned neural/GNN residuals. | Autoregressive diffusion, video spatio-temporal transformers. | Recurrent State-Space Models (RSSM) or Joint-Embedding Predictors. |
-| **Epistemics & Causality** | **Honest Diagnostics**: Backdoor identifiability checks, positivity overlap, Twin Rollout noise coupling, Rosenbaum bounds, OOD regime detection. | **Pure Observational / Action-Conditioned**: Incurs unavoidable interventional bias when backdoor paths are open (Song & Cai, arXiv:2610.00012). | Latent planning without structural identification guarantees. |
+| **Epistemics & Causality** | **Honest Diagnostics**: Backdoor identifiability checks, positivity overlap, Twin Rollout noise coupling, Rosenbaum bounds, OOD regime detection. | **Pure Observational / Action-Conditioned**: Incurs unavoidable interventional bias when backdoor paths are open (Bareinboim & Pearl, 2016; Richens & Everitt, arXiv:2402.10877). | Latent planning without structural identification guarantees. |
 | **Execution Core** | **Zero-LLM, Zero-GPU Required**: Lightweight, deterministically seeded, reproducible PRNG kernel. | Multi-billion-parameter neural networks requiring GPU/TPU clusters for inference. | Neural inference requiring PyTorch/JAX runtimes. |
 | **Primary Output** | Decision-grade consequence distributions, Pareto trade-offs, and systemic dependency traces. | Rendered video frames or simulated sensory streams. | Latent value estimates and continuous control policies. |
 
@@ -322,6 +322,8 @@ resource_stock_b          | Baseline             | 20.00 (+/-0.00)    | 20.00 [2
 EWM Engine guarantees the **Branch Isolation Property (AC-005)**: branching a world creates an independent logical state without shared mutable references:
 
 ```python
+from ewm_engine import Scenario, SimulationEngine
+
 # Create an isolated branch from the current world snapshot
 policy_branch = world.branch()
 
@@ -335,8 +337,8 @@ branch_scenario = Scenario(
 )
 
 # Running simulation on policy_branch leaves baseline world completely unaffected
-branch_results = engine.run(policy_branch, branch_scenario)
-assert world.initial_state.fingerprint == state.fingerprint
+branch_results = SimulationEngine().run(policy_branch, branch_scenario)
+assert world.initial_state.fingerprint == policy_branch.initial_state.fingerprint
 ```
 
 ### 2. Phase-Aware Constraints & Invalidation
@@ -400,8 +402,8 @@ assert res.trajectories[0].final_state.get_resource("stock_a").current == 100.0
 Every simulation trajectory captures an inspectable **Systemic Trace**: a directed dependency graph recording discrete interactions with declared epistemic evidence levels (`EvidenceLevel`):
 
 ```python
-# Inspect the interventional trajectory's systemic trace
-trajectory = res_intervention.trajectories[0]
+# Inspect the counterfactual trajectory's systemic trace
+trajectory = counterfactual.trajectories[0]
 trace = trajectory.systemic_trace
 
 # Export trace to Mermaid Markdown diagram
@@ -495,6 +497,7 @@ Key sections:
 - **[First-Class Constraints](https://vfcarida.github.io/Enterprise-World-Model-Engine/concepts/constraints/)**: Pre-action and post-transition verification.
 - **[Systemic Traces](https://vfcarida.github.io/Enterprise-World-Model-Engine/concepts/systemic-traces/)**: Inspectable causal DAG extraction.
 - **[API Reference](https://vfcarida.github.io/Enterprise-World-Model-Engine/reference/api/)**: Complete module and protocol specification.
+- **[Scientific & Enterprise References](docs/REFERENCES.md)**: Verified academic, frontier lab, and executive governance bibliography.
 
 ---
 
@@ -536,7 +539,6 @@ Capabilities in EWM Engine advance through strictly governed stability tiers def
 - **CORE Stable**: Frozen public contract (`1.x`), zero breaking changes, strictly deterministic, zero external ML dependencies, and 100% verified by automated Acceptance Criteria and test suites.
 - **Beta Adapter / Beta**: Production-ready ecosystem integrations, solvers, durability backends, and platform modules. Operates with explicit resource limits and execution time bounds.
 - **Experimental**: Research and frontier prototypes under `ewm_engine.experimental.*`, isolated behind optional extras, subject to interface evolution.
-- **Planned**: Forward-looking roadmap milestones (`v1.6.0` through `v2.0.0`) under active development or architectural specification; never labeled as shipped until all acceptance gates pass.
 
 | Subsystem | Maturity Status | Architectural Scope & Standards |
 | :--- | :---: | :--- |
@@ -566,17 +568,19 @@ Capabilities in EWM Engine advance through strictly governed stability tiers def
 | **Planning & Controller Layer** | **Experimental (v1.3.0)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control (ADR-020) |
 | **OOD & Regime-Shift Detection** | **Experimental (v1.4.0)** | Grounded-regime detection (support bounds, Mahalanobis covariance, ADR-021) |
 | **Honest Causal Diagnostics** | **Experimental (v1.4.0)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling (ADR-021) |
-| **Counterfactual SCM Kernel** | **Active (v1.6.0)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040) |
-| **Grey-Box Dynamics & Conservation** | **Active (v1.6.0)** | Residual-only learning, hard nullspace projection for conservation laws (FEAT-010, ADR-042) |
-| **Causal-Correctness & Metamorphic Suite** | **Active (v1.6.0)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044) |
-| **Decision Scenario Discovery** | **Planned (v1.7.0)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (FEAT-009, ADR-041) |
-| **Amortized Calibration & TARP Coverage** | **Planned (v1.8.0)** | Simulation-Based Inference, certified coverage via TARP, misspecification refusal (FEAT-011, ADR-043) |
-| **Scientific Results Gallery & Benchmarks** | **Planned (v2.0.0)** | CI-reproducible gallery, NeurIPS D&B checklist, arXiv companion methods paper (FEAT-012, ADR-044) |
-| **Heterogeneous Graph State & GNN** | **Planned (v2.0.0-alpha)** | Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
-| **World Specification Language** | **Planned (v2.0.0-alpha)** | Declarative safe YAML/JSON grammar, validator, compiler, and exporter (FEAT-003, ADR-023) |
+| **Counterfactual SCM Kernel** | **Stable (v1.6.0)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040, AC-033) |
+| **Grey-Box Dynamics & Conservation** | **Stable (v1.6.0)** | Residual-only learning, hard nullspace projection for conservation laws, SINDy promotion (FEAT-010, ADR-042, AC-034) |
+| **Causal-Correctness & Metamorphic Suite** | **Stable (v1.6.0)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044, AC-035) |
+| **Decision Scenario Discovery** | **Stable (v1.7.0)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (`ewm decide`, FEAT-009, ADR-041, AC-036) |
+| **Amortized Calibration & TARP Coverage** | **Stable (v1.8.0)** | Simulation-Based Inference, certified coverage via TARP/Posterior-SBC, misspecification refusal (`ewm calibrate`, FEAT-011, ADR-043, AC-037) |
+| **World-Model Induction & Honesty Gate** | **Stable (v1.9.0)** | Process/causal/dynamics/invariant induction from logs with strict review gate (`ewm induce`, ADR-046–ADR-049, AC-038) |
+| **Model Context Protocol (MCP) Server** | **Beta Adapter (v1.9.0)** | Agent tool server exposing world loading, counterfactual simulation, and epistemic checks (`ewm mcp`, ADR-045, AC-039) |
+| **Scientific Results Gallery & Benchmarks** | **Stable (v2.0.0)** | CI-reproducible gallery, NeurIPS D&B checklist, arXiv companion methods paper (FEAT-012, ADR-044) |
+| **Heterogeneous Graph State & GNN** | **Beta (v2.0.0)** | Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
+| **World Specification Language (WSL)** | **Stable (v2.0.0)** | Declarative safe YAML/JSON & authored `.wsl` grammar, zero-dep fallback parser, compiler, and WMIF (FEAT-003, ADR-023, AC-040) |
 
 See [ROADMAP.md](ROADMAP.md), [Platform Tracks](docs/architecture/platform-tracks.md), and [Frontier Roadmap](docs/architecture/frontier-roadmap.md) for detailed milestone descriptions and architectural tracking.
-Track active delivery on the **[Pinned GitHub Project](https://github.com/users/vfcarida/projects/1)** and milestones ([v1.5.0 Shipped](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/1), [v1.6.0 Active](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/2), [v2.0-alpha Horizon](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/3)).
+Track active delivery on the **[Pinned GitHub Project](https://github.com/users/vfcarida/projects/1)** and milestones ([v1.5.0 Shipped](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/1), [v1.6.0–v1.9.0 Shipped](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/2), [v2.0 Converged](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/3)).
 
 ---
 
@@ -655,7 +659,7 @@ If you use EWM Engine in academic research, benchmark evaluation, or technical p
 
 ## Acknowledgments & Authorship
 
-Designed and architected by [Vinicius Caridá](https://github.com/vfcarida). Implementation and test-suite verification accelerated with AI-assisted engineering workflows.
+*Designed and architected by [Vinicius Caridá](https://github.com/vfcarida). Implementation and verification accelerated with AI-assisted engineering workflows.*
 
 ---
 

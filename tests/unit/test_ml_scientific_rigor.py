@@ -1,4 +1,4 @@
-"""Comprehensive test suite for R05: ML/AI scientific rigor, provenance, UQ, and causal gates.
+"""Comprehensive test suite for ADR-033: ML/AI scientific rigor, provenance, UQ, and causal gates.
 
 Verifies:
     A. Reproducibility spine: RunManifest, seed_everything, multi-seed reporting.

@@ -383,6 +383,15 @@ wheels = [
 ]
 
 [[package]]
+name = "array-api-compat"
+version = "1.15.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/86/12/65d297d3e425cb7fe5247b7ec14b4ed83539e9b5e89b65c15ea7ee274182/array_api_compat-1.15.0.tar.gz", hash = "sha256:53c5f922491bf15f62847afafc4e39eedfae57d218988fefb8cce39c2a9b3dea", size = 129305, upload-time = "2026-06-07T20:53:24.964Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/86/16/1a8fd2b19544b84575cf84ef7aa3ad4c173b756d5f087c91f85d1b295777/array_api_compat-1.15.0-py3-none-any.whl", hash = "sha256:7b1b9c53269061403fd5f45a8de349f16e7887653328bfa0c5f2d45299ff0a8e", size = 79113, upload-time = "2026-06-07T20:53:23.621Z" },
+]
+
+[[package]]
 name = "ast-serialize"
 version = "0.12.0"
 source = { registry = "https://pypi.org/simple" }
@@ -723,6 +732,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c9/35/44b405e601c9662223b01b56a38e16920d9633a8897a223399efa791d0b3/caio-0.12.9-cp315-cp315t-musllinux_1_2_aarch64.whl", hash = "sha256:b30f3f36e45afb0814fc828cbb10ef9dd91043ff0b0a14ffe1cd8a348b461179", size = 185758, upload-time = "2026-09-26T09:51:44.98Z" },
     { url = "https://files.pythonhosted.org/packages/fb/8f/2b08f5e117e3663396cfd0d935cdb9218ad3c374d10911ec278fc0c6aee5/caio-0.12.9-cp315-cp315t-musllinux_1_2_x86_64.whl", hash = "sha256:b17b9aca6360f72bf07f1062bd60d8849f3fd5c1cb77f43923d8dec7fdbbb5df", size = 183425, upload-time = "2026-09-26T09:51:46.402Z" },
     { url = "https://files.pythonhosted.org/packages/c0/99/96888ad510c9adf42bfbad9ba139831b58055fd61e1301f6268e9bb490b8/caio-0.12.9-py3-none-any.whl", hash = "sha256:bf12d4f014b2a33e642ed7905b5787656ede2fc24be21f7c086826ff0d32cec3", size = 26154, upload-time = "2026-09-26T09:51:48.071Z" },
+]
+
+[[package]]
+name = "cattrs"
+version = "26.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/23/75/e72b839c3dc869c990b4842f3dba730bdcdf5215f68fc7955edf849a1792/cattrs-26.2.1.tar.gz", hash = "sha256:679132bfdc225c5ee40c024fc42519954767c387f950dc6751946c586bccdc6d", size = 525617, upload-time = "2026-09-26T20:53:21.114Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/cf/22794a399d99480486120e26e879ef008e21f5e85274c2ed591d568bb326/cattrs-26.2.1-py3-none-any.whl", hash = "sha256:a12aaa3453dc8f633a815293179f08b7421ed18d2575c459c3c736f840beac24", size = 74843, upload-time = "2026-09-26T20:53:19.767Z" },
 ]
 
 [[package]]
@@ -1567,12 +1589,42 @@ nvtx = [
 ]
 
 [[package]]
+name = "cupy"
+version = "14.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cuda-pathfinder" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/dc/10/059a92d40b161ea24607c9e41a75098812ca7021f2b565524f87beba15c9/cupy-14.2.0.tar.gz", hash = "sha256:cfed725e612178cfbdbf62f4a3a598b60edecbbca718c0d4580c21a16ae4a62c", size = 4057114, upload-time = "2026-08-20T02:42:12.036Z" }
+
+[[package]]
 name = "cycler"
 version = "0.12.1"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/a9/95/a3dbbb5028f35eafb79008e7522a75244477d2838f38cbb722248dabc2a8/cycler-0.12.1.tar.gz", hash = "sha256:88bb128f02ba341da8ef447245a9e138fae777f6a23943da4540077d3601eb1c", size = 7615, upload-time = "2023-10-07T05:32:18.335Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e7/05/c19819d5e3d95294a6f5947fb9b9629efb316b96de511b418c53d245aae6/cycler-0.12.1-py3-none-any.whl", hash = "sha256:85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30", size = 8321, upload-time = "2023-10-07T05:32:16.783Z" },
+]
+
+[[package]]
+name = "dask"
+version = "2026.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "cloudpickle" },
+    { name = "fsspec" },
+    { name = "importlib-metadata", marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "packaging" },
+    { name = "partd" },
+    { name = "pyyaml" },
+    { name = "toolz" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/33/a7/6b3c7ac32b642fbbe0821111654e0bd8cfbe88f68560bcf23cc78ab35c71/dask-2026.8.0.tar.gz", hash = "sha256:8a94c37b5de6d869343340dc26c3c3acca7ec48a3abdabe00ea3abb1125884d5", size = 11561752, upload-time = "2026-08-24T19:21:25.906Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f8/3a/4fc99e788bcfa1b3b3f21abf57da45898d807d007e7f6fd1c7300904eb70/dask-2026.8.0-py3-none-any.whl", hash = "sha256:ccc0c83a189b0398602435189771d28dad7b5773b6089bb8dce14ae732dd782c", size = 1492182, upload-time = "2026-08-24T19:21:23.997Z" },
 ]
 
 [[package]]
@@ -1717,6 +1769,31 @@ wheels = [
 ]
 
 [[package]]
+name = "distributed"
+version = "2026.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "cloudpickle" },
+    { name = "dask" },
+    { name = "jinja2" },
+    { name = "locket" },
+    { name = "msgpack" },
+    { name = "packaging" },
+    { name = "psutil" },
+    { name = "pyyaml" },
+    { name = "sortedcontainers" },
+    { name = "tblib" },
+    { name = "toolz" },
+    { name = "tornado" },
+    { name = "zict" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ff/18/1c98f0a36eccfcce109f054456f38767ac5d4b3fac124dcd5a35b1cd6167/distributed-2026.8.0.tar.gz", hash = "sha256:6f55008ecacf96ba945309fc12e680544764995e27bd63cc5e109afb97d7044d", size = 2465942, upload-time = "2026-08-24T19:36:00.554Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/28/d4/017e2d39d797eaa38a52b4459c8bea875d5e0ada335a62aafe98193041a6/distributed-2026.8.0-py3-none-any.whl", hash = "sha256:3bd8882861a2cf497453f28c6b61135fa8ef2bb1d6885ad3b9f27e887e9c0e01", size = 1008640, upload-time = "2026-08-24T19:35:58.622Z" },
+]
+
+[[package]]
 name = "distro"
 version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1764,6 +1841,42 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/39/a4/5180d9afc57e8fca05601dd652bdff19604c218814037fe90ffc7625a50a/docutils-0.23.tar.gz", hash = "sha256:746f5060322511280a1e50eb76846ed6bf2342984b2ac04dc42caa1a8d78799e", size = 2303823, upload-time = "2026-05-27T17:41:06.934Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/32/91/30151a39f7570f448ed84529390628a651d7f27c87d73c9b887f8189695e/docutils-0.23-py3-none-any.whl", hash = "sha256:25d013af9bf23bc1c7b2b093dff4208166c53a94786c9e447808335ef1185fea", size = 634701, upload-time = "2026-05-27T17:40:58.442Z" },
+]
+
+[[package]]
+name = "duckdb"
+version = "1.5.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/59/0b/d65ea3be00ea79aa276a8388bec588a9cbf409ce637c6d306e5316210d15/duckdb-1.5.6.tar.gz", hash = "sha256:166a91dbfacfc0c9f08cc76c0243cb6d3d4296bfab5bad72a3cfb63140a5b7c8", size = 18032957, upload-time = "2026-09-28T13:38:37.978Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/36/e5/01e03d30b7ba33a030a4269fdca16ce445ce10f9d29b84a10fdbe0636ad2/duckdb-1.5.6-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:c88700d0ee68ad149a0cc624df21b0f21efc136ea2449aaadd7cd0c9a564962a", size = 32757482, upload-time = "2026-09-28T13:37:29.916Z" },
+    { url = "https://files.pythonhosted.org/packages/ba/4f/7f7be626a4649a3948ca646c84d6afc1a00121f292f98e6f0d9ed68330df/duckdb-1.5.6-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:03e4f1b10a8b8ff476eb2b73955590fadbcef978da1167c593114c5edf763960", size = 17372997, upload-time = "2026-09-28T13:37:32.363Z" },
+    { url = "https://files.pythonhosted.org/packages/1a/66/9d57573729348d800a0eebdd508f1a833d3714f72e984fef79b47f0e6c45/duckdb-1.5.6-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:34623eaabd2c66ba5c20f1a39486321c3b7d32e4e0e001ced95f81e3372dd361", size = 15514224, upload-time = "2026-09-28T13:37:34.467Z" },
+    { url = "https://files.pythonhosted.org/packages/57/ec/97f595214b3a27b4ca42b8cab6d8121c06f3537dcc4d2da7bca0332de4c5/duckdb-1.5.6-cp311-cp311-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:56c0f71c6bee982e9c30568bb12371bf66b26bf129c75d8d7f60bc69d6590a2c", size = 19428776, upload-time = "2026-09-28T13:37:36.689Z" },
+    { url = "https://files.pythonhosted.org/packages/68/4a/ab59f4c1f76fb89e28d23f19b2729538e0723c8d328a07e1b8c37f9ee128/duckdb-1.5.6-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:73b108c04c932b36c2fa4e41110cc1c3c8cd510eb49f065f92d050be8e6929fd", size = 21537771, upload-time = "2026-09-28T13:37:39.548Z" },
+    { url = "https://files.pythonhosted.org/packages/31/4f/9306c442ecad76f2a4d19f249e7fc8861f139dcf748315102eb69de8ca56/duckdb-1.5.6-cp311-cp311-win_amd64.whl", hash = "sha256:dda311932cf5aae955a53fe28a4fc1700c2ab5fa02dc1f165abdd5ec6c39141e", size = 13179009, upload-time = "2026-09-28T13:37:41.981Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/40/8a370e998293d3ebbbac4d926db30bb4ac5f700851a06ac31e7093bee386/duckdb-1.5.6-cp311-cp311-win_arm64.whl", hash = "sha256:df5ae02af278e084f54a9730a9f4f211ed736d0bd8f3bc12af925c2effb5b33d", size = 14046340, upload-time = "2026-09-28T13:37:44.187Z" },
+    { url = "https://files.pythonhosted.org/packages/d9/d5/d0ab77a0a1702a43171c93874f44c1f6481e30038bd3987df0d77a16a5c6/duckdb-1.5.6-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:48d07d0651aaeac2c3974afd37599970154b7b79b54c18f27c319c14ccf98d9d", size = 32810486, upload-time = "2026-09-28T13:37:47.254Z" },
+    { url = "https://files.pythonhosted.org/packages/9f/cd/b22201de5377faa3be6c38d5f3eaa504cb480392a448bed6a4d2239469b4/duckdb-1.5.6-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:79de3dfa8705b1ba0d59e7e3252e40ff399e0afd12f485502a6c7bf7c2fd809a", size = 17405278, upload-time = "2026-09-28T13:37:50.135Z" },
+    { url = "https://files.pythonhosted.org/packages/9c/6d/f9cfb1493bbdc2f095693a402e42dce1192077f9e11573f00baed6a748de/duckdb-1.5.6-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:dcccce20965e6986cd083fdf192c461685ad0b93cd1ccd0b2a8207f1185f078b", size = 15532943, upload-time = "2026-09-28T13:37:52.927Z" },
+    { url = "https://files.pythonhosted.org/packages/53/04/f65ccfaa5a833f2e570c4a140f03c8f95da416da9fe8ed08401f81f8242a/duckdb-1.5.6-cp312-cp312-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:ce89a1025a5317ebe9c520876c48032b5247ac574865486648b1a004f6009875", size = 19454940, upload-time = "2026-09-28T13:37:55.732Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/99/be75c788a492f8d77b7a1cdc1b19939ae7be0007f2028691ad371a1a33ee/duckdb-1.5.6-cp312-cp312-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:bc9619ed7d4ffa117b5155d84b44794366bb6635178d78ed5e13a6024845c757", size = 21568087, upload-time = "2026-09-28T13:37:58.191Z" },
+    { url = "https://files.pythonhosted.org/packages/b5/95/889f8508960e47c0a7c75cc5bf57cde8512fc24f8db7b3129cca5388da42/duckdb-1.5.6-cp312-cp312-win_amd64.whl", hash = "sha256:09ff51b230219f0d8b47fc8a1e17fb595ba9fab0c3d96a6de4d00b8ff86b3cf1", size = 13190189, upload-time = "2026-09-28T13:38:00.407Z" },
+    { url = "https://files.pythonhosted.org/packages/a4/c9/baab503364a68309f8368c88e77f5341e7d94927bdf3e6d703f0e5035f3e/duckdb-1.5.6-cp312-cp312-win_arm64.whl", hash = "sha256:b8d795c8b2d5634b3269f974aa97f1fdf878f62f032317a52252a151b693fb1e", size = 14021977, upload-time = "2026-09-28T13:38:02.682Z" },
+    { url = "https://files.pythonhosted.org/packages/b1/5e/a476197fcba557738a588ec844747a19bc0a24b0e6f1809e308f29d68c0e/duckdb-1.5.6-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:ae352646374cacf48e9981cf031191c494865192fc436d13667a2531fc5d1da3", size = 32810376, upload-time = "2026-09-28T13:38:05.148Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/6d/5466a2b53ddd557644dfa47a763f68748efccdf282e6ae7c4f1bcfb3da69/duckdb-1.5.6-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:5a1261e90785e9d29953293e44f60fa073bd1137098924e8de21a037a861b051", size = 17405385, upload-time = "2026-09-28T13:38:07.363Z" },
+    { url = "https://files.pythonhosted.org/packages/d4/a0/bf87071170835ee4a34fe764fc11c1c6e7040a0e021b36c1b6f834a4c22f/duckdb-1.5.6-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:97dd7a555b8f5298b76bc7d48a11cb2c64336e8de9bfde783cffb86ea9f54807", size = 15533132, upload-time = "2026-09-28T13:38:09.681Z" },
+    { url = "https://files.pythonhosted.org/packages/31/e0/38095c8e140ecfbe847519ac07bcba94301b8fbb76b2870015e33e07f179/duckdb-1.5.6-cp313-cp313-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:364992ba1089a2b327391cfcb68fd0bd0ce9090cf293baef861a0ba6847abfee", size = 19454994, upload-time = "2026-09-28T13:38:11.836Z" },
+    { url = "https://files.pythonhosted.org/packages/70/21/61dd2876bbaa69cf77d7b5c620e52e8b25faae7096f4d2e4a812b52095d7/duckdb-1.5.6-cp313-cp313-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:644f54ce99b3b61844bc9a3fe80e0aecb1ea4084b1fffc4396d1569db6111679", size = 21568700, upload-time = "2026-09-28T13:38:14.258Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/4a/100730e7785e85268be4d4d5bd62cfc8314e261d2f42efa208243eef35cb/duckdb-1.5.6-cp313-cp313-win_amd64.whl", hash = "sha256:ced693d33ddcee2e5345f077d342c87d2aaa80e41c514e64c9ff2d4e5963c251", size = 13190707, upload-time = "2026-09-28T13:38:16.875Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/2e/bc7f44eab4e89ee5c1cb427bb1168ad021d985042e6841ec0694c3d3d501/duckdb-1.5.6-cp313-cp313-win_arm64.whl", hash = "sha256:41ecc75bb9328d72d154a705c1a653d2c5c60f686a5c0c6578aa80020753c884", size = 14020962, upload-time = "2026-09-28T13:38:19.007Z" },
+    { url = "https://files.pythonhosted.org/packages/fb/62/a8a30a4c6b94c0861d348ed5633b963f6745a5525527530f02f3c1a7c931/duckdb-1.5.6-cp314-cp314-macosx_10_15_universal2.whl", hash = "sha256:aa21d2ad803b2524326e8622d7d96b2bb1ff1d5b60368e1978ee805df9c21fb3", size = 32828003, upload-time = "2026-09-28T13:38:21.414Z" },
+    { url = "https://files.pythonhosted.org/packages/71/b7/1dcca0005eb8c67adf9fc06bf0cbb1d2bf4ea1974cc89e7a7c2ad66aac28/duckdb-1.5.6-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:8a1b2ad27d414068cbca06c55cfa802eece10f86ea4812ff082f8ab4cb25fc85", size = 17413912, upload-time = "2026-09-28T13:38:23.915Z" },
+    { url = "https://files.pythonhosted.org/packages/93/b0/e3ac175443550f3464f2d95731a8b0aae9b4dc3875c3a186c352262b43c2/duckdb-1.5.6-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:c79c6d222b1d015cde73b5139087186b00db65357fb4e2c94c2308fbbf465a72", size = 15543122, upload-time = "2026-09-28T13:38:26.317Z" },
+    { url = "https://files.pythonhosted.org/packages/9d/08/cc510a7952aba69d5cdca17f3ef61c95713d86143f2ee9aa3e097d38f50b/duckdb-1.5.6-cp314-cp314-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:1052b8050ef5696e2c0d8c836949c72f3dd11f0690466acbea739613e8e2750b", size = 19457946, upload-time = "2026-09-28T13:38:28.877Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/a5/6f8099d9a5a02ddff89e5c85875df3465054845b0920fb0703fbdf8dd2ec/duckdb-1.5.6-cp314-cp314-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:19c5e485e59613b8878d1670bcaa7a010f53c5a4da5ae8e08863e5e529ca6182", size = 21575132, upload-time = "2026-09-28T13:38:31.231Z" },
+    { url = "https://files.pythonhosted.org/packages/9f/58/762f7159662d7859e201fa05ca29f306795daeabf84f3e087215a966b001/duckdb-1.5.6-cp314-cp314-win_amd64.whl", hash = "sha256:ebcbd09cd8578ab1093393e9b16289cda0e8f1791ac595bf00eb5bad75c3cf00", size = 13713963, upload-time = "2026-09-28T13:38:33.543Z" },
+    { url = "https://files.pythonhosted.org/packages/46/69/64d165db322de13f5c3e75d377b6b9694df1821155ad1fa4b14b04601abc/duckdb-1.5.6-cp314-cp314-win_arm64.whl", hash = "sha256:820a8384faef11cd86068ea48c5da57ce2d8f1c7b3d2bdb9be3398317a7c3728", size = 14514368, upload-time = "2026-09-28T13:38:35.676Z" },
 ]
 
 [[package]]
@@ -1870,6 +1983,9 @@ all = [
     { name = "torch" },
     { name = "z3-solver" },
 ]
+array-api = [
+    { name = "array-api-compat" },
+]
 calibrate = [
     { name = "scikit-learn" },
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and extra == 'extra-10-ewm-engine-all') or (python_full_version < '3.12' and extra == 'extra-10-ewm-engine-calibrate') or (python_full_version < '3.12' and extra == 'extra-10-ewm-engine-causal') or (python_full_version < '3.12' and extra != 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
@@ -1886,6 +2002,13 @@ cli = [
 ]
 config = [
     { name = "omegaconf" },
+]
+cuda = [
+    { name = "cupy" },
+]
+dask = [
+    { name = "dask" },
+    { name = "distributed" },
 ]
 decision = [
     { name = "ema-workbench", marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
@@ -1923,6 +2046,8 @@ dev = [
     { name = "typeguard" },
 ]
 distributed = [
+    { name = "dask" },
+    { name = "distributed" },
     { name = "ray" },
 ]
 docs = [
@@ -1932,6 +2057,10 @@ docs = [
     { name = "mkdocs-literate-nav" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
+]
+dsl = [
+    { name = "lark" },
+    { name = "pygls" },
 ]
 erroranalysis = [
     { name = "erroranalysis", marker = "python_full_version < '3.12'" },
@@ -1960,6 +2089,15 @@ graphs = [
     { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
     { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
 ]
+induction = [
+    { name = "duckdb" },
+    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "pyarrow" },
+    { name = "scikit-learn" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+]
 interop = [
     { name = "fastapi" },
     { name = "httpx" },
@@ -1968,6 +2106,10 @@ interop = [
     { name = "plotly" },
     { name = "rich" },
     { name = "simpy" },
+]
+jax = [
+    { name = "jax", version = "0.10.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "jax", version = "0.12.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
 ]
 mcp = [
     { name = "mcp" },
@@ -2060,6 +2202,8 @@ dev = [
     { name = "mypy" },
     { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
     { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-sdk" },
     { name = "pyrefly" },
     { name = "pytest" },
     { name = "pytest-benchmark" },
@@ -2082,14 +2226,21 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "array-api-compat", marker = "extra == 'array-api'", specifier = ">=1.9.0" },
     { name = "asv", marker = "extra == 'dev'", specifier = ">=0.6.4" },
     { name = "beartype", marker = "extra == 'dev'", specifier = ">=0.18.0" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.1.0" },
     { name = "cma", marker = "extra == 'all'", specifier = ">=3.3.0" },
     { name = "cma", marker = "extra == 'experimentation'", specifier = ">=3.3.0" },
     { name = "cma", marker = "extra == 'opt-evolutionary'", specifier = ">=3.3.0" },
+    { name = "cupy", marker = "extra == 'cuda'", specifier = ">=13.0.0" },
+    { name = "dask", marker = "extra == 'dask'", specifier = ">=2024.1.0" },
+    { name = "dask", marker = "extra == 'distributed'", specifier = ">=2024.1.0" },
     { name = "dice-ml", marker = "extra == 'explain'", specifier = ">=0.11" },
     { name = "diff-cover", marker = "extra == 'dev'", specifier = ">=8.0.0" },
+    { name = "distributed", marker = "extra == 'dask'", specifier = ">=2024.1.0" },
+    { name = "distributed", marker = "extra == 'distributed'", specifier = ">=2024.1.0" },
+    { name = "duckdb", marker = "extra == 'induction'", specifier = ">=0.9.0" },
     { name = "ema-workbench", marker = "python_full_version >= '3.12' and extra == 'decision'", specifier = ">=3.0.0" },
     { name = "erroranalysis", marker = "python_full_version < '3.12' and extra == 'erroranalysis'", specifier = ">=0.5.0" },
     { name = "fairlearn", marker = "extra == 'fairness'", specifier = ">=0.10.0" },
@@ -2108,8 +2259,10 @@ requires-dist = [
     { name = "httpx", marker = "extra == 'serve'", specifier = ">=0.25.0" },
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.100.0" },
     { name = "interpret-community", marker = "extra == 'explain'", specifier = ">=0.30.0" },
+    { name = "jax", marker = "extra == 'jax'", specifier = ">=0.4.20" },
     { name = "kaleido", marker = "extra == 'all'", specifier = ">=0.2.1" },
     { name = "kaleido", marker = "extra == 'viz-export'", specifier = ">=0.2.1" },
+    { name = "lark", marker = "extra == 'dsl'", specifier = ">=1.1.9" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.0.0" },
     { name = "mesa", marker = "extra == 'all'", specifier = ">=3.0.0" },
     { name = "mesa", marker = "extra == 'mesa'", specifier = ">=3.0.0" },
@@ -2130,6 +2283,7 @@ requires-dist = [
     { name = "networkx", marker = "extra == 'causal'", specifier = ">=3.2" },
     { name = "networkx", marker = "extra == 'dev'", specifier = ">=3.2" },
     { name = "networkx", marker = "extra == 'graphs'", specifier = ">=3.2" },
+    { name = "networkx", marker = "extra == 'induction'", specifier = ">=3.2" },
     { name = "nevergrad", marker = "extra == 'all'", specifier = ">=1.0.0" },
     { name = "nevergrad", marker = "extra == 'experimentation'", specifier = ">=1.0.0" },
     { name = "nevergrad", marker = "extra == 'opt-evolutionary'", specifier = ">=1.0.0" },
@@ -2146,8 +2300,10 @@ requires-dist = [
     { name = "plotly", marker = "extra == 'all'", specifier = ">=5.20.0" },
     { name = "plotly", marker = "extra == 'interop'", specifier = ">=5.20.0" },
     { name = "plotly", marker = "extra == 'viz'", specifier = ">=5.20.0" },
+    { name = "pyarrow", marker = "extra == 'induction'", specifier = ">=14.0.0" },
     { name = "pydantic", specifier = ">=2.6.0" },
     { name = "pydantic-ai", marker = "extra == 'agents'", specifier = ">=0.0.14" },
+    { name = "pygls", marker = "extra == 'dsl'", specifier = ">=1.3.1" },
     { name = "pymoo", marker = "extra == 'all'", specifier = ">=0.6.0" },
     { name = "pymoo", marker = "extra == 'experimentation'", specifier = ">=0.6.0" },
     { name = "pymoo", marker = "extra == 'opt-pareto'", specifier = ">=0.6.0" },
@@ -2180,12 +2336,14 @@ requires-dist = [
     { name = "scikit-learn", marker = "extra == 'all'", specifier = ">=1.4.0" },
     { name = "scikit-learn", marker = "extra == 'calibrate'", specifier = ">=1.4.0" },
     { name = "scikit-learn", marker = "extra == 'experimentation'", specifier = ">=1.4.0" },
+    { name = "scikit-learn", marker = "extra == 'induction'", specifier = ">=1.4.0" },
     { name = "scikit-learn", marker = "extra == 'sbi'", specifier = ">=1.4.0" },
     { name = "scikit-learn", marker = "extra == 'surrogate'", specifier = ">=1.4.0" },
     { name = "scikit-learn", marker = "extra == 'uq'", specifier = ">=1.4.0" },
     { name = "scipy", marker = "extra == 'all'", specifier = ">=1.11.0" },
     { name = "scipy", marker = "extra == 'calibrate'", specifier = ">=1.11.0" },
     { name = "scipy", marker = "extra == 'causal'", specifier = ">=1.11.0" },
+    { name = "scipy", marker = "extra == 'induction'", specifier = ">=1.11.0" },
     { name = "scipy", marker = "extra == 'ope'", specifier = ">=1.11.0" },
     { name = "scipy", marker = "extra == 'or'", specifier = ">=1.11.0" },
     { name = "scipy", marker = "extra == 'sbi'", specifier = ">=1.11.0" },
@@ -2204,7 +2362,7 @@ requires-dist = [
     { name = "z3-solver", marker = "extra == 'all'", specifier = ">=4.12.0" },
     { name = "z3-solver", marker = "extra == 'solvers'", specifier = ">=4.12.0" },
 ]
-provides-extras = ["agents", "all", "calibrate", "causal", "cli", "config", "decision", "dev", "distributed", "docs", "erroranalysis", "experimentation", "explain", "fairness", "fmi", "game", "graphs", "interop", "mcp", "mesa", "ml", "ope", "opt-evolutionary", "opt-pareto", "or", "otel", "rl", "sbi", "sd", "sensitivity", "serve", "simpy", "solvers", "stl", "surrogate", "trackers", "uq", "viz", "viz-export"]
+provides-extras = ["agents", "all", "array-api", "calibrate", "causal", "cli", "config", "cuda", "dask", "decision", "dev", "distributed", "docs", "dsl", "erroranalysis", "experimentation", "explain", "fairness", "fmi", "game", "graphs", "induction", "interop", "jax", "mcp", "mesa", "ml", "ope", "opt-evolutionary", "opt-pareto", "or", "otel", "rl", "sbi", "sd", "sensitivity", "serve", "simpy", "solvers", "stl", "surrogate", "trackers", "uq", "viz", "viz-export"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -2218,6 +2376,8 @@ dev = [
     { name = "mutmut", specifier = ">=3.0.0" },
     { name = "mypy", specifier = ">=1.9.0" },
     { name = "networkx", specifier = ">=3.2" },
+    { name = "opentelemetry-api", specifier = ">=1.25.0" },
+    { name = "opentelemetry-sdk", specifier = ">=1.25.0" },
     { name = "pyrefly", specifier = ">=1.0.0" },
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-benchmark", specifier = ">=4.0.0" },
@@ -3169,6 +3329,152 @@ wheels = [
 ]
 
 [[package]]
+name = "jax"
+version = "0.10.2"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.12' and extra != 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-calibrate' and extra != 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis' and extra != 'extra-10-ewm-engine-experimentation' and extra != 'extra-10-ewm-engine-explain' and extra != 'extra-10-ewm-engine-fairness' and extra != 'extra-10-ewm-engine-or' and extra != 'extra-10-ewm-engine-solvers' and extra != 'extra-10-ewm-engine-surrogate' and extra != 'extra-10-ewm-engine-uq'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra == 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra == 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+]
+dependencies = [
+    { name = "jaxlib", version = "0.10.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "ml-dtypes", marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "opt-einsum", marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d2/73/eb91d98fcadfa2cbcfdd4e417ab116e47eb20882acc5ee678e47c35d6b57/jax-0.10.2.tar.gz", hash = "sha256:bf77428a8c2e6904c4f46d5ab12aa5cfc6cad2179f07f7e4c0fc75ac86ef0639", size = 2775110, upload-time = "2026-06-17T23:44:57.818Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/89/82/5ab5211079a151b6f661529369c0c8e98ec64cabf5c0cf22a0a05af124d8/jax-0.10.2-py3-none-any.whl", hash = "sha256:724d73c4678d8b06f6a6ab4db1b8a2fea8cd4f1e2c2564f99601634ec7b8d1c6", size = 3219515, upload-time = "2026-06-17T23:42:41.259Z" },
+]
+
+[[package]]
+name = "jax"
+version = "0.12.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.15' and sys_platform == 'win32'",
+    "python_full_version >= '3.15' and sys_platform == 'emscripten'",
+    "python_full_version >= '3.15' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.14.*' and sys_platform == 'win32'",
+    "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
+    "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.13.*' and sys_platform == 'win32'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.12.*' and sys_platform == 'win32'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
+dependencies = [
+    { name = "jaxlib", version = "0.12.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "ml-dtypes", marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "opt-einsum", marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ee/6f/fd8e20333a3c570779a13c8abcc273a579a3e4f7eada9d707253c891f6ae/jax-0.12.0.tar.gz", hash = "sha256:320f52f19953fc08d224e9993632ac16b5ba2e5cfce926a30a253a7bee45e22a", size = 3024208, upload-time = "2026-10-19T10:39:32.975Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a9/d2/6b977aebb65a2b5f05886f6108d8af287f1652e376b8423ec742d00621a5/jax-0.12.0-py3-none-any.whl", hash = "sha256:758dd93b8c0682572fc9211da0e9441f73a9522ab315a4c9dbdd14673416f809", size = 3466931, upload-time = "2026-10-19T10:37:08.886Z" },
+]
+
+[[package]]
+name = "jaxlib"
+version = "0.10.2"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.12' and extra != 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-calibrate' and extra != 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis' and extra != 'extra-10-ewm-engine-experimentation' and extra != 'extra-10-ewm-engine-explain' and extra != 'extra-10-ewm-engine-fairness' and extra != 'extra-10-ewm-engine-or' and extra != 'extra-10-ewm-engine-solvers' and extra != 'extra-10-ewm-engine-surrogate' and extra != 'extra-10-ewm-engine-uq'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra == 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra == 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-10-ewm-engine-all' and extra != 'extra-10-ewm-engine-erroranalysis'",
+]
+dependencies = [
+    { name = "ml-dtypes", marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b2/2c/7038fc73154307389631b5b2dbe5ac529e1918eecc19a27e6644ad114bbf/jaxlib-0.10.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:5a98873fc867623b81f2bee15d554b8edd6588a183d01fa50d21b1e3db96ff2b", size = 61429039, upload-time = "2026-06-17T23:43:44.858Z" },
+    { url = "https://files.pythonhosted.org/packages/66/c6/d69a0a33046f84930b89387861c061996d5207671b35080898679ca9960a/jaxlib-0.10.2-cp311-cp311-manylinux_2_27_aarch64.whl", hash = "sha256:d44565dcfd1b4f60f76d911c6512118a8a4fc764bdef92663fecb8bfccd54f23", size = 81079180, upload-time = "2026-06-17T23:43:48.245Z" },
+    { url = "https://files.pythonhosted.org/packages/e2/27/fb54e3265c0ffcb687f93e9fb761c589acebbe958c3fed1b2c74c3f0e782/jaxlib-0.10.2-cp311-cp311-manylinux_2_27_x86_64.whl", hash = "sha256:1faca3c5d4662cb4a6130a68105d68bb520764817e165d6eebfd6786c0d1f30f", size = 85448560, upload-time = "2026-06-17T23:43:51.724Z" },
+    { url = "https://files.pythonhosted.org/packages/21/bc/31fbb3d892c3cb97c73af9226eca63d60d8e224017145bdb6871d1d24da6/jaxlib-0.10.2-cp311-cp311-win_amd64.whl", hash = "sha256:e7a9214e6b0b9e0825d905573d1bbf2253c20e9d7464a63e085b60519975553f", size = 65867603, upload-time = "2026-06-17T23:43:54.939Z" },
+    { url = "https://files.pythonhosted.org/packages/ca/93/ee9cc8743191544f65d26ab7eeb82d65968fe60905662d1a5554d056654b/jaxlib-0.10.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:47bb7c011515ea862be7e8313f40f9c56cbec09dc98a0fcb5016785fcd454c01", size = 61434612, upload-time = "2026-06-17T23:43:57.808Z" },
+    { url = "https://files.pythonhosted.org/packages/11/06/8cc36021bf74d617c312eeed94c280282bb1bcbb32b63f2a42b10ae41575/jaxlib-0.10.2-cp312-cp312-manylinux_2_27_aarch64.whl", hash = "sha256:53b72977ae582c03a9e8e1cdee1efbf8ebc1418270965b0e69eade57acf40331", size = 81085366, upload-time = "2026-06-17T23:44:01.067Z" },
+    { url = "https://files.pythonhosted.org/packages/48/17/38b718af2353dba7753300871e83fbb64a88a772e12727ae27373ab675ce/jaxlib-0.10.2-cp312-cp312-manylinux_2_27_x86_64.whl", hash = "sha256:fe88ec443714c4379968b6c109f9fa617c7ad19b802828e4d7bf861cd66da4b7", size = 85467828, upload-time = "2026-06-17T23:44:04.238Z" },
+    { url = "https://files.pythonhosted.org/packages/b4/c2/d41d13826ebdfe62e56cd87ba70fab3bb9fcbea4a6c9086739a91667e5bf/jaxlib-0.10.2-cp312-cp312-win_amd64.whl", hash = "sha256:4b08f5fbc596b83f76308181863996f93d901d1f09cfd4e130a65c1998e1b371", size = 65900139, upload-time = "2026-06-17T23:44:07.476Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/68/eaa4cebe253359196a8e80a33b242959e27d8d2a6ae3d09339f21da2acb8/jaxlib-0.10.2-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:4df530afa354a22dc1747a5d560640450cbb895d49889338a3f58c76a4c76c8e", size = 61434805, upload-time = "2026-06-17T23:44:10.511Z" },
+    { url = "https://files.pythonhosted.org/packages/25/c1/4b884ea5962b6beb3c0f93742db54246bbf8b3274e48b0aca47908e454be/jaxlib-0.10.2-cp313-cp313-manylinux_2_27_aarch64.whl", hash = "sha256:45b28b0238697ab74bbcf20411aafb6db42acc31836cc2fd711e5cf056bf9556", size = 81084260, upload-time = "2026-06-17T23:44:14.065Z" },
+    { url = "https://files.pythonhosted.org/packages/36/ac/4ee28c65861605945223145fbcd3c9362ec2255ddf7d917574e205548c82/jaxlib-0.10.2-cp313-cp313-manylinux_2_27_x86_64.whl", hash = "sha256:9e4818b4a8756fd3918766ca2aa5342125809f4f08a6fe46026d4386e7c23644", size = 85467706, upload-time = "2026-06-17T23:44:17.471Z" },
+    { url = "https://files.pythonhosted.org/packages/79/54/9918b0f77a25a1299818c0610305ca2bea38ed90584f4489b60357e2dd39/jaxlib-0.10.2-cp313-cp313-win_amd64.whl", hash = "sha256:c75d6f1df1c9cff08e110b4a21c79560fdc502f4288972d6b117d25dafd44352", size = 65897894, upload-time = "2026-06-17T23:44:21.153Z" },
+    { url = "https://files.pythonhosted.org/packages/56/5b/70df11da52a8b1a826184cccc05a3fec8aed76058a980021873fba3069cb/jaxlib-0.10.2-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:4c202d8ff7c1f3b5049dbd8f1e30e52759cd4e0a5835f0b3c7ae076a05818e28", size = 61564746, upload-time = "2026-06-17T23:44:24.421Z" },
+    { url = "https://files.pythonhosted.org/packages/23/5c/184a648ea5db6c8b1a08fc5784c157b4c557255e009fb56091393df3c6de/jaxlib-0.10.2-cp313-cp313t-manylinux_2_27_aarch64.whl", hash = "sha256:b7b029bb95d981566750475b9719a9d6b66ed5dd2748851667899b6cfe075299", size = 81204888, upload-time = "2026-06-17T23:44:27.57Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/5c/539596a55265711d74147913278bcdc38412980be7d74d9c9d860297c486/jaxlib-0.10.2-cp313-cp313t-manylinux_2_27_x86_64.whl", hash = "sha256:e8b126097d609b0c6e6786e89f6dd6978adc02ebd5f63a1c61293fbac7821305", size = 85583810, upload-time = "2026-06-17T23:44:30.962Z" },
+    { url = "https://files.pythonhosted.org/packages/f2/0d/27471ec9f1d04674f6e62de809412371e097aed3eca7d9483e677c54c214/jaxlib-0.10.2-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:72eba28b12fee02616fa42aa4b881b4ab62d7757c7843c462401d3fb34a27be4", size = 61446097, upload-time = "2026-06-17T23:44:34.196Z" },
+    { url = "https://files.pythonhosted.org/packages/af/c8/941a7f7f37510f51290a5bd1a413aeef977fb8ba8adc0cfe8391233a764c/jaxlib-0.10.2-cp314-cp314-manylinux_2_27_aarch64.whl", hash = "sha256:f18f56fee90699cfba9b6627045a7a299702cb0e2af82ce180d9a6a7c8048093", size = 81096546, upload-time = "2026-06-17T23:44:37.486Z" },
+    { url = "https://files.pythonhosted.org/packages/69/77/ac054882c220872512df28d16aeb648fe0e651efbb5be4fd7c4817fd88b0/jaxlib-0.10.2-cp314-cp314-manylinux_2_27_x86_64.whl", hash = "sha256:ca34f363197fb0ac4082582ca755007910369e33f8a8ba3d35ed94b71070107d", size = 85472993, upload-time = "2026-06-17T23:44:40.904Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/7d/c592d1fa69c210be0d2743fffc598dfc2f54efa9671c5f6f5d1e151c6f4a/jaxlib-0.10.2-cp314-cp314-win_amd64.whl", hash = "sha256:99818b0a18adc0b899abf4873795e8d65169441d87ab2e5cbb228e73d0f25808", size = 68376553, upload-time = "2026-06-17T23:44:44.968Z" },
+    { url = "https://files.pythonhosted.org/packages/54/9b/91b00ec74985d29708b50420b4103c1f651c8f1c253d4fcb49d1bbb532cd/jaxlib-0.10.2-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:fc62997fce8831819551a2a5469a818169b09582b5b648c102d11ac7205bb812", size = 61564620, upload-time = "2026-06-17T23:44:48.217Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/c7/49d2b19c3b3105c30e1d3af2062e82e1977fb239d3dc3cbb583ef676dda7/jaxlib-0.10.2-cp314-cp314t-manylinux_2_27_aarch64.whl", hash = "sha256:a24d6e3cba263978293eae8b41330d5ccf24d6cdd1a6bcd4e82aff34e767620d", size = 81206365, upload-time = "2026-06-17T23:44:51.419Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/99/006cedf443f4a01f2088651facce79b2105bfb4905bfe9162eb0920a6dfb/jaxlib-0.10.2-cp314-cp314t-manylinux_2_27_x86_64.whl", hash = "sha256:5a2ac7aed7c4e661f67600bbcdec9e589151c1efec91f4cdb8d484af1a45c895", size = 85584458, upload-time = "2026-06-17T23:44:55.377Z" },
+]
+
+[[package]]
+name = "jaxlib"
+version = "0.12.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.15' and sys_platform == 'win32'",
+    "python_full_version >= '3.15' and sys_platform == 'emscripten'",
+    "python_full_version >= '3.15' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.14.*' and sys_platform == 'win32'",
+    "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
+    "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.13.*' and sys_platform == 'win32'",
+    "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
+    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.12.*' and sys_platform == 'win32'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
+dependencies = [
+    { name = "ml-dtypes", marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/20/cd/f202063a23108e48e94a501f9318af773bba81070c8522e0268654caa915/jaxlib-0.12.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:d0008267aa542fdcb3d3bb4f95aa3fb29bdefbff18a069393a2e3e64946e7a0d", size = 60710428, upload-time = "2026-10-19T10:38:15.04Z" },
+    { url = "https://files.pythonhosted.org/packages/86/4c/ec338b698e62d87827f165625ec0e3a39a227b8bad765ef7eb3956cace96/jaxlib-0.12.0-cp312-cp312-manylinux_2_27_aarch64.whl", hash = "sha256:6a7b70d0da8c5cb02fcbbbee90579a2814f990a5b369889e05b9d8f992470fc4", size = 80857908, upload-time = "2026-10-19T10:38:18.568Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/48/31fd3bc43122ee69fee8de3ac7924a20765169390fd1c44ac3254002bbce/jaxlib-0.12.0-cp312-cp312-manylinux_2_27_x86_64.whl", hash = "sha256:d419724cd5ad0da933ec56b086a04df28501fbd7b99816ef42be1335785b5134", size = 86848459, upload-time = "2026-10-19T10:38:22.934Z" },
+    { url = "https://files.pythonhosted.org/packages/1b/e9/7a07df5d0b330fe486e7bfeecbc5b4bacc46359c685a9aaaa652436174ad/jaxlib-0.12.0-cp312-cp312-win_amd64.whl", hash = "sha256:0d2fef3f4ce794b35ba292458cea0d33cfb39aac4fed32828bd1fca527ca2dd0", size = 71346575, upload-time = "2026-10-19T10:38:26.597Z" },
+    { url = "https://files.pythonhosted.org/packages/09/09/49f3720db7113eefdb6fedf13d821e0e7730137a5f1e512124adf41b77b6/jaxlib-0.12.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:25fb46d89277e08028db9dcb542b2e2e8377cb387fa57457c58f88fb8acb4252", size = 60709283, upload-time = "2026-10-19T10:38:29.861Z" },
+    { url = "https://files.pythonhosted.org/packages/09/3d/d404f7dc614c5ed31ef4e3b4d903786aaab1718a90b3240976c305354746/jaxlib-0.12.0-cp313-cp313-manylinux_2_27_aarch64.whl", hash = "sha256:4c9116ff873e23d0ea793b9d8f819435eb609e09b8ab5ad63076dc985f7da99c", size = 80858142, upload-time = "2026-10-19T10:38:33.277Z" },
+    { url = "https://files.pythonhosted.org/packages/32/df/b7d20723ee9f04ab647ff58ef392fe2e1b3d7e700911a01e3ae56dacdf71/jaxlib-0.12.0-cp313-cp313-manylinux_2_27_x86_64.whl", hash = "sha256:595e642efe8277a1cb0dacdd0b152354a32dc54688b1446daa1d4b42e4b8a8f0", size = 86849485, upload-time = "2026-10-19T10:38:36.743Z" },
+    { url = "https://files.pythonhosted.org/packages/29/22/133a78e764fe8561dabce556a16b31cb28581e884f7221fa2ad1d0070b78/jaxlib-0.12.0-cp313-cp313-win_amd64.whl", hash = "sha256:a2f18e1fbc5755ba0107057ff8cbdcf0f81fbca6e543c700437c21d05c35db9b", size = 71346390, upload-time = "2026-10-19T10:38:40.643Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/9e/f58fbd16592e150fd30eeb9af6de57f2612f796caa3d543298bb1df67719/jaxlib-0.12.0-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:0815ec4296fb933f056a0a465413ee95771b61717878e67f84bcbff0d5e1a975", size = 60710784, upload-time = "2026-10-19T10:38:44.198Z" },
+    { url = "https://files.pythonhosted.org/packages/6f/66/45f558970ed4a1a938227f7186679f7fc607eb2cdb5dc0534f27a3ff5be3/jaxlib-0.12.0-cp314-cp314-manylinux_2_27_aarch64.whl", hash = "sha256:6e8b29aa8504634b46b7991e3c6b10b3b8a01ecb692896e68c3d88ce6174514c", size = 80859639, upload-time = "2026-10-19T10:38:47.406Z" },
+    { url = "https://files.pythonhosted.org/packages/b5/74/ed15bfa3cbda0bc79d4e4871c81975db2a723c8112da0c63afe9b1154821/jaxlib-0.12.0-cp314-cp314-manylinux_2_27_x86_64.whl", hash = "sha256:2f98ba66694e8f22277ad5bb7914882370ec7f9034f90db21ad0e3db9f1b6863", size = 86851231, upload-time = "2026-10-19T10:38:50.882Z" },
+    { url = "https://files.pythonhosted.org/packages/1e/7d/57c5e549d1051edd390ec2b1f48af165cd881c0ddd8a4d2b758991f65d18/jaxlib-0.12.0-cp314-cp314-win_amd64.whl", hash = "sha256:8e71dd077247680984c5f8ba38aff6e43776f508a150a1bed11806016c8e2bfb", size = 73871470, upload-time = "2026-10-19T10:38:55.068Z" },
+    { url = "https://files.pythonhosted.org/packages/c1/f6/197c3e18dddf99dfd45919e3a9f741a76b318a6d5369ed7fb51e99926b6f/jaxlib-0.12.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:0d1d93c60bfaaf7d17dc3f41896c203212c4d66a61351788ac51365b85c1161c", size = 60808970, upload-time = "2026-10-19T10:38:58.47Z" },
+    { url = "https://files.pythonhosted.org/packages/68/51/e1d71147b9fc3209bff823e284ab5a05e1b8adc0ba16accbf96ce609e70a/jaxlib-0.12.0-cp314-cp314t-manylinux_2_27_aarch64.whl", hash = "sha256:ea9747f2f36e10fdfd69478636da349ba0b228037d1942a49a69d6dd8b29cd31", size = 80953610, upload-time = "2026-10-19T10:39:01.899Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/5f/f9ec3099955bcff2cc2af86afa04fb83ebcda031ae3d997d20ec43841dd0/jaxlib-0.12.0-cp314-cp314t-manylinux_2_27_x86_64.whl", hash = "sha256:c76c9a512938fef8197bd84e6727fc91f525c0b325cd0ec360d079b7c3010992", size = 86944680, upload-time = "2026-10-19T10:39:06.385Z" },
+    { url = "https://files.pythonhosted.org/packages/77/1d/0f57302d5d7ce66ed41f0d35d6325757aa1ec695bc25896d4b5a4ff142cc/jaxlib-0.12.0-cp315-cp315-macosx_11_0_arm64.whl", hash = "sha256:1d8c5dcae6fe7bd2a6388f217c507b40afe84747ea8a68d65af660f19970ce57", size = 60710783, upload-time = "2026-10-19T10:39:09.641Z" },
+    { url = "https://files.pythonhosted.org/packages/1b/29/ccc32a824c7b767cbd4f8934a8728f74d905ed12ee9bedd8b072dec2514e/jaxlib-0.12.0-cp315-cp315-manylinux_2_27_aarch64.whl", hash = "sha256:b4024050ec0ee9924bdbee3f47792a8c2ac30c6e381a0f1d425205c9d620af52", size = 80859197, upload-time = "2026-10-19T10:39:13.267Z" },
+    { url = "https://files.pythonhosted.org/packages/36/5a/021a68575b446efb39cdde4e0f18de6831f89ea304114150d634fe8c0155/jaxlib-0.12.0-cp315-cp315-manylinux_2_27_x86_64.whl", hash = "sha256:16445bff7f29b734d89b5f94652f1a9192eeb88a4d858157a28606fcc50ec7f6", size = 86854329, upload-time = "2026-10-19T10:39:16.688Z" },
+    { url = "https://files.pythonhosted.org/packages/ff/b8/4f2af0a5f16c9d25a4afc6aee7780f0f457d51bfeaa071fdf0c4fe4c3e23/jaxlib-0.12.0-cp315-cp315-win_amd64.whl", hash = "sha256:1d61a215ecb8c8ae5b89e3a81f58356b9d0c86855523b26f659648ac47559a76", size = 73871895, upload-time = "2026-10-19T10:39:20.106Z" },
+    { url = "https://files.pythonhosted.org/packages/e0/e4/31db821f419a698a0be7c5d55cd584f81677fb1397f0fcafb91a92bccf7b/jaxlib-0.12.0-cp315-cp315t-macosx_11_0_arm64.whl", hash = "sha256:9cf9466cc5848dc8e8d1c916af0b4ebae92b7cc6d2bdf7a720492cbc609f69dd", size = 60812155, upload-time = "2026-10-19T10:39:23.266Z" },
+    { url = "https://files.pythonhosted.org/packages/42/a9/ccb995cb6eccde7ca1ccbffdecec94d2e1869d2856e824b9ab2c1b3f7e6b/jaxlib-0.12.0-cp315-cp315t-manylinux_2_27_aarch64.whl", hash = "sha256:311b3fb7c2b5814b2ac883f3eed89263daf9a81cb156c5571e10865ec7f75f08", size = 80951554, upload-time = "2026-10-19T10:39:26.883Z" },
+    { url = "https://files.pythonhosted.org/packages/82/0e/042442e5c3d2a2efbf48f04676ea27ece430e8bdd33f34eb3e11f2d5d982/jaxlib-0.12.0-cp315-cp315t-manylinux_2_27_x86_64.whl", hash = "sha256:94bfa3b2998f9d9ada008d25565d757af70a2dd3e7bcb133f746ecc42fcb62f6", size = 86944901, upload-time = "2026-10-19T10:39:30.344Z" },
+]
+
+[[package]]
 name = "jeepney"
 version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3792,6 +4098,15 @@ wheels = [
 ]
 
 [[package]]
+name = "locket"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/83/97b29fe05cb6ae28d2dbd30b81e2e402a3eed5f460c26e9eaa5895ceacf5/locket-1.0.0.tar.gz", hash = "sha256:5c0d4c052a8bbbf750e056a8e65ccd309086f4f0f18a2eac306a8dfa4112a632", size = 4350, upload-time = "2022-04-20T22:04:44.312Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl", hash = "sha256:b6c819a722f7b6bd955b80781788e4a66a55628b858d347536b7e81325a3a5e3", size = 4398, upload-time = "2022-04-20T22:04:42.23Z" },
+]
+
+[[package]]
 name = "logfire"
 version = "5.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3833,6 +4148,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/08/90/bfd7a6fab22bdfafe48ed3c4831713cb77b4779d18ade5e248d5dbc0ca22/logistro-2.0.1.tar.gz", hash = "sha256:8446affc82bab2577eb02bfcbcae196ae03129287557287b6a070f70c1985047", size = 8398, upload-time = "2025-11-01T02:41:18.81Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/20/6aa79ba3570bddd1bf7e951c6123f806751e58e8cce736bad77b2cf348d7/logistro-2.0.1-py3-none-any.whl", hash = "sha256:06ffa127b9fb4ac8b1972ae6b2a9d7fde57598bf5939cd708f43ec5bba2d31eb", size = 8555, upload-time = "2025-11-01T02:41:17.587Z" },
+]
+
+[[package]]
+name = "lsprotocol"
+version = "2025.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+    { name = "cattrs" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e9/26/67b84e6ec1402f0e6764ef3d2a0aaf9a79522cc1d37738f4e5bb0b21521a/lsprotocol-2025.0.0.tar.gz", hash = "sha256:e879da2b9301e82cfc3e60d805630487ac2f7ab17492f4f5ba5aaba94fe56c29", size = 74896, upload-time = "2025-06-17T21:30:18.156Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7b/f0/92f2d609d6642b5f30cb50a885d2bf1483301c69d5786286500d15651ef2/lsprotocol-2025.0.0-py3-none-any.whl", hash = "sha256:f9d78f25221f2a60eaa4a96d3b4ffae011b107537facee61d3da3313880995c7", size = 76250, upload-time = "2025-06-17T21:30:19.455Z" },
 ]
 
 [[package]]
@@ -4498,6 +4826,53 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/96/11/640067d1ad713ea99c233e53e57a4c300d9885f904a61371d7ef90dea549/mkdocstrings_python-2.0.9.tar.gz", hash = "sha256:ae945637dc0618c6beedbee169f10c0234b77f322c53db3fc9fb4c29b3013038", size = 203006, upload-time = "2026-09-22T13:43:27.712Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/62/0f/f7f926cfa06317bbdbd3cf0ff82f9e3a91767352eb01519c81499fddf575/mkdocstrings_python-2.0.9-py3-none-any.whl", hash = "sha256:c0233eff3f84d78110df50541918e7ec2bcff8e1614faddea34290a90321a416", size = 105698, upload-time = "2026-09-22T13:43:26.345Z" },
+]
+
+[[package]]
+name = "ml-dtypes"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-10-ewm-engine-all' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-calibrate' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-causal' and extra == 'extra-10-ewm-engine-erroranalysis') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-experimentation') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-explain') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-fairness') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-or') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-solvers') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-surrogate') or (extra == 'extra-10-ewm-engine-erroranalysis' and extra == 'extra-10-ewm-engine-uq')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/12/72/307d7c4bd0600601c7133fba5cb78af7db968152951c1cd473abb1cda782/ml_dtypes-0.6.0.tar.gz", hash = "sha256:5e60251d32ced5598972e4d5e06a2f044341f9291402551a3f6f0ec44f9299b0", size = 3032327, upload-time = "2026-08-13T14:14:40.215Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b8/2c/318cd1a9014c63939ffe687e19559ae12831fcc37d66c71ad1f616f1ffd6/ml_dtypes-0.6.0-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:f4f59f83c82ab480e924b988e7b1b4eb4de836dfcf5390c6f59148d1a00e1d02", size = 566813, upload-time = "2026-08-13T14:13:55.053Z" },
+    { url = "https://files.pythonhosted.org/packages/d9/83/706b8a39449f0d55a7d5f7d07a169da4decfafae8a1f4983a9236d4b49e8/ml_dtypes-0.6.0-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:7728c0420ec1c338564fc8b01015ff2d58567e70f17fedce5a0a7c0308c0d5b9", size = 356864, upload-time = "2026-08-13T14:13:56.249Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/b1/135a7bf47633f5b9184f0d0316af819884124d12b40965064bd216266514/ml_dtypes-0.6.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:6c8e39b53e90afda8ce52859c93de4dba3e02b76d85dcf091cc469f9184c6dae", size = 412043, upload-time = "2026-08-13T14:13:57.614Z" },
+    { url = "https://files.pythonhosted.org/packages/07/23/8870bb62d6e499d6bcbc1242b9f11689bae00a3d39d3684a9aefad8b6ee6/ml_dtypes-0.6.0-cp311-cp311-win_amd64.whl", hash = "sha256:3035518e3e19add1a4cac9236ab22888b208a4074912514313ccb2d6d242cde8", size = 433670, upload-time = "2026-08-13T14:13:59.097Z" },
+    { url = "https://files.pythonhosted.org/packages/cf/7a/5d8fbe24d0bffd0d7cb5165a89f8ab7c3de000f26d6705242aeed99d583c/ml_dtypes-0.6.0-cp311-cp311-win_arm64.whl", hash = "sha256:5a519c9e95a216fbcb8e759793ef7fb40793fc803ed839142d6dc5be9be5bc89", size = 551915, upload-time = "2026-08-13T14:14:00.368Z" },
+    { url = "https://files.pythonhosted.org/packages/84/6a/441eb053b078954f7fea284dfb288701884d0a1404d39babb858e1649023/ml_dtypes-0.6.0-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:5359c588cc62de6f78d7430f06b65853d884955494d86d6ad90b6dd64a3f3a08", size = 565447, upload-time = "2026-08-13T14:14:01.737Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/cf/87e8a6c57eed63a91782a0d229856ddf73e138ce004dd71e2799a9dcdb33/ml_dtypes-0.6.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:37da32aa97749251025666d62372775019594577b9c9e9cfda83bed48d778fdb", size = 360227, upload-time = "2026-08-13T14:14:02.938Z" },
+    { url = "https://files.pythonhosted.org/packages/c7/f9/7d76c1eae866f5d4636401b31b6d6dd90e4b4ced1fa7cfdfcca9c60e4bd3/ml_dtypes-0.6.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3b4a480aa8fd54a1805b8ac10f3f91763926a74f73c0c364c10f9231854f4170", size = 409890, upload-time = "2026-08-13T14:14:04.248Z" },
+    { url = "https://files.pythonhosted.org/packages/ba/db/9c61ec2760b5cbfb1c6558d5c991a6d8fd3271053c32db20506a9a90272b/ml_dtypes-0.6.0-cp312-cp312-win_amd64.whl", hash = "sha256:2a3e9d53925597fbffafd2a37048dadeddd0bdaba58058f6ae0869ed709a184d", size = 439333, upload-time = "2026-08-13T14:14:05.501Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/57/780ca3e5ab135b9fbdd8e5441abf5f801b30398371b691291e05ab9834c0/ml_dtypes-0.6.0-cp312-cp312-win_arm64.whl", hash = "sha256:6eaed129a4afe90694b8685e2f9b6294849f5eda4af9a15be83a4326eeebd775", size = 552268, upload-time = "2026-08-13T14:14:06.866Z" },
+    { url = "https://files.pythonhosted.org/packages/50/51/fd1582b8f5ed8a9e7be0e161a6ea0dff70cb280479a12178df0b3a72700e/ml_dtypes-0.6.0-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:084dfe51a7ad58b171f05115f8226ed4233a454a1611371947e806e76f0c638d", size = 565468, upload-time = "2026-08-13T14:14:08.5Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/22/20fd70ca6ed12446cb92d5b2a7745bd185f9d8b8cdeeadad976574398e6b/ml_dtypes-0.6.0-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:28d676428b104bb9717b0928bc5c5129f2d6b51b6727587cc4289e7bf8713cb5", size = 360232, upload-time = "2026-08-13T14:14:09.873Z" },
+    { url = "https://files.pythonhosted.org/packages/89/a5/da8ae6c6f1babe4b68e3e55d43d39b529e29774f10e0910671a6b8c86eb8/ml_dtypes-0.6.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:26b1f1fa4f0435a2946859823f6e2bf06796f1e9f10f5a05b08a5e3c8f46ff69", size = 410169, upload-time = "2026-08-13T14:14:11.036Z" },
+    { url = "https://files.pythonhosted.org/packages/e2/55/4561acefa00fa4bcbfb82ca6a48578b41f372cd7dd7cdd6eb4720abc2e5f/ml_dtypes-0.6.0-cp313-cp313-win_amd64.whl", hash = "sha256:fb87f46b4f7ad7b5d3ad8f4b452b024bd4229d44c8ff934798c1fe656210387a", size = 439357, upload-time = "2026-08-13T14:14:12.172Z" },
+    { url = "https://files.pythonhosted.org/packages/b1/5d/6a01538e507ef0ed5e879985b13a92467bf8960696fb1131f8b8cadc60ff/ml_dtypes-0.6.0-cp313-cp313-win_arm64.whl", hash = "sha256:57ed0d6b4ac5e7868361303a9c57fbcf63b768236ee14456f585dfcf260d0292", size = 552278, upload-time = "2026-08-13T14:14:13.539Z" },
+    { url = "https://files.pythonhosted.org/packages/d9/7a/97dc35667b7c9db33c5344c673cd27f87e34771875ea7100138726132ac9/ml_dtypes-0.6.0-cp314-cp314-macosx_10_15_universal2.whl", hash = "sha256:84fa136b8602c8c39e3b6cb24918960cd6f36cade7a70376f56770729cd56510", size = 562551, upload-time = "2026-08-13T14:14:14.774Z" },
+    { url = "https://files.pythonhosted.org/packages/db/48/77f0ede10558d0d935da2e3276ed7e9c8cc2bad3463b9a0b66b03fc60be2/ml_dtypes-0.6.0-cp314-cp314-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:317be9967fb84b0ce4e80e6b1bf71213d21971621cf6f1e501a63602a95297bf", size = 360334, upload-time = "2026-08-13T14:14:16.079Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/b1/1831dd8c9b06c013085d31a2ac4f03392d43bd36bfc6ff591a08bcedc1cf/ml_dtypes-0.6.0-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:8f490c003369ce60e514a0c3b12374f05274c101fee1bead6740ec8a564032b0", size = 409966, upload-time = "2026-08-13T14:14:17.477Z" },
+    { url = "https://files.pythonhosted.org/packages/ff/ad/9c32c53f823dda3742df19a79c10bc198365937873ea125ba65747440c23/ml_dtypes-0.6.0-cp314-cp314-win_amd64.whl", hash = "sha256:d574c2b28921dc72e869df248f1a278f6eee176a1f237c8642e1a71eb15f3977", size = 457224, upload-time = "2026-08-13T14:14:18.608Z" },
+    { url = "https://files.pythonhosted.org/packages/41/3d/dd98205418a13353d41c52bf5326d8cbec515aace46174e23c6ea01c2978/ml_dtypes-0.6.0-cp314-cp314-win_arm64.whl", hash = "sha256:f4adb4af61516510d786cf8c01851a66f6d3ddfa79e1144deaa5b40d8507231e", size = 568378, upload-time = "2026-08-13T14:14:19.843Z" },
+    { url = "https://files.pythonhosted.org/packages/65/36/32e7beef3281fed74883451477ad976364323206dbfaa95e948ba788dac7/ml_dtypes-0.6.0-cp314-cp314t-macosx_10_15_universal2.whl", hash = "sha256:3e169214e0d80ff1c038e1b3017e33c23e43bdf948d42d31de8283111c7e2fa3", size = 590177, upload-time = "2026-08-13T14:14:20.971Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/a2/99b3d9b3c984b3bd1e81d8244f1fa2f812e44060d853205b2df6271aa17c/ml_dtypes-0.6.0-cp314-cp314t-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:573b11f3c327e17ef3826d266e676cf1149a1f3016f822a05f2306c55d8246bf", size = 363142, upload-time = "2026-08-13T14:14:22.463Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/fb/8091c0aee7f2712de99c7fd4b1642382644dec6a4962effe4f5b9d16a973/ml_dtypes-0.6.0-cp314-cp314t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:b76fa1d3f92967d58289ac47ab7458ede66e6f3527fff3e59142aee57d9307cd", size = 430645, upload-time = "2026-08-13T14:14:23.737Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/6f/962d2c589513b5930d05b6eae5fbd22ad8bbcf26bb763449f3d8f912360f/ml_dtypes-0.6.0-cp314-cp314t-win_amd64.whl", hash = "sha256:3be9911d953f97cddded4b9961d7b650473b7e55806d20f6176f8356dfe7b38e", size = 465667, upload-time = "2026-08-13T14:14:25.04Z" },
+    { url = "https://files.pythonhosted.org/packages/aa/ca/bcb25e246edd19af5fa1cf6267040bd9977a7afca846e6cfd4a52078b44f/ml_dtypes-0.6.0-cp314-cp314t-win_arm64.whl", hash = "sha256:e74266ca8e97874a937b7646378c178025650a236584f7474d10d8086a6edea3", size = 572706, upload-time = "2026-08-13T14:14:26.296Z" },
+    { url = "https://files.pythonhosted.org/packages/12/42/46cb442648e3c774d8cb25f2e1e41d496cdcc91fbe9c2a6f75c0b8df7af6/ml_dtypes-0.6.0-cp315-cp315-macosx_10_15_universal2.whl", hash = "sha256:b1b503864fada3f74fabf8d9fee7b4c1cbe956301e6fdece975d5f77c2fce958", size = 562550, upload-time = "2026-08-13T14:14:27.542Z" },
+    { url = "https://files.pythonhosted.org/packages/07/56/844eff5af7a2d1a09d75df12c70225c3a6b6a771f95876b2bf5f7d10ad44/ml_dtypes-0.6.0-cp315-cp315-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:9c6ad60af4102789a5c09824004beade2f7f28cd1cd581ee5c170d9dc2fbb00e", size = 360332, upload-time = "2026-08-13T14:14:28.767Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/29/b7165a3a76364a5baa6aa4ee82a0adf73a3c014b8cd126120b62cc087992/ml_dtypes-0.6.0-cp315-cp315-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:d4f1b9329a251e4affe3bb58f4d3e2db22a714396fd7ffb40d0b5db423c24d17", size = 409964, upload-time = "2026-08-13T14:14:30.023Z" },
+    { url = "https://files.pythonhosted.org/packages/c8/2e/f61c54a0544b6a170ac1bb89bcf406af53fb2deffc5476b6d2d3df5ba13e/ml_dtypes-0.6.0-cp315-cp315-win_amd64.whl", hash = "sha256:488c99ab181a2f59d9ec3b12c5fa11ec904e92be2c4ba18cded54dd7501208fe", size = 457249, upload-time = "2026-08-13T14:14:31.213Z" },
+    { url = "https://files.pythonhosted.org/packages/63/00/bee1bc9faa02a46e7a851019fd23f47ca1f906609edbec8b6ba5decc3cc3/ml_dtypes-0.6.0-cp315-cp315-win_arm64.whl", hash = "sha256:de9d14748dbf3968951436ef514a29c9d1fe438aa680d110134ee2f7a9f9df18", size = 568381, upload-time = "2026-08-13T14:14:32.548Z" },
+    { url = "https://files.pythonhosted.org/packages/72/f7/9a5edede28f73185fd51d75030ef7f11d76997bab3a92427d986e54fe2eb/ml_dtypes-0.6.0-cp315-cp315t-macosx_10_15_universal2.whl", hash = "sha256:e25bb3b0ad1217b60626e4ed45b10ca170c41d99fbe44a12bebc1e07ec4aad55", size = 589877, upload-time = "2026-08-13T14:14:33.695Z" },
+    { url = "https://files.pythonhosted.org/packages/fd/81/d5924a141b850b606eb027493c9c3ca3c665cca5163af3f5b6e5e3345503/ml_dtypes-0.6.0-cp315-cp315t-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:31f1ce979d31a357e95aa81812f20412c8c954fa43c44ee3ead1e1c8a78575ef", size = 362788, upload-time = "2026-08-13T14:14:34.996Z" },
+    { url = "https://files.pythonhosted.org/packages/59/8f/3298e3f334832bc28dd144af6b99cdc93502a8687e71922ea68b0a319929/ml_dtypes-0.6.0-cp315-cp315t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:e2d6149f3a57f405bcad5fb41e03218b8373936253f23e1ca84c0108abbc3392", size = 430823, upload-time = "2026-08-13T14:14:36.44Z" },
+    { url = "https://files.pythonhosted.org/packages/93/d2/f2dbf118f42ce4c325a139c9236737f436b7f8e00cd18701c99ef2405e6f/ml_dtypes-0.6.0-cp315-cp315t-win_amd64.whl", hash = "sha256:ce7563e0b1a4482cbc1b4a6272145e54e4489e54fe7428f94908c3d87103abfa", size = 465119, upload-time = "2026-08-13T14:14:37.776Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/ff/bda40387b5c5c64254595f4d81a12351770856acc5de4e6d43606a31f161/ml_dtypes-0.6.0-cp315-cp315t-win_arm64.whl", hash = "sha256:f6cb525101b6b903779188c1e9e9490c343b455ab822883e02cf01e5547338d2", size = 572666, upload-time = "2026-08-13T14:14:38.993Z" },
 ]
 
 [[package]]
@@ -5722,6 +6097,15 @@ wheels = [
 ]
 
 [[package]]
+name = "opt-einsum"
+version = "3.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8c/b9/2ac072041e899a52f20cf9510850ff58295003aa75525e58343591b0cbfb/opt_einsum-3.4.0.tar.gz", hash = "sha256:96ca72f1b886d148241348783498194c577fa30a8faac108586b14f1ba4473ac", size = 63004, upload-time = "2024-09-26T14:33:24.483Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/23/cd/066e86230ae37ed0be70aae89aabf03ca8d9f39c8aea0dec8029455b5540/opt_einsum-3.4.0-py3-none-any.whl", hash = "sha256:69bb92469f86a1565195ece4ac0323943e83477171b91d24c35afe028a90d7cd", size = 71932, upload-time = "2024-09-26T14:33:23.039Z" },
+]
+
+[[package]]
 name = "ortools"
 version = "9.15.6755"
 source = { registry = "https://pypi.org/simple" }
@@ -5909,6 +6293,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3c/0b/8a3b9f4a4943b56e67247c65e1b0564ec9bf0718b85f3fd9502d70afaf32/parsimonious-0.11.0.tar.gz", hash = "sha256:e080377d98957beec053580d38ae54fcdf7c470fb78670ba4bf8b5f9d5cad2a9", size = 54238, upload-time = "2025-11-12T01:33:48.172Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f1/a9/a10a10f12e50993b5a3568a1a90fd70b85f83edc451875d312bf60cd39b8/parsimonious-0.11.0-py3-none-any.whl", hash = "sha256:32e3818abf9f05b3b9f3b6d87d128645e30177e91f614d2277d88a0aea98fae2", size = 54351, upload-time = "2025-11-12T01:33:46.652Z" },
+]
+
+[[package]]
+name = "partd"
+version = "1.4.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "locket" },
+    { name = "toolz" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b2/3a/3f06f34820a31257ddcabdfafc2672c5816be79c7e353b02c1f318daa7d4/partd-1.4.2.tar.gz", hash = "sha256:d022c33afbdc8405c226621b015e8067888173d85f7f5ecebb3cafed9a20f02c", size = 21029, upload-time = "2024-05-06T19:51:41.945Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl", hash = "sha256:978e4ac767ec4ba5b86c6eaa52e5a2a3bc748a2ca839e8cc798f1cc6ce6efb0f", size = 18905, upload-time = "2024-05-06T19:51:39.271Z" },
 ]
 
 [[package]]
@@ -6282,6 +6679,34 @@ wheels = [
 ]
 
 [[package]]
+name = "psutil"
+version = "7.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/aa/c6/d1ddf4abb55e93cebc4f2ed8b5d6dbad109ecb8d63748dd2b20ab5e57ebe/psutil-7.2.2.tar.gz", hash = "sha256:0746f5f8d406af344fd547f1c8daa5f5c33dbc293bb8d6a16d80b4bb88f59372", size = 493740, upload-time = "2026-01-28T18:14:54.428Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/51/08/510cbdb69c25a96f4ae523f733cdc963ae654904e8db864c07585ef99875/psutil-7.2.2-cp313-cp313t-macosx_10_13_x86_64.whl", hash = "sha256:2edccc433cbfa046b980b0df0171cd25bcaeb3a68fe9022db0979e7aa74a826b", size = 130595, upload-time = "2026-01-28T18:14:57.293Z" },
+    { url = "https://files.pythonhosted.org/packages/d6/f5/97baea3fe7a5a9af7436301f85490905379b1c6f2dd51fe3ecf24b4c5fbf/psutil-7.2.2-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:e78c8603dcd9a04c7364f1a3e670cea95d51ee865e4efb3556a3a63adef958ea", size = 131082, upload-time = "2026-01-28T18:14:59.732Z" },
+    { url = "https://files.pythonhosted.org/packages/37/d6/246513fbf9fa174af531f28412297dd05241d97a75911ac8febefa1a53c6/psutil-7.2.2-cp313-cp313t-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:1a571f2330c966c62aeda00dd24620425d4b0cc86881c89861fbc04549e5dc63", size = 181476, upload-time = "2026-01-28T18:15:01.884Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/b5/9182c9af3836cca61696dabe4fd1304e17bc56cb62f17439e1154f225dd3/psutil-7.2.2-cp313-cp313t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:917e891983ca3c1887b4ef36447b1e0873e70c933afc831c6b6da078ba474312", size = 184062, upload-time = "2026-01-28T18:15:04.436Z" },
+    { url = "https://files.pythonhosted.org/packages/16/ba/0756dca669f5a9300d0cbcbfae9a4c30e446dfc7440ffe43ded5724bfd93/psutil-7.2.2-cp313-cp313t-win_amd64.whl", hash = "sha256:ab486563df44c17f5173621c7b198955bd6b613fb87c71c161f827d3fb149a9b", size = 139893, upload-time = "2026-01-28T18:15:06.378Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/61/8fa0e26f33623b49949346de05ec1ddaad02ed8ba64af45f40a147dbfa97/psutil-7.2.2-cp313-cp313t-win_arm64.whl", hash = "sha256:ae0aefdd8796a7737eccea863f80f81e468a1e4cf14d926bd9b6f5f2d5f90ca9", size = 135589, upload-time = "2026-01-28T18:15:08.03Z" },
+    { url = "https://files.pythonhosted.org/packages/81/69/ef179ab5ca24f32acc1dac0c247fd6a13b501fd5534dbae0e05a1c48b66d/psutil-7.2.2-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:eed63d3b4d62449571547b60578c5b2c4bcccc5387148db46e0c2313dad0ee00", size = 130664, upload-time = "2026-01-28T18:15:09.469Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/64/665248b557a236d3fa9efc378d60d95ef56dd0a490c2cd37dafc7660d4a9/psutil-7.2.2-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:7b6d09433a10592ce39b13d7be5a54fbac1d1228ed29abc880fb23df7cb694c9", size = 131087, upload-time = "2026-01-28T18:15:11.724Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/2e/e6782744700d6759ebce3043dcfa661fb61e2fb752b91cdeae9af12c2178/psutil-7.2.2-cp314-cp314t-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:1fa4ecf83bcdf6e6c8f4449aff98eefb5d0604bf88cb883d7da3d8d2d909546a", size = 182383, upload-time = "2026-01-28T18:15:13.445Z" },
+    { url = "https://files.pythonhosted.org/packages/57/49/0a41cefd10cb7505cdc04dab3eacf24c0c2cb158a998b8c7b1d27ee2c1f5/psutil-7.2.2-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:e452c464a02e7dc7822a05d25db4cde564444a67e58539a00f929c51eddda0cf", size = 185210, upload-time = "2026-01-28T18:15:16.002Z" },
+    { url = "https://files.pythonhosted.org/packages/dd/2c/ff9bfb544f283ba5f83ba725a3c5fec6d6b10b8f27ac1dc641c473dc390d/psutil-7.2.2-cp314-cp314t-win_amd64.whl", hash = "sha256:c7663d4e37f13e884d13994247449e9f8f574bc4655d509c3b95e9ec9e2b9dc1", size = 141228, upload-time = "2026-01-28T18:15:18.385Z" },
+    { url = "https://files.pythonhosted.org/packages/f2/fc/f8d9c31db14fcec13748d373e668bc3bed94d9077dbc17fb0eebc073233c/psutil-7.2.2-cp314-cp314t-win_arm64.whl", hash = "sha256:11fe5a4f613759764e79c65cf11ebdf26e33d6dd34336f8a337aa2996d71c841", size = 136284, upload-time = "2026-01-28T18:15:19.912Z" },
+    { url = "https://files.pythonhosted.org/packages/e7/36/5ee6e05c9bd427237b11b3937ad82bb8ad2752d72c6969314590dd0c2f6e/psutil-7.2.2-cp36-abi3-macosx_10_9_x86_64.whl", hash = "sha256:ed0cace939114f62738d808fdcecd4c869222507e266e574799e9c0faa17d486", size = 129090, upload-time = "2026-01-28T18:15:22.168Z" },
+    { url = "https://files.pythonhosted.org/packages/80/c4/f5af4c1ca8c1eeb2e92ccca14ce8effdeec651d5ab6053c589b074eda6e1/psutil-7.2.2-cp36-abi3-macosx_11_0_arm64.whl", hash = "sha256:1a7b04c10f32cc88ab39cbf606e117fd74721c831c98a27dc04578deb0c16979", size = 129859, upload-time = "2026-01-28T18:15:23.795Z" },
+    { url = "https://files.pythonhosted.org/packages/b5/70/5d8df3b09e25bce090399cf48e452d25c935ab72dad19406c77f4e828045/psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:076a2d2f923fd4821644f5ba89f059523da90dc9014e85f8e45a5774ca5bc6f9", size = 155560, upload-time = "2026-01-28T18:15:25.976Z" },
+    { url = "https://files.pythonhosted.org/packages/63/65/37648c0c158dc222aba51c089eb3bdfa238e621674dc42d48706e639204f/psutil-7.2.2-cp36-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:b0726cecd84f9474419d67252add4ac0cd9811b04d61123054b9fb6f57df6e9e", size = 156997, upload-time = "2026-01-28T18:15:27.794Z" },
+    { url = "https://files.pythonhosted.org/packages/8e/13/125093eadae863ce03c6ffdbae9929430d116a246ef69866dad94da3bfbc/psutil-7.2.2-cp36-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:fd04ef36b4a6d599bbdb225dd1d3f51e00105f6d48a28f006da7f9822f2606d8", size = 148972, upload-time = "2026-01-28T18:15:29.342Z" },
+    { url = "https://files.pythonhosted.org/packages/04/78/0acd37ca84ce3ddffaa92ef0f571e073faa6d8ff1f0559ab1272188ea2be/psutil-7.2.2-cp36-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:b58fabe35e80b264a4e3bb23e6b96f9e45a3df7fb7eed419ac0e5947c61e47cc", size = 148266, upload-time = "2026-01-28T18:15:31.597Z" },
+    { url = "https://files.pythonhosted.org/packages/b4/90/e2159492b5426be0c1fef7acba807a03511f97c5f86b3caeda6ad92351a7/psutil-7.2.2-cp37-abi3-win_amd64.whl", hash = "sha256:eb7e81434c8d223ec4a219b5fc1c47d0417b12be7ea866e24fb5ad6e84b3d988", size = 137737, upload-time = "2026-01-28T18:15:33.849Z" },
+    { url = "https://files.pythonhosted.org/packages/8c/c7/7bb2e321574b10df20cbde462a94e2b71d05f9bbda251ef27d104668306a/psutil-7.2.2-cp37-abi3-win_arm64.whl", hash = "sha256:8c233660f575a5a89e6d4cb65d9f938126312bca76d8fe087b947b3a1aaac9ee", size = 134617, upload-time = "2026-01-28T18:15:36.514Z" },
+]
+
+[[package]]
 name = "py-cpuinfo2"
 version = "10.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -6619,6 +7044,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/2e/3b/a5d2294799b53b448319978cfb5bd139d5a9d45e862af91661614f14c922/pydantic_settings-2.16.0.tar.gz", hash = "sha256:5b6c578049ede4db0e2ef3b4eaa4ad4069cfa9211f83fb38df899dfade50a614", size = 301031, upload-time = "2026-10-14T12:44:09.998Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/53/f4/b987bf8c51e5b19a95fa66d1ee596074141e085d9c2ddf97920803c7029b/pydantic_settings-2.16.0-py3-none-any.whl", hash = "sha256:7e73acf7f61936a15e5a3b6eedaea29f133357faf7272f2607ba479b049dd7f2", size = 80364, upload-time = "2026-10-14T12:44:08.233Z" },
+]
+
+[[package]]
+name = "pygls"
+version = "2.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+    { name = "cattrs" },
+    { name = "lsprotocol" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/da/2e/7bbe061d175c0baddde8fc9edb908a4c31ba5d9165b8c68e3439c3a9f138/pygls-2.1.1.tar.gz", hash = "sha256:1da03ba9053201bb337dcdd8d121df70feb2a91e1a0dcc74de5da79755b1a201", size = 55091, upload-time = "2026-03-25T11:19:10.541Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fd/1a/208293b6c350f5abea6941d5606080d4a492644052504f5312e5de30a902/pygls-2.1.1-py3-none-any.whl", hash = "sha256:510a6dea2476177230c7d851125e5948efdf3fdb9ebfd8543fc434972f8faed4", size = 68975, upload-time = "2026-03-25T11:19:11.374Z" },
 ]
 
 [[package]]
@@ -8531,6 +8970,15 @@ wheels = [
 ]
 
 [[package]]
+name = "tblib"
+version = "3.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f4/8a/14c15ae154895cc131174f858c707790d416c444fc69f93918adfd8c4c0b/tblib-3.2.2.tar.gz", hash = "sha256:e9a652692d91bf4f743d4a15bc174c0b76afc750fe8c7b6d195cc1c1d6d2ccec", size = 35046, upload-time = "2025-11-12T12:21:16.572Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/02/be/5d2d47b1fb58943194fb59dcf222f7c4e35122ec0ffe8c36e18b5d728f0b/tblib-3.2.2-py3-none-any.whl", hash = "sha256:26bdccf339bcce6a88b2b5432c988b266ebbe63a4e593f6b578b1d2e723d2b76", size = 12893, upload-time = "2025-11-12T12:21:14.407Z" },
+]
+
+[[package]]
 name = "tenacity"
 version = "9.1.4"
 source = { registry = "https://pypi.org/simple" }
@@ -8754,6 +9202,15 @@ wheels = [
 ]
 
 [[package]]
+name = "toolz"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/31/6f/ae20c212a07aa2d156c787383d8088a5e045ee39628661edb190c97e1659/toolz-1.2.0.tar.gz", hash = "sha256:9667a038e9d6ecba37995e26cb2f59ec6420b6ad8dd9677de59db9b956b08490", size = 55442, upload-time = "2026-10-07T04:16:25.639Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/db/17/4c8beb6c8c4176c6bf143bfd7e1e4dd6719b00ced90738c7ac471b71c1df/toolz-1.2.0-py3-none-any.whl", hash = "sha256:890f820b1cb8152785aaf9386d8707770110809035800985ca65cb24ce1120ef", size = 60789, upload-time = "2026-10-07T04:16:24.173Z" },
+]
+
+[[package]]
 name = "torch"
 version = "2.14.1"
 source = { registry = "https://pypi.org/simple" }
@@ -8795,6 +9252,23 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/e4/94/b97e863c9ceef2bc6e082e967cbfb9065b5e232f2a60c5af0f5115a1bc31/torch-2.14.1-cp314-cp314t-manylinux_2_28_aarch64.whl", hash = "sha256:9113f94f70429f9f302bf55b090b5411269083e8a72a5d015ffcc5a7f83f2c69", size = 453998592, upload-time = "2026-09-30T17:54:38.268Z" },
     { url = "https://files.pythonhosted.org/packages/03/d8/8272157c438cc26a199a8fa0caf87985477b8a1ed8a09084eb2ae40609d8/torch-2.14.1-cp314-cp314t-manylinux_2_28_x86_64.whl", hash = "sha256:e65d5fe136e533b23c2d134377f7f126721c7c78dd75b3dbb735af082a8aeb85", size = 554578730, upload-time = "2026-09-30T17:54:54.838Z" },
     { url = "https://files.pythonhosted.org/packages/45/05/451a69a4287033d8f106f5c65f92c2c0c37229d81ea101d4b047caf758cc/torch-2.14.1-cp314-cp314t-win_amd64.whl", hash = "sha256:e07306caa1de2a4ac1467e11ecfc92fc44f523dd6a521145039aef46d913963c", size = 124400129, upload-time = "2026-09-30T17:54:12.306Z" },
+]
+
+[[package]]
+name = "tornado"
+version = "6.5.10"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/06/61/53d562a57b28c08eda40b258c0f975e360541943ad7c7bef897a40caafda/tornado-6.5.10.tar.gz", hash = "sha256:a6b1ccd08c04b4a06fb5aeb381be99de5ad1e5375c1785e31d78c880feb57687", size = 537910, upload-time = "2026-09-15T13:47:48.73Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cd/5b/ff5fc58fa2427c30dea74c90053f4fc5eda1e7f3833ed3ecc7147fe2b311/tornado-6.5.10-cp39-abi3-macosx_10_9_universal2.whl", hash = "sha256:9261783640e23258694a9ff0795df430a5a7b0a651d3dd53dd0969ad6be16da7", size = 465883, upload-time = "2026-09-15T13:47:35.463Z" },
+    { url = "https://files.pythonhosted.org/packages/ad/f5/cd7be26c34a3315532f3aef5f092465da8f59c334dd439d3c14aaef16461/tornado-6.5.10-cp39-abi3-macosx_10_9_x86_64.whl", hash = "sha256:83e6cf438b106c6b3852d70960967bb1b70c87438050dca0981e4b9aa751a4c1", size = 464046, upload-time = "2026-09-15T13:47:37.178Z" },
+    { url = "https://files.pythonhosted.org/packages/60/33/df6d7d04854a58619f8349a51e3edb138324130a7562b0bb21f115bb940f/tornado-6.5.10-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:bdf942448169e5336451d0494d7e3d81cfa726d5aa312affdc4682dd62a62f6d", size = 467096, upload-time = "2026-09-15T13:47:38.559Z" },
+    { url = "https://files.pythonhosted.org/packages/29/17/cc35dff68272d685cffd8600ffafbd8067e7d05e7348d9f80caddffbbd5f/tornado-6.5.10-cp39-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:69acca6501eed74582b76dbbceee2a91613f54728e3e418346000d7103101676", size = 468067, upload-time = "2026-09-15T13:47:40.085Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/01/6e5349b4e1a53a4b4972a6716785e1fe7407f312063c3972690af8ff301b/tornado-6.5.10-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:66aaa3f57d30c6e6becee83ff28055d5930ac724214bde99393eefda83d5e015", size = 467901, upload-time = "2026-09-15T13:47:41.576Z" },
+    { url = "https://files.pythonhosted.org/packages/28/5e/b4facf94370dba006819c8d304376f8b9fbec6b935b5e51bf45823a9790b/tornado-6.5.10-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:4bd192b959f9128fb99b8898148070ba4574c9589b78bce42d1851131fe85828", size = 467308, upload-time = "2026-09-15T13:47:43.145Z" },
+    { url = "https://files.pythonhosted.org/packages/56/ae/047938e828cafc8eca4c908fafb6588fee944e3af39a0af9d7b602499ae5/tornado-6.5.10-cp39-abi3-win32.whl", hash = "sha256:302eb1e0e3e159314eb591920529fdea80acca92df5510a2cec5bbd4f099ec72", size = 468387, upload-time = "2026-09-15T13:47:44.556Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/d4/5901517f05affd752490f6a654ba31b7474664e8dd80bd045a00c220bd88/tornado-6.5.10-cp39-abi3-win_amd64.whl", hash = "sha256:37ae8f150cecfdbf747fc4e12f5e9a97ecd8cf1d4cdb3f119e2de84b11196918", size = 468828, upload-time = "2026-09-15T13:47:45.961Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/1a/fd497f3a7f7b74bb04f4b94536b5c9f80742b5d50501fd27977652ddec16/tornado-6.5.10-cp39-abi3-win_arm64.whl", hash = "sha256:ce045d3c298fddd30e89a2777f97039d1b641eb9518ac7b26a4721903539c694", size = 467847, upload-time = "2026-09-15T13:47:47.283Z" },
 ]
 
 [[package]]
@@ -9497,6 +9971,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/f3/35/c119d6ac5bad30f7358308f8585fe4db43afb0aebd10bed01db6e168f2f8/z3_solver-5.1.0.0-py3-none-win32.whl", hash = "sha256:c5a9e796dd77e4bafcc8c70bdbe44194db2d5d3feb9e62881bf071a3745f852e", size = 13988754, upload-time = "2026-08-16T04:29:20.963Z" },
     { url = "https://files.pythonhosted.org/packages/3f/5a/e3651dc6c976bc44861f4ba0167366a1ce0b11b3bcbad7377f0d28f9f513/z3_solver-5.1.0.0-py3-none-win_amd64.whl", hash = "sha256:1561efd36e06f4cb7cbf11b63a2fba8fc8fdeb9c5754df90c84f9bd7a4864552", size = 17040097, upload-time = "2026-08-16T04:29:23.43Z" },
     { url = "https://files.pythonhosted.org/packages/30/10/9a0e8e34f374ad6d8a28a03535866ed4f7f767c49c19e53e795ba6a0f7e3/z3_solver-5.1.0.0-py3-none-win_arm64.whl", hash = "sha256:9d0b597974c7b514d91e881fe02f71d8b31c40dd4b7f5cdf01b40dd5510c4def", size = 15935983, upload-time = "2026-08-16T04:29:26.425Z" },
+]
+
+[[package]]
+name = "zict"
+version = "3.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d1/ac/3c494dd7ec5122cff8252c1a209b282c0867af029f805ae9befd73ae37eb/zict-3.0.0.tar.gz", hash = "sha256:e321e263b6a97aafc0790c3cfb3c04656b7066e6738c37fffcca95d803c9fba5", size = 33238, upload-time = "2023-04-17T21:41:16.041Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/80/ab/11a76c1e2126084fde2639514f24e6111b789b0bfa4fc6264a8975c7e1f1/zict-3.0.0-py2.py3-none-any.whl", hash = "sha256:5796e36bd0e0cc8cf0fbc1ace6a68912611c1dbd74750a3f3026b9b9d6a327ae", size = 43332, upload-time = "2023-04-17T21:41:13.444Z" },
 ]
 
 [[package]]

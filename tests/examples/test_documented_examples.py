@@ -298,6 +298,7 @@ def test_documented_ortools_cpsat_planner_example_executes() -> None:
 @pytest.mark.example
 def test_documented_scipy_allocation_planner_example_executes() -> None:
     """Ensure documented SciPy continuous allocation planner snippet executes."""
+    pytest.importorskip("scipy")
     from ewm_engine.integrations.scipy_planner import SciPyAllocationPlanner
 
     state = WorldState(

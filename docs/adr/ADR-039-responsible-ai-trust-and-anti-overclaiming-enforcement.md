@@ -5,7 +5,7 @@
 * Status: accepted
 * Deciders: Vinicius Caridá (@vfcarida)
 * Date: 2026-10-07
-* Technical Story: Responsible AI, Trust & Anti-Overclaiming Enforcement (R12)
+* Technical Story: Responsible AI, Trust & Anti-Overclaiming Enforcement
 * Supersedes: None
 
 ## Context and Problem Statement

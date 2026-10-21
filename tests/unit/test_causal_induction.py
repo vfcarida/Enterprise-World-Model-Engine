@@ -155,7 +155,7 @@ def test_observational_gaussian_data_never_asserts_single_dag() -> None:
     pc_res = {("X", "Y"): "---"}  # Undirected Markov equivalence
     fci_res = {("X", "Y"): "---"}
     dagma_res = {("X", "Y"): 0.5, ("Y", "X"): 0.5}  # Symmetric score
-    lingam_res = {}
+    lingam_res: dict[tuple[str, str], float] = {}
 
     equiv_class = reconcile_ensemble(
         var_names=var_names,
@@ -183,7 +183,7 @@ def test_interventional_data_fusion_promotes_to_asserted() -> None:
     pc_res = {("Treatment", "Outcome"): "---"}
     fci_res = {("Treatment", "Outcome"): "---"}
     dagma_res = {("Treatment", "Outcome"): 0.6}
-    lingam_res = {}
+    lingam_res: dict[tuple[str, str], float] = {}
 
     # Interventional evidence: do(Treatment = 1) shifted Outcome significantly,
     # but do(Outcome = 1) had no effect on Treatment
@@ -216,8 +216,8 @@ def test_confounded_fci_edge_reconciles_to_confounded_level() -> None:
     var_names = ["Metric_A", "Metric_B"]
     pc_res = {("Metric_A", "Metric_B"): "---"}
     fci_res = {("Metric_A", "Metric_B"): "<->"}  # Latent confounding
-    dagma_res = {}
-    lingam_res = {}
+    dagma_res: dict[tuple[str, str], float] = {}
+    lingam_res: dict[tuple[str, str], float] = {}
 
     equiv_class = reconcile_ensemble(
         var_names=var_names,

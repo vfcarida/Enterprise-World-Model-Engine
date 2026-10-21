@@ -1,6 +1,6 @@
 """Structured non-numeric snapshot tests using syrupy.
 
-In accordance with R03 testing rigor:
+In accordance with ADR-031 testing rigor:
 - Snapshot non-numeric structured outputs (trace Mermaid flowchart, Card Markdown, Card YAML/JSON).
 - Never snapshot raw floating-point numbers without canonical rounding/tolerance.
 - Includes quarantine lane demonstrations via pytest-rerunfailures.

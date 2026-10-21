@@ -11,7 +11,7 @@ Scientific Grounding:
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Literal
 
 from ewm_engine.core._canonical import canonical_sha256
@@ -50,7 +50,7 @@ class DecisionEngine:
         self,
         world: World,
         uncertainty_space: ParameterSpace,
-        candidates: dict[str, Action | Intervention | Sequence[Action] | None],
+        candidates: Mapping[str, Action | Intervention | Sequence[Action] | None],
         objective_metric: str | Callable[[Trajectory], float],
         satisficing_threshold: float,
         higher_is_better: bool = False,

@@ -155,22 +155,22 @@ def create_wsl_server() -> Any:
             lsp_diags.append(diag)
         ls.publish_diagnostics(uri, lsp_diags)
 
-    @server.feature(TEXT_DOCUMENT_DID_OPEN)
+    @server.feature(TEXT_DOCUMENT_DID_OPEN)  # type: ignore[untyped-decorator]
     def did_open(ls: LanguageServer, params: DidOpenTextDocumentParams) -> None:
         doc = ls.workspace.get_text_document(params.text_document.uri)
         _publish_diagnostics(ls, doc.uri, doc.source)
 
-    @server.feature(TEXT_DOCUMENT_DID_CHANGE)
+    @server.feature(TEXT_DOCUMENT_DID_CHANGE)  # type: ignore[untyped-decorator]
     def did_change(ls: LanguageServer, params: DidChangeTextDocumentParams) -> None:
         doc = ls.workspace.get_text_document(params.text_document.uri)
         _publish_diagnostics(ls, doc.uri, doc.source)
 
-    @server.feature(TEXT_DOCUMENT_DID_SAVE)
+    @server.feature(TEXT_DOCUMENT_DID_SAVE)  # type: ignore[untyped-decorator]
     def did_save(ls: LanguageServer, params: DidSaveTextDocumentParams) -> None:
         doc = ls.workspace.get_text_document(params.text_document.uri)
         _publish_diagnostics(ls, doc.uri, doc.source)
 
-    @server.feature(TEXT_DOCUMENT_COMPLETION)
+    @server.feature(TEXT_DOCUMENT_COMPLETION)  # type: ignore[untyped-decorator]
     def completions(ls: LanguageServer, params: CompletionParams) -> CompletionList:
         items = [
             CompletionItem(
@@ -210,7 +210,7 @@ def create_wsl_server() -> Any:
         ]
         return CompletionList(is_incomplete=False, items=items)
 
-    @server.feature(TEXT_DOCUMENT_HOVER)
+    @server.feature(TEXT_DOCUMENT_HOVER)  # type: ignore[untyped-decorator]
     def hover(ls: LanguageServer, params: HoverParams) -> Hover | None:
         content = (
             "### World Specification Language (WSL)\n"

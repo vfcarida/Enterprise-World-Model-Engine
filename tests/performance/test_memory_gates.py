@@ -1,4 +1,4 @@
-"""Deterministic memory regression and leak gates for EWM Engine (R04 Task C).
+"""Deterministic memory regression and leak gates for EWM Engine (ADR-032).
 
 Memory usage in deterministic scientific simulations is highly repeatable, making memory
 bounds and leak checks safe hard gates (unlike noisy wall-clock benchmarks).

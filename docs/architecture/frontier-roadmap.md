@@ -1,7 +1,7 @@
 # Frontier Architecture & Causal Roadmap (v1.6 → v2.0)
 
 > Architectural specification mapping transformative capabilities across causal structural models, decision intelligence, certified calibration, and neuro-symbolic grey-box dynamics onto the engine's declared milestone frontier.
-> Anchored to the master release plan: `v1.5.0` (Shipped) · `v1.6.0` (Active: Learned Dynamics & Causal Epistemics) · `v1.7.0` (Decision Intelligence) · `v1.8.0` (Calibration to Reality) · `v1.9.0` (Neuro-Symbolic Maturation) · `v2.0.0` (Reference Architecture & Standard).
+> Anchored to the master release plan: `v1.5.0` (Shipped) · `v1.6.0` (Shipped: Learned Dynamics & Causal Epistemics) · `v1.7.0` (Shipped: Decision Intelligence) · `v1.8.0` (Shipped: Calibration to Reality) · `v1.9.0` (Shipped: Induction, MCP & Neuro-Symbolic Maturation) · `v2.0.0` (Converged Reference Architecture & Standard).
 
 ---
 
@@ -13,7 +13,7 @@ Capabilities in EWM Engine advance through strictly governed maturity tiers:
 - **Experimental**: Frontier research modules under `ewm_engine.experimental.*`; subject to design evolution across minor versions.
 - **Research**: Scientific measurement instruments, benchmark families, and theoretical formulations without production claims.
 
-Every new capability enters at **Experimental** (isolated behind extras), advances to **Beta** upon completing comprehensive test suites, Architecture Decision Records (ADRs), and reproducible artifacts, and reaches **Stable** at `v2.0.0` only when proven bit-reproducible, honest-by-construction, and specification-stable.
+Every new capability enters at **Experimental** (isolated behind extras), advances to **Beta** upon completing comprehensive test suites, Architecture Decision Records (ADRs), and reproducible artifacts, and reaches **Stable** when proven bit-reproducible, honest-by-construction, and specification-stable.
 
 ---
 
@@ -31,10 +31,10 @@ Every new capability enters at **Experimental** (isolated behind extras), advanc
 | Milestone | Subsystem Theme | Key Capabilities & Modules | Stability Tier |
 | :--- | :--- | :--- | :--- |
 | **v1.5.x** | Positioning & Narrative | Mechanism-first documentation, proof hero, executive use cases, governance compliance mapping | Docs / Stable |
-| **v1.6.0** | Causal Epistemics & Learned Dynamics | Counterfactual SCM kernel, grey-box conservation layers, causal-correctness & metamorphic test suite | Beta |
-| **v1.7.0** | Decision Intelligence | `ewm decide`: PRIM scenario discovery, minimax regret ranking, Expected Free Energy scoring | Beta |
-| **v1.8.0** | Calibration to Reality | `ewm calibrate`: Simulation-based inference (SBI), TARP certified coverage, empirical validation packs | Beta |
-| **v1.9.0** | Neuro-Symbolic Flywheel | Symbolic-regression term promotion (SINDy/PySR), end-to-end epistemic abstention, complete handbook | Beta |
+| **v1.6.0** | Causal Epistemics & Learned Dynamics | Counterfactual SCM kernel, grey-box conservation layers, causal-correctness & metamorphic test suite | Stable |
+| **v1.7.0** | Decision Intelligence | `ewm decide`: PRIM scenario discovery, minimax regret ranking, Expected Free Energy scoring | Stable |
+| **v1.8.0** | Calibration to Reality | `ewm calibrate`: Simulation-based inference (SBI), TARP certified coverage, empirical validation packs | Stable |
+| **v1.9.0** | Induction, MCP & Flywheel | `ewm induce` honesty-gated induction, `ewm mcp` server, symbolic-regression promotion (SINDy/PySR), epistemic abstention | Stable + Beta |
 | **v2.0.0** | Reference Architecture | Stable transformative kernel, CI-reproducible results gallery, arXiv companion paper, Relational GNNs & WSL | Stable + Beta |
 
 ---

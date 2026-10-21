@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import numpy as np
 import pytest
 
 from ewm_engine.core.actions import Action
+from ewm_engine.core.events import ExogenousEvent
 from ewm_engine.core.state import WorldState
 from ewm_engine.dynamics.deterministic import DeterministicTransferDynamics
 from ewm_engine.dynamics.learned import TransitionDataset, TransitionSample
@@ -68,7 +71,7 @@ def test_conservation_layer_structural_zero_violation_contract(
 
     # Adversarial estimator emitting arbitrary random perturbations
     def adversarial_fn(
-        s: WorldState, a: list[Action], e: list[object], next_s: WorldState
+        s: WorldState, a: Sequence[Action], e: Sequence[ExogenousEvent], next_s: WorldState
     ) -> dict[str, float]:
         return {
             "stock_wh1": float(rng.uniform(-100.0, 100.0)),

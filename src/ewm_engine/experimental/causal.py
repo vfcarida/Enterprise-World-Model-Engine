@@ -5,7 +5,7 @@
     - Backdoor Criterion identifiability checking over declared mechanism graphs
     - Overlap and positivity diagnostics on logged transition datasets
     - Confounding sensitivity reporting (Rosenbaum bounds Gamma)
-    - Noise-coupled counterfactual branching (Twin Rollouts, arXiv:2608.08982)
+    - Noise-coupled counterfactual branching (Twin-Network Rollouts; Balke & Pearl, 1994; Pearl, 2009)
 
 Epistemic Invariant:
     The engine NEVER claims to automatically discover causality from observational data.
@@ -723,7 +723,7 @@ def report_confounding_sensitivity(
 
 
 class TwinRolloutResult(BaseModel):
-    """Audit result of a noise-coupled factual/counterfactual rollout pair (arXiv:2608.08982)."""
+    """Audit result of a noise-coupled factual/counterfactual rollout pair (Balke & Pearl, 1994; Pearl, 2009)."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 

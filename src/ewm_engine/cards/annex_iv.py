@@ -77,7 +77,7 @@ def render_model_annex_iv(card: ModelCard) -> dict[str, Any]:
             "safety_invariants": [
                 "Strict state immutability (AC-005)",
                 "Physical & accounting conservation law gates (AC-006, AC-008)",
-                "Anti-auto-promotion of causal evidence levels (SPEC 9 / R12)",
+                "Anti-auto-promotion of causal evidence levels (SPEC 9 / ADR-039)",
             ],
         },
         "section_5_lifecycle_and_provenance": {

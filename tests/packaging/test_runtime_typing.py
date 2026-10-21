@@ -55,7 +55,7 @@ def test_beartype_decoration_on_boundary_functions() -> None:
     from beartype import beartype
     from beartype.roar import BeartypeCallHintViolation
 
-    @beartype  # type: ignore[untyped-decorator]
+    @beartype
     def boundary_endpoint(state_id: str, values: np.ndarray, tolerance: float = 1e-4) -> float:
         validate_numeric_array_boundary(values, expected_ndim=1)
         return float(np.sum(values))

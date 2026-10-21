@@ -1,6 +1,6 @@
 """Hermetic execution tests: frozen clock, blocked sockets, and filesystem isolation.
 
-In accordance with R03 Task 7:
+In accordance with ADR-031:
 - time-machine: verifies frozen clock determinism across timestamps and metadata
 - pytest-socket: verifies socket blocking (--disable-socket --allow-hosts=127.0.0.1)
 - tmp_path: enforces filesystem isolation for all test artifacts

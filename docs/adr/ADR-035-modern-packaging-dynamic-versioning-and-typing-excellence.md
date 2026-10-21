@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-Prior to Round 8 (R08), the Enterprise World Model Engine (`ewm-engine`) relied on a legacy `setuptools` build backend with a hard-coded static version string (`version = "1.0.0"`) in `pyproject.toml`. This static configuration introduced severe architectural risks:
+Prior to this architectural decision, the Enterprise World Model Engine (`ewm-engine`) relied on a legacy `setuptools` build backend with a hard-coded static version string (`version = "1.0.0"`) in `pyproject.toml`. This static configuration introduced severe architectural risks:
 1. **Version Drift Hazard**: Releasing new versions or maintenance patches risked version divergence between git release tags, `pyproject.toml`, documentation, and runtime `__version__`.
 2. **Legacy Packaging Standards**: License declaration predated **PEP 639** (SPDX license expression specification), relying on ambiguous metadata formats.
 3. **Lockfile Misinterpretation**: While `uv.lock` provided lightning-fast reproducible development environments, treating a lockfile as authoritative for downstream consumers risks hiding subtle incompatibilities across declared dependency ranges (`>=1.26`, `>=2.6`).

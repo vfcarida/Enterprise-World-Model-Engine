@@ -20,9 +20,9 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import Any
+from typing import Any, TypeAlias
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
@@ -283,13 +283,18 @@ class InductionValidationReport(BaseModel):
 # ==============================================================================
 
 
+InductionDataInput: TypeAlias = (
+    np.ndarray | Mapping[str, Sequence[float] | np.ndarray] | list[dict[str, Any]]
+)
+
+
 def _extract_column(
-    data: np.ndarray | dict[str, Sequence[float]] | list[dict[str, Any]],
+    data: InductionDataInput,
     var_name: str,
     var_index: int | None = None,
 ) -> np.ndarray:
     """Extract a 1D float array for a named variable from supported data formats."""
-    if isinstance(data, dict):
+    if isinstance(data, Mapping):
         if var_name not in data:
             raise KeyError(f"Variable '{var_name}' not found in data dict.")
         return np.asarray(data[var_name], dtype=float)
@@ -343,7 +348,7 @@ def _estimate_linear_effect(
 
 
 def refute_placebo_treatment(
-    data: np.ndarray | dict[str, Sequence[float]] | list[dict[str, Any]],
+    data: InductionDataInput,
     treatment: str,
     outcome: str,
     covariates: list[str] | None = None,
@@ -402,7 +407,7 @@ def refute_placebo_treatment(
 
 
 def refute_random_common_cause(
-    data: np.ndarray | dict[str, Sequence[float]] | list[dict[str, Any]],
+    data: InductionDataInput,
     treatment: str,
     outcome: str,
     covariates: list[str] | None = None,
@@ -459,7 +464,7 @@ def refute_random_common_cause(
 
 
 def refute_data_subset(
-    data: np.ndarray | dict[str, Sequence[float]] | list[dict[str, Any]],
+    data: InductionDataInput,
     treatment: str,
     outcome: str,
     covariates: list[str] | None = None,
@@ -521,7 +526,7 @@ def refute_data_subset(
 
 
 def run_causal_refutations(
-    data: np.ndarray | dict[str, Sequence[float]] | list[dict[str, Any]],
+    data: InductionDataInput,
     treatment: str,
     outcome: str,
     covariates: list[str] | None = None,
@@ -642,7 +647,7 @@ class InductionValidationGate:
     def validate(
         self,
         report: InductionReport,
-        data: np.ndarray | dict[str, Sequence[float]] | list[dict[str, Any]] | None = None,
+        data: InductionDataInput | None = None,
         held_out_trajectories: list[dict[str, float]] | np.ndarray | None = None,
     ) -> InductionValidationReport:
         """Validate an InductionReport, raising InductionRefusalError if strict and any refusals exist."""
@@ -666,7 +671,7 @@ class InductionValidationGate:
     def validate_causal(
         self,
         equiv_class: CausalEquivalenceClass,
-        data: np.ndarray | dict[str, Sequence[float]] | list[dict[str, Any]] | None = None,
+        data: InductionDataInput | None = None,
         seed: int = 42,
     ) -> tuple[list[CausalEdge], list[RefusedElement], list[OpenQuestion], list[RefuterResult]]:
         """Validate discovered causal equivalence class, refusing unoriented edges."""
@@ -1012,7 +1017,7 @@ class InductionValidationGate:
     def validate_full_induction(
         self,
         report: InductionReport,
-        data: np.ndarray | dict[str, Sequence[float]] | list[dict[str, Any]] | None = None,
+        data: InductionDataInput | None = None,
         held_out_trajectories: list[dict[str, float]] | np.ndarray | None = None,
         seed: int = 42,
     ) -> tuple[WorldSpec, InductionValidationReport]:
@@ -1234,7 +1239,7 @@ class InductionValidationGate:
 
 def validate_induction(
     spec_or_report: WorldSpec | InductionReport,
-    data: np.ndarray | dict[str, Sequence[float]] | list[dict[str, Any]] | None = None,
+    data: InductionDataInput | None = None,
     held_out_trajectories: list[dict[str, float]] | np.ndarray | None = None,
     report: InductionReport | None = None,
     *,

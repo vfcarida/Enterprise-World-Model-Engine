@@ -715,7 +715,7 @@ def _run_induce(
                 import pyarrow.parquet as pq
 
                 table = pq.read_table(p)
-                return table.to_pylist()
+                return list(table.to_pylist())
             except ImportError as err:
                 raise ImportError("pyarrow is required to read Parquet files.") from err
         else:
@@ -928,8 +928,12 @@ def _run_induce(
             if held_out_path:
                 held_out = _load_data_file(held_out_path)
 
+            target_spec_or_report: WorldSpec | InductionReport | None = (
+                loaded_report if loaded_report is not None else loaded_spec
+            )
+            assert target_spec_or_report is not None
             spec, val_report = validate_induction(
-                spec_or_report=loaded_report or loaded_spec,
+                spec_or_report=target_spec_or_report,
                 data=c_data,
                 held_out_trajectories=held_out,
                 report=loaded_report,

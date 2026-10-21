@@ -6,7 +6,7 @@ Accepted
 ## Context
 The Enterprise World Model Engine integrates learned dynamics, probabilistic rollouts, counterfactual simulations, and structural mechanism graphs. While these capabilities allow enterprise decision-makers to evaluate complex interventions, ML-based simulation frameworks in operational domains face severe credibility risks if evaluated with superficial point metrics or unverified causal claims.
 
-Prior to Round 4 (R05), several scientific rigor gaps existed:
+Prior to this architectural decision, several scientific rigor gaps existed:
 1. **Unstructured Provenance**: Runs lacked a canonical, cryptographic execution manifest mapping directly to international reproducibility standards (such as the NeurIPS Reproducibility Checklist).
 2. **Scalar Rollout Error Metrics**: Dynamics models were evaluated using single scalar metrics (e.g. 1-step MAE), masking super-linear compounding drift over multi-step rollouts (Talvitie, 2014) and failing to distinguish latent-space representations from observable system state errors.
 3. **Improper Probabilistic Scoring & Naive ECE**: Uncertainty was evaluated using ad-hoc quantiles or fixed-width Expected Calibration Error (ECE), which suffers from empty-bin distortion and masks severe overconfidence in sparse tail intervals. Furthermore, distribution-free finite-sample guarantees were absent.

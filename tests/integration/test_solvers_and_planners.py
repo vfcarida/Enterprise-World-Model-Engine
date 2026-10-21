@@ -379,6 +379,7 @@ def test_cpsat_planner_in_simulation_engine_rollout() -> None:
 @pytest.mark.integration
 def test_scipy_planner_protocol_and_solve() -> None:
     """Verify SciPyAllocationPlanner continuous linear programming allocation."""
+    pytest.importorskip("scipy")
     planner = SciPyAllocationPlanner(
         actor_id="scipy_continuous",
         sources=["hub_a", "hub_b"],
@@ -411,6 +412,7 @@ def test_scipy_planner_protocol_and_solve() -> None:
 @pytest.mark.integration
 def test_scipy_planner_infeasible() -> None:
     """Verify SciPyAllocationPlanner handles infeasible problems cleanly."""
+    pytest.importorskip("scipy")
     planner = SciPyAllocationPlanner(
         actor_id="scipy_infeasible",
         sources=["low_hub"],

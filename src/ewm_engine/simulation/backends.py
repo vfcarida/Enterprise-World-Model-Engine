@@ -126,7 +126,7 @@ class NumPyBackend:
         return np.clip(arr, a_min=min_val, a_max=max_val)
 
     def matmul(self, a: Any, b: Any) -> np.ndarray:
-        return np.matmul(np.asarray(a), np.asarray(b))
+        return np.asarray(np.matmul(np.asarray(a), np.asarray(b)))
 
     def to_numpy(self, x: Any) -> np.ndarray:
         return np.asarray(x)
@@ -250,7 +250,7 @@ class CuPyBackend:
 
     def to_numpy(self, x: Any) -> np.ndarray:
         if hasattr(x, "get"):
-            return x.get()
+            return np.asarray(x.get())
         return np.asarray(x)
 
 

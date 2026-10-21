@@ -6,7 +6,7 @@ Accepted
 ## Context
 A scientific simulation framework without regression gates suffers from an acute credibility gap. In the Enterprise World Model Engine, simulation rollouts combine discrete state transitions, constraint boundary evaluations, stochastic dynamics, and provenance trace collection.
 
-Prior to Round 3 (R04), three structural limitations existed:
+Prior to this architectural decision, three structural limitations existed:
 1. **Absence of Deterministic Performance Gates**: The repository only had a coarse throughput sanity guard (`tests/benchmark/test_throughput_benchmark.py`). Attempting to gate PRs on raw wall-clock time (`time.perf_counter`) on shared cloud CI runners (e.g. GitHub Actions `ubuntu-latest`) introduces $15\text{--}30\%$ jitter due to hyperthread contention, CPU thermal throttling, and VM scheduling noise.
 2. **Lack of Long-Term System-of-Record**: There was no commit-range performance history, no automated change-point detection, and no bisection mechanism to identify which historical commit introduced a gradual performance regression.
 3. **Memory and Numerical Rigor Gaps**: There were no memory limits or leak gates, despite memory footprint being deterministic. Furthermore, numerical test assertions lacked uniform tolerance standards, leaving the suite susceptible to the classic Goldberg floating-point zero-hazard trap (`assert_allclose(actual, desired, atol=0)` against an expected zero).

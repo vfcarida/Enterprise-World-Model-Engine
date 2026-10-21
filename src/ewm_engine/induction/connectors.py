@@ -63,30 +63,30 @@ def _to_records(df_or_table: Any) -> list[dict[str, Any]]:
 
     # 2. PyArrow Table
     try:
-        import pyarrow as pa  # type: ignore[import-not-found]
+        import pyarrow as pa
 
         if isinstance(df_or_table, pa.Table):
-            return df_or_table.to_pylist()
+            return list(df_or_table.to_pylist())
     except ImportError:
         pass
 
     # 3. Arrow PyCapsule / Stream Interface
     if hasattr(df_or_table, "__arrow_c_stream__"):
         try:
-            import pyarrow as pa  # type: ignore[import-not-found]
+            import pyarrow as pa
 
             table = pa.table(df_or_table)
-            return table.to_pylist()
+            return list(table.to_pylist())
         except Exception:
             pass
 
     # 4. Pandas DataFrame
     if hasattr(df_or_table, "to_dict") and hasattr(df_or_table, "columns"):
-        return df_or_table.to_dict(orient="records")
+        return list(df_or_table.to_dict(orient="records"))
 
     # 5. Polars DataFrame
     if hasattr(df_or_table, "to_dicts"):
-        return df_or_table.to_dicts()
+        return list(df_or_table.to_dicts())
 
     raise SimulationConfigurationError(
         f"Unsupported tabular data input of type '{type(df_or_table).__name__}'. "

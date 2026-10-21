@@ -29,26 +29,26 @@ def _extract_imports(
                 return True
         return False
 
-    nodes_to_inspect = []
+    nodes_to_inspect: list[ast.AST] = []
     if include_function_level:
-        for node in tree.body:
-            if _is_type_checking(node):
+        for stmt_node in tree.body:
+            if _is_type_checking(stmt_node):
                 continue
-            for child in ast.walk(node):
+            for child in ast.walk(stmt_node):
                 nodes_to_inspect.append(child)
     else:
-        for node in tree.body:
-            if _is_type_checking(node):
+        for stmt_node in tree.body:
+            if _is_type_checking(stmt_node):
                 continue
-            nodes_to_inspect.append(node)
+            nodes_to_inspect.append(stmt_node)
 
-    for node in nodes_to_inspect:
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                imports.append((node.lineno, alias.name))
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                imports.append((node.lineno, node.module))
+    for inspected_node in nodes_to_inspect:
+        if isinstance(inspected_node, ast.Import):
+            for alias in inspected_node.names:
+                imports.append((inspected_node.lineno, alias.name))
+        elif isinstance(inspected_node, ast.ImportFrom):
+            if inspected_node.module:
+                imports.append((inspected_node.lineno, inspected_node.module))
 
     return imports
 

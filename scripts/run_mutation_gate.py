@@ -1,6 +1,6 @@
 """Mutation testing runner and gate script using mutmut (3.x).
 
-In accordance with R03 Task 4:
+In accordance with ADR-031:
 - PR Gate (--changed-only): Mutates only functions/files modified in git diff.
   Never blocks PRs on full-suite mutation.
 - Nightly Campaign (--full-core): Executes mutation across core modules:

@@ -299,8 +299,314 @@ class WSLTransformer:
         return str(node)
 
 
+def _tokenize_wsl(dsl_text: str) -> list[tuple[str, str, int, int]]:
+    """Tokenize WSL DSL text into (token_type, value, line, column) tuples without eval/exec."""
+    import re
+
+    token_spec = [
+        ("COMMENT", r"#[^\n]*"),
+        ("STRING", r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\''),
+        ("NUMBER", r"[+-]?(?:\d+\.\d*|\.\d+|\d+)(?:[eE][+-]?\d+)?"),
+        ("LBRACE", r"\{"),
+        ("RBRACE", r"\}"),
+        ("LBRACK", r"\["),
+        ("RBRACK", r"\]"),
+        ("COLON", r":"),
+        ("COMMA", r","),
+        ("CNAME", r"[A-Za-z_][A-Za-z0-9_]*"),
+        ("NEWLINE", r"\n"),
+        ("SKIP", r"[ \t\r]+"),
+        ("MISMATCH", r"."),
+    ]
+    tok_regex = "|".join(f"(?P<{name}>{pattern})" for name, pattern in token_spec)
+    line_num = 1
+    line_start = 0
+    tokens: list[tuple[str, str, int, int]] = []
+    for mo in re.finditer(tok_regex, dsl_text):
+        kind = mo.lastgroup or "MISMATCH"
+        value = mo.group()
+        col = mo.start() - line_start + 1
+        if kind == "NEWLINE":
+            line_start = mo.end()
+            line_num += 1
+        elif kind in ("SKIP", "COMMENT"):
+            continue
+        elif kind == "MISMATCH":
+            raise SerializationError(
+                f"WSL DSL Syntax Error at line {line_num}, col {col}: Unexpected character {value!r}"
+            )
+        else:
+            tokens.append((kind, value, line_num, col))
+    return tokens
+
+
+def _parse_wsl_fallback(dsl_text: str) -> WSLDocument:
+    """Deterministic zero-dependency recursive-descent parser for authored .wsl documents."""
+    tokens = _tokenize_wsl(dsl_text)
+    pos = 0
+
+    def _err(msg: str) -> SerializationError:
+        if pos < len(tokens):
+            _, val, ln, col = tokens[pos]
+            return SerializationError(
+                f"WSL DSL Syntax Error at line {ln}, col {col}: {msg} (got {val!r})"
+            )
+        return SerializationError(f"WSL DSL Syntax Error at line 1, col 1: {msg} (unexpected EOF)")
+
+    def _peek() -> tuple[str, str, int, int] | None:
+        return tokens[pos] if pos < len(tokens) else None
+
+    def _consume(
+        expected_kind: str | None = None, expected_val: str | None = None
+    ) -> tuple[str, str, int, int]:
+        nonlocal pos
+        tok = _peek()
+        if tok is None:
+            raise _err(f"Expected {expected_val or expected_kind}")
+        kind, val, _ln, _col = tok
+        if expected_kind is not None and kind != expected_kind:
+            raise _err(f"Expected {expected_kind}")
+        if expected_val is not None and val != expected_val:
+            raise _err(f"Expected {expected_val!r}")
+        pos += 1
+        return tok
+
+    def _strip(s: str) -> str:
+        if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
+            return s[1:-1]
+        return s
+
+    def _parse_scalar() -> Any:
+        tok = _peek()
+        if tok is None:
+            raise _err("Expected scalar value")
+        kind, val, _, _ = tok
+        if kind == "STRING":
+            _consume("STRING")
+            return _strip(val)
+        if kind == "NUMBER":
+            _consume("NUMBER")
+            return float(val)
+        if kind == "CNAME" and val in ("true", "false"):
+            _consume("CNAME")
+            return val == "true"
+        raise _err("Expected string, number, or boolean value")
+
+    _consume("CNAME", "world")
+    meta_id = "enterprise_world"
+    meta_name = "Enterprise World"
+    meta_version = "2.0.0"
+    meta_desc = ""
+    meta_author = ""
+
+    nxt = _peek()
+    if nxt is not None and nxt[0] == "STRING":
+        meta_name = _strip(_consume("STRING")[1])
+
+    _consume("LBRACE")
+
+    temporal = WSLTemporalConfig()
+    entities: list[WSLEntitySpec] = []
+    resources: list[WSLResourceSpec] = []
+    relationships: list[WSLRelationshipSpec] = []
+    constraints: list[WSLConstraintSpec] = []
+    scenarios: list[WSLScenarioSpec] = []
+
+    while True:
+        tok = _peek()
+        if tok is None:
+            raise _err("Unclosed world block, expected '}'")
+        if tok[0] == "RBRACE":
+            _consume("RBRACE")
+            break
+
+        _kind, kw, _, _ = _consume("CNAME")
+        if kw in ("id", "version", "description", "author"):
+            _consume("COLON")
+            s_val = _strip(_consume("STRING")[1])
+            if kw == "id":
+                meta_id = s_val
+            elif kw == "version":
+                meta_version = s_val
+            elif kw == "description":
+                meta_desc = s_val
+            elif kw == "author":
+                meta_author = s_val
+        elif kw == "temporal":
+            _consume("LBRACE")
+            t_kwargs: dict[str, Any] = {}
+            while _peek() is not None and _peek()[0] != "RBRACE":  # type: ignore[index]
+                _, t_key, _, _ = _consume("CNAME")
+                _consume("COLON")
+                if t_key == "time_unit":
+                    t_kwargs["time_unit"] = _strip(_consume("STRING")[1])
+                elif t_key == "step_duration":
+                    t_kwargs["step_duration"] = float(_consume("NUMBER")[1])
+                elif t_key == "default_horizon":
+                    t_kwargs["default_horizon"] = int(float(_consume("NUMBER")[1]))
+                else:
+                    raise _err(f"Unknown temporal field {t_key!r}")
+            _consume("RBRACE")
+            temporal = WSLTemporalConfig(**t_kwargs)
+        elif kw == "entity":
+            ent_id = _consume("CNAME")[1]
+            _consume("LBRACE")
+            ent_type = "entity"
+            ent_tags: list[str] = []
+            ent_attrs: dict[str, Any] = {}
+            while _peek() is not None and _peek()[0] != "RBRACE":  # type: ignore[index]
+                _, e_key, _, _ = _consume("CNAME")
+                _consume("COLON")
+                if e_key == "type":
+                    ent_type = _strip(_consume("STRING")[1])
+                elif e_key == "tags":
+                    _consume("LBRACK")
+                    while _peek() is not None and _peek()[0] != "RBRACK":  # type: ignore[index]
+                        ent_tags.append(_strip(_consume("STRING")[1]))
+                        if _peek() is not None and _peek()[0] == "COMMA":  # type: ignore[index]
+                            _consume("COMMA")
+                    _consume("RBRACK")
+                else:
+                    ent_attrs[e_key] = _parse_scalar()
+            _consume("RBRACE")
+            entities.append(
+                WSLEntitySpec(id=ent_id, type=ent_type, attributes=ent_attrs, tags=ent_tags)
+            )
+        elif kw == "resource":
+            res_id = _consume("CNAME")[1]
+            _consume("LBRACE")
+            res_entity = ""
+            res_curr = 0.0
+            res_min = 0.0
+            res_max = 1e9
+            res_unit = ""
+            while _peek() is not None and _peek()[0] != "RBRACE":  # type: ignore[index]
+                _, r_key, _, _ = _consume("CNAME")
+                _consume("COLON")
+                if r_key == "entity":
+                    res_entity = _strip(_consume("STRING")[1])
+                elif r_key == "current":
+                    res_curr = float(_consume("NUMBER")[1])
+                elif r_key == "min":
+                    res_min = float(_consume("NUMBER")[1])
+                elif r_key == "max":
+                    res_max = float(_consume("NUMBER")[1])
+                elif r_key == "unit":
+                    res_unit = _strip(_consume("STRING")[1])
+                else:
+                    raise _err(f"Unknown resource field {r_key!r}")
+            _consume("RBRACE")
+            resources.append(
+                WSLResourceSpec(
+                    id=res_id,
+                    current=res_curr,
+                    min_value=res_min,
+                    max_value=res_max,
+                    unit=res_unit,
+                    entity_id=res_entity or None,
+                )
+            )
+        elif kw == "relationship":
+            if _peek() is not None and _peek()[0] == "CNAME":  # type: ignore[index]
+                _consume("CNAME")
+            _consume("LBRACE")
+            rel_src = ""
+            rel_tgt = ""
+            rel_type = "connected"
+            rel_wt = 1.0
+            while _peek() is not None and _peek()[0] != "RBRACE":  # type: ignore[index]
+                _, rel_key, _, _ = _consume("CNAME")
+                _consume("COLON")
+                if rel_key == "source":
+                    rel_src = _strip(_consume("STRING")[1])
+                elif rel_key == "target":
+                    rel_tgt = _strip(_consume("STRING")[1])
+                elif rel_key == "type":
+                    rel_type = _strip(_consume("STRING")[1])
+                elif rel_key == "weight":
+                    rel_wt = float(_consume("NUMBER")[1])
+                else:
+                    raise _err(f"Unknown relationship field {rel_key!r}")
+            _consume("RBRACE")
+            relationships.append(
+                WSLRelationshipSpec(source=rel_src, target=rel_tgt, type=rel_type, weight=rel_wt)
+            )
+        elif kw == "constraint":
+            c_id = f"constraint_{len(constraints)}"
+            if _peek() is not None and _peek()[0] == "CNAME":  # type: ignore[index]
+                c_id = _consume("CNAME")[1]
+            _consume("LBRACE")
+            c_type = ""
+            c_sev: Any = "HARD"
+            c_params: dict[str, Any] = {}
+            while _peek() is not None and _peek()[0] != "RBRACE":  # type: ignore[index]
+                _, c_key, _, _ = _consume("CNAME")
+                if c_key == "parameters":
+                    _consume("LBRACE")
+                    while _peek() is not None and _peek()[0] != "RBRACE":  # type: ignore[index]
+                        p_k = _consume("CNAME")[1]
+                        _consume("COLON")
+                        c_params[p_k] = _parse_scalar()
+                    _consume("RBRACE")
+                else:
+                    _consume("COLON")
+                    if c_key == "type":
+                        c_type = _strip(_consume("STRING")[1])
+                    elif c_key == "severity":
+                        c_sev = _strip(_consume("STRING")[1]).upper()
+                    else:
+                        raise _err(f"Unknown constraint field {c_key!r}")
+            _consume("RBRACE")
+            constraints.append(
+                WSLConstraintSpec(id=c_id, type_id=c_type, severity=c_sev, parameters=c_params)
+            )
+        elif kw == "scenario":
+            scen_id = _consume("CNAME")[1]
+            _consume("LBRACE")
+            scen_h = 10
+            scen_seed = 42
+            while _peek() is not None and _peek()[0] != "RBRACE":  # type: ignore[index]
+                _, s_key, _, _ = _consume("CNAME")
+                _consume("COLON")
+                if s_key == "horizon":
+                    scen_h = int(float(_consume("NUMBER")[1]))
+                elif s_key == "samples":
+                    _consume("NUMBER")
+                elif s_key == "seed":
+                    scen_seed = int(float(_consume("NUMBER")[1]))
+                else:
+                    raise _err(f"Unknown scenario field {s_key!r}")
+            _consume("RBRACE")
+            scenarios.append(
+                WSLScenarioSpec(id=scen_id, name=scen_id, horizon=scen_h, seed=scen_seed)
+            )
+        else:
+            raise _err(f"Unexpected statement keyword {kw!r}")
+
+    if pos != len(tokens):
+        raise _err("Unexpected trailing tokens after world block")
+
+    metadata = WSLMetadata(
+        id=meta_id,
+        name=meta_name,
+        version=meta_version,
+        description=meta_desc,
+        author=meta_author,
+    )
+    return WSLDocument(
+        schema_version="wsl/2.0.0",
+        metadata=metadata,
+        temporal=temporal,
+        entities=entities,
+        resources=resources,
+        relationships=relationships,
+        constraints=constraints,
+        scenarios=scenarios,
+    )
+
+
 def parse_wsl_authored(dsl_text: str) -> WSLDocument:
-    """Parse an authored .wsl DSL string using the Lark LALR(1) parser.
+    """Parse an authored .wsl DSL string using the Lark LALR(1) parser or deterministic fallback.
 
     Parameters:
         dsl_text: Content of the authored .wsl document.
@@ -309,13 +615,15 @@ def parse_wsl_authored(dsl_text: str) -> WSLDocument:
         Validated WSLDocument.
 
     Raises:
-        SerializationError: On syntax errors or missing Lark parser.
+        SerializationError: On syntax errors.
     """
     if not is_lark_available():
-        raise SerializationError(
-            "Lark parser is required to compile authored .wsl files. "
-            "Install via `pip install ewm-engine[dsl]`."
-        )
+        try:
+            return _parse_wsl_fallback(dsl_text)
+        except SerializationError:
+            raise
+        except Exception as exc:
+            raise SerializationError(f"Failed to parse WSL DSL document: {exc}") from exc
 
     from lark import Lark, UnexpectedInput
 

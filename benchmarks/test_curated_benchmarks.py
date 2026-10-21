@@ -3,7 +3,7 @@
 Measures CPU-instruction cost (via CodSpeed instrumentation mode on CI)
 and wall-clock execution characteristics (via pytest-benchmark).
 
-Curated Performance-Critical Subset (R04 Task A):
+Curated Performance-Critical Subset (ADR-032):
 1. rollout step (discrete state transition + constraints + dynamics)
 2. Monte Carlo spawn (parallel seeded stream splitting + state replication)
 3. fingerprint/canonical hash (cryptographic SHA-256 state hashing)
@@ -178,7 +178,7 @@ def test_benchmark_monte_carlo_spawn(benchmark: Any) -> None:
     num_replicas = 20
 
     def _spawn_operation() -> list[tuple[np.random.Generator, WorldState]]:
-        # High-discipline SeedSequence spawning (AC-004 / R04 policy: never seed + i)
+        # High-discipline SeedSequence spawning (AC-004 / ADR-032 policy: never seed + i)
         seed_seq = np.random.SeedSequence(master_seed)
         child_sequences = seed_seq.spawn(num_replicas)
         streams: list[tuple[np.random.Generator, WorldState]] = []

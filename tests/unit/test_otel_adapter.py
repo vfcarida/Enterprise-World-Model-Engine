@@ -11,14 +11,16 @@ Verifies:
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
 import pytest
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export import InMemoryMetricReader
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+
+if TYPE_CHECKING:
+    from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.metrics.export import InMemoryMetricReader
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
 from ewm_engine.constraints.results import ConstraintSeverity
 from ewm_engine.constraints.standard import ResourceCapacityConstraint
@@ -35,10 +37,15 @@ from ewm_engine.simulation.scenario import Scenario, ScheduledAction
 
 
 @pytest.fixture
-def otel_test_setup() -> tuple[
-    TracerProvider, InMemorySpanExporter, MeterProvider, InMemoryMetricReader
-]:
+def otel_test_setup() -> tuple[Any, Any, Any, Any]:
     """Create isolated TracerProvider and MeterProvider instances with in-memory exporters."""
+    pytest.importorskip("opentelemetry.sdk")
+    from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.metrics.export import InMemoryMetricReader
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+
     span_exporter = InMemorySpanExporter()
     tracer_provider = TracerProvider()
     tracer_provider.add_span_processor(SimpleSpanProcessor(span_exporter))

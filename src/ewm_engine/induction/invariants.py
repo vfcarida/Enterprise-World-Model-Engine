@@ -308,7 +308,7 @@ def induce_invariants(
         constant_val = round(mean_k, 3)
 
         # Build human-readable equation string
-        terms = []
+        terms: list[str] = []
         for var, w in sorted(weights.items()):
             sign = "+" if w >= 0 and terms else ("-" if w < 0 else "")
             val_abs = abs(w)

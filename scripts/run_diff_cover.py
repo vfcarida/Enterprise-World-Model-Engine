@@ -1,6 +1,6 @@
 """Diff-cover patch coverage gate enforcing >=90% branch/statement coverage on changed lines.
 
-In accordance with R03 Task 8:
+In accordance with ADR-031:
 - Turn on branch coverage (branch = true in pyproject.toml).
 - Enforces patch coverage >= 90% on changed lines via diff-cover.
 - Keeps core/overall floors as a secondary check.

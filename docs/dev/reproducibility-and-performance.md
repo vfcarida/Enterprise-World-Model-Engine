@@ -160,7 +160,7 @@ worker_rng = np.random.default_rng(master_seed + i)
 
 Parallel trajectory streams must always be spawned via `np.random.SeedSequence`:
 ```python
-# MANDATORY STANDARD (AC-004 / R04):
+# MANDATORY STANDARD (AC-004 / ADR-032):
 seed_seq = np.random.SeedSequence(master_seed)
 child_sequences = seed_seq.spawn(n_workers)
 worker_rngs = [np.random.default_rng(child) for child in child_sequences]

@@ -71,6 +71,7 @@ def test_transition_dataset_collection_and_split() -> None:
 @pytest.mark.integration
 def test_torch_neural_baseline_training_and_invariant_gate() -> None:
     """Train TorchNeuralResidualDynamics and verify invariant gate and predictive accuracy."""
+    pytest.importorskip("torch")
     rng = np.random.default_rng(42)
 
     # Create synthetic linear inventory dynamics: inventory_{t+1} = inventory_t + 2.0 * restock - 10.0

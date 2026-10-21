@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ewm_engine.core.spec import ComponentSpec
 from ewm_engine.provenance.evidence import EvidenceLevel
 
 
@@ -25,6 +26,20 @@ class CandidateInvariant(BaseModel):
     max_observed_violation: float = 0.0
     evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL
     parameters: dict[str, Any] = Field(default_factory=dict)
+
+    def to_constraint_spec(self) -> ComponentSpec:
+        """Compile candidate invariant into an official WorldSpec ComponentSpec."""
+        is_hard = self.evidence_level == EvidenceLevel.STRUCTURAL
+        return ComponentSpec(
+            type="capacity",
+            id=f"invariant_{self.name}",
+            parameters={
+                "resource_id": self.target_resource,
+                "severity": "hard" if is_hard else "soft",
+                "equation": self.equation,
+                **self.parameters,
+            },
+        )
 
 
 class ProvisionalLink(BaseModel):
@@ -344,14 +359,14 @@ class InductionReport(BaseModel):
                         "| :--- | :--- | :--- | :--- |",
                     ]
                 )
-                for r in self.refused_elements:
+                for ref_item in self.refused_elements:
                     alts = (
-                        "; ".join(r.get("candidate_alternatives", []))
-                        if r.get("candidate_alternatives")
+                        "; ".join(ref_item.get("candidate_alternatives", []))
+                        if ref_item.get("candidate_alternatives")
                         else "-"
                     )
                     lines.append(
-                        f"| `{r.get('element_type')}` | `{r.get('identifier')}` | {r.get('refusal_reason')} | {alts} |"
+                        f"| `{ref_item.get('element_type')}` | `{ref_item.get('identifier')}` | {ref_item.get('refusal_reason')} | {alts} |"
                     )
             if self.open_questions:
                 lines.extend(
@@ -361,8 +376,10 @@ class InductionReport(BaseModel):
                         "",
                     ]
                 )
-                for q in self.open_questions:
-                    lines.append(f"- **{q.get('id')} ({q.get('topic')})**: {q.get('description')}")
+                for oq_item in self.open_questions:
+                    lines.append(
+                        f"- **{oq_item.get('id')} ({oq_item.get('topic')})**: {oq_item.get('description')}"
+                    )
 
         return "\n".join(lines)
 

@@ -20,7 +20,7 @@ def main() -> int:
             sys.stdout.write(json.dumps({"fitness": 1.0, "precision": 1.0, "transitions": []}))
             return 0
 
-        import pandas as pd  # type: ignore[import-not-found]
+        import pandas as pd
         import pm4py  # type: ignore[import-not-found]
 
         # Convert traces into an event log dataframe

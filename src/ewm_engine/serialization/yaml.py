@@ -14,7 +14,7 @@ from ewm_engine.exceptions import SerializationError, SerializationSecurityError
 T = TypeVar("T", bound=BaseModel)
 
 
-class StrictSafeLoader(yaml.SafeLoader):
+class StrictSafeLoader(yaml.SafeLoader):  # type: ignore[misc]
     """SafeLoader variant strictly prohibiting custom, Python, and external tags."""
 
 
@@ -25,8 +25,8 @@ def _forbid_custom_tag(loader: yaml.Loader, tag_suffix: str, node: yaml.Node) ->
 
 
 # Intercept all custom tags starting with '!' and Python tags
-StrictSafeLoader.add_multi_constructor("!", _forbid_custom_tag)  # type: ignore[no-untyped-call]
-StrictSafeLoader.add_multi_constructor("tag:yaml.org,2002:python/", _forbid_custom_tag)  # type: ignore[no-untyped-call]
+StrictSafeLoader.add_multi_constructor("!", _forbid_custom_tag)
+StrictSafeLoader.add_multi_constructor("tag:yaml.org,2002:python/", _forbid_custom_tag)
 
 
 def safe_load_yaml(yaml_str: str) -> Any:

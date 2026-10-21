@@ -7,7 +7,7 @@ Accepted
 2026-10-05
 
 ## Context
-A convergent finding across 2024–2026 AI research is that surface or observational predictive accuracy does not imply systemic understanding (Physics-IQ, arXiv:2501.09038; Action-Conditioned World Models critique, arXiv:2610.00012). Models that perform well on in-distribution forecasting frequently fail catastrophically when an organization enacts structural interventions, modifies business rules, or operates under acute constraint stress.
+A convergent finding across 2024–2026 AI research is that surface or observational predictive accuracy does not imply systemic understanding (Physics-IQ, arXiv:2501.09038; Richens & Everitt, ICLR 2024, arXiv:2402.10877). Models that perform well on in-distribution forecasting frequently fail catastrophically when an organization enacts structural interventions, modifies business rules, or operates under acute constraint stress.
 
 The authoritative specification (ewm.md §63) reserves five scientific benchmark families designed to measure how any `DynamicsModel` or decision policy behaves under structural distribution shift. Rather than creating a standalone benchmark product, the engine requires a clean, typed protocol in `benchmarks/` to serve as a reproducible **measurement instrument** for world-model research.
 
