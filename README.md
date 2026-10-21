@@ -550,33 +550,33 @@ Capabilities in EWM Engine advance through strictly governed stability tiers def
 | **Systemic Traces** | **Stable (v1.0.0)** | Epistemic honesty with explicit `EvidenceLevel` tiers; DAG export to Mermaid and NetworkX (AC-011) |
 | **Declarative Serialization** | **Stable (v1.0.0)** | Draft 2020-12 versioned JSON Schemas, safe YAML loader, trusted closed `WorldFactory` registry (AC-002, AC-003, AC-018) |
 | **Scenario Evaluation** | **Stable (v1.1.0)** | Bootstrap CIs on counterfactual deltas, empirical significance flags, multi-objective Pareto analysis (FEAT-001, ADR-016) |
-| **Distributed Monte Carlo** | **Beta Adapter (v1.1.0)** | High-throughput parallel execution preserving `SeedSequence` determinism across workers (FEAT-002, ADR-017) |
-| **OpenTelemetry Observability** | **Beta Adapter (v1.1.0)** | Zero-overhead OpenTelemetry span and metric export from lifecycle hooks without core coupling (ADR-013, ADR-024) |
-| **OR & Continuous Planners** | **Beta Adapter (v1.1.0)** | Google OR-Tools CP-SAT discrete and SciPy continuous allocation planners with timeout guards (ADR-018) |
-| **SMT Formal Verification** | **Beta Adapter (v1.1.0)** | Z3 SMT constraint satisfaction adapter with timeout and resource limits (ADR-018) |
-| **Gymnasium RL Adapter** | **Beta Adapter (v1.1.0)** | Standard Gym environment wrapper (`gymnasium.Env`) with step-bound resource safeguards |
-| **Durability & Replay (T1, T2)** | **Beta (v1.2.0)** | Event-sourced `TraceLog`, `EventStore` protocol (SQLite/JSON), fingerprint-keyed `ResultStore` (ADR-026) |
-| **Native Cards & Tracking (T9)** | **Beta (v1.2.0)** | Pydantic Scenario/Model/Dataset Cards with SHA-256 fingerprints; `TrackerBackend` protocol and MLflow adapter (ADR-029) |
-| **Trajectory Verification (T3)** | **Beta (v1.3.0)** | Oracle-graph DAG verifier (CORE) and RTAMT Signal Temporal Logic (STL) robustness monitoring (`[stl]`, ADR-027) |
-| **Scientific Experimentation (T4)** | **Beta (v1.4.0)** | DoE sweep harness (LHS/Sobol), walk-forward backtesting, global sensitivity (SALib), and multi-objective optimization (ADR-028) |
-| **Platform Interoperability (T5)** | **Beta (v1.5.0)** | Master co-simulation stepping loop (CORE), FMI 3.0 / FMU adapter (FMPy), SimPy, Mesa, and System Dynamics (PySD) (ADR-029) |
-| **Multi-Agent Coordination (T6)** | **Beta (v1.5.0)** | Multi-actor observation/action views, deterministic mediator, Nash equilibrium solving via Nashpy (ADR-029) |
-| **Reporting & Serving (T7, T8)** | **Beta (v1.5.0)** | Pydantic `ReportModel`, Plotly interactive fan charts, local multiprocessing `JobRunner`, FastAPI REST service (ADR-029) |
-| **Learned-Dynamics Eval Harness** | **Experimental (v1.2.0)** | Multi-step rollout divergence, invariant verification, and dataset collection (ADR-019) |
-| **Torch Neural Residual Baseline** | **Experimental (v1.2.0)** | PyTorch MLP residual baseline with symlog scaling (`[ml]` extra, ADR-019) |
-| **Scientific Benchmark Families** | **Research (v1.2.0)** | 5 scientific shift benchmark families probing structural dynamics under change (ADR-025) |
-| **Planning & Controller Layer** | **Experimental (v1.3.0)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control (ADR-020) |
-| **OOD & Regime-Shift Detection** | **Experimental (v1.4.0)** | Grounded-regime detection (support bounds, Mahalanobis covariance, ADR-021) |
-| **Honest Causal Diagnostics** | **Experimental (v1.4.0)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling (ADR-021) |
+| **Distributed Monte Carlo** | **Stable (v1.1.0)** | High-throughput parallel execution preserving `SeedSequence` determinism across workers (FEAT-002, ADR-017) |
+| **OpenTelemetry Observability** | **Stable (v1.1.0)** | Zero-overhead OpenTelemetry span and metric export from lifecycle hooks without core coupling (ADR-013, ADR-024) |
+| **OR & Continuous Planners** | **Stable (v1.1.0)** | Google OR-Tools CP-SAT discrete and SciPy continuous allocation planners with timeout guards (ADR-018) |
+| **SMT Formal Verification** | **Stable (v1.1.0)** | Z3 SMT constraint satisfaction adapter with timeout and resource limits (ADR-018) |
+| **Gymnasium RL Adapter** | **Stable (v1.1.0)** | Standard Gym environment wrapper (`gymnasium.Env`) with step-bound resource safeguards |
+| **Durability & Replay (T1, T2)** | **Stable (v1.2.0)** | Event-sourced `TraceLog`, `EventStore` (SQLite/JSON), fingerprint-keyed `ResultStore` (Filesystem/SQLite/Redis/S3, ADR-026) |
+| **Native Cards & Tracking (T9)** | **Stable (v1.2.0)** | Pydantic Scenario/Model/Dataset Cards with SHA-256 fingerprints; `TrackerBackend`, MLflow/W&B, and `${...}` config interpolation (ADR-029) |
+| **Trajectory Verification (T3)** | **Stable (v1.3.0)** | Oracle-graph DAG verifier, quantitative STL robustness monitoring, and topological STREL graph verification (ADR-027) |
+| **Scientific Experimentation (T4)** | **Stable (v1.4.0)** | DoE sweep harness, walk-forward backtesting, Saltelli/Jansen Sobol & Morris sensitivity, MSM/ABC-SMC calibration, CMA-ES/DE/NSGA-II, and Matérn GP surrogates (ADR-028) |
+| **Platform Interoperability (T5)** | **Stable (v1.5.0)** | Master co-simulation stepping loop (CORE), FMI 3.0 / FMU adapter, SimPy/DiscreteEvent, Mesa, and System Dynamics (ADR-029) |
+| **Multi-Agent Coordination (T6)** | **Stable (v1.5.0)** | Multi-actor observation/action views, deterministic mediator, support-enumeration Nash & RK4 replicator dynamics, PettingZoo, OpenSpiel, and Concordia (ADR-029) |
+| **Reporting & Serving (T7, T8)** | **Stable (v1.5.0)** | Pydantic `ReportModel`, interactive fan charts (Plotly + standalone HTML), local multiprocessing `JobRunner`, and REST simulation service (ADR-029) |
+| **Learned-Dynamics Eval Harness** | **Stable (v1.6.0)** | Multi-step rollout divergence, invariant verification, and dataset collection (ADR-019) |
+| **Torch Neural Residual Baseline** | **Stable (v1.6.0)** | PyTorch MLP residual baseline with symlog scaling (`[ml]` extra, ADR-019) |
+| **Scientific Benchmark Families** | **Stable (v1.6.0)** | 5 scientific shift benchmark families probing structural dynamics under change (ADR-025) |
+| **Planning & Controller Layer** | **Stable (v1.6.0)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control (ADR-020) |
+| **OOD & Regime-Shift Detection** | **Stable (v1.6.0)** | Grounded-regime detection (support bounds, Mahalanobis covariance, ADR-021) |
+| **Honest Causal Diagnostics** | **Stable (v1.6.0)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling (ADR-021) |
 | **Counterfactual SCM Kernel** | **Stable (v1.6.0)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040, AC-033) |
 | **Grey-Box Dynamics & Conservation** | **Stable (v1.6.0)** | Residual-only learning, hard nullspace projection for conservation laws, SINDy promotion (FEAT-010, ADR-042, AC-034) |
 | **Causal-Correctness & Metamorphic Suite** | **Stable (v1.6.0)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044, AC-035) |
 | **Decision Scenario Discovery** | **Stable (v1.7.0)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (`ewm decide`, FEAT-009, ADR-041, AC-036) |
 | **Amortized Calibration & TARP Coverage** | **Stable (v1.8.0)** | Simulation-Based Inference, certified coverage via TARP/Posterior-SBC, misspecification refusal (`ewm calibrate`, FEAT-011, ADR-043, AC-037) |
 | **World-Model Induction & Honesty Gate** | **Stable (v1.9.0)** | Process/causal/dynamics/invariant induction from logs with strict review gate (`ewm induce`, ADR-046–ADR-049, AC-038) |
-| **Model Context Protocol (MCP) Server** | **Beta Adapter (v1.9.0)** | Agent tool server exposing world loading, counterfactual simulation, and epistemic checks (`ewm mcp`, ADR-045, AC-039) |
+| **Model Context Protocol (MCP) Server** | **Stable (v1.9.0)** | Agent tool server exposing world loading, counterfactual simulation, and epistemic checks (`ewm mcp`, ADR-045, AC-039) |
 | **Scientific Results Gallery & Benchmarks** | **Stable (v2.0.0)** | CI-reproducible gallery, NeurIPS D&B checklist, arXiv companion methods paper (FEAT-012, ADR-044) |
-| **Heterogeneous Graph State & GNN** | **Beta (v2.0.0)** | Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
+| **Heterogeneous Graph State & GNN** | **Stable (v2.0.0)** | Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
 | **World Specification Language (WSL)** | **Stable (v2.0.0)** | Declarative safe YAML/JSON & authored `.wsl` grammar, zero-dep fallback parser, compiler, and WMIF (FEAT-003, ADR-023, AC-040) |
 
 See [ROADMAP.md](ROADMAP.md), [Platform Tracks](docs/architecture/platform-tracks.md), and [Frontier Roadmap](docs/architecture/frontier-roadmap.md) for detailed milestone descriptions and architectural tracking.
@@ -659,7 +659,7 @@ If you use EWM Engine in academic research, benchmark evaluation, or technical p
 
 ## Acknowledgments & Authorship
 
-*Designed and architected by [Vinicius Caridá](https://github.com/vfcarida). Implementation and verification accelerated with AI-assisted engineering workflows.*
+*Designed, architected, and implemented by [Vinicius Caridá](https://github.com/vfcarida).*
 
 ---
 

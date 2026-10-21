@@ -145,3 +145,75 @@ def test_redis_and_s3_stubs_raise_informative_error() -> None:
 
     with pytest.raises(NotImplementedError, match="available with the '\\[cache\\]' extra"):
         S3ResultStore(bucket="my-bucket")
+
+
+def test_redis_and_s3_result_stores_with_injected_clients() -> None:
+    class FakeRedisClient:
+        def __init__(self) -> None:
+            self.kv: dict[str, str] = {}
+
+        def get(self, key: str) -> str | None:
+            return self.kv.get(key)
+
+        def set(self, key: str, val: str, ex: int | None = None) -> None:
+            self.kv[key] = val
+
+        def exists(self, key: str) -> int:
+            return 1 if key in self.kv else 0
+
+        def delete(self, key: str) -> int:
+            return 1 if self.kv.pop(key, None) is not None else 0
+
+        def keys(self, pattern: str) -> list[str]:
+            prefix = pattern.rstrip("*")
+            return [k for k in self.kv if k.startswith(prefix)]
+
+    class FakeS3Client:
+        def __init__(self) -> None:
+            self.objects: dict[tuple[str, str], bytes] = {}
+
+        def put_object(self, Bucket: str, Key: str, Body: bytes) -> None:
+            self.objects[(Bucket, Key)] = Body
+
+        def get_object(self, Bucket: str, Key: str) -> dict[str, bytes]:
+            if (Bucket, Key) not in self.objects:
+                raise KeyError(Key)
+            return {"Body": self.objects[(Bucket, Key)]}
+
+        def delete_object(self, Bucket: str, Key: str) -> None:
+            self.objects.pop((Bucket, Key), None)
+
+        def list_objects_v2(self, Bucket: str, Prefix: str) -> dict[str, list[dict[str, str]]]:
+            return {
+                "Contents": [
+                    {"Key": k} for (b, k) in self.objects if b == Bucket and k.startswith(Prefix)
+                ]
+            }
+
+    world = _make_world()
+    scenario = Scenario(scenario_id="distributed_cache_test", horizon=2, samples=1, seed=42)
+    engine = SimulationEngine()
+    result = engine.run(world, scenario)
+    fp = compute_simulation_fingerprint(world, scenario)
+
+    redis_store = RedisResultStore(ttl_seconds=60, client=FakeRedisClient())
+    assert not redis_store.contains(fp)
+    redis_store.put(fp, result)
+    assert redis_store.contains(fp)
+    assert redis_store.list_fingerprints() == [fp]
+    loaded_redis = redis_store.get(fp)
+    assert loaded_redis is not None
+    assert loaded_redis.scenario.scenario_id == "distributed_cache_test"
+    assert redis_store.delete(fp) is True
+    assert not redis_store.contains(fp)
+
+    s3_store = S3ResultStore(bucket="ewm-bucket", client=FakeS3Client())
+    assert not s3_store.contains(fp)
+    s3_store.put(fp, result)
+    assert s3_store.contains(fp)
+    assert s3_store.list_fingerprints() == [fp]
+    loaded_s3 = s3_store.get(fp)
+    assert loaded_s3 is not None
+    assert loaded_s3.scenario.scenario_id == "distributed_cache_test"
+    assert s3_store.delete(fp) is True
+    assert not s3_store.contains(fp)

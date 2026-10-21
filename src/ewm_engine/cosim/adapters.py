@@ -110,34 +110,48 @@ class FMUSubModel(SubModel):
         return out
 
 
+class DiscreteEventEnvironment:
+    """Zero-dependency discrete-event clock environment compatible with SimPy step runners."""
+
+    def __init__(self) -> None:
+        self.now: float = 0.0
+
+    def run(self, until: float) -> None:
+        if until < self.now:
+            raise ValueError("Target simulation time 'until' must be >= current time.")
+        self.now = float(until)
+
+
 class SimPySubModel(SubModel):
-    """Discrete-Event simulation sub-model adapter using SimPy."""
+    """Discrete-Event simulation sub-model adapter using SimPy or built-in clock."""
 
     def __init__(
         self,
         model_id: str,
-        env_factory: Callable[[], Any],
-        step_runner: Callable[[Any, float, dict[str, Any]], dict[str, Any]],
+        env_factory: Callable[[], Any] | None = None,
+        step_runner: Callable[[Any, float, dict[str, Any]], dict[str, Any]] | None = None,
         input_ports: Sequence[str] = (),
         output_ports: Sequence[str] = (),
+        require_extra: bool = False,
     ) -> None:
         """Initialize SimPy sub-model.
 
         Args:
             model_id: Sub-model identifier.
-            env_factory: Callable returning a fresh simpy.Environment.
+            env_factory: Callable returning a fresh simpy.Environment (or DiscreteEventEnvironment).
             step_runner: Callable(env, t_step, inputs) -> outputs advancing discrete processes.
             input_ports: Names of input ports.
             output_ports: Names of output ports.
+            require_extra: Whether to strictly require the `simpy` package.
         """
-        if not is_simpy_available():
+        if require_extra and not is_simpy_available():
             raise SimulationConfigurationError(
                 "SimPy is required for SimPySubModel. Install via `pip install ewm-engine[simpy]`."
             )
 
         self._model_id = model_id
-        self._env_factory = env_factory
-        self._step_runner = step_runner
+        self._env_factory = env_factory or DiscreteEventEnvironment
+        self._step_runner = step_runner or (lambda env, dt, _inp: {"now": env.now + dt})
         self._env: Any = None
         self._ports = tuple(
             [VariablePortDef(name=p, direction=PortDirection.INPUT) for p in input_ports]

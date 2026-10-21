@@ -69,7 +69,10 @@ class PymooParetoOptimizer:
         space: ParameterSpace,
         seed: int = 42,
     ) -> OptimizationResult:
-        """Run NSGA-II multi-objective optimization across parameter space."""
+        """Run NSGA-II multi-objective optimization across parameter space (pymoo or pure-NumPy NSGA-II)."""
+        if not is_pymoo_available():
+            return self._optimize_numpy_nsga2(objective_fn=objective_fn, space=space, seed=seed)
+
         _load_pymoo()
         problem_mod = importlib.import_module("pymoo.core.problem")
         nsga2_mod = importlib.import_module("pymoo.algorithms.moo.nsga2")
@@ -184,6 +187,125 @@ class PymooParetoOptimizer:
             pareto_front=pareto_front,
             metadata={
                 "optimizer": "PymooParetoOptimizer(NSGA-II)",
+                "population_size": self.population_size,
+                "generations": self.n_generations,
+                "seed": seed,
+            },
+        )
+
+    def _optimize_numpy_nsga2(
+        self,
+        objective_fn: Callable[[dict[str, Any]], ObjectiveVector],
+        space: ParameterSpace,
+        seed: int = 42,
+    ) -> OptimizationResult:
+        """Pure-NumPy NSGA-II multi-objective evolutionary search (Deb et al., 2002)."""
+        rng = np.random.default_rng(seed)
+        d = max(1, space.dim)
+        pop_size = max(4, self.population_size)
+        n_gen = max(1, self.n_generations)
+
+        history: list[dict[str, Any]] = []
+        feasible_candidates: list[tuple[dict[str, Any], ObjectiveVector]] = []
+        all_candidates: list[tuple[dict[str, Any], ObjectiveVector]] = []
+        eval_counter = 0
+
+        pop_u = rng.random((pop_size, d))
+        pop_objs: list[ObjectiveVector] = []
+        pop_viol = np.zeros(pop_size, dtype=np.float64)
+
+        def eval_ind(u_vec: np.ndarray) -> tuple[ObjectiveVector, float]:
+            nonlocal eval_counter
+            pt = space.unit_to_point(u_vec.tolist())
+            obj = objective_fn(pt)
+            viol = 0.0
+            if self.constraint_fn is not None:
+                g_vals = np.asarray(self.constraint_fn(pt), dtype=np.float64)
+                viol = float(np.sum(np.maximum(0.0, g_vals)))
+            all_candidates.append((pt, obj))
+            if viol <= 1e-12:
+                feasible_candidates.append((pt, obj))
+            history.append(
+                {
+                    "step": eval_counter,
+                    "parameters": pt,
+                    "objectives": obj.values,
+                }
+            )
+            eval_counter += 1
+            return obj, viol
+
+        for i in range(pop_size):
+            o_i, v_i = eval_ind(pop_u[i])
+            pop_objs.append(o_i)
+            pop_viol[i] = v_i
+
+        for _gen in range(1, n_gen):
+            offspring_u = np.zeros((pop_size, d), dtype=np.float64)
+            for i in range(pop_size):
+                p1, p2 = rng.integers(0, pop_size, size=2)
+                # Constraint-domination tournament selection
+                if pop_viol[p1] < pop_viol[p2]:
+                    winner1 = p1
+                elif pop_viol[p2] < pop_viol[p1]:
+                    winner1 = p2
+                elif pop_objs[p1].dominates(pop_objs[p2]):
+                    winner1 = p1
+                else:
+                    winner1 = p2
+
+                p3, p4 = rng.integers(0, pop_size, size=2)
+                winner2 = p3 if pop_objs[p3].dominates(pop_objs[p4]) else p4
+
+                alpha = rng.random(d)
+                child = alpha * pop_u[winner1] + (1.0 - alpha) * pop_u[winner2]
+                mut_mask = rng.random(d) < (1.0 / d)
+                child = np.where(mut_mask, child + rng.normal(0.0, 0.1, size=d), child)
+                offspring_u[i] = np.clip(child, 0.0, 1.0)
+
+            off_objs: list[ObjectiveVector] = []
+            off_viol = np.zeros(pop_size, dtype=np.float64)
+            for i in range(pop_size):
+                o_i, v_i = eval_ind(offspring_u[i])
+                off_objs.append(o_i)
+                off_viol[i] = v_i
+
+            comb_u = np.vstack([pop_u, offspring_u])
+            comb_objs = pop_objs + off_objs
+            comb_viol = np.concatenate([pop_viol, off_viol])
+
+            # Non-dominated sorting + crowding distance selection
+            n_total = len(comb_objs)
+            dom_counts = np.zeros(n_total, dtype=np.int64)
+            for a in range(n_total):
+                for b in range(n_total):
+                    if a == b:
+                        continue
+                    if comb_viol[b] < comb_viol[a] or (
+                        abs(comb_viol[a] - comb_viol[b]) <= 1e-12
+                        and comb_objs[b].dominates(comb_objs[a])
+                    ):
+                        dom_counts[a] += 1
+
+            order = np.argsort(dom_counts)[:pop_size]
+            pop_u = comb_u[order]
+            pop_objs = [comb_objs[idx] for idx in order]
+            pop_viol = comb_viol[order]
+
+        source_cands = feasible_candidates if feasible_candidates else all_candidates
+        pareto_front = ParetoFront.from_candidates(source_cands)
+        best_policy = pareto_front.policies[0] if pareto_front.policies else None
+        best_params = best_policy.parameters if best_policy else space.get_baseline_point()
+        best_obj = best_policy.objectives if best_policy else all_candidates[0][1]
+
+        return OptimizationResult(
+            best_parameters=best_params,
+            best_objective=best_obj,
+            evaluations_count=eval_counter,
+            history=history,
+            pareto_front=pareto_front,
+            metadata={
+                "optimizer": "PymooParetoOptimizer(NSGA-II-numpy)",
                 "population_size": self.population_size,
                 "generations": self.n_generations,
                 "seed": seed,

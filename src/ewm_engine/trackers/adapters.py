@@ -50,10 +50,13 @@ class MLflowTracker(TrackerBackend):
     def log_card(self, card: ModelCard | ScenarioCard | DatasetCard) -> None:
         import tempfile
 
-        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
             f.write(card.to_json())
             tmp_path = f.name
-        self._mlflow.log_artifact(tmp_path, artifact_path="cards")
+        try:
+            self._mlflow.log_artifact(tmp_path, artifact_path="cards")
+        finally:
+            Path(tmp_path).unlink(missing_ok=True)
 
     def log_artifact(self, path: str, artifact_type: str = "file") -> None:
         self._mlflow.log_artifact(path, artifact_path=artifact_type)

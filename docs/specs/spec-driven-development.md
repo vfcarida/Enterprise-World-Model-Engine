@@ -111,6 +111,10 @@ The framework enforces **Honest-by-Construction Epistemics**: an observational o
 | Metamorphic Reliability & Competence Abstention | **FUTURE** | **Stable** | ADR-044, FEAT-012 | 5 metamorphic tests, interventional competence map, and automatic abstention (`ABSTAIN_OOD_OR_INCOMPETENT`) |
 | MCP Server & Agentic Governance (`ewm mcp`) | **FUTURE** | **Stable** | ADR-045 | 8 deterministic tools, 4 resources, and Concordia-style `EWMWorldArbiter` game-master bridge |
 | World-Model Induction & Honesty Gate (`ewm induce`) | **FUTURE** | **Stable** | ADR-047, ADR-048, ADR-049 | Schema, OCEL 2.0, PC/FCI/DAGMA/LiNGAM causal, SINDy, AI-Poincaré invariants, and fail-closed `InductionValidationGate` |
+| Durability, EventStore & ResultStore (T1, T2, T9) | **FUTURE** | **Stable** | ADR-026, ADR-029 | Event-sourced `TraceLog`, SQLite/JSON/Filesystem/Redis/S3 stores, Pydantic Cards, and `${...}` config interpolation |
+| Trajectory Verification, STL & STREL (T3) | **FUTURE** | **Stable** | ADR-027 | Oracle-graph DAG verifier, quantitative STL robustness monitoring, and topological STREL graph verification |
+| Scientific Experimentation Suite (T4) | **FUTURE** | **Stable** | ADR-028 | DoE sweeps, Saltelli/Jansen Sobol & Morris sensitivity, MSM/ABC-SMC calibration, CMA-ES/DE/NSGA-II, and Matérn GP surrogates |
+| Co-Simulation, Multi-Agent, Reporting & Service (T5–T8) | **FUTURE** | **Stable** | ADR-029 | Co-simulation master, support-enumeration Nash & RK4 replicator dynamics, fan charts, and idempotent REST simulation service |
 
 ---
 

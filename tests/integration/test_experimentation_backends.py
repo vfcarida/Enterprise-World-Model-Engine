@@ -22,14 +22,12 @@ from ewm_engine.experimentation.adapters import (
 from ewm_engine.experimentation.calibration import (
     CalibrationResult,
     DistanceCalibrator,
+    PyABCPosteriorAdapter,
     compute_msm_moments,
-    is_scipy_available,
 )
 from ewm_engine.experimentation.evolutionary import (
     NevergradOptimizer,
     PyCMAOptimizer,
-    is_cma_available,
-    is_nevergrad_available,
 )
 from ewm_engine.experimentation.params import (
     ParameterDef,
@@ -37,7 +35,6 @@ from ewm_engine.experimentation.params import (
 )
 from ewm_engine.experimentation.pareto_opt import (
     PymooParetoOptimizer,
-    is_pymoo_available,
 )
 from ewm_engine.experimentation.protocols import (
     ObjectiveVector,
@@ -47,19 +44,14 @@ from ewm_engine.experimentation.sensitivity import (
     GlobalSensitivityAnalyzer,
     MorrisResult,
     SobolResult,
-    is_salib_available,
 )
 from ewm_engine.experimentation.surrogate_sklearn import (
     GaussianProcessSurrogate,
-    is_sklearn_available,
 )
 
 
 def test_salib_sobol_and_morris_analysis() -> None:
-    """Test Sobol and Morris sensitivity analysis using SALib."""
-    if not is_salib_available():
-        pytest.skip("SALib extra not installed")
-
+    """Test Sobol and Morris sensitivity analysis."""
     # Linear model: y = 10 * x1 + 1 * x2
     space = ParameterSpace(
         parameters=(
@@ -104,9 +96,6 @@ def test_salib_sobol_and_morris_analysis() -> None:
 
 def test_distance_calibrator_recovers_known_parameters() -> None:
     """Test DistanceCalibrator recovering known synthetic parameter target via MSM loss."""
-    if not is_scipy_available():
-        pytest.skip("scipy extra not installed")
-
     # True parameter: shift = 25.0
     true_shift = 25.0
 
@@ -139,9 +128,6 @@ def test_distance_calibrator_recovers_known_parameters() -> None:
 
 def test_pycma_optimizer_execution() -> None:
     """Test CMA-ES optimizer minimizing sphere objective."""
-    if not is_cma_available():
-        pytest.skip("pycma extra not installed")
-
     space = ParameterSpace(
         parameters=(
             ParameterDef(name="p1", type="continuous", bounds=(-2.0, 2.0), default=1.5),
@@ -164,9 +150,6 @@ def test_pycma_optimizer_execution() -> None:
 
 def test_nevergrad_optimizer_execution() -> None:
     """Test Nevergrad optimizer minimizing quadratic objective."""
-    if not is_nevergrad_available():
-        pytest.skip("nevergrad extra not installed")
-
     space = ParameterSpace(
         parameters=(ParameterDef(name="a", type="continuous", bounds=(0.0, 10.0), default=8.0),)
     )
@@ -185,9 +168,6 @@ def test_nevergrad_optimizer_execution() -> None:
 
 def test_pymoo_pareto_optimizer_execution() -> None:
     """Test pymoo NSGA-II multi-objective optimization returning a ParetoFront."""
-    if not is_pymoo_available():
-        pytest.skip("pymoo extra not installed")
-
     space = ParameterSpace(
         parameters=(ParameterDef(name="x", type="continuous", bounds=(0.0, 2.0), default=1.0),)
     )
@@ -213,9 +193,6 @@ def test_pymoo_pareto_optimizer_execution() -> None:
 
 def test_gaussian_process_surrogate_execution() -> None:
     """Test GaussianProcessSurrogate fitting and predicting on synthetic data."""
-    if not is_sklearn_available():
-        pytest.skip("scikit-learn extra not installed")
-
     X_train = np.array([[0.0], [1.0], [2.0], [3.0]], dtype=np.float64)
     y_train = np.array([0.0, 1.0, 4.0, 9.0], dtype=np.float64)
 
@@ -240,3 +217,45 @@ def test_quarantined_adapter_stubs() -> None:
 
     with pytest.raises(SimulationConfigurationError, match="ax-platform and botorch are required"):
         AxBayesianOptimizerAdapter()
+
+
+def test_abc_sbi_and_ax_adapters_with_fallback() -> None:
+    """Test ABC-SMC, SBI conditional density, and Ax GP-UCB Bayesian optimization fallbacks."""
+    space = ParameterSpace(
+        parameters=(ParameterDef(name="theta", type="continuous", bounds=(0.0, 10.0), default=5.0),)
+    )
+    abc_adapter = PyABCPosteriorAdapter(allow_fallback=True)
+    abc_res = abc_adapter.run_abc(
+        space=space,
+        simulator_fn=lambda pt: [pt["theta"], pt["theta"] + 1.0],
+        target_moments=compute_msm_moments([4.0, 5.0]),
+        n_populations=3,
+        n_particles=15,
+        seed=42,
+    )
+    assert abc_res["posterior_mean"]["theta"] == pytest.approx(4.0, abs=1.0)
+    assert len(abc_res["particles"]) == 15
+
+    # SBI fallback
+    sbi = SBINeuralInferenceAdapter(method="SNPE", allow_fallback=True)
+    theta_samples = np.linspace(0.0, 10.0, 30).reshape(-1, 1)
+    x_obs = 2.0 * theta_samples + 1.0
+    posterior_state = sbi.train_posterior(theta_samples, x_obs)
+    assert posterior_state["method"] == "SNPE"
+    draws = sbi.sample_posterior([11.0], n_samples=20, seed=42)
+    assert draws.shape == (20, 1)
+    assert float(np.mean(draws)) == pytest.approx(5.0, abs=1.0)
+
+    # Ax Bayesian Optimization fallback
+    ax_opt = AxBayesianOptimizerAdapter(allow_fallback=True)
+    bo_res = ax_opt.run_optimization(
+        objective_fn=lambda pt: ObjectiveVector(
+            values={"loss": (pt["theta"] - 3.0) ** 2},
+            directions={"loss": "minimize"},
+        ),
+        space=space,
+        n_evaluations=15,
+        seed=42,
+    )
+    assert bo_res.evaluations_count == 15
+    assert bo_res.best_parameters["theta"] == pytest.approx(3.0, abs=1.5)

@@ -175,11 +175,27 @@ def test_oracle_branch_independence() -> None:
 
 
 def test_stubs_adapters() -> None:
-    """Test documented adapter stubs: MoonLightSTRELAdapter and LLMSoftCheckAdapter."""
+    """Test MoonLightSTRELAdapter and LLMSoftCheckAdapter."""
+    import asyncio
+
     with pytest.raises(
         SimulationConfigurationError, match="MoonLightSTRELAdapter requires the '\\[strel\\]' extra"
     ):
         MoonLightSTRELAdapter(script_path="path/to/spec.strel")
+
+    # Built-in STREL topological graph evaluation when script_path is None
+    trace = SystemicTrace()
+    trace.add_node(node_id="n1", step=1, category="sensor", label="origin")
+    trace.add_node(node_id="n2", step=2, category="relay", label="hop")
+    trace.add_node(node_id="n3", step=3, category="sink", label="target")
+    trace.add_edge("n1", "n2")
+    trace.add_edge("n2", "n3")
+    strel = MoonLightSTRELAdapter(max_hops=3)
+    strel_verdict = strel.evaluate(trace, source_id="n1", target_id="n3")
+    assert strel_verdict["reach"] is True
+    assert strel_verdict["min_hops"] == 2
+    assert strel_verdict["everywhere"] is True
+    assert strel_verdict["robustness"] == 1.0
 
     # LLM adapter uses sync/async callable without SDK dependency
     def mock_llm_callable(prompt: str) -> str:
@@ -189,6 +205,13 @@ def test_stubs_adapters() -> None:
     llm_adapter = LLMSoftCheckAdapter(llm_callable=mock_llm_callable, rubric="Valid packaging")
     is_valid = llm_adapter.verify_node(node_label="package_check", details={"sealed": True})
     assert is_valid is True
+
+    async def mock_async_llm(prompt: str) -> str:
+        assert "Rubric:" in prompt
+        return "YES"
+
+    async_adapter = LLMSoftCheckAdapter(llm_callable=mock_async_llm, rubric="Async check")
+    assert asyncio.run(async_adapter.verify_node_async("async_node", {"ok": True})) is True
 
     # Test error when callable is missing
     unconfigured_adapter = LLMSoftCheckAdapter()

@@ -46,17 +46,21 @@ class PettingZooParallelAdapter:
         world: World,
         agent_ids: Sequence[str],
         mediator: Mediator | None = None,
+        seed: int = 42,
     ) -> None:
         self.world = world
         self.possible_agents = list(agent_ids)
         self.agents = list(agent_ids)
         self.mediator = mediator or ConstraintMediator()
         self._current_state = world.initial_state
+        self._rng = np.random.default_rng(seed)
 
     def reset(
         self, seed: int | None = None, options: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         """Reset environment to initial state."""
+        if seed is not None:
+            self._rng = np.random.default_rng(seed)
         self.agents = list(self.possible_agents)
         self._current_state = self.world.initial_state
         observations = {
@@ -100,7 +104,7 @@ class PettingZooParallelAdapter:
                 self._current_state,
                 adj_res.accepted_actions,
                 exogenous_events=(),
-                rng=np.random.default_rng(0),
+                rng=self._rng,
             )
             self._current_state = trans_res.next_state
         else:
@@ -145,11 +149,45 @@ class OpenSpielAdapter:
             "game_type": "simultaneous",
         }
 
+    def compute_empirical_payoff_matrix(
+        self,
+        outcomes: Sequence[tuple[int, int, float, float]],
+        num_row_actions: int,
+        num_col_actions: int,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Construct empirical normal-form payoff matrices from simulation rollouts.
+
+        Args:
+            outcomes: Sequence of (row_action_idx, col_action_idx, row_return, col_return).
+            num_row_actions: Number of discrete actions for the row player.
+            num_col_actions: Number of discrete actions for the column player.
+
+        Returns:
+            Tuple of (row_payoff_matrix, col_payoff_matrix) averaged across rollouts.
+        """
+        row_sum = np.zeros((num_row_actions, num_col_actions), dtype=np.float64)
+        col_sum = np.zeros((num_row_actions, num_col_actions), dtype=np.float64)
+        counts = np.zeros((num_row_actions, num_col_actions), dtype=np.float64)
+
+        for r_idx, c_idx, r_pay, c_pay in outcomes:
+            if 0 <= r_idx < num_row_actions and 0 <= c_idx < num_col_actions:
+                row_sum[r_idx, c_idx] += float(r_pay)
+                col_sum[r_idx, c_idx] += float(c_pay)
+                counts[r_idx, c_idx] += 1.0
+
+        mask = counts > 0
+        row_mat = np.zeros_like(row_sum)
+        col_mat = np.zeros_like(col_sum)
+        row_mat[mask] = row_sum[mask] / counts[mask]
+        col_mat[mask] = col_sum[mask] / counts[mask]
+        return row_mat, col_mat
+
 
 class ConcordiaGameMasterAdapter(Mediator):
     """Adapter integrating Google DeepMind Concordia LLM Game Master as a Mediator.
 
-    Isolated adapter requiring Python >= 3.12 and Concordia optional dependencies.
+    Supports any callable `(prompt: str) -> str` for narrative action filtering
+    followed by hard-constraint verification via the fallback `ConstraintMediator`.
     """
 
     def __init__(
@@ -166,11 +204,49 @@ class ConcordiaGameMasterAdapter(Mediator):
         state: WorldState,
         constraints: Sequence[Any] | None = None,
     ) -> AdjudicationResult:
-        """Adjudicate proposals using Concordia or fall back to ConstraintMediator."""
-        if not is_concordia_available() or self.llm_client is None:
-            # Deterministic fallback
+        """Adjudicate proposals using LLM Game Master callable and hard constraint guardrails."""
+        if self.llm_client is None:
             return self.fallback.adjudicate(proposals, state, constraints)
 
-        # In production Concordia setup, prompt the LLM Game Master for narrative resolution
-        # and validate outcomes against hard constraints.
-        return self.fallback.adjudicate(proposals, state, constraints)
+        proposal_lines = [
+            f"- actor={p.actor_id} action_id={p.action.id} type={p.action.type} priority={p.priority}"
+            for p in proposals
+        ]
+        prompt = (
+            f"Concordia Game Master Adjudication at step={state.step}.\n"
+            f"Resources: {dict(state.resources)}\n"
+            f"Proposals:\n" + "\n".join(proposal_lines) + "\n"
+            "Return comma-separated approved action_ids or actor_ids (or ALL):"
+        )
+        response = self.llm_client(prompt).strip()
+
+        if not response or "ALL" in response.upper():
+            return self.fallback.adjudicate(proposals, state, constraints)
+
+        tokens = {tok.strip() for tok in response.replace("\n", ",").split(",") if tok.strip()}
+        gm_approved: list[ActorActionProposal] = []
+        gm_rejected: list[tuple[Action, str]] = []
+
+        for p in proposals:
+            if p.action.id in tokens or p.actor_id in tokens:
+                gm_approved.append(p)
+            else:
+                gm_rejected.append(
+                    (p.action, "Rejected by Concordia Game Master narrative adjudication")
+                )
+
+        if not gm_approved and not gm_rejected:
+            return self.fallback.adjudicate(proposals, state, constraints)
+
+        base_res = self.fallback.adjudicate(gm_approved, state, constraints)
+        combined_rejected = tuple(list(base_res.rejected_actions) + gm_rejected)
+        combined_penalties = dict(base_res.penalties)
+        for act, _ in gm_rejected:
+            if act.actor_id:
+                combined_penalties[act.actor_id] = combined_penalties.get(act.actor_id, 0.0) + 1.0
+
+        return AdjudicationResult(
+            accepted_actions=base_res.accepted_actions,
+            rejected_actions=combined_rejected,
+            penalties=combined_penalties,
+        )

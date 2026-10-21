@@ -21,7 +21,6 @@ from ewm_engine.dynamics.base import TransitionResult
 from ewm_engine.multiagent.adapters import PettingZooParallelAdapter
 from ewm_engine.multiagent.game_theory import (
     NashpyGameSolver,
-    is_nashpy_available,
 )
 from ewm_engine.multiagent.mediator import ConstraintMediator
 from ewm_engine.provenance.metadata import Provenance
@@ -34,7 +33,6 @@ from ewm_engine.reporting.rich_renderer import (
 from ewm_engine.reporting.viz_plotly import (
     export_fan_chart_html,
     generate_fan_chart,
-    is_plotly_available,
 )
 from ewm_engine.service.fastapi_app import (
     create_simulation_app,
@@ -49,23 +47,21 @@ from ewm_engine.simulation.trajectory import (
 )
 from ewm_engine.trackers.omegaconf_adapter import (
     OmegaConfConfigLoader,
-    is_omegaconf_available,
 )
 
 
 def test_simpy_submodel_execution() -> None:
     """Test SimPySubModel stepping discrete-event processes."""
-    if not is_simpy_available():
-        pytest.skip("simpy not installed")
+    from ewm_engine.cosim.adapters import DiscreteEventEnvironment
 
-    import simpy
+    def env_factory() -> Any:
+        if is_simpy_available():
+            import simpy
 
-    def env_factory() -> simpy.Environment:
-        return simpy.Environment()
+            return simpy.Environment()
+        return DiscreteEventEnvironment()
 
-    def step_runner(
-        env: simpy.Environment, t_step: float, inputs: dict[str, Any]
-    ) -> dict[str, Any]:
+    def step_runner(env: Any, t_step: float, inputs: dict[str, Any]) -> dict[str, Any]:
         # Advance environment by t_step
         env.run(until=env.now + t_step)
         return {"processed_count": env.now * 2.0}
@@ -87,9 +83,6 @@ def test_simpy_submodel_execution() -> None:
 
 def test_nashpy_game_solver() -> None:
     """Test NashpyGameSolver computing 2-player bi-matrix equilibria and replicator dynamics."""
-    if not is_nashpy_available():
-        pytest.skip("nashpy not installed")
-
     solver = NashpyGameSolver()
 
     # Matching Pennies game
@@ -163,9 +156,6 @@ def test_rich_report_renderer() -> None:
 
 def test_plotly_fan_chart_and_html_export(tmp_path: Path) -> None:
     """Test Plotly interactive fan chart generation and export."""
-    if not is_plotly_available():
-        pytest.skip("plotly not installed")
-
     sc = Scenario(scenario_id="plotly_test", horizon=2, samples=2)
     init_st = WorldState(
         step=0,
@@ -215,11 +205,6 @@ def test_plotly_fan_chart_and_html_export(tmp_path: Path) -> None:
 
 def test_fastapi_simulation_service() -> None:
     """Test FastAPI simulation REST endpoints."""
-    if not is_fastapi_available():
-        pytest.skip("fastapi not installed")
-
-    from starlette.testclient import TestClient
-
     world = World(
         initial_state=WorldState(
             step=0,
@@ -229,7 +214,12 @@ def test_fastapi_simulation_service() -> None:
     )
     runner = LocalJobRunner(max_workers=1)
     app = create_simulation_app(runner=runner, world=world)
-    client = TestClient(app)
+    if is_fastapi_available():
+        from starlette.testclient import TestClient
+
+        client: Any = TestClient(app)
+    else:
+        client = app
 
     # Health check
     h_res = client.get("/health")
@@ -259,11 +249,8 @@ def test_fastapi_simulation_service() -> None:
     runner.shutdown(wait=True)
 
 
-def test_omegaconf_config_loader() -> None:
+def test_omegaconf_config_loader(tmp_path: Path) -> None:
     """Test OmegaConf loader with ${...} variable interpolation."""
-    if not is_omegaconf_available():
-        pytest.skip("omegaconf not installed")
-
     loader = OmegaConfConfigLoader()
     raw_config = {
         "base_url": "https://api.simulation.io",
@@ -274,12 +261,19 @@ def test_omegaconf_config_loader() -> None:
         "params": {
             "batch_size": 32,
             "horizon": 10,
+            "default_horizon": "${params.horizon}",
         },
     }
 
     resolved = loader.load_config_dict(raw_config)
     assert resolved["endpoints"]["health"] == "https://api.simulation.io/health"
     assert resolved["endpoints"]["simulate"] == "https://api.simulation.io/simulate"
+    assert resolved["params"]["default_horizon"] == 10
+
+    cfg_file = tmp_path / "cfg.yaml"
+    cfg_file.write_text("host: localhost\nurl: http://${host}:8000\n", encoding="utf-8")
+    file_resolved = loader.load_config_file(cfg_file)
+    assert file_resolved["url"] == "http://localhost:8000"
 
     cfg_hash = loader.compute_config_hash(resolved)
     assert len(cfg_hash) == 64
@@ -287,6 +281,9 @@ def test_omegaconf_config_loader() -> None:
 
 def test_pettingzoo_parallel_adapter() -> None:
     """Test PettingZooParallelAdapter environment interaction."""
+    from ewm_engine.multiagent.adapters import ConcordiaGameMasterAdapter, OpenSpielAdapter
+    from ewm_engine.multiagent.views import ActorActionProposal
+
     world = World(
         initial_state=WorldState(
             step=0,
@@ -304,7 +301,7 @@ def test_pettingzoo_parallel_adapter() -> None:
         mediator=ConstraintMediator(resource_locks=True),
     )
 
-    obs, _infos = env.reset()
+    obs, _infos = env.reset(seed=99)
     assert "agent_0" in obs
     assert "agent_1" in obs
 
@@ -325,6 +322,26 @@ def test_pettingzoo_parallel_adapter() -> None:
     obs, _rewards, _terms, _truncs, step_infos = env.step(actions)
     assert "agent_0" in obs
     assert "agent_1" in obs
-    # Since agent_0 and agent_1 both attempt to claim the single token,
-    # one is accepted and the other rejected deterministically
     assert step_infos["agent_0"]["accepted"] or step_infos["agent_1"]["accepted"]
+
+    # OpenSpiel empirical payoff matrix extraction
+    spiel = OpenSpielAdapter(game_name="resource_claim", num_players=2)
+    row_mat, col_mat = spiel.compute_empirical_payoff_matrix(
+        outcomes=[(0, 0, 1.0, 1.0), (0, 1, 5.0, 0.0), (1, 0, 0.0, 5.0), (1, 1, 3.0, 3.0)],
+        num_row_actions=2,
+        num_col_actions=2,
+    )
+    assert row_mat[0, 1] == 5.0
+    assert col_mat[1, 0] == 5.0
+
+    # Concordia Game Master LLM filtering + hard constraint mediation
+    gm = ConcordiaGameMasterAdapter(llm_client_callable=lambda _prompt: "claim_token_1")
+    proposals = [
+        ActorActionProposal(actor_id="agent_0", action=actions["agent_0"]),
+        ActorActionProposal(actor_id="agent_1", action=actions["agent_1"]),
+    ]
+    adj = gm.adjudicate(proposals, world.initial_state)
+    assert len(adj.accepted_actions) == 1
+    assert adj.accepted_actions[0].id == "claim_token_1"
+    assert len(adj.rejected_actions) == 1
+    assert adj.rejected_actions[0][0].id == "claim_token_0"

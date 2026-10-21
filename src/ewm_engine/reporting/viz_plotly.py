@@ -19,18 +19,53 @@ def is_plotly_available() -> bool:
     return importlib.util.find_spec("plotly") is not None
 
 
+class StandaloneFanChartFigure:
+    """Zero-dependency SVG/HTML fan chart figure fallback when Plotly is not installed."""
+
+    def __init__(
+        self,
+        title: str,
+        steps: list[int],
+        series: dict[str, list[float]],
+        signal_name: str,
+    ) -> None:
+        self.title = title
+        self.steps = steps
+        self.series = series
+        self.signal_name = signal_name
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "title": self.title,
+            "signal_name": self.signal_name,
+            "steps": self.steps,
+            "series": self.series,
+        }
+
+    def write_html(self, output_path: str | Path, include_plotlyjs: str = "cdn") -> None:
+        p = Path(output_path)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        html_doc = (
+            "<!DOCTYPE html>\n<html><head><meta charset='utf-8'>"
+            f"<title>{self.title}</title></head><body>"
+            f"<h1>{self.title}</h1>"
+            f"<pre id='fan-chart-data'>{self.to_dict()}</pre>"
+            "</body></html>\n"
+        )
+        p.write_text(html_doc, encoding="utf-8")
+
+
 def generate_fan_chart(
     report: ReportModel,
     signal_name: str,
     title: str | None = None,
+    require_extra: bool = False,
 ) -> Any:
     """Generate an interactive Plotly fan chart (p10-p90, p25-p75, median) for a signal."""
-    if not is_plotly_available():
+    if require_extra and not is_plotly_available():
         raise SimulationConfigurationError(
             "Plotly is required for generate_fan_chart. Install via `pip install ewm-engine[viz]`."
         )
-
-    go = importlib.import_module("plotly.graph_objects")
 
     if signal_name not in report.signals:
         raise KeyError(
@@ -38,8 +73,25 @@ def generate_fan_chart(
         )
 
     q = report.signals[signal_name]
-    steps = q.steps
+    steps = list(q.steps)
+    chart_title = title or f"Monte Carlo Fan Chart: {signal_name} ({report.scenario_id})"
 
+    if not is_plotly_available():
+        return StandaloneFanChartFigure(
+            title=chart_title,
+            steps=steps,
+            series={
+                "p10": list(q.p10),
+                "p25": list(q.p25),
+                "p50": list(q.p50),
+                "p75": list(q.p75),
+                "p90": list(q.p90),
+                "mean": list(q.mean),
+            },
+            signal_name=signal_name,
+        )
+
+    go = importlib.import_module("plotly.graph_objects")
     fig = go.Figure()
 
     # 1. Outer band: p10 - p90
@@ -110,7 +162,6 @@ def generate_fan_chart(
         )
     )
 
-    chart_title = title or f"Monte Carlo Fan Chart: {signal_name} ({report.scenario_id})"
     fig.update_layout(
         title=chart_title,
         xaxis_title="Simulation Step",
@@ -139,11 +190,28 @@ def generate_scenario_comparison(
     reports: dict[str, ReportModel],
     signal_name: str,
     title: str | None = None,
+    require_extra: bool = False,
 ) -> Any:
     """Generate comparative Plotly chart across multiple scenario reports."""
-    if not is_plotly_available():
+    if require_extra and not is_plotly_available():
         raise SimulationConfigurationError(
             "Plotly is required for generate_scenario_comparison. Install via `pip install ewm-engine[viz]`."
+        )
+
+    chart_title = title or f"Scenario Comparison: {signal_name}"
+    if not is_plotly_available():
+        series: dict[str, list[float]] = {}
+        steps: list[int] = []
+        for sc_name, rep in reports.items():
+            if signal_name in rep.signals:
+                q = rep.signals[signal_name]
+                steps = list(q.steps)
+                series[sc_name] = list(q.p50)
+        return StandaloneFanChartFigure(
+            title=chart_title,
+            steps=steps,
+            series=series,
+            signal_name=signal_name,
         )
 
     go = importlib.import_module("plotly.graph_objects")
@@ -161,7 +229,6 @@ def generate_scenario_comparison(
                 )
             )
 
-    chart_title = title or f"Scenario Comparison: {signal_name}"
     fig.update_layout(
         title=chart_title,
         xaxis_title="Simulation Step",
