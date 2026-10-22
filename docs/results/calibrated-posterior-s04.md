@@ -1,7 +1,7 @@
-# Result Card: Amortized SBI Calibration with Certified Coverage
+﻿# Result Card: Amortized SBI Calibration with Certified Coverage
 
-> **Identity & Scientific Domain**: Simulation-Based Inference & Bayesian Calibration Diagnostics  
-> **Benchmark Reference**: Lemos et al. (2023). "Sampling-based accuracy testing of posterior estimators for astronomical imaging." *ICML 2023* (arXiv:2302.03026).  
+> **Identity & Scientific Domain**: Simulation-Based Inference & Bayesian Calibration Diagnostics
+> **Benchmark Reference**: Lemos, P., Coogan, A., Hezaveh, Y., & Perreault-Levasseur, L. (2023). "Sampling-Based Accuracy Testing of Posterior Estimators for General Inference (TARP)." *ICML 2023* (arXiv:2302.03026).
 > **Reproduction Command**: `python scripts/reproduce_results.py --card calibrated_posterior`
 
 ---

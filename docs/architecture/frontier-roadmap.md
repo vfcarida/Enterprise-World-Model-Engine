@@ -59,7 +59,7 @@ Every new capability enters at **Experimental** (isolated behind extras), advanc
 
 ### v1.8.0 — Calibration to Reality (`ewm calibrate`)
 - **Simulation-Based Inference (SBI):** Parameter inference engine wrapping the simulator as an explicit forward likelihood-free generative model (FEAT-011, ADR-043).
-- **Certified Coverage Verification:** Mandatory Tests of Accuracy of Recovery of Posterior (TARP) and Simulation-Based Calibration (SBC) coverage checks with automated refusal upon under-coverage.
+- **Coverage Verification Diagnostics:** Tests of Accuracy with Random Points (TARP, Lemos et al., ICML 2023) and Simulation-Based Calibration (SBC) coverage checks with automated refusal upon under-coverage.
 - **Real-Data Validation Packs:** Reference validation packs (SEIR epidemic dynamics, Beer Distribution Game bullwhip amplification, WORLD3 carrying capacity) serving as empirical calibration baselines.
 
 ### v1.9.0 — Neuro-Symbolic Maturation & Flywheel

@@ -367,3 +367,7 @@ A multi-region flood response and humanitarian logistics simulation:
 ### AC-040: World Model Interchange Format (WMIF v1.0) & Conformance Suite
 - **Normative Statement:** `export_wmif_package` and `import_wmif_package` bundle `WorldSpec`, JSON Schemas, and canonical golden trajectory hashes into a self-contained `.wmif.json` artifact verified by the 3-level conformance suite (`check_wmif_conformance`).
 - **Verification:** `tests/unit/test_wmif_interchange.py`.
+
+### AC-041: Context-Aware Hybrid World-Model Semantics & Ontic/Epistemic Separation ([ADR-053](../adr/ADR-053-formal-enterprise-world-model-semantics-and-context.md))
+- **Normative Statement:** EWM Engine enforces the 10-tuple $\mathcal{W} = \langle S, A, E, K, O, T, C, U, Q, P \rangle$: separating ontic `WorldState` ($S_t$) from `EpistemicState` ($P_t$), conditioning transitions on typed, versioned, domain-projected `ContextSnapshot` ($K_t$), isolating partially observed actors via `ObservationFilter` ($O_t$), classifying mechanisms via `MechanismKind`/`MechanismProvenance` with fail-closed `EvidenceLevel`, prohibiting silent clamping on infeasible learned residuals (`InfeasibleResidualPolicy`: `PROJECT`, `REJECT`, `ABSTAIN`, `INVALIDATE`), detecting 6-category drift (`DriftKind`), and providing vendor-neutral context discovery (`ContextDiscoveryProvider`).
+- **Verification:** `tests/contract/test_world_model_semantics_p02.py`.

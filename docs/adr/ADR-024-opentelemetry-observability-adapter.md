@@ -17,7 +17,7 @@ However, introducing OpenTelemetry into the core kernel of the Enterprise World 
 ## Decision
 
 ### 1. API-Only Observability Adapter (`OpenTelemetryHookListener`)
-We implement [`ewm_engine.integrations.otel.OpenTelemetryHookListener`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/integrations/otel.py) as a dedicated adapter that implements the existing, frozen `Hook` protocol (ADR-013).
+We implement [`ewm_engine.integrations.otel.OpenTelemetryHookListener`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/integrations/otel.py) as a dedicated adapter that implements the existing, frozen `Hook` protocol (ADR-013).
 
 The adapter:
 - Binds to the engine exclusively via `HookRegistry.register(listener)`.

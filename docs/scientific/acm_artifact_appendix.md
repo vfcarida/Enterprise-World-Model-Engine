@@ -1,22 +1,21 @@
-# ACM Artifact Review & Badging Appendix
+﻿# ACM Artifact Review & Badging Appendix
 
-> **Framework**: ACM Artifact Review and Badging (v1.1)  
-> **Associated Paper**: *Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty* (arXiv:2610.01234 [cs.MS])  
-> **Target Badges**:
-> 1. ![Artifacts Available](https://img.shields.io/badge/ACM%20Badge-Artifacts%20Available-blue) **Artifacts Available**
-> 2. ![Artifacts Evaluated - Functional + Reusable](https://img.shields.io/badge/ACM%20Badge-Evaluated%20Functional%20%2B%20Reusable-brightgreen) **Artifacts Evaluated - Functional & Reusable**
-> 3. ![Results Reproduced](https://img.shields.io/badge/ACM%20Badge-Results%20Reproduced-darkgreen) **Results Reproduced**
+> **Framework**: ACM Artifact Review and Badging (v1.1 â€” Readiness Appendix Template)
+> **Associated Manuscript Draft**: *Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty* (`paper/arxiv/paper.md` â€” *arXiv ID not yet published*)
+> **Target Badges (Prepared for Committee Evaluation â€” Not Yet Awarded)**:
+> 1. **Artifacts Available** (*pending public Zenodo/Software Heritage release archival*)
+> 2. **Artifacts Evaluated - Functional & Reusable**
+> 3. **Results Reproduced**
 
 ---
 
-## 1. Artifact Identification & Availability (Badge: Artifacts Available)
+## 1. Artifact Identification & Availability (Badge Target: Artifacts Available)
 
-EWM Engine satisfies the **Artifacts Available** criteria by ensuring permanent, immutable public archival under an open-source license:
+EWM Engine prepares the following archival metadata for **Artifacts Available** evaluation:
 
 - **Archival Repositories**:
-  - **Zenodo DOI**: [10.5281/zenodo.14000001](https://doi.org/10.5281/zenodo.14000001) (Version v1.5.0 Release Snapshot)
-  - **Zenodo Concept DOI**: [10.5281/zenodo.14000000](https://doi.org/10.5281/zenodo.14000000) (All Releases)
-  - **Software Heritage SWHID**: `swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine` (ISO/IEC 18670:2025)
+  - **Zenodo Metadata**: Configured in [`.zenodo.json`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/.zenodo.json) (*Concept and Version DOIs not yet published / to be assigned upon release deposition*).
+  - **Software Heritage SWHID**: Archival procedure documented in [`docs/scientific/swhid.md`](swhid.md) (*SWHID not yet published / to be assigned upon public ingestion*).
 - **License**: Apache License 2.0 (Open Source Initiative approved).
 - **Public Git Forge**: [https://github.com/vfcarida/Enterprise-World-Model-Engine](https://github.com/vfcarida/Enterprise-World-Model-Engine)
 
@@ -35,7 +34,7 @@ EWM Engine satisfies the **Functional & Reusable** criteria:
 ### B. Documentation & Type Safety
 - **Strict Typing**: Passes `mypy --strict` with zero typing errors across the entire core API surface.
 - **Standardized Architecture Records**: 52 Architecture Decision Records (ADRs) documenting design rationale.
-- **Executable Tutorials**: Diátaxis-structured tutorials and how-to guides validated via automated snippet tests (`scripts/test_doc_snippets.py`).
+- **Executable Tutorials**: DiÃ¡taxis-structured tutorials and how-to guides validated via automated snippet tests (`scripts/test_doc_snippets.py`).
 
 ### C. Testing Rigor
 - **Test Suite**: Multi-tier testing suite (`tests/unit/`, `tests/contract/`, `tests/property/`, `tests/integration/`) with gated test coverage $\ge 85\%$.
@@ -52,7 +51,7 @@ The committee can reproduce all experimental claims with a single command.
 - **Hardware**: Standard 2-core x86_64 or ARM64 workstation (no GPU required).
 - **RAM**: Minimum 4 GB RAM.
 - **Disk**: 1 GB free disk space.
-- **Time**: ~15–30 seconds for full reproduction.
+- **Time**: ~15â€“30 seconds for full reproduction.
 
 ### Step-by-Step Execution
 

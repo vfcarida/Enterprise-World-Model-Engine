@@ -1,14 +1,18 @@
 """Array API standard abstraction and cross-backend execution backends.
 
 Provides backend-agnostic tensor operations conforming to the Python Array API standard
-(2025.12) with support for:
-- NumPy (default reference backend, certified bit-identical to pure-Python).
-- JAX (optional compiled backend, CPU/GPU bit-identical Threefry counter-based PRNG).
-- CuPy (optional GPU backend, throughput-only where floating-point non-deterministic).
-
-Invariant #5 Enforcement:
-Any backend that deviates from bit-exact fingerprint reproducibility is explicitly
-labeled THROUGHPUT_ONLY and refused from certified audit paths.
+(2025.12) with an explicit three-tier numerical reproducibility contract:
+- BITWISE_REPRODUCIBLE (NumPy / Pure-Python under a pinned runtime: identical Python,
+  NumPy, IEEE-754 float64 dtype, single-threaded BLAS `OMP_NUM_THREADS=1`, and
+  SeedSequence tree). Does NOT claim universal bit-identity across arbitrary hardware,
+  compilers, ISA extensions, or multi-threaded BLAS reductions.
+- NUMERICALLY_EQUIVALENT_WITH_TOLERANCE (JAX / compiled XLA backends): Threefry counter
+  PRNG provides deterministic random streams, while XLA fusion, FMA selection, and
+  device execution agree with the reference kernel within an explicit `(rtol, atol)`
+  tolerance contract.
+- NON_CERTIFIED_BACKEND (CuPy / raw CUDA kernels): Hardware float atomic reductions may
+  be non-deterministic across runs; suitable for throughput exploration only and refused
+  from certified audit paths when `certify_equivalence=True`.
 """
 
 from __future__ import annotations
@@ -32,10 +36,15 @@ class BackendType(StrEnum):
 
 
 class CertificationStatus(StrEnum):
-    """Epistemic certification status of execution backends."""
+    """Three-tier numerical reproducibility certification contract for execution backends."""
 
-    CERTIFIED_BIT_IDENTICAL = "certified_bit_identical"
-    THROUGHPUT_ONLY = "throughput_only"
+    BITWISE_REPRODUCIBLE = "bitwise_reproducible"
+    NUMERICALLY_EQUIVALENT_WITH_TOLERANCE = "numerically_equivalent_with_tolerance"
+    NON_CERTIFIED_BACKEND = "non_certified_backend"
+
+    # Backwards-compatible aliases
+    CERTIFIED_BIT_IDENTICAL = "bitwise_reproducible"
+    THROUGHPUT_ONLY = "non_certified_backend"
 
 
 @runtime_checkable
@@ -49,12 +58,17 @@ class ArrayBackend(Protocol):
 
     @property
     def certification(self) -> CertificationStatus:
-        """Whether this backend is certified bit-identical or throughput-only."""
+        """Three-tier numerical reproducibility certification level."""
         ...
 
     @property
     def certification_status(self) -> CertificationStatus:
         """Alias for certification."""
+        ...
+
+    @property
+    def tolerance_contract(self) -> dict[str, float] | None:
+        """Explicit (rtol, atol) numerical tolerance contract, or None if uncertified."""
         ...
 
     @property
@@ -88,11 +102,16 @@ class ArrayBackend(Protocol):
 
 
 class NumPyBackend:
-    """Default standard backend using NumPy (Array API compliant, zero extra deps)."""
+    """Default standard backend using NumPy (Array API compliant, zero extra deps).
+
+    Certified as BITWISE_REPRODUCIBLE under a pinned runtime (same Python/NumPy
+    version, IEEE-754 float64, OMP_NUM_THREADS=1, and canonical SeedSequence).
+    """
 
     def __init__(self) -> None:
         self._type = BackendType.NUMPY
-        self._cert = CertificationStatus.CERTIFIED_BIT_IDENTICAL
+        self._cert = CertificationStatus.BITWISE_REPRODUCIBLE
+        self._tolerance: dict[str, float] = {"rtol": 0.0, "atol": 0.0}
 
     @property
     def backend_type(self) -> BackendType:
@@ -105,6 +124,10 @@ class NumPyBackend:
     @property
     def certification_status(self) -> CertificationStatus:
         return self._cert
+
+    @property
+    def tolerance_contract(self) -> dict[str, float] | None:
+        return dict(self._tolerance)
 
     @property
     def is_available(self) -> bool:
@@ -135,14 +158,23 @@ class NumPyBackend:
 class JaxBackend:
     """Optional JAX backend leveraging JIT compilation and Threefry counter-based PRNG.
 
-    Guarantees CPU/GPU bit-identity via counter-based Threefry-2x32 PRNG (Salmon et al., 2011).
+    Classified as NUMERICALLY_EQUIVALENT_WITH_TOLERANCE: while Threefry-2x32 PRNG is
+    deterministic across devices, XLA compiler fusion, FMA instruction selection, and
+    device-specific reductions agree with the reference kernel within explicit
+    floating-point tolerances (`rtol=1e-6`, `atol=1e-7`) rather than universal
+    cross-hardware bit-identity.
     """
 
-    def __init__(self, platform: str | None = None) -> None:
+    def __init__(
+        self,
+        platform: str | None = None,
+        rtol: float = 1e-6,
+        atol: float = 1e-7,
+    ) -> None:
         self._type = BackendType.JAX
         self._platform = platform
-        # Default JAX CPU is bit-identical certified; custom GPU ops may be throughput-only
-        self._cert = CertificationStatus.CERTIFIED_BIT_IDENTICAL
+        self._cert = CertificationStatus.NUMERICALLY_EQUIVALENT_WITH_TOLERANCE
+        self._tolerance: dict[str, float] = {"rtol": float(rtol), "atol": float(atol)}
 
     @property
     def backend_type(self) -> BackendType:
@@ -157,6 +189,10 @@ class JaxBackend:
         return self._cert
 
     @property
+    def tolerance_contract(self) -> dict[str, float] | None:
+        return dict(self._tolerance)
+
+    @property
     def is_available(self) -> bool:
         return importlib.util.find_spec("jax") is not None
 
@@ -166,21 +202,24 @@ class JaxBackend:
                 "JAX backend requested but 'jax' is not installed. "
                 "Install via `pip install ewm-engine[jax]`."
             )
+        import jax
         import jax.numpy as jnp
 
+        # Enable float64 precision when JAX is used for scientific rollouts
+        jax.config.update("jax_enable_x64", True)
         return jnp
 
     def asarray(self, obj: Any, dtype: Any = None) -> Any:
         jnp = self._get_jnp()
-        return jnp.asarray(obj, dtype=dtype if dtype is not None else jnp.float32)
+        return jnp.asarray(obj, dtype=dtype if dtype is not None else jnp.float64)
 
     def zeros(self, shape: tuple[int, ...], dtype: Any = None) -> Any:
         jnp = self._get_jnp()
-        return jnp.zeros(shape, dtype=dtype if dtype is not None else jnp.float32)
+        return jnp.zeros(shape, dtype=dtype if dtype is not None else jnp.float64)
 
     def ones(self, shape: tuple[int, ...], dtype: Any = None) -> Any:
         jnp = self._get_jnp()
-        return jnp.ones(shape, dtype=dtype if dtype is not None else jnp.float32)
+        return jnp.ones(shape, dtype=dtype if dtype is not None else jnp.float64)
 
     def clip(self, x: Any, min_val: float | None = None, max_val: float | None = None) -> Any:
         jnp = self._get_jnp()
@@ -195,12 +234,15 @@ class JaxBackend:
 
 
 class CuPyBackend:
-    """Optional CuPy GPU backend for massive CUDA Monte Carlo ensembles."""
+    """Optional CuPy GPU backend for massive CUDA Monte Carlo ensembles.
+
+    Classified as NON_CERTIFIED_BACKEND because raw GPU atomic floating-point
+    reductions are not bitwise or tolerance-certified across arbitrary thread schedules.
+    """
 
     def __init__(self) -> None:
         self._type = BackendType.CUPY
-        # GPU atomic / non-deterministic float reductions are labeled throughput-only
-        self._cert = CertificationStatus.THROUGHPUT_ONLY
+        self._cert = CertificationStatus.NON_CERTIFIED_BACKEND
 
     @property
     def backend_type(self) -> BackendType:
@@ -213,6 +255,10 @@ class CuPyBackend:
     @property
     def certification_status(self) -> CertificationStatus:
         return self._cert
+
+    @property
+    def tolerance_contract(self) -> dict[str, float] | None:
+        return None
 
     @property
     def is_available(self) -> bool:

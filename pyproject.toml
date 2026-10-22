@@ -329,7 +329,7 @@ source = "vcs"
 
 [tool.hatch.version.raw-options]
 local_scheme = "no-local-version"
-fallback_version = "1.0.0"
+fallback_version = "1.5.0"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/ewm_engine/_version.py"
@@ -420,8 +420,24 @@ module = [
     "lsprotocol.*",
     "pyarrow.*",
     "opentelemetry.*",
+    "beartype",
+    "beartype.*",
+    "typeguard",
+    "time_machine",
+    "pytest_socket",
+    "pytest_benchmark",
+    "pytest_codspeed",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["ewm_engine.serialization.yaml"]
+warn_unused_ignores = false
+disallow_untyped_calls = false
+
+[[tool.mypy.overrides]]
+module = ["tests.packaging.test_runtime_typing"]
+disallow_untyped_decorators = false
 
 [tool.pytest.ini_options]
 minversion = "8.0"

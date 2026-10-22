@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
 from ewm_engine.core.actions import Action, Intervention
+from ewm_engine.core.context import ContextSnapshot
 from ewm_engine.core.events import ExogenousEventSource
+from ewm_engine.core.observation import ObservationFilter, ObservationSpec
 from ewm_engine.core.state import WorldState
 
 if TYPE_CHECKING:
@@ -22,7 +24,8 @@ class World:
     """The root container orchestrating an enterprise world specification.
 
     Binds together the initial state, dynamics models, operational constraints,
-    exogenous event sources, and participating actors.
+    exogenous event sources, participating actors, typed runtime context K_t,
+    and partial observability specifications O_t.
     """
 
     def __init__(
@@ -35,6 +38,8 @@ class World:
         *,
         initial_state: WorldState | None = None,
         exogenous_events: Sequence[ExogenousEventSource] | None = None,
+        runtime_context: ContextSnapshot | None = None,
+        observation_spec: ObservationSpec | Mapping[str, ObservationSpec] | None = None,
     ) -> None:
         from ewm_engine.constraints.registry import ConstraintRegistry
         from ewm_engine.exceptions import InvalidWorldStateError
@@ -58,6 +63,11 @@ class World:
         resolved_events = event_sources if event_sources is not None else exogenous_events
         self.event_sources: list[ExogenousEventSource] = list(resolved_events or [])
         self.actors: list[Actor] = list(actors or [])
+        self.runtime_context: ContextSnapshot | None = runtime_context
+        self.observation_spec: ObservationSpec | Mapping[str, ObservationSpec] | None = (
+            observation_spec
+        )
+        self.observation_filter: ObservationFilter = ObservationFilter(observation_spec)
 
     def add_actor(self, actor: Actor) -> World:
         """Register an autonomous actor or policy agent."""
@@ -83,7 +93,24 @@ class World:
         """Retrieve the current baseline state of the world."""
         return self.initial_state
 
-    def branch(self, state: WorldState | None = None) -> World:
+    def with_runtime_context(self, runtime_context: ContextSnapshot) -> World:
+        """Return a branched World with an updated ContextSnapshot without mutating self."""
+        return self.branch(runtime_context=runtime_context)
+
+    def with_observation_spec(
+        self,
+        observation_spec: ObservationSpec | Mapping[str, ObservationSpec] | None,
+    ) -> World:
+        """Return a branched World with an updated ObservationSpec without mutating self."""
+        return self.branch(observation_spec=observation_spec)
+
+    def branch(
+        self,
+        state: WorldState | None = None,
+        *,
+        runtime_context: ContextSnapshot | None = None,
+        observation_spec: ObservationSpec | Mapping[str, ObservationSpec] | None = None,
+    ) -> World:
         """Create an independent counterfactual branch from a world state snapshot.
 
         Modifications in the branched world do not affect the origin world.
@@ -91,6 +118,14 @@ class World:
         import copy
 
         base_state = state if state is not None else self.initial_state
+        resolved_ctx = (
+            runtime_context if runtime_context is not None else copy.deepcopy(self.runtime_context)
+        )
+        resolved_obs = (
+            observation_spec
+            if observation_spec is not None
+            else copy.deepcopy(self.observation_spec)
+        )
 
         cloned_actors: list[Actor] = []
         for a in self.actors:
@@ -118,6 +153,8 @@ class World:
             constraints=self.constraints.clone(),
             event_sources=cloned_event_sources,
             actors=cloned_actors,
+            runtime_context=resolved_ctx,
+            observation_spec=resolved_obs,
         )
 
     def simulate(

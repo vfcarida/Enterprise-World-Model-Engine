@@ -39,8 +39,8 @@ Any numerical solver or neural dynamics model that leaks or creates individuals 
 }
 ```
 
-* **Max Mass Balance Drift:** $4.54 \times 10^{-13}$ (effectively $0.000000$ machine epsilon drift).
-* **Physics-IQ Conservation Score:** $1.0 / 1.0$ ($100\%$ conservation).
+* **Max Mass Balance Residual:** $4.547 \times 10^{-13}$ (below declared IEEE-754 tolerance $\le 10^{-12}$ across all 80 steps).
+* **Physics-IQ Conservation Score:** $1.0 / 1.0$ ($100\%$ steps within tolerance).
 * **Conformal Predictive Coverage:** $100\%$ containment within empirical 90% conformal bands.
 
 ---

@@ -115,6 +115,8 @@ def validate_causal_claim(
     is_identifiable: bool,
     overlap_satisfied: bool = True,
     *,
+    identification_provenance: str | None = None,
+    require_provenance: bool = False,
     strict: bool = True,
 ) -> EvidenceLevel:
     """Validate that a causal claim does not exceed structural mathematical guarantees.
@@ -122,12 +124,17 @@ def validate_causal_claim(
     Epistemic Guarantee:
         Under NO circumstances can an observational association P(Y | X) be promoted
         to INTERVENTIONAL or STRUCTURAL without passing mathematical identifiability
-        and positivity overlap criteria.
+        and positivity overlap criteria. When require_provenance=True, causal claims
+        also require explicit identification provenance.
 
     Args:
         claimed_level: The target EvidenceLevel being asserted.
         is_identifiable: Whether Backdoor Criterion or do-calculus identifiability passed.
         overlap_satisfied: Whether common support / positivity overlap is satisfied.
+        identification_provenance: Optional provenance string documenting the source of
+            causal identification assumptions (e.g., declared DAG + backdoor adjustment set).
+        require_provenance: If True, refuses causal standing when identification_provenance
+            is absent or empty.
         strict: If True, raises UnqualifiedCausalClaimError on violation; if False,
             automatically downgrades to EvidenceLevel.PREDICTIVE with a structured warning.
 
@@ -147,6 +154,12 @@ def validate_causal_claim(
         if not overlap_satisfied:
             reasons.append(
                 "Positivity / common support breached (treatment and control lack overlapping covariate support)."
+            )
+        if require_provenance and (
+            identification_provenance is None or not identification_provenance.strip()
+        ):
+            reasons.append(
+                "Causal identification provenance is missing (must cite explicit structural DAG, adjustment set, or RCT design)."
             )
 
         if reasons:
@@ -183,6 +196,10 @@ class ScenarioForecastResult(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     metric_name: str = Field(description="Name of the evaluated metric or resource.")
+    estimand: str = Field(
+        default="E_{P_model}[Y]",
+        description="Formal statistical estimand under simulator measure P_model (not P_real unless externally validated).",
+    )
     point_estimate: float = Field(description="Central tendency estimate (mean or median).")
     ci_lower: float = Field(description="Lower bound of the confidence/credible interval.")
     ci_upper: float = Field(description="Upper bound of the confidence/credible interval.")
@@ -207,6 +224,10 @@ class ScenarioForecastResult(BaseModel):
     evidence_level: EvidenceLevel = Field(
         default=EvidenceLevel.PREDICTIVE,
         description="Epistemic evidence level backing this projection.",
+    )
+    identification_provenance: str | None = Field(
+        default=None,
+        description="Explicit provenance for causal identification assumptions when applicable.",
     )
     warnings_issued: tuple[str, ...] = Field(
         default_factory=tuple,

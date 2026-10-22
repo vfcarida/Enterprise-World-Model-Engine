@@ -69,8 +69,10 @@ class ProvenanceStrictPolicy:
     ) -> tuple[bool, str, float]:
         """Verify whether an intervention query is structurally identifiable.
 
-        Returns (is_identifiable, reason, e_value).
-        If confounding is flagged, identifiability is refused.
+        Returns (is_identifiable, reason, sensitivity_e_value).
+        Note: sensitivity_e_value is VanderWeele & Ding's (2017) unmeasured-confounding
+        Sensitivity E-value on the risk-ratio scale (E >= 1.0), NOT a sequential safe-testing
+        e-value / e-process. If confounding is flagged, identifiability is refused.
         """
         if not self.enabled:
             return True, "Identified under simulation SCM assumptions", 2.5

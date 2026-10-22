@@ -108,7 +108,13 @@ def execute_step(
             proposed_actions.append(sa.action)
 
     for actor in world.actors:
-        for act in actor.act(state=state, context=context):
+        actor_id = str(getattr(actor, "actor_id", "*"))
+        observed_state = (
+            world.observation_filter.observe(state, actor_id=actor_id)
+            if world.observation_spec is not None
+            else state
+        )
+        for act in actor.act(state=observed_state, context=context):
             proposed_actions.append(act)
 
     # 3. Pre-transition constraint validation on proposed actions
@@ -149,12 +155,57 @@ def execute_step(
 
     # 4. Dynamics transition
     if world.dynamics is not None:
-        trans_result = world.dynamics.transition(
-            state=state,
-            actions=accepted_actions,
-            exogenous_events=events,
-            rng=rng,
-        )
+        import inspect
+        from typing import Any as _Any
+
+        dyn_fn: _Any = world.dynamics.transition
+        accepts_ctx = False
+        if world.runtime_context is not None:
+            try:
+                sig = inspect.signature(dyn_fn)
+                accepts_ctx = "runtime_context" in sig.parameters or any(
+                    p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+                )
+            except (ValueError, TypeError):
+                accepts_ctx = False
+
+        if accepts_ctx and world.runtime_context is not None:
+            trans_result = dyn_fn(
+                state=state,
+                actions=accepted_actions,
+                exogenous_events=events,
+                rng=rng,
+                runtime_context=world.runtime_context,
+            )
+        else:
+            trans_result = world.dynamics.transition(
+                state=state,
+                actions=accepted_actions,
+                exogenous_events=events,
+                rng=rng,
+            )
+
+        # Ensure mechanism_provenance and context_metadata are present in diagnostics
+        needs_diag_update = False
+        updated_diag = dict(trans_result.diagnostics)
+        mech_prov = getattr(world.dynamics, "mechanism_provenance", None)
+        if mech_prov is not None and "mechanism_provenance" not in updated_diag:
+            updated_diag["mechanism_provenance"] = mech_prov.model_dump(mode="json")
+            needs_diag_update = True
+        if world.runtime_context is not None and "context_metadata" not in updated_diag:
+            req_keys = mech_prov.required_context_keys if mech_prov is not None else None
+            updated_diag["context_metadata"] = {
+                "context_id": world.runtime_context.context_id,
+                "version": world.runtime_context.version,
+                "fingerprint": world.runtime_context.fingerprint,
+                "domain_fingerprint": world.runtime_context.domain_fingerprint(req_keys),
+                "tenant_id": world.runtime_context.tenant_id,
+                "environment_regime": world.runtime_context.environment_regime,
+            }
+            needs_diag_update = True
+        if needs_diag_update:
+            trans_result = trans_result.model_copy(update={"diagnostics": updated_diag})
+
         raw_next_state = trans_result.next_state
     else:
         trans_result = TransitionResult(
@@ -167,14 +218,32 @@ def execute_step(
 
     # Record state transition in systemic trace DAG if meaningful modifications occurred
     trans_node_id = f"trans_step_{step_idx}"
-    if accepted_actions or events or trans_result.applied_changes:
+    if (
+        accepted_actions
+        or events
+        or trans_result.applied_changes
+        or world.runtime_context is not None
+    ):
+        trace_details = dict(trans_result.applied_changes)
+        prov = trans_result.mechanism_provenance
+        if prov is not None:
+            trace_details["mechanism_id"] = prov.mechanism_id
+            trace_details["mechanism_version"] = prov.version
+            trace_details["mechanism_kind"] = prov.kind.value
+        ctx_meta = trans_result.context_metadata
+        if ctx_meta is not None:
+            trace_details["context_id"] = ctx_meta.get("context_id")
+            trace_details["context_version"] = ctx_meta.get("version")
+            trace_details["context_fingerprint"] = ctx_meta.get("fingerprint")
+            trace_details["context_domain_fingerprint"] = ctx_meta.get("domain_fingerprint")
+
         trace.add_node(
             node_id=trans_node_id,
             step=step_idx,
             category="state_change",
             label=f"Dynamics Transition: {trans_result.model_name}",
             evidence_level=trans_result.evidence_level,
-            details=trans_result.applied_changes,
+            details=trace_details,
         )
         if trans_result.applied_changes:
             trace.record_exogenous_draw(
@@ -208,11 +277,33 @@ def execute_step(
             )
 
     # 5. Post-transition constraint validation on next state
-    post_results = world.constraints.validate_state(
-        state=raw_next_state,
-        preceding_actions=accepted_actions,
-        on_evaluation=on_constraint_eval,
+    post_results = list(
+        world.constraints.validate_state(
+            state=raw_next_state,
+            preceding_actions=accepted_actions,
+            on_evaluation=on_constraint_eval,
+        )
     )
+    res_feasibility = trans_result.residual_feasibility
+    if res_feasibility is not None and res_feasibility.action_taken == "invalidated":
+        inval_res = ConstraintResult(
+            satisfied=False,
+            constraint_id="hybrid_residual_feasibility",
+            constraint_version="1.0.0",
+            severity=ConstraintSeverity.HARD,
+            phase=ConstraintPhase.POST_TRANSITION,
+            message=(
+                "Learned residual proposed an infeasible transition and policy is INVALIDATE: "
+                + "; ".join(res_feasibility.violations)
+            ),
+            violating_resources=tuple(res_feasibility.raw_deltas.keys()),
+            violating_values=dict(res_feasibility.raw_deltas),
+            step=step_idx,
+        )
+        post_results.append(inval_res)
+        if on_constraint_eval is not None:
+            on_constraint_eval(inval_res, ConstraintPhase.POST_TRANSITION)
+
     all_violations = [*pre_results, *post_results]
     is_invalid = world.constraints.has_hard_violations(post_results)
 

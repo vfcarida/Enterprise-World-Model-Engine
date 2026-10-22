@@ -49,3 +49,25 @@ state_dict = state.to_dict()
 reconstituted = WorldState.from_dict(state_dict)
 assert reconstituted.fingerprint == state.fingerprint
 ```
+
+---
+
+## Enterprise World-Model 10-Tuple & Ontic/Epistemic Separation ([ADR-053](../adr/ADR-053-formal-enterprise-world-model-semantics-and-context.md))
+
+EWM Engine formalizes an enterprise world model as the 10-tuple:
+
+$$\mathcal{W} = \langle S, A, E, K, O, T, C, U, Q, P \rangle$$
+
+### Ontic State ($S_t$) vs. Epistemic State ($P_t$)
+- **Ontic State (`WorldState`, $S_t$)**: Encodes strictly *what is true in the modeled enterprise world* at step $t$. Calling `state.to_ontic_state()` strips any `_epistemic_*` scratch keys and `state.ontic_fingerprint` computes the canonical SHA-256 over the pure ontic state.
+- **Epistemic State (`EpistemicState`, $P_t$)**: Encodes *what the system knows, infers, assumes, or has causal evidence for*, including the `SystemicTrace` DAG, fail-closed `effective_evidence_level`, `mechanism_provenances`, `context_versions`, `context_fingerprints`, `assumptions`, and `drift_signals`. Available via `separate_ontic_epistemic(state)` and `trajectory.epistemic_state`.
+
+### First-Class Typed Runtime Context ($K_t$, `ContextSnapshot`)
+Enterprise transitions are conditioned on a typed, versioned, provenance-aware deployment/tenant/runtime context $K_t$:
+
+$$S_{t+1} \sim T(S_t, A_t, E_t \mid \Pi_{\text{req}(T)}(K_t))$$
+
+`ContextSnapshot` (`ewm_engine.core.context`) is an immutable Pydantic model holding `workflow_definitions`, `enabled_automations`, `policy_versions`, `feature_flags`, `topology_config`, `external_services`, `active_contracts`, and scalar `parameters`. Mechanisms declare `required_context_keys` in their `MechanismProvenance`; `K_t.project(required_context_keys)` isolates each mechanism so unrelated context changes never perturb unrelated mechanisms.
+
+### Partial Observability ($O_t, B_t$)
+When actors operate under partial visibility, `ObservationSpec` and `ObservationFilter` project $S_t$ into an isolated `WorldState` view $O_t$ containing only permitted entities, resources, relationships, memory, rules, and context with zero reference leakage to hidden state. Optional `BeliefState` and `BeliefUpdater` abstractions support POMDP belief tracking while keeping the default full-observability deterministic path unchanged.

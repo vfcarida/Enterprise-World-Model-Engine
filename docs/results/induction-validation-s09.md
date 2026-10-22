@@ -16,7 +16,7 @@
 
 Traditional automated modeling tools suffer from a fundamental failure mode: **confident overclaiming**. Observational data identifies only a Markov equivalence class (CPDAG/PAG), yet heuristic tools routinely emit single directed acyclic graphs into production simulations. Score-based continuous optimizers (e.g. NOTEARS) are vulnerable to variance scale ordering manipulation (arXiv:2206.07195), while symbolic regression can promote overfit numerical regularities to physical conservation laws.
 
-**EWM Engine is the only auto-modeler that refuses to overclaim.** Every induction path (process/schema and causal/dynamics) must pass through a single mandatory validation and refusal gate (`ewm induce validate`).
+**EWM Engine enforces a fail-closed induction validation and refusal gate (`ewm induce validate`).** Every induction path (process/schema and causal/dynamics) must pass through this gate before candidate edges or invariants can enter a `WorldSpec`.
 
 | Dimension | Traditional Auto-Modeler | EWM Engine Induction Gate |
 | :--- | :--- | :--- |

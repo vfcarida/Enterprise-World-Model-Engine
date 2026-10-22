@@ -1,32 +1,35 @@
-# Amortized Calibration & Coverage Certification API Reference
+﻿# Amortized Calibration & Coverage Certification API Reference
 
-This module provides Simulation-Based Inference (SBI) posterior parameter estimation, Test of Accuracy with Random Points (TARP) Empirical Coverage Probability (ECP) auditing, and split-conformal post-hoc recalibration.
+This module provides Simulation-Based Inference (SBI) posterior parameter estimation, Tests of Accuracy with Random Points (TARP) Empirical Coverage Probability (ECP) auditing (Lemos et al., ICML 2023), and misspecification-robust diagnostics.
 
 ---
 
-## Calibration Engine & Posterior Estimators
+## Calibration Workflow, Priors & Posterior Estimators
 
-::: ewm_engine.calibration.amortized
+::: ewm_engine.calibration
     options:
       show_root_heading: true
       show_source: false
       members:
-        - CalibrationEngine
-        - CalibrationReport
+        - CalibrationWorkflow
+        - AmortizedPosteriorEstimator
         - PosteriorDistribution
-        - ParameterBounds
-        - TrajectorySummaryExtractor
+        - CalibrationPrior
+        - PriorSet
+        - ForwardSimulatorWrapper
+        - CalibrationReport
 
 ---
 
-## Certified Coverage (TARP) & Conformal Recalibration
+## Certified Coverage (TARP, SBC) & Diagnostics
 
-::: ewm_engine.calibration.coverage
+::: ewm_engine.calibration.certification
     options:
       show_root_heading: true
       show_source: false
       members:
-        - TarpCoverageResult
-        - ConformalCalibrator
+        - CoverageCertificate
+        - certify_coverage
         - compute_tarp_coverage
-        - recalibrate_posterior_conformal
+        - compute_posterior_sbc
+        - compute_misspecification_diagnostic

@@ -57,7 +57,7 @@ The following table summarizes the operational and structural differences betwee
 - **Problem**: Deep ensemble and Monte Carlo simulators frequently exhibit severe overconfidence, yielding empirical 90% confidence intervals that cover less than 70% of ground-truth test points.
 - **Methodology**: 200 simulation runs are evaluated under simulated Bayesian parameter uncertainty and tested against the coverage property:
   $$P(y^* \in \hat{C}_{1-\alpha}(x^*)) \ge 1 - \alpha$$
-  Tested via the Tests of Accuracy of Recovery of Posterior (TARP) method ([Lemos et al., ICML 2023](https://arxiv.org/abs/2302.03026)).
+  Tested via the Tests of Accuracy with Random Points (TARP) method ([Lemos et al., ICML 2023](https://arxiv.org/abs/2302.03026)).
 - **Result**: EWM Engine's calibrated posterior achieves $90.2\%$ empirical coverage for a nominal $90.0\%$ target (TARP error $< 0.03$), whereas an uncalibrated prior covers only $64.1\%$.
 
 ### Multi-Seed Deterministic Scaling
@@ -88,5 +88,6 @@ Every performance metric and structural property reported above can be audited i
 
 1. **Results Gallery Verification**: `python scripts/reproduce_results.py --all`
 2. **Competitive Harness Verification**: `python scripts/reproduce_comparison.py`
+3. **12-Family Enterprise World-Model Evaluation Suite (A–L, ADR-054)**: `python -m benchmarks.enterprise_suite --seed 42` — see the full auto-generated specification, scenario cards, shift recovery analysis, and 13-dimension profile in [**Enterprise Benchmark Suite (A–L)**](../research/enterprise-benchmark-suite.md).
 
 If any metric deviates from the published values on your certified Python 3.10+ environment, file a GitHub issue with the output of `python scripts/reproduce_comparison.py --json`.

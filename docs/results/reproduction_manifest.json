@@ -1,14 +1,72 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "title": "EWM Engine Universal Scientific Reproduction Manifest",
-  "timestamp_start": "2026-10-21T14:59:40.300670+00:00",
-  "timestamp_end": "2026-10-21T14:59:40.948109+00:00",
-  "overall_status": "SUCCESS",
+  "timestamp_start": "2026-10-21T18:43:43.375355+00:00",
+  "timestamp_end": "2026-10-21T18:43:44.166935+00:00",
+  "verification_checks_passed": true,
+  "certification_status": "REPRODUCIBLE_DIRTY_WORKTREE",
+  "certification_reason": "All functional, numerical, and fingerprint checks passed, but working tree has uncommitted changes. Refusing CERTIFIED_RELEASE status until committed to a clean tree.",
+  "overall_status": "REPRODUCIBLE_DIRTY_WORKTREE",
   "provenance": {
     "git": {
-      "commit": "c4b5269131282a585dce48850c0533c6ab478332",
+      "commit": "e62c902e9d467b5fbe45d06a050d995e926a585b",
       "branch": "main",
-      "dirty": "True"
+      "dirty": true,
+      "dirty_files_count": 82,
+      "modified_or_untracked": [
+        "M .zenodo.json",
+        "M CITATION.cff",
+        "M README.md",
+        "M ROADMAP.md",
+        "M SHOWCASE.md",
+        "M assets/hero-proof-dark.svg",
+        "M assets/hero-proof-light.svg",
+        "M docs/REFERENCES.md",
+        "M docs/adr/ADR-024-opentelemetry-observability-adapter.md",
+        "M docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md",
+        "M docs/adr/ADR-035-modern-packaging-dynamic-versioning-and-typing-excellence.md",
+        "M docs/adr/ADR-052-scientific-reproduction-and-citation-capstone.md",
+        "M docs/architecture/frontier-roadmap.md",
+        "M docs/community/launch-announcement.md",
+        "M docs/concepts/calibration.md",
+        "M docs/concepts/causality.md",
+        "M docs/concepts/graph-state.md",
+        "M docs/concepts/ood.md",
+        "M docs/concepts/wsl.md",
+        "M docs/cookbook/historical-calibration.md",
+        "M docs/cookbook/policy-change.md",
+        "M docs/executive/decision-grade-guarantees.md",
+        "M docs/executive/index.md",
+        "M docs/executive/maturity-model.md",
+        "M docs/executive/use-cases/cfo.md",
+        "M docs/executive/use-cases/coo.md",
+        "M docs/executive/use-cases/cro.md",
+        "M docs/executive/use-cases/cso.md",
+        "M docs/getting-started.md",
+        "M docs/governance/compliance-mapping.md",
+        "M docs/guides/causal-dynamics-induction.md",
+        "M docs/guides/ocel-induction.md",
+        "M docs/handbook/calibration-and-sbi.md",
+        "M docs/handbook/causal-identifiability-and-graphs.md",
+        "M docs/handbook/choosing-robustness-metric.md",
+        "M docs/handbook/interventions-and-uncertainty.md",
+        "M docs/handbook/pitfalls-leakage-drift-overclaiming.md",
+        "M docs/handbook/when-to-refuse-a-claim.md",
+        "M docs/index.md",
+        "M docs/reference/api/calibration.md",
+        "M docs/reproducibility.md",
+        "M docs/results/artifacts/calibration_pit.svg",
+        "M docs/results/artifacts/ground_truth_overlay.svg",
+        "M docs/results/benchmarks.md",
+        "M docs/results/calibrated-posterior-s04.md",
+        "M docs/results/index.md",
+        "M docs/results/reproduction_manifest.json",
+        "M docs/results/seir-outbreak.md",
+        "M docs/scientific/acm_artifact_appendix.md",
+        "M docs/scientific/huggingface_papers.md"
+      ],
+      "source_tree_sha256": "e15d7141c6e40c1996cec1972442ae929923cd01917e9ff89cb97480a19c5979",
+      "files_hashed_count": 216
     },
     "environment": {
       "platform": "Windows-11-10.0.26300-SP0",
@@ -18,9 +76,29 @@
       "processor": "Intel64 Family 6 Model 142 Stepping 10, GenuineIntel",
       "python_version": "3.12.10",
       "python_implementation": "CPython",
-      "numpy_version": "2.5.3",
+      "numpy_version": "2.5.2",
       "uv_lock_sha256": "e7f9c755d9cffca66771676793bb6970ecc5d4dddd0a977d5f6387f479e37543",
-      "blas_config_summary": "{\"Compilers\": {\"c\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}, \"cython\": {\"name\": \"cython\", \"linker\": \"cython\", \"version\": \"3.3.0\", \"commands\": \"cython\"}, \"c++\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}}, \"Machine Information"
+      "blas_config_summary": "{\"Compilers\": {\"c\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}, \"cython\": {\"name\": \"cython\", \"linker\": \"cython\", \"version\": \"3.2.9\", \"commands\": \"cython\"}, \"c++\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}}, \"Machine Information"
+    },
+    "reproducibility_protocol": {
+      "rng_seeds": {
+        "seir": 42,
+        "calibrated_posterior": 42,
+        "counterfactual_scm": 42,
+        "decision_discovery": 42,
+        "induction_validation": 42,
+        "ref_seed_trivial": 42,
+        "ref_closed_form_stochastic": 1337,
+        "ref_constraint_stress": 999
+      },
+      "numerical_tolerances": {
+        "seir_mass_balance_tolerance": 1e-12,
+        "seir_observed_max_abs_drift": 4.547473508864641e-13,
+        "tarp_mean_calibration_error_max": 0.05,
+        "prim_density_min": 0.9,
+        "prim_coverage_min": 0.8,
+        "soa_state_fingerprint": "bit_exact_sha256"
+      }
     }
   },
   "results": {
@@ -164,9 +242,9 @@
     }
   },
   "visual_artifacts": {
-    "ground_truth_overlay": "dee4deaaf24bfa9808d56b05d9cb8e51a8769bdabcb0cf6231e7a1e8e814f558",
-    "calibration_pit": "ab21ddab607af5dfe03fb9615170e3310f330f166e1f0832adabc765af846787",
+    "ground_truth_overlay": "359ae92702bdc9c646fda3759f452a917e9afbc47605f7a2c0a3eac628e7ecdb",
+    "calibration_pit": "52e24b1fa60eaea42049489869409727498147b99d4d0573e9b045241d379188",
     "multiseed_error_bars": "1f4d6cdc53369cf9cb2f02df83d6b356d098efdcba4096c69faabb7129b092e9"
   },
-  "reproduction_fingerprint": "574fef619d68b073a2e87ff62a05114c601d00ccf4dbba49e4c13fec675093a1"
+  "reproduction_fingerprint": "20b1a5728acc5c89fec8d6ab096817aecdd36918a32b55c842f6044c4464cd6d"
 }

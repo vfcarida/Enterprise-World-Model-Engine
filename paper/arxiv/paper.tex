@@ -8,7 +8,7 @@
 \usepackage{geometry}
 \geometry{margin=1in}
 
-\title{\textbf{Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty}}
+\title{\textbf{Structural World Models: Evaluating Hybrid Conservation, Learned Residual Dynamics, and Runtime Context Discovery Under Organizational Regime Shift}}
 \author{
   \textbf{Vinicius Caridá} \\
   Independent Researcher \\
@@ -20,70 +20,88 @@
 \maketitle
 
 \begin{abstract}
-Modern machine learning research in ``world models'' has focused heavily on continuous control, video generation, and latent-space imagination for robotics and games. Concurrently, enterprise organizations demand simulation tools to answer prescriptive interventional questions: \emph{``What would happen if we enact decision $a$ instead of baseline $a'$?''}
+Research in learned world models has focused primarily on perceptual latent spaces for continuous control, robotics, and video generation. Concurrently, operational organizations require simulation tools to evaluate prescriptive policy interventions (\emph{``What happens under $\text{do}(A_t = a)$ vs.\ $\text{do}(A_t = a')$?''}) subject to conservation laws, capacity constraints, and non-stationary regime shifts. Unconstrained regression and generative world models exhibit three recurring failure modes in these settings: they violate physical and accounting conservation laws, conflate observational correlation with interventional effect under confounding, and suffer uncalibrated predictive degradation when latent operational regimes shift mid-deployment.
 
-When applied to organizational and socio-technical domains (such as supply chain resilience, capital allocation, and crisis logistics), unconstrained neural and generative world models suffer from critical failure modes: they violate fundamental physical and accounting conservation laws, compound autoregressive rollout errors, and emit unjustified point forecasts.
-
-In this paper, we introduce the \textbf{Enterprise World Model Engine (EWM)}, an open-source, domain-neutral structural simulation kernel. EWM establishes an architectural firewall between \textbf{KNOWN explicit conservation laws} (enforced as hard algebraic invariants) and \textbf{LEARNED probabilistic dynamics} (restricted to conservative nullspace projections). We establish the theoretical license for this architecture via Richens \& Everitt's Causal World Model Theorem (ICLR 2024), showing that robust interventional planning requires structural causal models (SCMs). EWM operationalizes this via: (1) a native SCM kernel supporting Pearl's three-step counterfactual algorithm under Twin-Rollout exogenous noise coupling; (2) automated world-model induction from relational process logs with a fail-closed causal refusal gate; (3) amortized Simulation-Based Inference (SBI) with certified coverage evaluated through the Test of Accuracy of Related Probabilities (TARP); (4) Structure-of-Arrays (SoA) state layouts producing bit-identical SHA-256 state fingerprints across pure-Python, NumPy, and compiled JAX runtimes; and (5) the World Model Interchange Format (WMIF) standard and standalone conformance suite. Across seven empirical validation benchmarks, EWM achieves bit-for-bit determinism, zero mass-balance drift ($0.000000$), and certified calibration without mandatory GPU or LLM dependencies.
+In this paper, we introduce the \textbf{Enterprise World Model Engine (\texttt{ewm-engine})}, an open-source Python framework that couples symbolic structural invariants with probabilistic residual learning and causal identifiability gates. We formulate and evaluate a falsifiable hypothesis across a 12-family synthetic operational benchmark suite (Families A--L) and 7 domain validation benchmarks: under mid-deployment structural regime shifts with identifiable latent context (Families A--H, L), combining linear conservation nullspace projection ($\mathcal{P}_{\text{null}} = I - A^+ A$), learned residual dynamics, and runtime context discovery reduces downstream decision regret ($0.025$ vs.\ $0.320$ for rules-only on Family A) and restores 90\% split-conformal coverage ($0.900$ vs.\ $0.450$) with $0.0$ conservation violations within IEEE-754 double-precision tolerance ($\le 10^{-12}$; observed max residual $4.55 \times 10^{-13}$ on SEIR). Conversely, in negative-control regimes, stationary rules-sufficient systems (Family I) favor simpler rules-only models ($0.015$ vs.\ $0.028$ regret), extreme out-of-distribution shocks (Family J) trigger out-of-support abstention, and unidentifiable confounded graphs (Family K) fail closed.
 \end{abstract}
 
-\section{Introduction}
-In recent years, the paradigm of world models \cite{hafner2023dreamerv3, assran2025vjepa2} has emerged as an active frontier in artificial intelligence. However, applying unconstrained generative world models to enterprise decision systems reveals acute hazards: physical and accounting quantities are hallucinated, point forecasts mask solvency tail risks, and observational associations collapse under policy shifts \cite{pearl2009causality}. We propose \textbf{Structural World Models (SWM)} to address these limitations.
+\section{Introduction \& Central Hypothesis}
+In recent years, action-conditioned world models \cite{hafner2023dreamerv3, assran2025vjepa2} have enabled planning in perceptual control domains. However, applying unconstrained neural world models to enterprise decision systems reveals acute hazards: physical and accounting quantities drift across rollouts, point forecasts mask tail risks, and observational correlations collapse under policy shifts \cite{pearl2009causality}. We test the falsifiable hypothesis that a grey-box architecture combining enforced conservation projection, learned residuals, and online context discovery outperforms single-paradigm baselines specifically when mid-deployment regime shifts are structurally identifiable, while failing closed when identification fails.
 
-\section{Theoretical License}
-The foundational theoretical justification for EWM is licensed by Richens \& Everitt \cite{richens2024robust}:
+\section{Theoretical Motivation \& Scope}
+Our separation between structural mechanisms and observational associations is motivated by Richens \& Everitt \cite{richens2024robust}:
 \newtheorem{theorem}{Theorem}
-\begin{theorem}[Causal World Model Theorem]
-Any agent capable of achieving robust optimal performance across an arbitrary family of distributional shifts must learn a world model that is structurally causal.
+\begin{theorem}[Causal World Model Necessity, Richens \& Everitt 2024]
+Under the assumptions of finite discrete variables and local mechanism interventions on parent sets, any agent capable of achieving vanishing regret across arbitrary distributional shifts induced by local interventions must encode an internal representation isomorphic to the environment's structural causal model (SCM).
 \end{theorem}
-Observational models cannot escape unbounded regret under policy interventions without modeling the structural DAG $\mathcal{G}$ and the interventional $do$-operator \cite{pearl2009causality}.
+\textbf{Scope Note:} This theorem licenses separating structural mechanisms (\texttt{StructuralCausalModel}) from associative transitions (\texttt{EvidenceLevel.PREDICTIVE}); it does not guarantee that a user-declared causal graph matches reality without domain validation and refutation testing.
 
-\section{Architecture: Decoupling KNOWN Rules from LEARNED Dynamics}
-EWM establishes the decomposition:
+\section{Architecture: Grey-Box Nullspace Projection \& Twin-Rollout SCM}
+\texttt{ewm-engine} decomposes state transitions as:
 \begin{equation}
-\Delta \mathbf{s}_t = f_{\text{known}}(\mathbf{s}_t, \mathbf{a}_t) + \mathcal{P}_{\text{null}}\left( g_\theta(\mathbf{s}_t, \mathbf{a}_t) \right)
+\Delta \mathbf{s}_t = f_{\text{known}}(\mathbf{s}_t, \mathbf{a}_t) + \mathcal{P}_{\text{null}}\left( g_\theta(\mathbf{s}_t, \mathbf{a}_t) \right), \quad \mathcal{P}_{\text{null}}(\mathbf{v}) = (\mathbf{I} - \mathbf{A}_{\text{cons}}^+ \mathbf{A}_{\text{cons}})\mathbf{v}
 \end{equation}
-where $\mathcal{P}_{\text{null}}(\mathbf{v}) = (\mathbf{I} - \mathbf{A}_{\text{cons}}^+ \mathbf{A}_{\text{cons}})\mathbf{v}$ projects learned dynamics onto the exact nullspace of conservation matrix $\mathbf{A}_{\text{cons}} \Delta \mathbf{s} = \mathbf{0}$.
+where $\mathcal{P}_{\text{null}}$ projects learned dynamics onto the numerical nullspace of linear conservation constraints $\mathbf{A}_{\text{cons}} \Delta \mathbf{s}_t = \mathbf{0}$ within IEEE-754 \texttt{float64} precision ($\le 10^{-12}$), followed by boundary scaling.
 
-\subsection{Twin-Rollout Counterfactual Kernel}
-EWM implements Pearl's three-step algorithm: Abduction of noise $\mathbf{U}$, Action via graph surgery $do(\mathbf{a}_t = \mathbf{a}')$, and Prediction under coupled noise $\mathbf{U}$. The net treatment effect $\Delta \tau = \tau_{\text{cf}} - \tau_{\text{fact}}$ is strictly isolated from random sampling noise divergence.
+\subsection{Twin-Rollout Counterfactual Kernel \& Identifiability Gates}
+\texttt{world.counterfactual()} implements Pearl's three-step algorithm: Abduction of exogenous noise $\mathbf{U}$, Action via graph surgery $\text{do}(\mathbf{a}_t = \mathbf{a}')$, and Prediction under coupled noise $\mathbf{U}$. Observational and interventional queries enforce Pearl's Backdoor, Frontdoor, and Shpitser--Pearl ID criteria, failing closed (\texttt{UnqualifiedCausalClaimError}) when unobserved confounding leaves backdoor or hedge paths open \cite{damour2021overlap}. Accepted observational claims report VanderWeele \& Ding confounding Sensitivity E-values \cite{vanderweele2017evalues}, strictly distinguished from sequential safe-testing e-processes \cite{grunwald2024evalues}.
 
-\section{World-Model Induction with Honest Refusal Gate}
-EWM discovers transition topologies from event logs (OCEL 2.0) and validates structural identifiability (backdoor/frontdoor). When unobserved confounding threatens validity, or covariate overlap fails ($d \ge 5$) \cite{damour2021overlap}, the engine raises a fail-closed exception rather than emitting misleading estimates. Accepted claims are paired with VanderWeele \& Ding E-values \cite{vanderweele2017evalues} and audited via refutation testing.
-
-\section{Amortized Calibration with Certified Coverage}
-Parameters are calibrated via likelihood-free Simulation-Based Inference \cite{papamakarios2019sequential}. Credible coverage is certified using the TARP diagnostic \cite{lemos2023tarp}:
+\section{Amortized Calibration with TARP \& Conformal Diagnostics}
+Parameters are calibrated via Simulation-Based Inference \cite{papamakarios2019sequential}. Empirical posterior coverage is evaluated using Tests of Accuracy with Random Points (TARP) with per-instance random reference points \cite{lemos2023tarp}:
 \begin{equation}
 P(\boldsymbol{\theta}^* \in \mathcal{R}_\alpha(\mathbf{x})) = \alpha \quad \forall \alpha \in [0, 1]
 \end{equation}
-Hypothesis comparisons between scenarios report sequential E-values \cite{grunwald2024evalues} satisfying $\mathbb{E}_{H_0}[E] \le 1$.
+Predictive rollouts use split-conformal intervals guaranteeing finite-sample \emph{marginal} coverage under exchangeability, paired with slice-conditional diagnostics and online Adaptive Conformal Inference.
 
-\section{Cross-Backend Bit-Identical Fingerprints \& WMIF Standard}
-To enable scale without compromising determinism, EWM introduces a Structure-of-Arrays (SoA) state tensor producing bit-identical SHA-256 state fingerprints across pure-Python, NumPy, and compiled JAX backends. The World Model Interchange Format (WMIF) standardizes model exchange with an executable conformance suite.
+\section{Three-Tier Numerical Reproducibility Contract \& WMIF}
+Because IEEE-754 floating-point reduction order varies across CPU and GPU compilers, \texttt{ewm-engine} defines an explicit three-tier reproducibility contract: (1) \texttt{BITWISE\_REPRODUCIBLE} for pure-Python and vectorized NumPy Structure-of-Arrays (SoA) execution under a pinned runtime (\texttt{OMP\_NUM\_THREADS=1}), producing identical SHA-256 state fingerprints; (2) \texttt{NUMERICALLY\_EQUIVALENT\_WITH\_TOLERANCE} for compiled JAX \texttt{x64} execution within $\text{rtol}=10^{-6}, \text{atol}=10^{-7}$; and (3) \texttt{NON\_CERTIFIED\_BACKEND} for uncertified GPU atomic reductions. The World Model Interchange Format (WMIF v1.0) standardizes model exchange with a standalone conformance suite.
 
-\section{Empirical Validation Scorecard}
-We evaluate EWM across seven reproducible benchmarks:
+\section{Empirical Validation \& Artifact Provenance}
+Table~\ref{tab:cards} summarizes the seven domain validation cards (\texttt{reproduction\_manifest.json}), and Table~\ref{tab:suite} summarizes the 12-family Enterprise Benchmark Suite (\texttt{docs/results/artifacts/enterprise\_benchmark\_suite.json}).
+
 \begin{table}[h]
 \centering
 \small
 \begin{tabular}{lllll}
 \toprule
-\textbf{Benchmark} & \textbf{Domain} & \textbf{Key Invariant} & \textbf{Empirical Metric} & \textbf{Status} \\
+\textbf{Card ID} & \textbf{Domain} & \textbf{Key Invariant} & \textbf{Empirical Metric} & \textbf{Status} \\
 \midrule
-SEIR Outbreak & Epidemiology & $S+E+I+R = N$ & Max Drift $= 4.54 \times 10^{-13}$ & Zero Drift \\
-Beer Game & Supply Chain & Inventory conservation & Bullwhip Ratio $= 3.80$ & Conserved \\
-WORLD3 & Global Dynamics & Non-linear feedback & Inflection at $t=99$ & Stable \\
-SBI Calibration & Bayesian Calibration & Credible coverage & TARP Error $= 0.028$ & Certified \\
-Twin-Rollout SCM & Logistics Surgery & Exogenous coupling & ATE $= +35.0$ units & Coupled \\
-PRIM Discovery & Vulnerability & Subspace purity & Density $= 91.2\%$, Recall $= 80\%$ & Audited \\
-Induction Honesty & Process Mining & Refusal integrity & Fails closed on confounding & Verified \\
+\texttt{seir} & Epidemiology & $S+E+I+R = N$ & Max Residual $= 4.55 \times 10^{-13}$ ($\le 10^{-12}$) & Within Tolerance \\
+\texttt{beer\_game} & Supply Chain & Inventory conservation & Bullwhip Ratio $= 3.8025$ & Conserved \\
+\texttt{world3} & Macro Dynamics & Non-linear feedback & Industrial Peak at $t=99$ & Stable \\
+\texttt{calibrated\_posterior} & Bayesian SBI & Credible coverage & Mean TARP Error $= 0.0283$ & Calibrated \\
+\texttt{counterfactual\_scm} & Logistics SCM & Exogenous coupling & Net Effect $= +35.0$ units & Coupled \\
+\texttt{decision\_discovery} & RDM / PRIM & Subspace purity & Density $= 0.9116$, Recall $= 0.8000$ & Audited \\
+\texttt{induction\_validation} & Causal Discovery & Refusal integrity & $7$ admitted, $2$ refused, $0$ \texttt{"causes"} & Verified \\
 \bottomrule
 \end{tabular}
-\caption{Empirical verification scorecard across seven benchmark pillars.}
+\caption{Empirical verification scorecard generated by \texttt{python scripts/reproduce.py}.}
+\label{tab:cards}
 \end{table}
 
-\section{Conclusion \& Reproducibility}
-All results reproduce bit-for-bit with the single command \texttt{make reproduce}. In-browser execution is supported via Binder and GitHub Codespaces. The complete open-source implementation is available under Apache-2.0 at \url{https://github.com/vfcarida/Enterprise-World-Model-Engine}.
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lllll}
+\toprule
+\textbf{Benchmark Group} & \textbf{Rules-Only Regret} & \textbf{Learned-Only Regret} & \textbf{Static-Hybrid Regret} & \textbf{Hybrid+Discovery Regret} \\
+\midrule
+Family A (\texttt{shift\_supply\_chain}) & $0.320$ & $0.290$ & $0.210$ & \textbf{0.025} (Coverage $0.900$) \\
+Families B--H, L (Shift Regimes) & $0.240\text{--}0.380$ & $0.210\text{--}0.340$ & $0.150\text{--}0.240$ & \textbf{0.019--0.038} (Coverage $0.89\text{--}0.91$) \\
+Family I (Stationary Control) & \textbf{0.015} & $0.065$ & $0.018$ & $0.028$ (Rules sufficient) \\
+Family J (Extreme OOD Control) & $0.520$ & $0.780$ & $0.490$ & $0.450$ (Triggers OOD abstention) \\
+Family K (Confounded Control) & \multicolumn{4}{c}{Fails closed (\texttt{causal\_identifiability\_gate\_correctness = True})} \\
+\bottomrule
+\end{tabular}
+\caption{Decision regret across the 12-family benchmark suite generated by \texttt{python scripts/run\_enterprise\_benchmark\_suite.py}.}
+\label{tab:suite}
+\end{table}
+
+\section{Limitations \& Threats to Validity}
+(1) Counterfactuals and bootstrap intervals are conditioned on the declared model $P_{\text{model}}$ and do not capture unmodeled organizational mechanisms; (2) learned residuals degrade under extreme OOD shifts outside training support (Family J); (3) observational causal discovery identifies only Markov equivalence classes (CPDAG/PAG) and cannot detect omitted latent confounders; (4) split-conformal coverage guarantees are marginal under exchangeability, not conditional; (5) conservation holds within IEEE-754 \texttt{float64} precision ($\le 10^{-12}$), not exact symbolic zero; and (6) all outputs are decision-support artifacts, not autonomous execution commands.
+
+\section{Reproducibility}
+All tables and artifacts reproduce on a single CPU via \texttt{python scripts/reproduce.py} and \texttt{python scripts/run\_enterprise\_benchmark\_suite.py}. Source code is available under Apache-2.0 at \url{https://github.com/vfcarida/Enterprise-World-Model-Engine}.
 
 \bibliographystyle{plain}
 \bibliography{references}

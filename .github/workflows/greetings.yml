@@ -7,13 +7,15 @@ on:
     types: [opened]
 
 permissions:
-  issues: write
-  pull-requests: write
+  contents: read
 
 jobs:
   greeting:
     name: Welcome First-Time Contributor
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     timeout-minutes: 5
     steps:
       - name: Harden Runner

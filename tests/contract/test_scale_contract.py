@@ -85,18 +85,34 @@ def _build_contract_world(num_nodes: int = 10) -> World:
 
 @pytest.mark.contract
 def test_backend_certification_contract() -> None:
-    """Verify the formal certification status contract across computational backends."""
+    """Verify the three-tier numerical reproducibility contract across computational backends."""
+    from ewm_engine.exceptions import SimulationConfigurationError
+    from ewm_engine.simulation.batched import BatchedSimulationEngine
+
     numpy_be = NumPyBackend()
     assert numpy_be.backend_type == BackendType.NUMPY
-    assert numpy_be.certification_status == CertificationStatus.CERTIFIED_BIT_IDENTICAL
+    assert numpy_be.certification_status == CertificationStatus.BITWISE_REPRODUCIBLE
+    assert CertificationStatus.CERTIFIED_BIT_IDENTICAL.value == numpy_be.certification_status.value
+    assert numpy_be.tolerance_contract == {"rtol": 0.0, "atol": 0.0}
 
     jax_be = JaxBackend()
     assert jax_be.backend_type == BackendType.JAX
-    assert jax_be.certification_status == CertificationStatus.CERTIFIED_BIT_IDENTICAL
+    assert jax_be.certification_status == CertificationStatus.NUMERICALLY_EQUIVALENT_WITH_TOLERANCE
+    assert jax_be.tolerance_contract == {"rtol": 1e-6, "atol": 1e-7}
 
     cupy_be = CuPyBackend()
     assert cupy_be.backend_type == BackendType.CUPY
-    assert cupy_be.certification_status == CertificationStatus.THROUGHPUT_ONLY
+    assert cupy_be.certification_status == CertificationStatus.NON_CERTIFIED_BACKEND
+    assert CertificationStatus.THROUGHPUT_ONLY.value == cupy_be.certification_status.value
+    assert cupy_be.tolerance_contract is None
+
+    # Refusal of NON_CERTIFIED_BACKEND when certify_equivalence=True
+    with pytest.raises(SimulationConfigurationError, match="certify_equivalence=True"):
+        BatchedSimulationEngine(backend=cupy_be, certify_equivalence=True)
+
+    # Allowed when certify_equivalence=False
+    non_cert_engine = BatchedSimulationEngine(backend=cupy_be, certify_equivalence=False)
+    assert non_cert_engine.backend.certification == CertificationStatus.NON_CERTIFIED_BACKEND
 
 
 @pytest.mark.contract

@@ -90,3 +90,32 @@ def test_wsl_compiler_fuzz_smoke() -> None:
         for _ in range(50):
             current = mutate_bytes(current, rng)
             run_wsl_fuzz(current)
+
+
+@pytest.mark.fuzz
+def test_fuzz_crash_seed_persistence_and_reproduction(tmp_path: Path) -> None:
+    """Verify that failing fuzz seeds and binary payloads are persisted for exact reproduction."""
+    import json
+
+    from scripts.run_fuzz_smoke import persist_failing_seed
+
+    crashing_payload = b"world Bad {\n  invalid_unhandled_panic\n}"
+    meta_path = persist_failing_seed(
+        target_name="WSL Compiler",
+        master_seed=202610,
+        iteration=17,
+        payload=crashing_payload,
+        exc=RuntimeError("synthetic unhandled parser crash"),
+        crash_dir=tmp_path,
+    )
+
+    assert meta_path.exists()
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    assert meta["seed"] == 202610
+    assert meta["iteration"] == 17
+    assert meta["exception_type"] == "RuntimeError"
+    assert "--seed 202610" in meta["reproduce_command"]
+
+    bin_path = tmp_path / meta["payload_file"]
+    assert bin_path.exists()
+    assert bin_path.read_bytes() == crashing_payload

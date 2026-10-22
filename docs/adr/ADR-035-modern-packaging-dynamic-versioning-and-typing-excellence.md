@@ -18,7 +18,7 @@ Prior to this architectural decision, the Enterprise World Model Engine (`ewm-en
 - **Dynamic Versioning from Git Tags**:
   - The authoritative version is computed dynamically from git tags (`vX.Y.Z`).
   - We configure `local_scheme = "no-local-version"` to omit local git commit hash suffixes (e.g. `+g1a2b3c`), as public PyPI indexes strictly reject local version segments.
-  - `fallback_version = "1.0.0"` is declared to ensure unversioned source checkouts (e.g., zip downloads without git history) build deterministically.
+  - `fallback_version = "1.5.0"` is declared to ensure unversioned source checkouts (e.g., zip downloads without git history) build deterministically.
   - `hatch-vcs` generates an untracked `src/ewm_engine/_version.py` during builds, which is bundled inside release wheels and queried by `ewm_engine.__version__`.
 - Hardcoded version strings are completely eliminated from `pyproject.toml` and source code.
 
@@ -74,4 +74,4 @@ Prior to this architectural decision, the Enterprise World Model Engine (`ewm-en
 - **Extreme Type Safety**: 100% strict Mypy pass with `strict_equality` prevents subtle comparison bugs while `beartype`/boundary validation protects entrypoints.
 
 ### Negative / Trade-offs
-- Developers building from source without git history must specify `SETUPTOOLS_SCM_PRETEND_VERSION` or rely on `fallback_version = "1.0.0"`.
+- Developers building from source without git history must specify `SETUPTOOLS_SCM_PRETEND_VERSION` or rely on `fallback_version = "1.5.0"`.

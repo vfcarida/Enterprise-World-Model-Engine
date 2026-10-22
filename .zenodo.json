@@ -4,8 +4,7 @@
   "creators": [
     {
       "name": "Caridá, Vinicius",
-      "affiliation": "Independent Researcher",
-      "orcid": "0009-0000-0000-0000"
+      "affiliation": "Independent Researcher"
     }
   ],
   "access_right": "open",
@@ -27,25 +26,11 @@
     "distributed computing"
   ],
   "upload_type": "software",
-  "doi": "10.5281/zenodo.14000001",
-  "conceptdoi": "10.5281/zenodo.14000000",
   "related_identifiers": [
     {
       "relation": "isSupplementTo",
-      "identifier": "https://arxiv.org/abs/2610.01234",
+      "identifier": "https://github.com/vfcarida/Enterprise-World-Model-Engine",
       "scheme": "url",
-      "resource_type": "publication-preprint"
-    },
-    {
-      "relation": "isDocumentedBy",
-      "identifier": "10.21105/joss.07890",
-      "scheme": "doi",
-      "resource_type": "publication-article"
-    },
-    {
-      "relation": "hasPart",
-      "identifier": "swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine",
-      "scheme": "swhid",
       "resource_type": "software"
     },
     {
@@ -55,5 +40,5 @@
       "resource_type": "publication-article"
     }
   ],
-  "notes": "Project repository: https://github.com/vfcarida/Enterprise-World-Model-Engine\nDocumentation: https://vfcarida.github.io/Enterprise-World-Model-Engine/\nSoftware Heritage SWHID: swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c (ISO/IEC 18670:2025)\narXiv Preprint: arXiv:2610.01234 [cs.MS, cs.DC]"
+  "notes": "Project repository: https://github.com/vfcarida/Enterprise-World-Model-Engine\nDocumentation: https://vfcarida.github.io/Enterprise-World-Model-Engine/\nZenodo Concept/Version DOIs, SWHID, and arXiv/JOSS identifiers: not yet published (to be assigned upon release archival)."
 }

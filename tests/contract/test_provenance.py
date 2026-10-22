@@ -296,3 +296,55 @@ def test_state_fingerprint_determinism_across_constructions() -> None:
 
     assert s1.fingerprint == s2.fingerprint
     assert s1.state_hash == s2.state_hash
+
+
+@pytest.mark.contract
+def test_reproduction_certification_semantics_and_version_truth() -> None:
+    """Dirty worktrees cannot receive CERTIFIED_RELEASE status; version truth is derived from 1.5.x."""
+    import ewm_engine
+    from ewm_engine.experimental.causal import (
+        SensitivityEValueResult,
+        compute_sensitivity_e_value,
+    )
+    from ewm_engine.provenance.manifest import create_run_manifest
+
+    assert ewm_engine.__version__.startswith("1.5.")
+    manifest = create_run_manifest(seed=42)
+    assert manifest.engine_version == ewm_engine.__version__
+
+    sens = compute_sensitivity_e_value(
+        point_estimate=2.5,
+        ci_lower=1.5,
+        ci_upper=3.5,
+        is_risk_ratio=True,
+    )
+    assert isinstance(sens, SensitivityEValueResult)
+    assert sens.e_value_point > 1.0
+
+    from scripts.reproduce import determine_certification_status
+
+    status_clean, msg_clean = determine_certification_status(
+        all_checks_passed=True,
+        git_info={"commit": "abc1234", "dirty": False},
+    )
+    assert status_clean == "CERTIFIED_RELEASE"
+    assert "clean" in msg_clean.lower()
+
+    status_dirty, msg_dirty = determine_certification_status(
+        all_checks_passed=True,
+        git_info={"commit": "abc1234", "dirty": True},
+    )
+    assert status_dirty == "REPRODUCIBLE_DIRTY_WORKTREE"
+    assert "Refusing CERTIFIED_RELEASE" in msg_dirty
+
+    status_local, _ = determine_certification_status(
+        all_checks_passed=True,
+        git_info={"commit": "UNKNOWN_OR_UNTRACKED", "dirty": False},
+    )
+    assert status_local == "LOCAL_DEVELOPMENT"
+
+    status_fail, _ = determine_certification_status(
+        all_checks_passed=False,
+        git_info={"commit": "abc1234", "dirty": False},
+    )
+    assert status_fail == "NON_REPRODUCIBLE"

@@ -120,6 +120,45 @@ class TestBootstrapDeltaAndSignificance:
         assert delta_1.ci_upper == delta_2.ci_upper
         assert delta_1.p_value == delta_2.p_value
 
+    def test_deterministic_zero_variance_delta_disambiguation(
+        self, sample_world_state: WorldState
+    ) -> None:
+        """Single-sample or zero-variance deltas must be labeled deterministic, not statistically significant."""
+        det_diff = compute_bootstrap_delta([100.0], [70.0], seed=42)
+        assert det_diff.is_deterministic
+        assert det_diff.status_label == "deterministic_difference"
+        assert det_diff.status_label != "statistically_significant"
+
+        det_same = compute_bootstrap_delta([100.0, 100.0], [100.0, 100.0], seed=42)
+        assert det_same.is_deterministic
+        assert not det_same.is_significant
+        assert det_same.status_label == "deterministic_identical"
+
+        from ewm_engine.core.actions import Action
+        from ewm_engine.core.world import World
+        from ewm_engine.dynamics.deterministic import DeterministicTransferDynamics
+
+        world = World(state=sample_world_state, dynamics=DeterministicTransferDynamics())
+        base = world.simulate(horizon=2, seed=42)
+        cf = world.branch().simulate(
+            actions=[
+                Action(
+                    type="transfer_resource",
+                    parameters={
+                        "quantity": 10.0,
+                        "source_resource": "stock_wh1",
+                        "target_resource": "stock_wh2",
+                    },
+                )
+            ],
+            horizon=2,
+            seed=42,
+        )
+        comp = compare_scenarios(base, [cf], metrics=["resource_stock_wh1"])
+        table = comp.summary_table()
+        assert "(det)" in table
+        assert "] *" not in table
+
 
 class TestParetoFrontierAnalysis:
     """Tests for multi-objective optimization and Pareto dominance."""

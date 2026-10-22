@@ -46,22 +46,22 @@
 
 ### Level 1 $\rightarrow$ Level 2: From Spreadsheets to Typed Models
 * **The Symptom:** Different business units use conflicting Excel formulas; supply plans forecast negative inventory; cash flow forecasts do not reconcile with ERP balances.
-* **The EWM Transition:** Adopt declarative World Specification Language ([WSL](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/concepts/wsl.md)) and [`WorldState`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/state.py). Define explicit entities, resources, and hard conservation constraints.
+* **The EWM Transition:** Adopt declarative World Specification Language ([WSL](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/concepts/wsl.md)) and [`WorldState`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/state.py). Define explicit entities, resources, and hard conservation constraints.
 * **Immediate Value:** Eliminates impossible plans before simulation begins.
 
 ### Level 2 $\rightarrow$ Level 3: From Static Models to Stochastic Simulation
 * **The Symptom:** Management evaluates plans under a single expected outcome; unexpected market volatility causes severe covenant or SLA breaches.
-* **The EWM Transition:** Deploy [`SimulationEngine`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/simulation/engine.py) to run 1,000-sample Monte Carlo ensembles with seeded determinism. Apply [`compare_scenarios()`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/evaluation/comparison.py) to compute empirical quantiles ($p05, p50, p95$).
+* **The EWM Transition:** Deploy [`SimulationEngine`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/simulation/engine.py) to run 1,000-sample Monte Carlo ensembles with seeded determinism. Apply [`compare_scenarios()`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/evaluation/comparison.py) to compute empirical quantiles ($p05, p50, p95$).
 * **Immediate Value:** Replaces point guesses with certified distribution envelopes, exposing hidden downside tail risks.
 
 ### Level 3 $\rightarrow$ Level 4: From What-If to Causal Prescriptive Action
 * **The Symptom:** Decision-makers run dozens of what-if scenarios but cannot determine which parameter combinations cause failure, or confuse correlation with policy efficacy.
-* **The EWM Transition:** Promote graph state to a Structural Causal Model ([ADR-040](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-040-twin-rollout-counterfactual-scm-kernel.md)). Execute Twin-Rollout counterfactuals ($do(x)$). Run [`ewm decide`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/decision/discovery.py) using PRIM scenario discovery to isolate vulnerability subspaces and rank policies via Minimax Regret.
+* **The EWM Transition:** Promote graph state to a Structural Causal Model ([ADR-040](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-040-twin-rollout-counterfactual-scm-kernel.md)). Execute Twin-Rollout counterfactuals ($do(x)$). Run [`ewm decide`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/decision/discovery.py) using PRIM scenario discovery to isolate vulnerability subspaces and rank policies via Minimax Regret.
 * **Immediate Value:** Mathematically guarantees that interventions work under identical historical shocks, bounding strategic regret.
 
 ### Level 4 $\rightarrow$ Level 5: Towards the Calibrated Digital Twin
 * **The Symptom:** Simulated model parameters drift away from actual enterprise telemetry over time, requiring manual re-tuning.
-* **The EWM Transition:** Implement amortized Simulation-Based Inference (`ewm calibrate`, [ADR-043](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-043-amortized-calibration-certified-coverage.md)) to continuously calibrate parameters against operational data with certified coverage. Deploy receding-horizon control (MPC) and the neuro-symbolic flywheel ([ADR-042](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-042-grey-box-conservation-flywheel.md)).
+* **The EWM Transition:** Implement amortized Simulation-Based Inference (`ewm calibrate`, [ADR-043](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-043-amortized-calibration-certified-coverage.md)) to continuously calibrate parameters against operational data with certified coverage. Deploy receding-horizon control (MPC) and the neuro-symbolic flywheel ([ADR-042](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-042-grey-box-conservation-flywheel.md)).
 * **Immediate Value:** Creates a self-correcting, auditable Digital Twin of the Organization (DTO).
 
 ---

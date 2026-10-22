@@ -10,7 +10,7 @@ A structural simulator contains latent parameters $\theta$ (e.g., service rates,
 
 $$p(\theta \mid x_{\text{obs}})$$
 
-Crucially, EWM Engine enforces **mandatory coverage certification** via TARP (Tests of Accuracy and Relative Precision, [arXiv:2302.03026](https://arxiv.org/abs/2302.03026)). If the posterior is overconfident or under-covered, the engine refuses decision use.
+Crucially, EWM Engine enforces **coverage diagnostics** via TARP (Tests of Accuracy with Random Points, Lemos et al., ICML 2023, [arXiv:2302.03026](https://arxiv.org/abs/2302.03026)). If the posterior is overconfident or under-covered, the engine refuses decision use.
 
 ---
 

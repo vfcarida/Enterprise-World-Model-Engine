@@ -83,6 +83,7 @@ nav:
       - "Induction Honesty & Validation": results/induction-validation-s09.md
       - "Performance & Scaling Curves": performance.md
       - Scientific Reproduction & Adoption:
+          - "Claim-to-Evidence Registry": scientific/claim-evidence-matrix.md
           - "Reproducibility & Citation Guide": reproducibility.md
           - "Software Heritage (SWHID)": scientific/swhid.md
           - "MLRC 2026 Replication Package": scientific/mlrc_2026_replication_pkg.md
@@ -273,6 +274,8 @@ nav:
           - "ADR-050: Batched Scale & Cross-Backend Bit-Identical Fingerprints": adr/ADR-050-cross-backend-bit-identical-fingerprints-and-batched-scale.md
           - "ADR-051: World Model Interchange Format & Conformance Standard": adr/ADR-051-world-model-interchange-format-and-conformance-standard.md
           - "ADR-052: Scientific Reproduction, Persistent Identifiers & Adoption": adr/ADR-052-scientific-reproduction-and-citation-capstone.md
+          - "ADR-053: Formal Enterprise World-Model Semantics & Context": adr/ADR-053-formal-enterprise-world-model-semantics-and-context.md
+          - "ADR-054: Enterprise World-Model Evaluation Suite": adr/ADR-054-enterprise-world-model-evaluation-benchmark-suite.md
 
   - Community & Governance:
       - "Community Health & CHAOSS": community-health.md
@@ -315,6 +318,7 @@ nav:
       - "Observability Layer": architecture/observability.md
       - "Architecture Proposal": architecture/proposal.md
       - "Scientific Benchmark Families": research/benchmarks.md
+      - "Enterprise Benchmark Suite (A–L)": research/enterprise-benchmark-suite.md
       - Integrations Overview: integrations/overview.md
       - "Agent Evaluation ('Engine != Agent')": integrations/agent-evaluation.md
       - Model & Scenario Cards:

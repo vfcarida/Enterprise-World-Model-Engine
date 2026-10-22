@@ -27,7 +27,7 @@ EWM's decision-focused learning engine (`ewm decide`) operationalizes robust sce
    * Strategy 2: Modular Regional Resilience (distributed footprint, moderate scale).
    * Strategy 3: Digital-First Asset-Light (licensing and software focus).
 2. **Divergent Future Worlds ($S$):** Four deeply uncertain macro scenarios with divergent tax regimes, tariffs, and carbon border adjustments.
-3. **Formal Robustness Metrics ([ADR-041](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-041-decision-focused-scenario-discovery.md)):**
+3. **Formal Robustness Metrics ([ADR-041](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-041-decision-focused-scenario-discovery.md)):**
    * **Minimax Regret:** Identifies the strategy whose maximum loss compared to the optimal ex-post decision in any world is minimized:
      $$\min_{a \in A} \max_{s \in S} \left( \max_{a' \in A} V(a', s) - V(a, s) \right)$$
    * **Domain Criterion / Satisficing:** Measures what percentage of simulated future worlds achieve a minimum required hurdle rate (e.g., $\text{ROIC} \ge 12\%$).

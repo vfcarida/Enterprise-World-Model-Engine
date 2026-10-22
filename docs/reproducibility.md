@@ -11,7 +11,7 @@ The **Enterprise World Model Engine (`ewm-engine`)** is engineered from the grou
 ## 1. Academic Citation & Persistent Identifiers
 
 ### Native GitHub Citation (`CITATION.cff`)
-`ewm-engine` includes a machine-readable [`CITATION.cff`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/CITATION.cff) file at the repository root compliant with the Citation File Format (v1.2.0) schema. GitHub uses this file to provide automated, one-click citations in both **APA** and **BibTeX** formats via the **"Cite this repository"** button on the main repository page.
+`ewm-engine` includes a machine-readable [`CITATION.cff`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/CITATION.cff) file at the repository root compliant with the Citation File Format (v1.2.0) schema. GitHub uses this file to provide automated, one-click citations in both **APA** and **BibTeX** formats via the **"Cite this repository"** button on the main repository page.
 
 #### BibTeX Citation
 ```bibtex
@@ -29,7 +29,7 @@ The **Enterprise World Model Engine (`ewm-engine`)** is engineered from the grou
 
 ### Zenodo DOI: Concept DOI vs. Version DOI
 
-To ensure permanent archival and academic traceability, `ewm-engine` integrates with **Zenodo** through automated GitHub release webhooks, configured via [`.zenodo.json`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/.zenodo.json):
+To ensure permanent archival and academic traceability, `ewm-engine` integrates with **Zenodo** through automated GitHub release webhooks, configured via [`.zenodo.json`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/.zenodo.json):
 
 ```
        Concept DOI (All Versions)
@@ -46,56 +46,67 @@ To ensure permanent archival and academic traceability, `ewm-engine` integrates 
 ```
 
 1. **Concept DOI (`10.5281/zenodo.<concept_id>`)**:
-   - Represents the software project conceptually across all time.
-   - Use this when citing the engine generally in conceptual or comparative literature.
-   - Resolves dynamically to the latest published release (`10.5281/zenodo.14000000`).
+   - Represents the software project conceptually across all releases (*not yet published / to be assigned upon Zenodo release deposition*).
 
 2. **Version DOI (`10.5281/zenodo.<version_id>`)**:
-   - Represents a specific, immutable release tarball (`10.5281/zenodo.14000001` for v1.5.0).
-   - Use this when reporting experimental benchmarks or empirical findings to guarantee that subsequent readers can inspect the exact code executed.
+   - Represents a specific, immutable release tarball (*not yet published / to be assigned upon Zenodo release deposition*).
 
 ---
 
 ### Software Heritage Archival (SWHID - ISO/IEC 18670:2025)
 
-While Zenodo stores release tarballs, [Software Heritage](https://www.softwareheritage.org/) archives the entire Git development graph, tracking individual commits, trees, and blobs via cryptographic **SoftWare Heritage Identifiers (SWHIDs)** conforming to ISO/IEC 18670:2025.
+While Zenodo stores release tarballs, [Software Heritage](https://www.softwareheritage.org/) archives the Git development graph, tracking individual commits, trees, and blobs via cryptographic **SoftWare Heritage Identifiers (SWHIDs)** conforming to ISO/IEC 18670:2025 (*public SWHID not yet assigned; see local verification instructions in [Software Heritage Guide](scientific/swhid.md)*).
 
-- **Trigger Archival**: The repository is archived via the [Software Heritage Save Code Now](https://archive.softwareheritage.org/save/) service using the repository URL:
+- **Trigger Archival**: The repository can be submitted via the [Software Heritage Save Code Now](https://archive.softwareheritage.org/save/) service using the repository URL:
   ```text
   https://github.com/vfcarida/Enterprise-World-Model-Engine
   ```
-- **Referencing via SWHID**: Specific versions can be referenced with persistent intrinsic identifiers:
+- **Referencing via SWHID**: Specific versions follow the standard intrinsic syntax:
   ```text
-  swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine
+  swh:1:rev:<git_commit_sha1>;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine
   ```
   See the dedicated [Software Heritage Guide](scientific/swhid.md) for verification procedures.
 
 ---
 
-### Scientific Publications: arXiv cs.MS + JOSS
+### Companion Manuscripts (In-Tree Drafts — Not Yet Published)
 
-EWM Engine provides two complementary peer-reviewed and citable manuscripts:
+EWM Engine includes two manuscript drafts in-tree (*neither has been assigned an external DOI or arXiv identifier yet*):
 
-1. **arXiv cs.MS & cs.DC Companion Paper (The Science)**:
+1. **Methods & Benchmark Companion Manuscript**:
    - Title: *Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty*
-   - Pre-print: [arXiv:2610.01234 [cs.MS]](https://arxiv.org/abs/2610.01234)
-   - Draft manuscript: [`paper/arxiv/paper.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/arxiv/paper.md) and LaTeX source [`paper/arxiv/paper.tex`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/arxiv/paper.tex).
-   - Compliance: Evaluated under the [NeurIPS Datasets & Benchmarks Checklist](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/arxiv/NEURIPS_CHECKLIST.md).
+   - Status: In-tree draft (*arXiv identifier not yet published / to be assigned upon submission*)
+   - Draft manuscript: `paper/arxiv/paper.md` and LaTeX source `paper/arxiv/paper.tex`.
+   - Checklist: `paper/arxiv/NEURIPS_CHECKLIST.md`.
 
-2. **Journal of Open Source Software (JOSS - The Software)**:
-   - Paper manuscript: [`paper/paper.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/paper.md)
-   - Bibliography: [`paper/paper.bib`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/paper/paper.bib)
-   - DOI: `10.21105/joss.07890`.
+2. **Journal of Open Source Software (JOSS) Manuscript**:
+   - Paper manuscript: `paper/paper.md`
+   - Bibliography: `paper/paper.bib`
+   - Status: In-tree draft (*JOSS DOI not yet published / to be assigned upon review*).
 
 ---
 
-### Independent Reproduction & ACM Badging
+### Replication Protocols & Claim-to-Evidence Registry
 
-To ensure external credibility, EWM Engine participates in independent replication initiatives:
-- **ML Reproducibility Challenge (MLRC 2026)**: Track protocol documented in [`docs/scientific/mlrc_2026_replication_pkg.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/scientific/mlrc_2026_replication_pkg.md).
-- **ReScience C Replication**: Submission report and reviewer protocol in [`docs/scientific/rescience_c_submission.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/scientific/rescience_c_submission.md).
-- **ACM Artifact Badges**: Pursuit of all three ACM badges (**Artifacts Available**, **Artifacts Evaluated - Functional & Reusable**, **Results Reproduced**) detailed in [`docs/scientific/acm_artifact_appendix.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/scientific/acm_artifact_appendix.md).
-- **Pre-Registered Study Protocol**: Registered report protocol documented in [`docs/scientific/registered_report_protocol.md`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/scientific/registered_report_protocol.md).
+- **Claim-to-Evidence Registry**: All public claims, evidence tiers (`THEORETICAL`, `UNIT_VERIFIED`, `PROPERTY_VERIFIED`, `CONFORMANCE_VERIFIED`, `BENCHMARKED`, `CALIBRATED`, `EXTERNALLY_REPRODUCED`, `UNVERIFIED_RESEARCH`), and verification commands are cataloged in [`docs/scientific/claim-evidence-matrix.md`](scientific/claim-evidence-matrix.md).
+- **Replication Templates (Prepared for External Review — Not Yet Externally Replicated)**:
+  - MLRC protocol template: [`docs/scientific/mlrc_2026_replication_pkg.md`](scientific/mlrc_2026_replication_pkg.md).
+  - ReScience C template: [`docs/scientific/rescience_c_submission.md`](scientific/rescience_c_submission.md).
+  - ACM Artifact Appendix template: [`docs/scientific/acm_artifact_appendix.md`](scientific/acm_artifact_appendix.md).
+  - Pre-registered study protocol: [`docs/scientific/registered_report_protocol.md`](scientific/registered_report_protocol.md).
+
+---
+
+### Run-Manifest Certification Semantics
+
+`scripts/reproduce.py` enforces a strict distinction between clean immutable releases and modified working trees via `certification_status` in `reproduction_manifest.json`:
+
+| Certification State | Criteria | Meaning |
+| :--- | :--- | :--- |
+| `CERTIFIED_RELEASE` | All 9 checks pass **and** `git status --porcelain` is clean (`dirty == False`) | Reproducible run from an unmodified committed revision |
+| `REPRODUCIBLE_DIRTY_WORKTREE` | All 9 checks pass, but `dirty == True` | Numerical checks pass, but working tree has uncommitted modifications (`source_tree_sha256` recorded) |
+| `LOCAL_DEVELOPMENT` | Subset of checks run or git metadata unavailable | Partial / local development execution |
+| `NON_REPRODUCIBLE` | One or more verification checks failed (`--require-clean` or numerical failure) | Verification failed |
 
 ---
 
@@ -118,16 +129,16 @@ To guarantee that simulations and scientific evaluations conducted with `ewm-eng
 
 | Category | Requirement | EWM Engine Implementation | Verification Gate |
 | :--- | :--- | :--- | :--- |
-| **Dependencies** | Complete specification of execution environment and dependencies | [`RunManifest.dependency_versions`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/provenance/manifest.py), `uv.lock`, hardware summary | Automated check in `compute_readiness_report` |
-| **PRNG Seeding** | Explicit random number generator lifecycle and thread isolation | [`seed_everything()`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/seed.py), `np.random.SeedSequence` hierarchical spawning, `OMP_NUM_THREADS=1` | Zero global state; bitwise trajectory equivalence |
-| **State Immutability** | Cryptographic state provenance preventing mutations | [`WorldState`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/state.py) deep immutability (`frozen=True`), canonical SHA-256 fingerprinting | Property tests with Hypothesis |
-| **Statistical Reporting** | No bare point estimates; distribution reporting | [`evaluate_multiseed()`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/evaluation/multiseed.py) with percentile bootstrap confidence intervals (mean ± 95% CI) | Enforced in `MultiSeedReport` |
-| **Rollout Drift** | Measurement of compounding error over simulation horizons | [`RolloutDivergenceResult.compounding_error_ratios`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/dynamics_eval.py) ($C(h) = \text{err}(h) / (h \cdot \text{err}(1))$, Talvitie 2014) | [`select_reliable_horizon()`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/dynamics_eval.py) safety check |
+| **Dependencies** | Complete specification of execution environment and dependencies | [`RunManifest.dependency_versions`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/provenance/manifest.py), `uv.lock`, hardware summary | Automated check in `compute_readiness_report` |
+| **PRNG Seeding** | Explicit random number generator lifecycle and thread isolation | [`seed_everything()`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/seed.py), `np.random.SeedSequence` hierarchical spawning, `OMP_NUM_THREADS=1` | Zero global state; bitwise trajectory equivalence |
+| **State Immutability** | Cryptographic state provenance preventing mutations | [`WorldState`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/state.py) deep immutability (`frozen=True`), canonical SHA-256 fingerprinting | Property tests with Hypothesis |
+| **Statistical Reporting** | No bare point estimates; distribution reporting | [`evaluate_multiseed()`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/evaluation/multiseed.py) with percentile bootstrap confidence intervals (mean ± 95% CI) | Enforced in `MultiSeedReport` |
+| **Rollout Drift** | Measurement of compounding error over simulation horizons | [`RolloutDivergenceResult.compounding_error_ratios`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/experimental/dynamics_eval.py) ($C(h) = \text{err}(h) / (h \cdot \text{err}(1))$, Talvitie 2014) | [`select_reliable_horizon()`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/experimental/dynamics_eval.py) safety check |
 | **Probabilistic UQ** | Proper scoring rules and distribution-free intervals | CRPS, Gaussian log score/NLL, Brier score, adaptive calibration error (ACE), split conformal prediction | Calibration consistency gate |
 | **Causal Honesty** | Gated causal estimation without heuristic over-promotion | Backdoor/frontdoor DAG identifiability check, Doubly Robust OPE with mandatory ESS and clip diagnostics | Block on non-identifiable; no auto-upgrade of `EvidenceLevel` |
 | **Sensitivity** | Robustness to unobserved confounding | VanderWeele & Ding E-values attached to estimates and CI bounds; common-support overlap checks ($d \ge 5$ warning) | Refutation battery (placebo, random common cause, subset stability) |
-| **ML Production Readiness** | Systematic testing across data, models, infrastructure, monitoring | Google ML Test Score ($\min(\text{Data}, \text{Model}, \text{Infra}, \text{Monitoring})$) | [`compute_readiness_report()`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/readiness.py) |
-| **Metamorphic Invariants** | Code change regression auditing | Invariant transformation checks using business rules as the oracle | [`run_metamorphic_regression_gate()`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/readiness.py) |
+| **ML Production Readiness** | Systematic testing across data, models, infrastructure, monitoring | Google ML Test Score ($\min(\text{Data}, \text{Model}, \text{Infra}, \text{Monitoring})$) | [`compute_readiness_report()`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/experimental/readiness.py) |
+| **Metamorphic Invariants** | Code change regression auditing | Invariant transformation checks using business rules as the oracle | [`run_metamorphic_regression_gate()`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/experimental/readiness.py) |
 
 ---
 
@@ -146,11 +157,11 @@ seed_everything(seed=42, deterministic=True)
 
 # 2. Record an auditable run manifest mapping 1:1 to the NeurIPS checklist
 manifest = create_run_manifest(
-    engine_version="1.0.0",
+    engine_version="1.5.0",
     seed=42,
     scenario_id="supply_chain_shock",
     initial_state_fingerprint="sha256_canonical_state_fingerprint",
-    component_versions={"inventory_dynamics": "1.0.0", "capacity_constraint": "1.0.0"},
+    component_versions={"inventory_dynamics": "1.5.0", "capacity_constraint": "1.5.0"},
     determinism_flags={"deterministic": True, "single_threaded_blas": True},
     execution_duration_sec=1.42,
 )

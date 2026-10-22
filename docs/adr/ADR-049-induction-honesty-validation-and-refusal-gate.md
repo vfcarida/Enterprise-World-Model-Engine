@@ -9,7 +9,7 @@ Automated world-model induction (process/schema and causal/dynamics) is a powerf
 3. **Hallucinatory Process Models**: Mined process models often overfit trace logs, failing basic replay conformance (fitness and precision) against unseen process executions (Carmona et al., 2018).
 4. **Epistemic Dilution**: Traditional auto-modeling tools fail open, writing whatever heuristic graph they discover into the model. When downstream decision-makers optimize interventions against such models, policy failures are inevitable.
 
-Enterprise World Model Engine must be **the only auto-modeler that refuses to overclaim**. This is EWM's core differentiator and defensive moat.
+Enterprise World Model Engine enforces **a mandatory fail-closed induction gate that refuses to emit unidentifiable or refuted structure**. This architectural invariant prevents unverified discovery outputs from entering `WorldSpec`.
 
 ## Considered Options
 

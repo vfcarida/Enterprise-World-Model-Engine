@@ -1,35 +1,35 @@
 # NeurIPS Datasets & Benchmarks Track: Paper & Benchmark Checklist
 
-> **Submission Title**: *Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty*  
-> **Authors**: Vinicius Caridá (Independent Researcher)  
-> **Artifact URL**: [https://github.com/vfcarida/Enterprise-World-Model-Engine](https://github.com/vfcarida/Enterprise-World-Model-Engine)  
-> **Permanent DOI**: [10.5281/zenodo.14000000](https://doi.org/10.5281/zenodo.14000000) (Concept) / [10.5281/zenodo.14000001](https://doi.org/10.5281/zenodo.14000001) (Version v1.5.0)  
-> **Software Heritage SWHID**: `swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c` (ISO/IEC 18670:2025)  
+> **Submission Title**: *Structural World Models: Evaluating Hybrid Conservation, Learned Residual Dynamics, and Runtime Context Discovery Under Organizational Regime Shift*
+> **Author**: Vinicius Caridá (Independent Researcher)
+> **Artifact URL**: [https://github.com/vfcarida/Enterprise-World-Model-Engine](https://github.com/vfcarida/Enterprise-World-Model-Engine)
+> **Permanent DOI**: *Not yet published (to be assigned upon Zenodo release archival)*
+> **Software Heritage SWHID**: *Not yet published (to be assigned upon Software Heritage ingestion)*
 
 ---
 
 ## 1. Claims and Evidence
-* **Question 1.1:** Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?  
-  * **Answer:** **Yes**. The paper claims an architectural decoupling of known conservation laws from learned dynamics, a Twin-Rollout counterfactual SCM kernel, amortized SBI calibration with TARP certification, world-model induction with a fail-closed causal refusal gate, cross-backend bit-identical fingerprints, and the WMIF interchange standard. All claims are implemented in shipped code and verified via automated test suites.
-* **Question 1.2:** Have you accurately reported the limitations of your work?  
-  * **Answer:** **Yes**. Section 7 and the accompanying Model Cards explicitly note that counterfactual rollouts are evaluated within the assumed model SCM and do not constitute physical guarantees without real-world empirical validation; experimental submodules are clearly flagged as Beta under SPEC 0.
-* **Question 1.3:** Did you discuss whether the data you are using/curating can reflect unfair or undesirable bias?  
-  * **Answer:** **Yes**. Model Cards and documentation mandate bias and fairness audits across sensitive sub-populations via optional Fairlearn adapters (`ewm-engine[fairness]`).
+* **Question 1.1:** Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
+  * **Answer:** **Yes**. The paper formulates and tests a falsifiable hypothesis across 12 synthetic operational families (`A`–`L`) and 7 domain validation cards: combining linear conservation nullspace projection ($\le 10^{-12}$ IEEE-754 tolerance), learned residual dynamics, and runtime context discovery reduces decision regret and restores split-conformal coverage under identifiable mid-deployment regime shifts (Families `A`–`H`, `L`), while negative controls explicitly demonstrate where simpler rules-only models win (`Family I`), where severe OOD shocks require abstention (`Family J`), and where unmeasured confounding triggers fail-closed refusal (`Family K`). Numerical reproducibility is scoped via a Three-Tier Reproducibility Contract (`BITWISE_REPRODUCIBLE` for pure-Python/NumPy, `NUMERICALLY_EQUIVALENT_WITH_TOLERANCE` for JAX `x64` within `rtol=1e-6, atol=1e-7`, and `NON_CERTIFIED_BACKEND` for CuPy).
+* **Question 1.2:** Have you accurately reported the limitations of your work?
+  * **Answer:** **Yes**. Section 6 of the paper and Section 9 of `README.md` explicitly document seven operational boundaries: model-conditioned validity ($P_{\text{model}}$ vs. reality), OOD extrapolation degradation, causal identification preconditions, marginal (non-conditional) conformal exchangeability, stylized benchmark scope, IEEE-754 floating-point precision envelopes, and decision-support boundaries.
+* **Question 1.3:** Did you discuss whether the data you are using/curating can reflect unfair or undesirable bias?
+  * **Answer:** **Yes**. Model Cards and documentation support subgroup disparity and fairness audits across sensitive sub-populations via `ewm_engine.evaluation.fairness` (`ewm-engine[fairness]`).
 
 ---
 
 ## 2. Reproducibility
-* **Question 2.1:** Are the execution commands, random seeds, and environment configurations needed to reproduce all reported results clearly described?  
-  * **Answer:** **Yes**. All seven benchmark results, three WMIF reference worlds, and cross-backend SoA tensors reproduce bit-for-bit with the single command `make reproduce` (or `python scripts/reproduce.py`). State fingerprints, hardware seeds (`SeedSequence`), dependency versions, and BLAS runtimes are logged to the cryptographic JSON run-manifest `reproduction_manifest.json`.
-* **Question 2.2:** Is the software repository publicly accessible under an open-source license?  
+* **Question 2.1:** Are the execution commands, random seeds, and environment configurations needed to reproduce all reported results clearly described?
+  * **Answer:** **Yes**. All seven validation cards (`reproduction_manifest.json`), three WMIF reference worlds, and the 12-family Enterprise Benchmark Suite (`docs/results/artifacts/enterprise_benchmark_suite.json`, `suite_fingerprint = 7dadf02addfc7a434538cc587c8ce8a4dbc2009a4394c323c19384b3a0349c67`) reproduce deterministically on CPU via `python scripts/reproduce.py` and `python scripts/run_enterprise_benchmark_suite.py`. State fingerprints, `SeedSequence` seeds, dependency versions, and worktree cleanliness (`CERTIFIED_RELEASE` vs. `REPRODUCIBLE_DIRTY_WORKTREE`) are audited by `python scripts/check_release_truth.py`.
+* **Question 2.2:** Is the software repository publicly accessible under an open-source license?
   * **Answer:** **Yes**. Distributed under the Apache-2.0 license at `https://github.com/vfcarida/Enterprise-World-Model-Engine`.
-* **Question 2.3:** Are dependencies, installation steps, and minimal hardware requirements specified?  
-  * **Answer:** **Yes**. Standard Python 3.10–3.12 with zero mandatory deep learning or GPU dependencies in core; installable via `pip install ewm-engine`. Pinned Docker, Binder, and GitHub Codespaces devcontainer configurations are provided for zero-friction execution.
+* **Question 2.3:** Are dependencies, installation steps, and minimal hardware requirements specified?
+  * **Answer:** **Yes**. Standard Python 3.10–3.12 with zero mandatory deep learning or GPU dependencies in core (`numpy`, `pydantic`, `pyyaml`, `networkx`); installable via `pip install -e .`. Pinned Docker, Binder, and GitHub Codespaces devcontainer configurations are provided.
 
 ---
 
 ## 3. Maintenance, Governance, and Ethics
-* **Question 3.1:** Is there a formal maintenance plan, security disclosure policy, and community governance structure?  
-  * **Answer:** **Yes**. Documented in `GOVERNANCE.md` (ADR-038 RFC process), `SECURITY.md` (RFC 9116 with 48h SLA), and `docs/stability-policy.md` (SemVer 2.0.0).
-* **Question 3.2:** Does the benchmark release personal data or copyrighted proprietary datasets?  
-  * **Answer:** **No**. All benchmarks are based on standard synthetic or public mathematical formulations (Kermack-McKendrick SEIR ODE, Sterman Beer Game, Meadows WORLD3, synthetic warehouse logistics, and synthetic OCEL 2.0 process logs).
+* **Question 3.1:** Is there a formal maintenance plan, security disclosure policy, and community governance structure?
+  * **Answer:** **Yes**. Documented in `GOVERNANCE.md` (ADR-038 RFC process), `SECURITY.md` (RFC 9116), `docs/spec0-policy.md` (Scientific Python SPEC 0), and `docs/stability-policy.md` (SemVer 2.0.0).
+* **Question 3.2:** Does the benchmark release personal data or copyrighted proprietary datasets?
+  * **Answer:** **No**. All benchmarks are based on synthetic or public mathematical formulations (Kermack–McKendrick SEIR ODE, Sterman Beer Game, Meadows WORLD3, synthetic warehouse logistics, synthetic OCEL 2.0 process logs, and synthetic operational shift families `A`–`L`).

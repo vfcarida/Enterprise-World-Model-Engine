@@ -151,19 +151,22 @@ def test_batched_executor_resolution_and_dispatch() -> None:
 
 
 def test_array_api_backends_and_certification() -> None:
-    """Verify Array API backends expose correct certification status."""
+    """Verify Array API backends expose the three-tier reproducibility contract."""
     np_backend = NumPyBackend()
     assert np_backend.backend_type == BackendType.NUMPY
-    assert np_backend.certification == CertificationStatus.CERTIFIED_BIT_IDENTICAL
+    assert np_backend.certification == CertificationStatus.BITWISE_REPRODUCIBLE
+    assert np_backend.tolerance_contract == {"rtol": 0.0, "atol": 0.0}
     assert np_backend.is_available is True
 
     jax_backend = JaxBackend()
     assert jax_backend.backend_type == BackendType.JAX
-    assert jax_backend.certification == CertificationStatus.CERTIFIED_BIT_IDENTICAL
+    assert jax_backend.certification == CertificationStatus.NUMERICALLY_EQUIVALENT_WITH_TOLERANCE
+    assert jax_backend.tolerance_contract == {"rtol": 1e-6, "atol": 1e-7}
 
     cupy_backend = CuPyBackend()
     assert cupy_backend.backend_type == BackendType.CUPY
-    assert cupy_backend.certification == CertificationStatus.THROUGHPUT_ONLY
+    assert cupy_backend.certification == CertificationStatus.NON_CERTIFIED_BACKEND
+    assert cupy_backend.tolerance_contract is None
 
     # Resolver
     assert isinstance(resolve_backend("numpy"), NumPyBackend)

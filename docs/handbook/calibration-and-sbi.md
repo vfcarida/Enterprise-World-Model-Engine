@@ -15,8 +15,8 @@ EWM implements **Simulation-Based Inference (SBI)** via amortized Neural Posteri
 
 $$\mathcal{L}(\phi) = - \mathbb{E}_{\theta \sim p(\theta), x \sim p(x \mid \theta)} \left[ \log q_\phi(\theta \mid x) \right]$$
 
-### Certified Coverage: The TARP Diagnostic
-A calibrated Bayesian posterior must be neither overconfident nor underconfident. EWM evaluates calibration quality using the **Test of Accuracy of Related Probabilities (TARP)** (Lemos et al., 2023).
+### Coverage Diagnostics: The TARP Diagnostic
+A calibrated Bayesian posterior must be neither overconfident nor underconfident. EWM evaluates calibration quality using **Tests of Accuracy with Random Points (TARP)** (Lemos et al., ICML 2023, arXiv:2302.03026).
 
 For any credible region level $\alpha \in [0, 1]$, the probability that the true parameter $\theta^*$ falls within the estimated $\alpha$-credible region must equal $\alpha$:
 
@@ -96,4 +96,4 @@ print(f"Is Posterior Certified? {is_certified}")
 
 > [!TIP]
 > **Best Practice: Never Deploy Without Passing the TARP Gate**  
-> If the empirical TARP curve bows significantly below the diagonal, the posterior is overconfident. In high-stakes settings, deploy [`WideUncertaintyWarning`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/trust.py) and widen confidence intervals to avoid underestimating risk.
+> If the empirical TARP curve bows significantly below the diagonal, the posterior is overconfident. In high-stakes settings, deploy [`WideUncertaintyWarning`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/trust.py) and widen confidence intervals to avoid underestimating risk.

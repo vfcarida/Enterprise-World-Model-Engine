@@ -1,15 +1,17 @@
 """Grey-box dynamics combining known symbolic rules with learned residual estimators.
 
 [EXPERIMENTAL] Implements the Universal Differential Equation (UDE) framing for enterprise systems:
-    s_{t+1} = f_{known}(s_t, a_t, e_t) + delta_{learned}(s_t, a_t, e_t)
+    s_{t+1} = f_{known}(s_t, a_t, e_t | K_t) + Proj_C(delta_{learned}(s_t, a_t, e_t | K_t))
 
 Key invariants:
 - Zero-residual reduction: If the learned residual is zero or absent, the grey-box reduces
   bit-for-bit to the symbolic kernel, producing identical cryptographic state fingerprints (S00 Invariant 5).
 - Residual-only learning: Machine learning models predict ONLY the discrepancy over explicit
   known rules, never hallucinating full ungrounded next-states.
-- Architectural conservation: Residual deltas pass through an optional ConservationProjectionLayer
-  (KKT-hPINN / Port-Hamiltonian projection) guaranteeing zero violation of declared physical/accounting laws.
+- Architectural conservation & no silent repair: Residual deltas pass through an optional
+  ConservationProjectionLayer and explicit feasibility checks against resource bounds and hard
+  constraints. Infeasible proposals are explicitly projected, rejected, abstained, or invalidated
+  per InfeasibleResidualPolicy — never silently repaired.
 - Epistemic integrity: Pure known executions retain STRUCTURAL evidence; applying a learned
   residual sets evidence level to PREDICTIVE.
 
@@ -20,16 +22,29 @@ Anchor papers:
 
 from __future__ import annotations
 
+import inspect
+import math
 from collections.abc import Callable, Sequence
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
 
+from ewm_engine.constraints.base import Constraint
 from ewm_engine.core.actions import Action
+from ewm_engine.core.context import ContextSnapshot
 from ewm_engine.core.events import ExogenousEvent
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.types import RandomGenerator, ResourceId
-from ewm_engine.dynamics.base import DynamicsModel, TransitionResult
+from ewm_engine.dynamics.base import (
+    DynamicsModel,
+    InfeasibleResidualPolicy,
+    MechanismKind,
+    MechanismProvenance,
+    ResidualFeasibilityRecord,
+    TransitionResult,
+    ValidityDomain,
+)
+from ewm_engine.dynamics.deterministic import _build_context_diagnostics
 from ewm_engine.dynamics.learned import TransitionDataset
 from ewm_engine.experimental.conservation import ConservationProjectionLayer
 from ewm_engine.provenance.evidence import EvidenceLevel
@@ -236,14 +251,52 @@ class LinearResidualEstimator:
         return {rid: float(pred[i]) for i, rid in enumerate(self.target_resources)}
 
 
+def _invoke_dynamics(
+    model: DynamicsModel,
+    state: WorldState,
+    actions: Sequence[Action],
+    exogenous_events: Sequence[ExogenousEvent],
+    rng: RandomGenerator,
+    runtime_context: ContextSnapshot | None,
+) -> TransitionResult:
+    """Invoke a DynamicsModel, passing runtime_context if supported."""
+    if runtime_context is not None:
+        try:
+            sig = inspect.signature(model.transition)
+            if "runtime_context" in sig.parameters or any(
+                p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+            ):
+                fn: Any = model.transition
+                res: TransitionResult = fn(
+                    state=state,
+                    actions=actions,
+                    exogenous_events=exogenous_events,
+                    rng=rng,
+                    runtime_context=runtime_context,
+                )
+                return res
+        except (ValueError, TypeError):
+            pass
+    return model.transition(
+        state=state,
+        actions=actions,
+        exogenous_events=exogenous_events,
+        rng=rng,
+    )
+
+
 class GreyBoxDynamics:
-    """Universal Differential Equation (UDE) grey-box dynamics model.
+    """Universal Differential Equation (UDE) constraint-preserving hybrid dynamics model.
 
     Orchestrates the hybrid combination:
-        s_{t+1} = f_{known}(s_t, a_t, e_t) + Proj(delta_{learned}(s_t, a_t, e_t))
+        s_{t+1} = f_{known}(s_t, a_t, e_t | K_t) + Proj_C(delta_{learned}(s_t, a_t, e_t | K_t))
 
     When residual_estimator is None or predicts zeros, this model strictly reduces
     to the symbolic kernel f_{known}, producing bit-for-bit identical state hashes and fingerprints.
+    When the learned residual proposes an infeasible transition (violating conservation laws,
+    resource capacity bounds, or explicit hard constraints), silent repair is forbidden:
+    the proposal is explicitly projected, rejected, abstained, or invalidated according to
+    ``infeasible_policy`` and logged in ``TransitionResult.residual_feasibility``.
     """
 
     def __init__(
@@ -252,11 +305,71 @@ class GreyBoxDynamics:
         residual_estimator: ResidualEstimator | None = None,
         conservation_layer: ConservationProjectionLayer | None = None,
         name: str = "GreyBoxDynamics",
+        *,
+        infeasible_policy: InfeasibleResidualPolicy = InfeasibleResidualPolicy.PROJECT,
+        constraints: Sequence[Constraint] = (),
+        version: str = "1.0.0",
+        required_context_keys: Sequence[str] | None = None,
+        validity_domain: ValidityDomain | None = None,
     ) -> None:
         self.known_model = known_model
         self.residual_estimator = residual_estimator
         self.conservation_layer = conservation_layer
         self.name = name
+        self.infeasible_policy = infeasible_policy
+        self.constraints = tuple(constraints)
+
+        known_prov = getattr(known_model, "mechanism_provenance", None)
+        if required_context_keys is not None:
+            req_keys = tuple(required_context_keys)
+        elif isinstance(known_prov, MechanismProvenance):
+            req_keys = known_prov.required_context_keys
+        else:
+            req_keys = ()
+
+        invariants: list[str] = ["resource_bounds"]
+        if conservation_layer is not None:
+            invariants.append("linear_conservation_laws")
+        for c in self.constraints:
+            invariants.append(f"constraint:{c.constraint_id}")
+
+        self._provenance = MechanismProvenance(
+            mechanism_id=name,
+            version=version,
+            kind=MechanismKind.HYBRID,
+            validity_domain=validity_domain or ValidityDomain(),
+            required_context_keys=req_keys,
+            evidence_level=(
+                EvidenceLevel.STRUCTURAL if residual_estimator is None else EvidenceLevel.PREDICTIVE
+            ),
+            source=f"hybrid({getattr(known_model, 'name', type(known_model).__name__)} + {type(residual_estimator).__name__ if residual_estimator else 'None'})",
+            uncertainty_contract="hybrid_structural_plus_residual",
+            invariants_affected=tuple(invariants),
+            failure_semantics=infeasible_policy,
+        )
+
+    @property
+    def mechanism_provenance(self) -> MechanismProvenance:
+        """Return formal mechanism provenance metadata."""
+        return self._provenance
+
+    def _evaluate_constraints(
+        self,
+        candidate_state: WorldState,
+        actions: Sequence[Action],
+    ) -> list[str]:
+        from ewm_engine.constraints.results import ConstraintPhase
+
+        violations: list[str] = []
+        for constraint in self.constraints:
+            res = constraint.evaluate(
+                state=candidate_state,
+                actions=actions,
+                phase=ConstraintPhase.POST_TRANSITION,
+            )
+            if not res.satisfied:
+                violations.append(f"constraint_violation:{res.constraint_id}:{res.message}")
+        return violations
 
     def transition(
         self,
@@ -264,13 +377,16 @@ class GreyBoxDynamics:
         actions: Sequence[Action],
         exogenous_events: Sequence[ExogenousEvent],
         rng: RandomGenerator,
+        runtime_context: ContextSnapshot | None = None,
     ) -> TransitionResult:
         # Step 1: Compute known symbolic transition
-        known_result = self.known_model.transition(
+        known_result = _invoke_dynamics(
+            self.known_model,
             state=state,
             actions=actions,
             exogenous_events=exogenous_events,
             rng=rng,
+            runtime_context=runtime_context,
         )
 
         # Fast path & invariant 5 preservation: if no residual model, return exact known result
@@ -285,44 +401,149 @@ class GreyBoxDynamics:
             known_next_state=known_result.next_state,
         )
 
-        # Check for strict zero residual
+        # Filter to target resources present in state with non-zero delta
         non_zero_residuals = {
-            rid: delta for rid, delta in raw_residuals.items() if abs(delta) > 1e-12
+            rid: float(delta)
+            for rid, delta in raw_residuals.items()
+            if abs(float(delta)) > 1e-12 and rid in known_result.next_state.resources
         }
         if not non_zero_residuals:
             # Bit-for-bit fingerprint-identical to known result
             return known_result
 
-        # Step 3: Pass residual through architectural conservation layer (if present)
+        base_state = known_result.next_state
+        violations: list[str] = []
+
+        # Step 3: Check conservation law feasibility
         if self.conservation_layer is not None:
-            projected_residuals = self.conservation_layer.project_deltas(
-                current_state=known_result.next_state,
+            conserved_residuals = self.conservation_layer.project_deltas(
+                current_state=base_state,
                 raw_deltas=non_zero_residuals,
             )
+            for rid, raw_d in non_zero_residuals.items():
+                proj_d = conserved_residuals.get(rid, 0.0)
+                if abs(proj_d - raw_d) > 1e-9:
+                    violations.append(
+                        f"conservation_law_violation:{rid}(raw={raw_d:.6f},projected={proj_d:.6f})"
+                    )
         else:
-            projected_residuals = non_zero_residuals
+            conserved_residuals = dict(non_zero_residuals)
 
-        # Step 4: Apply projected deltas to known next state
-        next_state = known_result.next_state
-        applied_deltas: dict[str, float] = {}
+        # Step 4: Check resource capacity bounds on the raw proposal
+        for rid, raw_d in non_zero_residuals.items():
+            res = base_state.get_resource(rid)
+            proposed_val = res.current + raw_d
+            if proposed_val < res.min_value - 1e-9 or proposed_val > res.max_value + 1e-9:
+                violations.append(
+                    f"resource_bounds_violation:{rid}"
+                    f"({proposed_val:.6f} not in [{res.min_value}, {res.max_value}])"
+                )
 
-        for rid, delta in projected_residuals.items():
-            if abs(delta) > 1e-12 and rid in next_state.resources:
-                applied_deltas[rid] = delta
-                next_state = next_state.update_resource(rid, delta=delta, clamp=True)
+        # Step 5: Check explicit post-transition constraints if raw bounds were satisfied
+        if not violations and self.constraints:
+            raw_candidate = base_state
+            for rid, raw_d in non_zero_residuals.items():
+                raw_candidate = raw_candidate.update_resource(
+                    rid, delta=raw_d, clamp=False, enforce_bounds=True
+                )
+            violations.extend(
+                self._evaluate_constraints(
+                    candidate_state=raw_candidate,
+                    actions=actions,
+                )
+            )
 
-        # If clamping or projection resulted in no effective change, maintain bit identity
-        if not applied_deltas:
-            return known_result
+        is_feasible = len(violations) == 0
+
+        # Step 6: Execute explicit feasibility policy (never silent clamping)
+        if is_feasible:
+            next_state = base_state
+            applied_deltas: dict[str, float] = {}
+            for rid, raw_d in non_zero_residuals.items():
+                applied_deltas[rid] = raw_d
+                next_state = next_state.update_resource(
+                    rid, delta=raw_d, clamp=False, enforce_bounds=True
+                )
+            action_taken = "accepted"
+            l2_dist = 0.0
+        elif self.infeasible_policy == InfeasibleResidualPolicy.PROJECT:
+            next_state = base_state
+            applied_deltas = {}
+            for rid, cons_d in conserved_residuals.items():
+                if rid not in next_state.resources:
+                    continue
+                res = next_state.get_resource(rid)
+                proj_val = max(res.min_value, min(res.current + cons_d, res.max_value))
+                eff_d = proj_val - res.current
+                applied_deltas[rid] = eff_d
+                next_state = next_state.update_resource(
+                    rid, delta=eff_d, clamp=False, enforce_bounds=True
+                )
+
+            l2_dist = math.sqrt(
+                sum(
+                    (applied_deltas.get(rid, 0.0) - raw_d) ** 2
+                    for rid, raw_d in non_zero_residuals.items()
+                )
+            )
+
+            # Verify explicit hard constraints after projection
+            post_proj_violations = self._evaluate_constraints(
+                candidate_state=next_state,
+                actions=actions,
+            )
+            if post_proj_violations:
+                violations.extend(post_proj_violations)
+                next_state = base_state
+                applied_deltas = {}
+                l2_dist = math.sqrt(sum(d * d for d in non_zero_residuals.values()))
+                action_taken = "rejected"
+            else:
+                action_taken = "projected"
+        elif self.infeasible_policy == InfeasibleResidualPolicy.REJECT:
+            next_state = base_state
+            applied_deltas = {}
+            l2_dist = math.sqrt(sum(d * d for d in non_zero_residuals.values()))
+            action_taken = "rejected"
+        elif self.infeasible_policy == InfeasibleResidualPolicy.ABSTAIN:
+            next_state = state.clone()
+            applied_deltas = {}
+            l2_dist = 0.0
+            action_taken = "abstained"
+        else:
+            next_state = base_state
+            applied_deltas = {}
+            l2_dist = 0.0
+            action_taken = "invalidated"
+
+        feasibility_record = ResidualFeasibilityRecord(
+            is_feasible=is_feasible,
+            policy=self.infeasible_policy,
+            action_taken=action_taken,
+            raw_deltas=non_zero_residuals,
+            applied_deltas=applied_deltas,
+            l2_projection_distance=l2_dist,
+            violations=tuple(violations),
+        )
 
         combined_changes = dict(known_result.applied_changes)
         combined_changes["known_model"] = known_result.model_name
         combined_changes["learned_residual"] = applied_deltas
         combined_changes["raw_residual"] = non_zero_residuals
+        combined_changes["residual_action"] = action_taken
 
-        combined_diagnostics = dict(known_result.diagnostics)
+        combined_diagnostics = _build_context_diagnostics(
+            self._provenance,
+            runtime_context,
+            extra=dict(known_result.diagnostics),
+        )
         combined_diagnostics["has_conservation_projection"] = self.conservation_layer is not None
         combined_diagnostics["residual_estimator"] = type(self.residual_estimator).__name__
+        combined_diagnostics["residual_feasibility"] = feasibility_record.model_dump(mode="json")
+        if action_taken == "abstained":
+            combined_diagnostics["abstained"] = True
+        elif action_taken == "invalidated":
+            combined_diagnostics["invalidated"] = True
 
         return TransitionResult(
             next_state=next_state,
@@ -331,3 +552,6 @@ class GreyBoxDynamics:
             diagnostics=combined_diagnostics,
             model_name=self.name,
         )
+
+
+HybridDynamics = GreyBoxDynamics

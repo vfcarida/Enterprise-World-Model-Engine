@@ -1,27 +1,24 @@
-# Hugging Face Papers Listing & Discovery Guide
+﻿# Hugging Face Papers Listing & Discovery Guide
 
-> **Paper URL**: `https://huggingface.co/papers/2610.01234`  
-> **Target arXiv ID**: `arXiv:2610.01234 [cs.MS, cs.DC]`  
-> **Title**: *Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty*  
-> **GitHub Repository**: `https://github.com/vfcarida/Enterprise-World-Model-Engine`  
-> **Interactive Space**: `https://huggingface.co/spaces/ewm-engine/playground`  
+> **Paper URL Template**: `https://huggingface.co/papers/<arxiv_id>` (*not yet published / awaiting arXiv submission*)
+> **Target arXiv Categories**: `cs.MS, cs.DC` (*arXiv ID not yet assigned*)
+> **Title**: *Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty*
+> **GitHub Repository**: `https://github.com/vfcarida/Enterprise-World-Model-Engine`
 
 ---
 
 ## 1. Context: The Modern Paper Discovery Landscape
 
-Historically, [Papers-with-Code](https://paperswithcode.com/) served as the primary nexus connecting academic preprints to reproducible code repositories. However, following the wind-down of active community moderation and automated indexing on Papers-with-Code, **Hugging Face Papers** has emerged as the global community platform for discovering, discussing, and replicating machine learning research.
-
-This guide outlines the indexing configuration, artifact linking, and community engagement protocols for EWM Engine on Hugging Face.
+Historically, [Papers-with-Code](https://paperswithcode.com/) served as the primary nexus connecting academic preprints to reproducible code repositories. Following the transition toward **Hugging Face Papers**, this guide outlines the indexing configuration and artifact linking template once the EWM Engine companion manuscript is published on arXiv.
 
 ---
 
-## 2. Linking the Paper to Artifacts
+## 2. Linking the Paper to Artifacts (Post-Submission Template)
 
-When an arXiv preprint is submitted to categories `cs.MS` (Mathematical Software) or `cs.DC` (Distributed Computing), Hugging Face Papers automatically generates a paper page:
+When an arXiv preprint is published in `cs.MS` (Mathematical Software) or `cs.DC` (Distributed Computing), Hugging Face Papers indexes the paper at:
 
 ```text
-https://huggingface.co/papers/2610.01234
+https://huggingface.co/papers/<arxiv_id>
 ```
 
 To maximize discoverability and provide one-click replication, the following metadata fields are bound via the Hugging Face Hub CLI and paper claim process:

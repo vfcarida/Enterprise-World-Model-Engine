@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from collections import deque
 from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
@@ -26,6 +27,8 @@ from ewm_engine.evaluation.pareto import (
     ParetoFrontier,
     compute_pareto_frontier,
 )
+
+FloatSequence = Sequence[float] | np.ndarray[Any, np.dtype[Any]]
 
 
 class ConformalInterval(BaseModel):
@@ -45,7 +48,16 @@ class ConformalInterval(BaseModel):
 
 
 class ConformalEvaluationSummary(BaseModel):
-    """Aggregate audit of conformal interval predictor performance."""
+    """Aggregate audit of conformal interval predictor performance.
+
+    Epistemic Guardrail (Marginal vs. Conditional Coverage):
+        Split conformal prediction guarantees finite-sample **marginal** coverage
+        $\\mathbb{P}(Y_{n+1} \\in \\hat{C}(X_{n+1})) \\ge 1 - \\alpha$ over the joint draw of
+        calibration and test points under exchangeability. It NEVER guarantees exact
+        pointwise conditional coverage $\\mathbb{P}(Y_{n+1} \\in \\hat{C}(x) \\mid X_{n+1}=x) \\ge 1 - \\alpha$
+        without distributional assumptions (Foygel Barber et al., 2021). Always inspect
+        ``slice_coverages`` and ``worst_slice_coverage`` to detect conditional failure regions.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -55,29 +67,87 @@ class ConformalEvaluationSummary(BaseModel):
     mean_interval_width: float
     median_interval_width: float
     guarantee_satisfied: bool = Field(
-        description="True if empirical coverage >= nominal_coverage - tolerance.",
+        description="True if empirical MARGINAL coverage >= nominal_coverage - tolerance.",
     )
     total_evaluations: int
+    coverage_scope: str = Field(
+        default="marginal",
+        description="Explicit scope of coverage guarantee ('marginal', NEVER 'conditional').",
+    )
+    calibration_population: str = Field(
+        default="exchangeable_calibration_holdout",
+        description="Description of the calibration population defining the reference distribution.",
+    )
+    calibration_sample_size: int = Field(
+        default=0,
+        description="Number of calibration samples n_cal used to estimate conformal quantile q_hat.",
+    )
+    finite_sample_marginal_bounds: tuple[float, float] | None = Field(
+        default=None,
+        description=(
+            "Theoretical finite-sample marginal coverage bounds [1 - alpha, 1 - alpha + 1/(n_cal + 1)] "
+            "under exchangeability and continuous non-conformity scores (Lei et al., 2018)."
+        ),
+    )
+    slice_coverages: dict[str, float] = Field(
+        default_factory=dict,
+        description="Empirical coverage stratified by subgroup/regime slice to expose conditional under-coverage.",
+    )
+    worst_slice_coverage: float | None = Field(
+        default=None,
+        description="Minimum empirical coverage observed across evaluated slices.",
+    )
+    slice_coverage_gap_warning: bool = Field(
+        default=False,
+        description="True if any subgroup slice under-covers nominal_coverage - tolerance (conditional miscoverage).",
+    )
+    assumptions: tuple[str, ...] = Field(
+        default_factory=lambda: (
+            "Exchangeability of calibration and test pairs (X_i, Y_i) under the reference distribution (Vovk et al., 2005).",
+            "Guarantee is strictly MARGINAL over (X, Y); conditional coverage P(Y in C(X) | X=x) is not guaranteed distribution-free (Barber et al., 2021).",
+        ),
+    )
     epistemic_note: str = Field(
         default=(
-            "Conformal prediction provides finite-sample distribution-free validity under exchangeability. "
-            "Under non-stationary dynamics or regime shifts, use Adaptive Conformal Inference (ACI)."
+            "Conformal prediction provides finite-sample distribution-free MARGINAL validity under exchangeability "
+            "(never conditional validity). Under non-stationary dynamics or regime shifts, exchangeability fails; "
+            "use Adaptive Conformal Inference (ACI) and audit slice_coverages."
         ),
     )
 
 
+class ConformalShiftExperimentResult(BaseModel):
+    """Explicit evaluation of conformal coverage under distribution shift vs. exchangeability."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    nominal_coverage: float
+    calibration_sample_size: int
+    in_distribution_empirical_coverage: float
+    shifted_split_conformal_coverage: float
+    shifted_aci_empirical_coverage: float
+    coverage_drop_under_shift: float = Field(
+        description="Drop in split-conformal coverage from in-distribution to shifted test set."
+    )
+    exchangeability_violated: bool
+    aci_regime_shift_detected: bool
+    slice_coverages: dict[str, float]
+    epistemic_conclusion: str
+
+
 class ConformalIntervalPredictor:
-    """Split Conformal / CQR-style interval predictor providing distribution-free coverage.
+    """Split Conformal / CQR-style interval predictor providing distribution-free marginal coverage.
 
     Calibrates non-conformity scores on a hold-out calibration set:
         q_hat = Quantile_{ceil((n+1)(1-alpha)) / n}(scores)
-    yielding finite-sample coverage P(Y in C(X)) >= 1 - alpha under exchangeability.
+    yielding finite-sample marginal coverage P(Y in C(X)) >= 1 - alpha under exchangeability.
     """
 
     def __init__(
         self,
         nominal_coverage: float = 0.90,
         normalized: bool = False,
+        calibration_population: str = "exchangeable_calibration_holdout",
     ) -> None:
         """Initialize conformal interval predictor.
 
@@ -85,20 +155,22 @@ class ConformalIntervalPredictor:
             nominal_coverage: Target confidence level 1 - alpha (e.g. 0.90 for 90% coverage).
             normalized: If True, uses normalized non-conformity scores |y - mu| / sigma
                 for locally adaptive interval widths (CQR style).
+            calibration_population: Identifier of the calibration population.
         """
         if not 0.0 < nominal_coverage < 1.0:
             raise ValueError(f"nominal_coverage must be in (0, 1), got {nominal_coverage}")
         self.nominal_coverage = float(nominal_coverage)
         self.alpha = float(1.0 - nominal_coverage)
         self.normalized = normalized
+        self.calibration_population = calibration_population
         self.conformal_quantile: float | None = None
         self._n_calibrated: int = 0
 
     def calibrate(
         self,
-        actuals: Sequence[float],
-        predictions: Sequence[float],
-        uncertainties: Sequence[float] | None = None,
+        actuals: FloatSequence,
+        predictions: FloatSequence,
+        uncertainties: FloatSequence | None = None,
     ) -> float:
         """Calibrate non-conformity scores on a calibration dataset.
 
@@ -126,9 +198,12 @@ class ConformalIntervalPredictor:
         else:
             scores = residuals
 
-        # Finite-sample conformal quantile with conservative ceil((n + 1)(1 - alpha)) / n rule
-        p_quantile = min(1.0, float(np.ceil((n + 1) * (1.0 - self.alpha)) / n))
-        q_hat = float(np.percentile(scores, p_quantile * 100.0))
+        # Exact finite-sample order statistic index k = ceil((n + 1)(1 - alpha))
+        # Using 'higher' / order-statistic indexing ensures exact finite-sample validity
+        # P(Y_{n+1} in C(X_{n+1})) >= 1 - alpha under exchangeability (Vovk et al., 2005; Lei et al., 2018).
+        sorted_scores = np.sort(scores)
+        k_idx = min(n - 1, max(0, int(np.ceil((n + 1) * (1.0 - self.alpha))) - 1))
+        q_hat = float(sorted_scores[k_idx])
 
         self.conformal_quantile = max(0.0, q_hat)
         self._n_calibrated = n
@@ -174,13 +249,22 @@ class ConformalIntervalPredictor:
 
     def evaluate(
         self,
-        actuals: Sequence[float],
-        predictions: Sequence[float],
-        uncertainties: Sequence[float] | None = None,
+        actuals: FloatSequence,
+        predictions: FloatSequence,
+        uncertainties: FloatSequence | None = None,
         tolerance: float = 0.05,
+        slice_labels: Sequence[str] | None = None,
     ) -> ConformalEvaluationSummary:
-        """Audit conformal predictor empirical coverage and sharpness across test points."""
+        """Audit conformal predictor empirical marginal and slice coverage and sharpness."""
         n = min(len(actuals), len(predictions))
+        fs_bounds = (
+            (
+                self.nominal_coverage,
+                min(1.0, self.nominal_coverage + 1.0 / (self._n_calibrated + 1)),
+            )
+            if self._n_calibrated > 0
+            else None
+        )
         if n == 0:
             return ConformalEvaluationSummary(
                 nominal_coverage=self.nominal_coverage,
@@ -190,10 +274,14 @@ class ConformalIntervalPredictor:
                 median_interval_width=0.0,
                 guarantee_satisfied=False,
                 total_evaluations=0,
+                calibration_population=self.calibration_population,
+                calibration_sample_size=self._n_calibrated,
+                finite_sample_marginal_bounds=fs_bounds,
             )
 
         covered_count = 0
         widths: list[float] = []
+        slice_hits: dict[str, list[int]] = {}
 
         for i in range(n):
             unc = uncertainties[i] if uncertainties is not None else None
@@ -202,14 +290,24 @@ class ConformalIntervalPredictor:
                 uncertainty=unc,
                 actual=actuals[i],
             )
-            if interval.is_covered:
-                covered_count += 1
+            hit = 1 if interval.is_covered else 0
+            covered_count += hit
             widths.append(interval.interval_width)
+            if slice_labels is not None and i < len(slice_labels):
+                slice_hits.setdefault(str(slice_labels[i]), []).append(hit)
 
         emp_cov = float(covered_count / n)
         cov_gap = float(emp_cov - self.nominal_coverage)
         mean_w = float(np.mean(widths))
         median_w = float(np.median(widths))
+
+        slice_cov_map = {
+            s_name: float(np.mean(hits)) for s_name, hits in sorted(slice_hits.items()) if hits
+        }
+        worst_slice = min(slice_cov_map.values()) if slice_cov_map else None
+        slice_warn = bool(
+            worst_slice is not None and worst_slice < (self.nominal_coverage - tolerance)
+        )
 
         return ConformalEvaluationSummary(
             nominal_coverage=self.nominal_coverage,
@@ -219,6 +317,12 @@ class ConformalIntervalPredictor:
             median_interval_width=median_w,
             guarantee_satisfied=bool(emp_cov >= (self.nominal_coverage - tolerance)),
             total_evaluations=n,
+            calibration_population=self.calibration_population,
+            calibration_sample_size=self._n_calibrated,
+            finite_sample_marginal_bounds=fs_bounds,
+            slice_coverages=slice_cov_map,
+            worst_slice_coverage=worst_slice,
+            slice_coverage_gap_warning=slice_warn,
         )
 
 
@@ -407,3 +511,88 @@ def compute_uq_pareto_front(
     ]
 
     return compute_pareto_frontier(scores=scores, objectives=objectives)
+
+
+def evaluate_conformal_under_shift(
+    cal_actuals: FloatSequence,
+    cal_predictions: FloatSequence,
+    id_test_actuals: FloatSequence,
+    id_test_predictions: FloatSequence,
+    shifted_test_actuals: FloatSequence,
+    shifted_test_predictions: FloatSequence,
+    *,
+    nominal_coverage: float = 0.90,
+    aci_gamma: float = 0.08,
+) -> ConformalShiftExperimentResult:
+    """Run an explicit distribution-shift experiment comparing static split conformal vs. online ACI.
+
+    Demonstrates three statistical facts required for epistemic honesty:
+        1. Under in-distribution exchangeability, split conformal meets its finite-sample marginal guarantee.
+        2. Under covariate/regime/mechanism shift (exchangeability violated), static split conformal
+           loses coverage guarantee and can severely under-cover.
+        3. Adaptive Conformal Inference (ACI; Gibbs & Candès, 2021) detects the miscoverage burst
+           and dynamically widens intervals to recover long-run coverage.
+    """
+    predictor = ConformalIntervalPredictor(
+        nominal_coverage=nominal_coverage,
+        calibration_population="in_distribution_calibration_holdout",
+    )
+    q_hat = predictor.calibrate(actuals=cal_actuals, predictions=cal_predictions)
+
+    id_summary = predictor.evaluate(actuals=id_test_actuals, predictions=id_test_predictions)
+    shifted_summary = predictor.evaluate(
+        actuals=shifted_test_actuals, predictions=shifted_test_predictions
+    )
+
+    # Evaluate combined stream with slice labels ("in_distribution" vs "shifted_regime")
+    combined_actuals = [*list(id_test_actuals), *list(shifted_test_actuals)]
+    combined_preds = [*list(id_test_predictions), *list(shifted_test_predictions)]
+    combined_slices = ["in_distribution"] * len(id_test_actuals) + ["shifted_regime"] * len(
+        shifted_test_actuals
+    )
+    combined_summary = predictor.evaluate(
+        actuals=combined_actuals,
+        predictions=combined_preds,
+        slice_labels=combined_slices,
+    )
+
+    # Run online ACI across the shifted regime initialized with base_half_width = q_hat * (1 - nominal_coverage)
+    aci = AdaptiveConformalInference(
+        nominal_coverage=nominal_coverage,
+        gamma=aci_gamma,
+        base_half_width=max(1e-6, q_hat * (1.0 - nominal_coverage)),
+    )
+    aci_hits = 0
+    shift_detected_any = False
+    n_shift = min(len(shifted_test_actuals), len(shifted_test_predictions))
+    for i in range(n_shift):
+        interval, state = aci.predict_and_update(
+            point_prediction=float(shifted_test_predictions[i]),
+            actual=float(shifted_test_actuals[i]),
+        )
+        if interval.is_covered:
+            aci_hits += 1
+        if state.regime_shift_detected:
+            shift_detected_any = True
+
+    aci_cov = float(aci_hits / n_shift) if n_shift > 0 else 0.0
+    cov_drop = float(id_summary.empirical_coverage - shifted_summary.empirical_coverage)
+    exch_violated = bool(shifted_summary.empirical_coverage < (nominal_coverage - 0.05))
+
+    return ConformalShiftExperimentResult(
+        nominal_coverage=nominal_coverage,
+        calibration_sample_size=len(cal_actuals),
+        in_distribution_empirical_coverage=id_summary.empirical_coverage,
+        shifted_split_conformal_coverage=shifted_summary.empirical_coverage,
+        shifted_aci_empirical_coverage=aci_cov,
+        coverage_drop_under_shift=cov_drop,
+        exchangeability_violated=exch_violated,
+        aci_regime_shift_detected=shift_detected_any,
+        slice_coverages=combined_summary.slice_coverages,
+        epistemic_conclusion=(
+            f"Split conformal achieved {id_summary.empirical_coverage:.3f} marginal coverage in-distribution "
+            f"(target {nominal_coverage:.2f}), dropped to {shifted_summary.empirical_coverage:.3f} under shift "
+            f"(exchangeability violated={exch_violated}), while online ACI recovered {aci_cov:.3f} coverage "
+            f"(regime_shift_detected={shift_detected_any})."
+        ),
+    )

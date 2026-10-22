@@ -79,8 +79,8 @@ print(f"Certified Evidence Level: {validated_level}")
 
 ## 3. Implementation & Computational Notes
 
-* **D-Separation Algorithm:** EWM implements d-separation over the relational graph using the Bayes-ball and ancestral graph algorithms in $\mathcal{O}(|V| + |E|)$ time ([`ewm_engine.core.scm`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/scm.py)).
-* **Strict Causal Gating:** By default, calling `validate_causal_claim()` with `strict=True` halts code execution with an [`UnqualifiedCausalClaimError`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/exceptions.py) if unobserved confounding is present.
+* **D-Separation Algorithm:** EWM implements d-separation over the relational graph using the Bayes-ball and ancestral graph algorithms in $\mathcal{O}(|V| + |E|)$ time ([`ewm_engine.core.scm`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/scm.py)).
+* **Strict Causal Gating:** By default, calling `validate_causal_claim()` with `strict=True` halts code execution with an [`UnqualifiedCausalClaimError`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/exceptions.py) if unobserved confounding is present.
 * **Trace Metadata Sealing:** When an interventional claim passes identifiability, the minimal adjustment set $Z$ and graph hash are sealed into the simulation trace manifest.
 
 ---

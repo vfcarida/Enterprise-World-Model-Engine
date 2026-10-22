@@ -175,7 +175,7 @@ output_blocks = [
                 TEXT_DEFAULT,
                 False,
             ),
-            ("-970.00 (-25.3%) [-970, -970] *", TEXT_SUCCESS, True),
+            ("-970.00 (-25.3%) [-970, -970] (det)", TEXT_SUCCESS, True),
         ],
         [("-" * 105, BORDER_COLOR, False)],
         [
@@ -191,7 +191,7 @@ output_blocks = [
                 TEXT_DEFAULT,
                 False,
             ),
-            ("-480.00 (-26.8%) [-480, -480] *", TEXT_SUCCESS, True),
+            ("-480.00 (-26.8%) [-480, -480] (det)", TEXT_SUCCESS, True),
         ],
         [("-" * 105, BORDER_COLOR, False)],
         [

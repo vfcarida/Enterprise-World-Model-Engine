@@ -26,8 +26,8 @@ EWM models the enterprise balance sheet and investment pipeline as an audited dy
 2. **Double-Entry Accounting Invariant (`Constraint`):**
    $$\Delta \text{Cash} = \text{Operating Inflows} - \text{CapEx} - \text{Debt Service} - \text{OpEx}$$
    Cash cannot vanish or magically appear; every capital outlay directly updates liquidity reserves.
-3. **Stochastic Volatility Ensembles (`Scenario`):** 1,000 Monte Carlo trajectories sampled across joint interest rate and macroeconomic demand regimes using independent PRNG branches ([ADR-012](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-012-determinism-reproducibility-and-branch-isolation.md)).
-4. **Mandatory Uncertainty Output:** EWM enforces [`ScenarioForecastResult`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/trust.py). The CFO receives BCa bootstrap confidence intervals and explicit empirical quantiles ($p05, p50, p95$), directly surfacing the 5% downside tail.
+3. **Stochastic Volatility Ensembles (`Scenario`):** 1,000 Monte Carlo trajectories sampled across joint interest rate and macroeconomic demand regimes using independent PRNG branches ([ADR-012](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-012-determinism-reproducibility-and-branch-isolation.md)).
+4. **Mandatory Uncertainty Output:** EWM enforces [`ScenarioForecastResult`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/trust.py). The CFO receives BCa bootstrap confidence intervals and explicit empirical quantiles ($p05, p50, p95$), directly surfacing the 5% downside tail.
 
 ```
        Distribution of Ending Cash Reserves ($M) Across 1,000 Rollouts

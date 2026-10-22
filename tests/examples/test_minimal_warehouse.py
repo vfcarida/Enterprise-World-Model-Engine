@@ -159,15 +159,19 @@ def test_minimal_warehouse_decision_evaluation() -> None:
         objective=lambda m: m["served_demand"] - 2.0 * m["unserved_demand"],
     )
 
-    # Unserved demand delta is -30.0 (improvement)
+    # Unserved demand delta is -30.0 (deterministic difference under zero simulation variance)
     delta_unserved = comparison.bootstrap_deltas["Intervention"]["unserved_demand"]
     assert delta_unserved.absolute_delta == -30.0
-    assert delta_unserved.is_significant
+    assert delta_unserved.is_deterministic
+    assert delta_unserved.status_label == "deterministic_difference"
+    assert not delta_unserved.is_significant
 
-    # Served demand delta is +30.0 (improvement)
+    # Served demand delta is +30.0 (deterministic difference under zero simulation variance)
     delta_served = comparison.bootstrap_deltas["Intervention"]["served_demand"]
     assert delta_served.absolute_delta == 30.0
-    assert delta_served.is_significant
+    assert delta_served.is_deterministic
+    assert delta_served.status_label == "deterministic_difference"
+    assert not delta_served.is_significant
 
     # Pareto analysis: Intervention dominates Baseline
     assert comparison.pareto_frontier is not None

@@ -32,7 +32,7 @@ pip install "ewm-engine[all]"
 
 Try it directly in your browser without installing: **[Open WASM Playground](playground.md)** · **[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vfcarida/Enterprise-World-Model-Engine/blob/main/notebooks/quickstart.ipynb)**
 
-The following self-contained script initializes a world state with bounded resources, simulates baseline dynamics, branches an interventional scenario, and outputs calibrated counterfactual deltas with bootstrap error bars in **12 lines of code**:
+The following self-contained script initializes a world state with bounded resources, simulates baseline dynamics, branches an interventional scenario, and outputs counterfactual deltas in **12 lines of code**:
 
 ```python
 import ewm_engine as ewm
@@ -64,7 +64,7 @@ counterfactual = world.branch().simulate(
     horizon=5,
     seed=42,
 )
-# 3. Evaluate counterfactual delta with certified bootstrap confidence intervals
+# 3. Evaluate counterfactual delta across baseline and policy branch
 diff = ewm.compare_scenarios(
     baseline, [counterfactual], metrics=["resource_stock_a", "resource_stock_b"]
 )
@@ -79,10 +79,10 @@ print(diff.summary_table())
 Metric                    | Scenario             | Mean (Std)         | p50 [p05, p95]       | Delta vs Base [CI] (*sig)   
 ---------------------------------------------------------------------------------------------------------------------------
 resource_stock_a          | Baseline             | 100.00 (+/-0.00)   | 100.00 [100.00, 100.00] | -                           
-                          | Counterfactual       | 70.00 (+/-0.00)    | 70.00 [70.00, 70.00] | -30.00 (-30.0%) [-30.00, -30.00] *
+                          | Counterfactual       | 70.00 (+/-0.00)    | 70.00 [70.00, 70.00] | -30.00 (-30.0%) [-30.00, -30.00] (det)
 ---------------------------------------------------------------------------------------------------------------------------
 resource_stock_b          | Baseline             | 20.00 (+/-0.00)    | 20.00 [20.00, 20.00] | -                           
-                          | Counterfactual       | 50.00 (+/-0.00)    | 50.00 [50.00, 50.00] | +30.00 (+150.0%) [+30.00, +30.00] *
+                          | Counterfactual       | 50.00 (+/-0.00)    | 50.00 [50.00, 50.00] | +30.00 (+150.0%) [+30.00, +30.00] (det)
 ---------------------------------------------------------------------------------------------------------------------------
 ```
 

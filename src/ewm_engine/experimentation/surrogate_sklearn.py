@@ -73,6 +73,8 @@ class GaussianProcessSurrogate(Surrogate):
         y_arr = np.asarray(y, dtype=np.float64).ravel()
 
         if is_sklearn_available():
+            import warnings
+
             gp_cls = _load_gp_regressor()
             kernel_cls = _load_gp_kernel()
             kernel = kernel_cls(nu=self.nu)
@@ -82,7 +84,9 @@ class GaussianProcessSurrogate(Surrogate):
                 normalize_y=True,
                 random_state=self.random_state,
             )
-            self._model.fit(X_arr, y_arr)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                self._model.fit(X_arr, y_arr)
             return
 
         # Pure-NumPy exact Gaussian Process via Cholesky factorization

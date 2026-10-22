@@ -1,7 +1,7 @@
 """Mandatory coverage certification: TARP, Posterior-SBC, and misspecification diagnostics.
 
 Implements rigorous coverage tests for Simulation-Based Inference:
-- TARP (Tests of Accuracy and Relative Precision; arXiv:2302.03026)
+- TARP (Tests of Accuracy with Random Points; Lemos et al., ICML 2023, arXiv:2302.03026)
 - Posterior-SBC (Simulation-Based Calibration conditional on observed data; arXiv:2502.03279)
 - Misspecification detection (Huang et al., NeurIPS 2023)
 
@@ -89,6 +89,22 @@ class CoverageCertificate(BaseModel):
     ks_pvalue_threshold: float = Field(
         default=0.01, description="Minimum p-value threshold for Kolmogorov-Smirnov test."
     )
+    tarp_expansion: str = Field(
+        default="Tests of Accuracy with Random Points (Lemos et al., ICML 2023, arXiv:2302.03026)",
+        description="Verified primary-source expansion and citation for TARP.",
+    )
+    tarp_reference_distribution: str = Field(
+        default="random_uniform",
+        description="Reference point sampling distribution p_r(theta) used for TARP spheres.",
+    )
+    assumptions: tuple[str, ...] = Field(
+        default=(
+            "Reference points theta_r are drawn independently of theta_true given x from a distribution with full support over the prior domain (Lemos et al., ICML 2023, Theorem 1).",
+            "Test pairs (theta_j^*, x_j^*) are drawn i.i.d. from the joint generative model p(theta)p(x|theta).",
+            "In-simulator calibration certification does not guarantee real-world structural validity if the simulator is misspecified outside the tested summary statistics.",
+        ),
+        description="Explicit mathematical assumptions required for TARP and Posterior-SBC certification.",
+    )
 
     def to_teaching_error(self) -> Any:
         """Convert an uncertified coverage assessment into an actionable TeachingError."""
@@ -115,17 +131,31 @@ def compute_tarp_coverage(
     n_posterior_samples: int = 150,
     nominal_alphas: Sequence[float] = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
     seed: int = 42,
+    reference_mode: Literal["random_uniform", "fixed_mean"] = "random_uniform",
 ) -> tuple[np.ndarray, np.ndarray, float, float]:
-    """Compute TARP (Tests of Accuracy and Relative Precision) coverage curve.
+    """Compute TARP (Tests of Accuracy with Random Points) coverage curve.
 
-    Algorithm (arXiv:2302.03026):
+    Primary Reference:
+        Lemos, P., Coogan, A., Hezaveh, Y., & Perreault-Levasseur, L. (2023).
+        "Sampling-Based Accuracy Testing of Posterior Estimators for General Inference."
+        International Conference on Machine Learning (ICML 2023), PMLR 202:19256-19273,
+        arXiv:2302.03026.
+
+    Algorithm (Algorithm 1 & Theorem 1 of Lemos et al., 2023):
     For each test pair (theta_j^*, x_j^*):
-        1. Draw samples tilde_theta_s ~ p(theta | x_j^*).
-        2. Compute distance to reference point r = mean(theta): d^* = ||theta_j^* - r||, d_s = ||tilde_theta_s - r||.
-        3. Credibility fraction f_j = mean(I(d_s < d^*)).
-    Evaluate empirical coverage C(alpha) = mean(I(f_j <= alpha)).
+        1. Draw samples tilde_theta_s ~ q(theta | x_j^*), s = 1..S.
+        2. Sample a random reference point theta_{r,j} ~ p_r(theta | x_j^*) independently
+           of theta_j^* (uniformly over the prior hyper-rectangle bounds).
+        3. Compute Euclidean distances to theta_{r,j}:
+           d_j^* = ||theta_j^* - theta_{r,j}||_2, d_{j,s} = ||tilde_theta_s - theta_{r,j}||_2.
+        4. Credibility fraction f_j = (1/S) sum_{s=1}^S I(d_{j,s} < d_j^*).
+    Evaluate empirical coverage probability ECP(alpha) = (1/m) sum_{j=1}^m I(f_j <= alpha).
+    Under Theorem 1 of Lemos et al. (2023), random reference points make ECP(alpha) = alpha
+    both necessary and sufficient for posterior accuracy q(theta|x) = p(theta|x).
     """
     thetas_arr = np.asarray(test_thetas, dtype=np.float64)
+    if thetas_arr.ndim == 1:
+        thetas_arr = thetas_arr.reshape(-1, 1)
     xs_arr = np.asarray(test_xs, dtype=np.float64)
     m = len(thetas_arr)
 
@@ -133,7 +163,18 @@ def compute_tarp_coverage(
         alphas = np.array(nominal_alphas, dtype=np.float64)
         return alphas, np.zeros_like(alphas), 1.0, 0.0
 
-    ref_point = np.mean(thetas_arr, axis=0)
+    d_theta = thetas_arr.shape[1]
+    if hasattr(estimator, "prior_set") and len(estimator.prior_set.bounds) == d_theta:
+        low_bounds = np.array([b[0] for b in estimator.prior_set.bounds], dtype=np.float64)
+        high_bounds = np.array([b[1] for b in estimator.prior_set.bounds], dtype=np.float64)
+    else:
+        low_bounds = np.min(thetas_arr, axis=0)
+        high_bounds = np.max(thetas_arr, axis=0)
+        span = np.where(high_bounds > low_bounds, high_bounds - low_bounds, 1.0)
+        low_bounds = low_bounds - 0.05 * span
+        high_bounds = high_bounds + 0.05 * span
+
+    fixed_ref_point = np.mean(thetas_arr, axis=0)
     coverage_fractions = np.zeros(m, dtype=np.float64)
 
     rng = np.random.default_rng(seed)
@@ -147,9 +188,17 @@ def compute_tarp_coverage(
         post = estimator.predict_posterior(x_j, n_samples=n_posterior_samples, seed=seed_j)
         post_samples = post.get_samples_array()
 
+        # Sample random reference point per test simulation j (Lemos et al., 2023, Alg. 1)
+        if reference_mode == "random_uniform":
+            ref_point_j = rng.uniform(low=low_bounds, high=high_bounds)
+        elif reference_mode == "fixed_mean":
+            ref_point_j = fixed_ref_point
+        else:
+            raise ValueError(f"Unsupported TARP reference_mode: {reference_mode!r}")
+
         # Compute Euclidean distance from reference point
-        d_true = np.linalg.norm(theta_true - ref_point)
-        d_samples = np.linalg.norm(post_samples - ref_point, axis=1)
+        d_true = np.linalg.norm(theta_true - ref_point_j)
+        d_samples = np.linalg.norm(post_samples - ref_point_j, axis=1)
 
         coverage_fractions[j] = float(np.mean(d_samples < d_true))
 

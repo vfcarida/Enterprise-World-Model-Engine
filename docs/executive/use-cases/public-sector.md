@@ -72,13 +72,13 @@ POLICY EVALUATION SUMMARY:
 --------------------------------------------------------------------------------
 Metric                        | Policy A (Status Quo) | Policy B (Preemptive) | Delta
 --------------------------------------------------------------------------------
-Total Unmet Water Demand (L)  | 1,240.0 Liters        | 0.0 Liters            | -100.0% (*sig)
+Total Unmet Water Demand (L)  | 1,240.0 Liters        | 0.0 Liters            | -100.0% (det)
 Shelter S2 Stockout Hours     | 18.0 Hours            | 0.0 Hours             | -18.0 hrs
 Road Invariant Violations     | 0 (convoys halted)    | 0 (preempted)         | 0
 Total Fleet Fuel Burned       | 420.0 Gallons         | 445.0 Gallons         | +6.0%
 --------------------------------------------------------------------------------
 
-Key Finding:
+Key Finding (under declared simulator P_model):
   Preemptive staging across Causeway C1 prior to inundation eliminates 1,240L of
   unmet water demand at the cost of a modest 6% increase in logistical fuel burn.
 ```

@@ -288,7 +288,26 @@ class ConservationProjectionLayer:
                     alpha_i = available / abs(delta_i)
                     alpha = min(alpha, alpha_i)
 
-        return proj_vec * max(0.0, min(1.0, alpha))
+        alpha = max(0.0, min(1.0, alpha))
+        # Guard against 1-ULP IEEE-754 rounding overshoot in `proj_vec * alpha`
+        for _ in range(4):
+            overshoot = False
+            scaled = proj_vec * alpha
+            for rid, idx in self._rid_to_idx.items():
+                if rid not in current_state.resources:
+                    continue
+                res = current_state.get_resource(rid)
+                new_val = res.current + float(scaled[idx])
+                if new_val < res.min_value or (
+                    not np.isinf(res.max_value) and new_val > res.max_value
+                ):
+                    overshoot = True
+                    break
+            if not overshoot or alpha <= 0.0:
+                break
+            alpha = float(np.nextafter(alpha, 0.0))
+
+        return proj_vec * alpha
 
 
 class PortHamiltonianConservationLayer:

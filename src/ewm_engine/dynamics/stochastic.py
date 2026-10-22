@@ -5,10 +5,12 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ewm_engine.core.actions import Action
+from ewm_engine.core.context import ContextSnapshot
 from ewm_engine.core.events import ExogenousEvent
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.types import RandomGenerator, ResourceId
-from ewm_engine.dynamics.base import TransitionResult
+from ewm_engine.dynamics.base import MechanismKind, MechanismProvenance, TransitionResult
+from ewm_engine.dynamics.deterministic import _build_context_diagnostics
 from ewm_engine.provenance.evidence import EvidenceLevel
 
 
@@ -26,12 +28,36 @@ class StochasticDemandDynamics:
         std_demand: float,
         name: str = "StochasticDemandDynamics",
         evidence_level: EvidenceLevel = EvidenceLevel.PREDICTIVE,
+        *,
+        version: str = "1.0.0",
+        context_demand_multiplier_key: str | None = None,
     ) -> None:
         self.resource_id = resource_id
         self.mean_demand = max(0.0, mean_demand)
         self.std_demand = max(0.0, std_demand)
         self.name = name
         self.evidence_level = evidence_level
+        self.context_demand_multiplier_key = context_demand_multiplier_key
+        req_keys = (
+            (f"parameters.{context_demand_multiplier_key}",)
+            if context_demand_multiplier_key is not None
+            else ()
+        )
+        self._provenance = MechanismProvenance(
+            mechanism_id=name,
+            version=version,
+            kind=MechanismKind.KNOWN_STOCHASTIC,
+            required_context_keys=req_keys,
+            evidence_level=evidence_level,
+            source="truncated_gaussian_demand",
+            uncertainty_contract="aleatoric_gaussian_sampling",
+            invariants_affected=(f"resource_bounds:{resource_id}",),
+        )
+
+    @property
+    def mechanism_provenance(self) -> MechanismProvenance:
+        """Return formal mechanism provenance metadata."""
+        return self._provenance
 
     def transition(
         self,
@@ -39,12 +65,19 @@ class StochasticDemandDynamics:
         actions: Sequence[Action],
         exogenous_events: Sequence[ExogenousEvent],
         rng: RandomGenerator,
+        runtime_context: ContextSnapshot | None = None,
     ) -> TransitionResult:
-        # Check if exogenous events amplify demand
+        # Check if exogenous events or runtime context amplify demand
         demand_multiplier = 1.0
         for event in exogenous_events:
             if event.type == "demand_surge":
                 demand_multiplier *= float(event.get("surge_factor", 1.5))
+
+        if self.context_demand_multiplier_key is not None and runtime_context is not None:
+            projected = runtime_context.project(self._provenance.required_context_keys)
+            ctx_mult = projected.parameters.get(self.context_demand_multiplier_key, 1.0)
+            if isinstance(ctx_mult, (int, float)):
+                demand_multiplier *= float(ctx_mult)
 
         # Sample demand
         raw_demand = rng.normal(self.mean_demand, self.std_demand) * demand_multiplier
@@ -72,6 +105,10 @@ class StochasticDemandDynamics:
                 "unmet_demand": unmet_demand,
             },
             evidence_level=self.evidence_level,
-            diagnostics={"demand_multiplier": demand_multiplier},
+            diagnostics=_build_context_diagnostics(
+                self._provenance,
+                runtime_context,
+                extra={"demand_multiplier": demand_multiplier},
+            ),
             model_name=self.name,
         )

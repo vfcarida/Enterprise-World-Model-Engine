@@ -255,6 +255,7 @@ class EwmMcpServer:
                 "refusal": True,
                 "reason": reason,
                 "e_value_sensitivity": e_value,
+                "e_value_type": "confounding_sensitivity_e_value_vanderweele_ding_2017",
                 "evidence_level": ev_level.value,
                 "message": "Refusing to emit counterfactual point estimate: causal query is structurally non-identifiable.",
             }
@@ -310,16 +311,18 @@ class EwmMcpServer:
         return {
             "status": "COMPLETED",
             "run_id": run_id,
+            "estimand": "Y_{x'}(u) - Y_x(u) under P_model",
             "factual_fingerprint": res_factual.fingerprint,
             "counterfactual_fingerprint": cf_fingerprint,
             "evidence_level": ev_level.value,
             "e_value_robustness": e_value,
+            "e_value_type": "confounding_sensitivity_e_value_vanderweele_ding_2017",
             "resource_uri": f"ewm://runs/{run_id}",
             "trace_uri": f"ewm://traces/{trace_id}",
             "epistemic_disclaimer": (
                 "Model-counterfactual evaluated within the fully specified simulated SCM under Twin-Rollout "
                 "noise coupling (arXiv:2402.10877). Epistemic disclaimer: this represents a counterfactual "
-                "of the model, NOT a validated real-world counterfactual."
+                "of the model (P_model), NOT a validated real-world counterfactual (P_real)."
             ),
         }
 

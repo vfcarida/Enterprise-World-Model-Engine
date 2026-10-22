@@ -12,7 +12,6 @@ tags:
   - interchange standards
 authors:
   - name: Vinicius Caridá
-    orcid: 0009-0000-0000-0000
     affiliation: 1
 affiliations:
   - name: Independent Researcher
@@ -23,47 +22,47 @@ bibliography: paper.bib
 
 # Summary
 
-Modern decision intelligence systems in operational and socio-technical domains frequently struggle with counterfactual evaluation: answering *"what happens if we intervene?"* rather than merely forecasting *"what is likely to happen under status-quo trends?"* The **Enterprise World Model Engine (`ewm-engine`)** is an open-source, domain-neutral Python framework designed to model, simulate, and evaluate complex organizational systems under interventional policy changes. 
+Modern decision intelligence systems in operational and socio-technical domains frequently struggle with counterfactual evaluation: answering *"what happens if we intervene?"* rather than merely forecasting *"what is likely to happen under status-quo trends?"* The **Enterprise World Model Engine (`ewm-engine`)** is an open-source, domain-neutral Python framework designed to model, simulate, and evaluate complex organizational systems under interventional policy changes.
 
-In contrast to purely observational predictive pipelines or task-centric workflow engines, `ewm-engine` executes action-conditioned forward rollouts ($\mathbb{E}[S_{t+H} \mid \text{do}(A_t)]$) that strictly decouple **known explicit invariants and conservation laws** from **learned probabilistic dynamics** [@pearl2009causality; @scholkopf2021causal]. It provides bitwise reproducibility via cryptographic state fingerprinting and hierarchical pseudo-random number generator (PRNG) seed trees, while keeping core simulation execution completely free of mandatory deep learning or large language model (LLM) dependencies.
+In contrast to purely observational predictive pipelines or task-centric workflow engines, `ewm-engine` executes action-conditioned forward rollouts ($\mathbb{E}_{P_{\text{model}}}[S_{t+H} \mid \text{do}(A_t)]$) that decouple **known explicit invariants and conservation laws** from **learned probabilistic residual dynamics** [@pearl2009causality; @scholkopf2021causal]. It provides deterministic state fingerprinting and hierarchical pseudo-random number generator (PRNG) seed trees on a pure-Python/NumPy core with zero mandatory deep learning or large language model (LLM) dependencies.
 
 # Statement of Need
 
-Operational organizations—such as supply chains, disaster response networks, healthcare delivery systems, and financial logistics—are governed by a combination of hard operational boundaries (physical capacity limits, legal regulations, conserved inventory) and stochastic human or environmental interactions. Existing research software addresses portions of this challenge, but reveals acute gaps:
+Operational organizations—such as supply chains, disaster response networks, healthcare delivery systems, and financial logistics—are governed by a combination of hard operational boundaries (physical capacity limits, legal regulations, conserved inventory) and stochastic human or environmental interactions. Existing open-source software addresses distinct subsets of this problem:
 
-1. **Simulation Tools**: Discrete-event simulators such as SimPy [@teamsimpy2020] and agent-based frameworks like Mesa [@kazil2020mesa] provide procedural state mutation, but lack native counterfactual scenario branching, formal post-transition invariant enforcement, and standardized epistemic provenance.
-2. **System Dynamics**: Equation-based tools like PySD [@houghton2015pysd] model aggregate continuous feedback loops, but do not natively accommodate discrete relational graph states, normative action rejections, or off-policy evaluation diagnostics.
-3. **Deep World Models**: Neural world model architectures such as DreamerV3 [@hafner2023mastering] and V-JEPA 2 [@assran2025vjepa2] learn latent transition dynamics directly from high-dimensional observations. However, when applied to enterprise domains, unconstrained neural models suffer from compounding rollout error [@talvitie2014model] and frequently violate fundamental mass and financial conservation laws.
+1. **Discrete-Event & Agent-Based Simulators**: Frameworks such as SimPy [@teamsimpy2020] and Mesa [@kazil2020mesa] provide expressive procedural simulation loops, but leave counterfactual scenario branching, post-transition conservation projection, and causal identifiability gates to application-level code.
+2. **System Dynamics**: Equation-based tools such as PySD [@houghton2015pysd] model continuous stock-and-flow feedback loops, but do not natively combine typed relational entity graphs, pre-action rejection gates, and split-conformal uncertainty calibration in a single schema.
+3. **Deep World Models**: Neural world model architectures such as DreamerV3 [@hafner2023mastering] and V-JEPA 2 [@assran2025vjepa2] learn latent transition dynamics from high-dimensional observations, but when applied directly to conserved enterprise ledgers without structural projection, they accumulate rollout error [@talvitie2014model] and violate physical/accounting conservation invariants.
 
-`ewm-engine` addresses this gap by providing a symbolic-probabilistic hybrid kernel. Researchers and operations engineers define formal world states, phase-aware pre/post-transition constraints, and modular dynamics. The engine guarantees that interventions are evaluated with explicit uncertainty quantification, reproducible run manifests, and rigorous causal gates.
+`ewm-engine` bridges these paradigms through a hybrid structural-probabilistic kernel. Researchers and engineers define typed world states, phase-aware pre/post-transition constraints, and modular dynamics, evaluating interventions with explicit uncertainty quantification, reproducible run manifests, and fail-closed causal identifiability gates.
 
 # State of the Field
 
-In enterprise decision-making, predictive models are frequently misapplied as prescriptive simulators. A core tenet of causal reasoning is that observational associations do not imply interventional consequences [@pearl2009causality]. When an organization alters a policy, historical covariates shift, violating observational assumptions (the Lucas Critique).
+In enterprise decision-making, observational predictive models are frequently misapplied as prescriptive simulators. A core principle of causal inference is that observational associations $P(Y \mid X)$ do not equal interventional distributions $P(Y \mid \text{do}(X))$ under confounding [@pearl2009causality]. When an organization alters an operating policy, historical covariate correlations shift (the Lucas Critique).
 
-Recent theoretical work establishes why world models must be causal: Richens & Everitt [@richens2024robust] proved that any agent achieving robust optimal performance across arbitrary distributional shifts must learn a structurally causal world model. EWM operationalizes this theoretical license by coupling symbolic conservation laws with learned residual dynamics, guaranteeing that learned approximations cannot breach systemic invariants.
+Recent theoretical work motivates causal structure in world models: Richens & Everitt [@richens2024robust] proved that, under local mechanism interventions on finite discrete variables, an agent achieving vanishing regret across arbitrary distributional shifts must encode an internal model isomorphic to the environment's structural causal model (SCM). `ewm-engine` operationalizes this motivation by combining explicit structural equations and linear conservation nullspace projection with learned residual dynamics and runtime context discovery.
 
-# Software Architecture and Scientific Rigor
+# Software Architecture and Empirical Validation
 
-`ewm-engine` is built around six core architectural pillars:
+`ewm-engine` (`v1.5.0`) is organized around six core architectural pillars:
 
-1. **Architectural Firewall (KNOWN vs. LEARNED)**: State transitions decompose into known explicit invariants $f_{\text{known}}$ and learned dynamics $g_\theta$ projected onto the conservation nullspace: $\Delta \mathbf{s}_t = f_{\text{known}}(\mathbf{s}_t, \mathbf{a}_t) + (\mathbf{I} - \mathbf{A}_{\text{cons}}^+ \mathbf{A}_{\text{cons}}) g_\theta(\mathbf{s}_t, \mathbf{a}_t)$.
-2. **Twin-Rollout Counterfactual SCM Kernel**: Implements Pearl's three-step counterfactual algorithm (abduction of exogenous disturbances $\mathbf{U}$, action surgery $\text{do}(\mathbf{a}_t = \mathbf{a}')$, and prediction under coupled $\mathbf{U}$), mathematically isolating policy effects from sampling divergence.
-3. **World-Model Induction with Honest Refusal Gate**: Automates transition discovery from process logs (OCEL 2.0) while gating causal assertions behind backdoor/frontdoor identifiability checks, sensitivity E-values [@vanderweele2017evalues], and refuters. Unidentifiable queries fail closed with informative explanations.
-4. **Certified Calibration & Epistemic Honesty**: Evaluates rollouts using continuous ranked probability scores (CRPS), adaptive calibration error (ACE) [@gneiting2007strictly], and TARP coverage certification [@lemos2023tarp]. Hypothesis comparisons use anytime-valid E-values [@grunwald2024evalues] under optional stopping.
-5. **Cross-Backend Bit-Identical Fingerprints**: Ensures bitwise state hash identity across pure-Python, vectorized NumPy, and compiled JAX backends via Structure-of-Arrays (SoA) state layouts and deterministic seed trees.
-6. **World Model Interchange Format (WMIF)**: Defines a standardized, versioned interchange format (Level 1, Packages: `graph_state`, `conformal_intervals`, `event_sourced_replay`) paired with an executable, standalone conformance suite.
+1. **Grey-Box Conservation Projection (KNOWN vs. LEARNED)**: State transitions decompose into known explicit rules $f_{\text{known}}$ and learned residual dynamics $g_\theta$ projected onto the conservation nullspace: $\Delta \mathbf{s}_t = f_{\text{known}}(\mathbf{s}_t, \mathbf{a}_t) + (\mathbf{I} - \mathbf{A}_{\text{cons}}^+ \mathbf{A}_{\text{cons}}) g_\theta(\mathbf{s}_t, \mathbf{a}_t)$, preserving linear invariants within IEEE-754 double-precision tolerance ($\le 10^{-12}$; observed max residual $4.55 \times 10^{-13}$ over 80 steps on SEIR).
+2. **Twin-Rollout Counterfactual SCM Kernel**: Implements Pearl's three-step counterfactual algorithm (abduction of exogenous disturbances $\mathbf{U}$, action surgery $\text{do}(\mathbf{a}_t = \mathbf{a}')$, and prediction under coupled $\mathbf{U}$), isolating simulated intervention effects from Monte Carlo noise divergence.
+3. **World-Model Induction with Fail-Closed Refusal Gate**: Automates candidate structure discovery from event logs (OCEL 2.0) and time series while gating causal assertions behind Backdoor, Frontdoor, and Shpitser–Pearl ID checks, explicit `identification_provenance`, VanderWeele & Ding confounding **Sensitivity E-values** [@vanderweele2017evalues] (strictly separated from sequential **safe-testing e-processes** [@grunwald2024evalues] in `SafeTestingEProcess`), and DoWhy-style refuters. Unidentifiable queries fail closed (`UnqualifiedCausalClaimError`).
+4. **Empirical Calibration & Uncertainty Diagnostics**: Evaluates rollouts using continuous ranked probability scores (CRPS) [@gneiting2007strictly], split-conformal intervals with finite-sample marginal coverage bounds under exchangeability, and **Tests of Accuracy with Random Points (TARP)** [@lemos2023tarp] with per-instance random reference points. Scenario comparisons report non-parametric bootstrap confidence intervals (`percentile`, `basic`, `normal`, `studentized`, `bca`) with a 6-part uncertainty taxonomy while labeling zero-variance deterministic deltas as `(det)`.
+5. **Three-Tier Numerical Reproducibility Contract**: Enforces `BITWISE_REPRODUCIBLE` SHA-256 state fingerprints across pure-Python and vectorized NumPy Structure-of-Arrays (SoA) execution under pinned runtimes (`OMP_NUM_THREADS=1`), `NUMERICALLY_EQUIVALENT_WITH_TOLERANCE` (`rtol=1e-6, atol=1e-7`) for JAX `x64`, and `NON_CERTIFIED_BACKEND` for uncertified GPU atomic reductions.
+6. **World Model Interchange Format (WMIF v1.0)**: Defines a versioned interchange format verified by three standalone reference oracle worlds (`ref_seed_trivial`, `ref_closed_form_stochastic`, `ref_constraint_stress`).
 
-# Reproducibility & Research Impact
+# Limitations and Scope Boundaries
 
-`ewm-engine` provides a single-command reproducibility layer (`make reproduce`) backed by a cryptographic JSON run-manifest (`reproduction_manifest.json`) verifying all benchmark cards, figures, and SHA-256 state fingerprints. Strangers can reproduce all published results in-browser via Binder, in the cloud via GitHub Codespaces, or locally via pinned Docker containers without local environment friction.
+To ensure responsible scientific use, `ewm-engine` documents explicit boundaries: (1) counterfactual and bootstrap estimates are conditioned on the declared model $P_{\text{model}}$ and do not automatically capture unmodeled organizational mechanisms; (2) learned residual dynamics degrade under severe out-of-distribution shifts outside training support (flagged by `SupportBoundaryOODDetector`); (3) observational structure learning identifies only Markov equivalence classes (CPDAG/PAG) and cannot detect omitted latent confounders; (4) split-conformal coverage guarantees are marginal under exchangeability, not conditional; and (5) all outputs are decision-support artifacts rather than autonomous execution commands.
 
-# Generative AI Usage Disclosure
+# Reproducibility
 
-In compliance with the Journal of Open Source Software guidelines, generative artificial intelligence tools (Google Gemini / Antigravity IDE) were utilized during development as an agentic pair-programming assistant to assist with code scaffolding, test case synthesis, and documentation drafting. All code logic, mathematical formulations, test suites, and written analyses were verified, refined, and validated by the author.
+`ewm-engine` provides single-command CPU reproduction (`python scripts/reproduce.py` and `python scripts/run_enterprise_benchmark_suite.py`) backed by committed JSON manifests (`reproduction_manifest.json` for the 7 domain validation cards and `docs/results/artifacts/enterprise_benchmark_suite.json` for the 12-family shift-recovery benchmark suite) and audited by `python scripts/check_release_truth.py`.
 
 # Acknowledgements
 
-The author thanks the open-source scientific Python community for foundational tools including NumPy, Pydantic, NetworkX, and PyYAML, as well as the researchers whose foundational work in causality, world models, and reproducible benchmarking shaped the architectural principles of `ewm-engine`.
+The author thanks the open-source scientific Python community for foundational tools including NumPy, Pydantic, NetworkX, and PyYAML, as well as the researchers whose work in causality, world models, and reproducible benchmarking shaped the design of `ewm-engine`.
 
 # References

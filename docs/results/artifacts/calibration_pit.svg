@@ -2,7 +2,7 @@
   <style>text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }</style>
   <rect width="800" height="400" rx="8" fill="#0f172a" />
   <text x="30" y="40" font-size="16" font-weight="700" fill="#f8fafc">Amortized SBI Calibration: TARP Coverage Diagnostic</text>
-  <text x="30" y="60" font-size="12" fill="#94a3b8">Test of Accuracy of Related Probabilities (TARP Error: 0.028 &lt; 0.05 threshold)</text>
+  <text x="30" y="60" font-size="12" fill="#94a3b8">Tests of Accuracy with Random Points (TARP; Lemos et al., ICML 2023 — Error: 0.028 &lt;= 0.05 threshold)</text>
   <line x1="60" y1="340" x2="760" y2="90" stroke="#64748b" stroke-width="2" stroke-dasharray="4,4" />
   <polyline points="130.0,311.2 200.0,286.2 270.0,266.2 340.0,250.0 410.0,235.0 480.0,202.5 550.0,166.2 620.0,145.0 690.0,121.2" fill="none" stroke="#10b981" stroke-width="3" />
   <circle cx="130.0" cy="311.2" r="4" fill="#38bdf8" />

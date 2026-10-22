@@ -28,7 +28,7 @@ EWM models the supply chain as a typed relational graph with explicit conservati
    * $\text{Inventory} \ge 0$ (no negative stock).
    * $\text{Inventory} \le \text{Capacity}$ (no storage overflow).
    * $\sum \Delta \text{Stock}_{\text{Dest}} = - \sum \Delta \text{Stock}_{\text{Source}}$ (exact material balance).
-4. **Pearl Counterfactual Surgery (`do(transfer)`):** Uses Twin-Rollout noise coupling ([ADR-040](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-040-twin-rollout-counterfactual-scm-kernel.md)) to re-roll the episode under the *exact same historical demand shock*, isolating the true causal effect of the logistics rerouting.
+4. **Pearl Counterfactual Surgery (`do(transfer)`):** Uses Twin-Rollout noise coupling ([ADR-040](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-040-twin-rollout-counterfactual-scm-kernel.md)) to re-roll the episode under the *exact same historical demand shock*, isolating the true causal effect of the logistics rerouting.
 
 ```mermaid
 flowchart LR

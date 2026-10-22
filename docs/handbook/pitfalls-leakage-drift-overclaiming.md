@@ -17,7 +17,7 @@ When leakage occurs, a policy appears brilliant in backtests because it "anticip
 
 ### How EWM Prevents It
 * **Causal Event Buffers:** Exogenous shocks are sampled on demand at step $t$ using the step's isolated PRNG stream.
-* **Strict State Immutability:** Step transitions produce a new, immutable [`WorldState`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/state.py) instance. Actors receive only read-only views of past and present states; they have no access to the future simulation schedule or downstream random draws.
+* **Strict State Immutability:** Step transitions produce a new, immutable [`WorldState`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/state.py) instance. Actors receive only read-only views of past and present states; they have no access to the future simulation schedule or downstream random draws.
 
 ---
 
@@ -36,7 +36,7 @@ Many simulation frameworks rely on global random seeds (e.g., `np.random.seed(42
 ```
 
 ### How EWM Prevents It
-* **Hierarchical `SeedSequence` Trees:** EWM utilizes NumPy's 64-bit `SeedSequence` protocol ([ADR-012](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-012-determinism-reproducibility-and-branch-isolation.md)).
+* **Hierarchical `SeedSequence` Trees:** EWM utilizes NumPy's 64-bit `SeedSequence` protocol ([ADR-012](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-012-determinism-reproducibility-and-branch-isolation.md)).
 * **Independent Substream Spawning:** Each trajectory sample $k$ and each subcomponent (actors, exogenous events, stochastic dynamics) spawns a dedicated, mathematically independent child PRNG stream. Adding or removing actions in one branch cannot shift the random sequence of another branch.
 
 ---
@@ -53,7 +53,7 @@ Supervised machine learning optimizes conditional associations $P(Y \mid X)$. Wh
 
 ### How EWM Prevents It
 * **First-Class Structural Invariants:** Instead of modeling entire systems as monolithic black-box regressions, EWM anchors simulation on **KNOWN structural mechanisms**: physical transport corridors, accounting conservation rules, and legal constraints.
-* **Pearl SCM Graph Surgery:** Interventions are evaluated as formal graph surgeries ($do(A=a)$), severing historical policy arrows while preserving immutable structural relations ([ADR-040](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-040-twin-rollout-counterfactual-scm-kernel.md)).
+* **Pearl SCM Graph Surgery:** Interventions are evaluated as formal graph surgeries ($do(A=a)$), severing historical policy arrows while preserving immutable structural relations ([ADR-040](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-040-twin-rollout-counterfactual-scm-kernel.md)).
 
 ---
 
@@ -76,7 +76,7 @@ Evaluating a simulation on a single "average run" is mathematically fraudulent.
 
 ### How EWM Prevents It
 * **Mandatory Ensemble Sampling:** EWM runs full Monte Carlo ensembles (typically 500–1,000 runs) and aggregates results across trajectories.
-* **Non-Point Forecast Outputs:** EWM’s [`ScenarioForecastResult`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/trust.py) computes full percentile distributions ($p05, p50, p95$) and dispersion bounds, making the true distribution visible to leadership.
+* **Non-Point Forecast Outputs:** EWM’s [`ScenarioForecastResult`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/trust.py) computes full percentile distributions ($p05, p50, p95$) and dispersion bounds, making the true distribution visible to leadership.
 
 ---
 

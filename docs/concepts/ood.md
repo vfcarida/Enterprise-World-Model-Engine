@@ -41,7 +41,7 @@ EWM Engine operationalizes the concept of a **grounded regime**:
 
 ## 3. Detection Detectors (`ewm_engine.experimental.ood`)
 
-The OOD framework exposes a standardized protocol [`OODDetector`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/ood.py) with two primary reference implementations:
+The OOD framework exposes a standardized protocol [`OODDetector`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/experimental/ood.py) with two primary reference implementations:
 
 ### 3.1 Support Boundary Detector (`SupportBoundaryOODDetector`)
 Computes feature-wise empirical minimums and maximums across reference or training states, with an optional expansion margin $\alpha$:
@@ -68,7 +68,7 @@ If $D_M(x) > \tau$, the detector flags an anomalous covariance novelty.
 ## 4. Operational Diagnostics: Grounded Fraction & Trace Annotation
 
 ### 4.1 Grounded Fraction
-For any trajectory $\tau = (S_0, S_1, \dots, S_T)$, the detector produces an [`OODTrajectoryReport`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/ood.py):
+For any trajectory $\tau = (S_0, S_1, \dots, S_T)$, the detector produces an [`OODTrajectoryReport`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/experimental/ood.py):
 
 $$\text{grounded\_fraction} = \frac{\sum_{t=0}^T \mathbb{I}[S_t \text{ is in-distribution}]}{T + 1}$$
 
@@ -76,7 +76,7 @@ $$\text{grounded\_fraction} = \frac{\sum_{t=0}^T \mathbb{I}[S_t \text{ is in-dis
 - A score of `0.4` indicates that 60% of the simulated horizon stepped into ungrounded territory, alerting decision-makers that downstream conclusions rely on extrapolation.
 
 ### 4.2 Systemic Trace Integration
-OOD events are recorded directly into the [`SystemicTrace`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/trace.py):
+OOD events are recorded directly into the [`SystemicTrace`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/trace.py):
 - Added as non-causal trace metadata nodes (`ood_regime_shift`, `ood_covariance_novelty`).
 - Captures the exact step index, anomalous feature names, and distance scores.
 - **Strict Epistemic Invariant**: OOD detection does **not** alter or auto-downgrade `EvidenceLevel`, nor does it emit forbidden `"causes"` edges. Traces remain honest dependency audits.

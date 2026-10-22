@@ -114,10 +114,29 @@ def main() -> None:
         "--family",
         nargs="*",
         default=None,
-        help="Filter specific benchmark families to run (intervention, rule, constraint, horizon, cascade)",
+        help="Filter specific benchmark families to run (intervention, rule, constraint, horizon, cascade; or A..L with --enterprise)",
+    )
+    parser.add_argument(
+        "--enterprise",
+        action="store_true",
+        help="Run the 12-family Enterprise World-Model Evaluation Suite (A..L, ADR-054)",
     )
 
     args = parser.parse_args()
+
+    if args.enterprise:
+        from benchmarks.enterprise_suite import run_enterprise_benchmark_suite
+
+        ent_report = run_enterprise_benchmark_suite(
+            seed=args.seed,
+            fast=args.fast,
+            families=args.family,
+        )
+        print(ent_report.to_text_table())
+        if args.json:
+            ent_report.save_json(args.json)
+            print(f"\nMachine-readable JSON report saved to: {args.json}")
+        return
 
     report = run_scientific_benchmark_suite(
         seed=args.seed,

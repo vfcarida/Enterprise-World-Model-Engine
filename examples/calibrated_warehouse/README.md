@@ -12,7 +12,7 @@ Anchors:
 - **Simulation Intelligence Motif 3**: Lavin et al., arXiv:2112.03235.
 - **Amortized SBI**: Boelts et al., "sbi reloaded", arXiv:2411.17337; Gloeckler et al., Simformer, ICML 2024 (arXiv:2404.09636).
 - **Mandatory Coverage Certification**:
-  - **TARP** (Tests of Accuracy and Relative Precision; arXiv:2302.03026, ICML 2023).
+  - **TARP** (Tests of Accuracy with Random Points; Lemos et al., arXiv:2302.03026, ICML 2023).
   - **Posterior-SBC** (Simulation-Based Calibration conditional on observed data; arXiv:2502.03279).
 - **Misspecification Robustness**: Huang et al., NeurIPS 2023 (arXiv:2305.15871).
 

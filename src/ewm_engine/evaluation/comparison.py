@@ -13,6 +13,7 @@ from ewm_engine.evaluation.pareto import (
 )
 from ewm_engine.evaluation.uncertainty import (
     BootstrapDelta,
+    BootstrapIntervalMethod,
     UncertaintyDistribution,
     compute_bootstrap_delta,
     summarize_distribution,
@@ -42,6 +43,7 @@ class ScenarioComparison:
         bootstrap_deltas: dict[str, dict[str, BootstrapDelta]] | None = None,
         pareto_frontier: ParetoFrontier | None = None,
         rankings: list[tuple[str, float]] | None = None,
+        estimand: str = "E_{P_model}[Y_candidate] - E_{P_model}[Y_baseline]",
     ) -> None:
         self.baseline_name = baseline_name
         self.results_by_scenario = results_by_scenario
@@ -49,10 +51,11 @@ class ScenarioComparison:
         self.bootstrap_deltas = bootstrap_deltas or {}
         self.pareto_frontier = pareto_frontier
         self.rankings = rankings
+        self.estimand = estimand
 
     def to_dict(self) -> dict[str, Any]:
         """Convert comparative evaluation results to a clean machine-readable dictionary."""
-        serialized_results: dict[str, dict[str, dict[str, float]]] = {}
+        serialized_results: dict[str, dict[str, dict[str, Any]]] = {}
         for scn_name, m_dict in self.results_by_scenario.items():
             serialized_results[scn_name] = {
                 m_name: dist.model_dump() for m_name, dist in m_dict.items()
@@ -66,6 +69,7 @@ class ScenarioComparison:
 
         res: dict[str, Any] = {
             "baseline": self.baseline_name,
+            "estimand": self.estimand,
             "scenarios": serialized_results,
             "deltas_vs_baseline": self.deltas,
             "bootstrap_deltas": serialized_boot,
@@ -84,6 +88,9 @@ class ScenarioComparison:
         """Render a formatted text table comparing scenarios, delta metrics, and Pareto status."""
         lines: list[str] = []
         lines.append(f"=== Scenario Comparison (Baseline: {self.baseline_name}) ===")
+        lines.append(
+            f"Estimand: {self.estimand} (in-simulator P_model; not P_real unless externally validated)"
+        )
 
         all_metrics = (
             list(next(iter(self.results_by_scenario.values())).keys())
@@ -120,7 +127,10 @@ class ScenarioComparison:
                 ci_suffix = ""
                 if scn_name in self.bootstrap_deltas and metric in self.bootstrap_deltas[scn_name]:
                     b_delta = self.bootstrap_deltas[scn_name][metric]
-                    sig_star = " *" if b_delta.is_significant else ""
+                    if b_delta.is_deterministic:
+                        sig_star = " (det)" if b_delta.absolute_delta != 0.0 else ""
+                    else:
+                        sig_star = " *" if b_delta.is_significant else ""
                     ci_suffix = f" [{b_delta.ci_lower:+.2f}, {b_delta.ci_upper:+.2f}]{sig_star}"
 
                 delta_str = f"{abs_delta:+.2f} {pct_str}{ci_suffix}".strip()
@@ -204,7 +214,9 @@ class ScenarioComparison:
                 if scn_name in self.bootstrap_deltas and metric in self.bootstrap_deltas[scn_name]:
                     b_delta = self.bootstrap_deltas[scn_name][metric]
                     ci_str = f" <small style='color: #64748b;'>[{b_delta.ci_lower:+.2f}, {b_delta.ci_upper:+.2f}]</small>"
-                    if b_delta.is_significant:
+                    if b_delta.is_deterministic and b_delta.absolute_delta != 0.0:
+                        sig_badge = " <span style='color: #64748b; font-weight: 600;'>(det)</span>"
+                    elif b_delta.is_significant:
                         sig_badge = " <span style='color: #16a34a; font-weight: bold;'>*</span>"
 
                 delta_color = (
@@ -269,6 +281,9 @@ def compare_scenarios(
     confidence_level: float = 0.95,
     n_bootstrap: int = 1000,
     seed: int | None = None,
+    paired: bool = False,
+    interval_method: BootstrapIntervalMethod = "percentile",
+    estimand: str = "E_{P_model}[Y_candidate] - E_{P_model}[Y_baseline]",
     objectives: Sequence[ObjectiveSpec] | dict[str, str | ObjectiveDirection] | None = None,
     objective: Callable[[dict[str, float]], float] | None = None,
 ) -> ScenarioComparison:
@@ -285,6 +300,11 @@ def compare_scenarios(
         confidence_level: Nominal confidence level for delta bootstrap CIs (default: 0.95).
         n_bootstrap: Number of bootstrap resamples (default: 1000). Set to 0 to skip bootstrap.
         seed: Deterministic random seed for the bootstrap resampler.
+        paired: If True, resamples paired differences d_i = Y_cand,i - Y_base,i (requires
+            matched trajectory seeds / common random numbers and equal trajectory counts).
+        interval_method: Bootstrap CI construction strategy ("percentile", "basic", "normal",
+            "studentized", or "bca").
+        estimand: Formal statistical estimand being estimated (defaults to P_model mean delta).
         objectives: Optional sequence of ObjectiveSpec or dict of {metric_name: direction}
             specifying multi-objective optimization criteria.
         objective: Optional user-supplied evaluation function mapping a scenario's metric means
@@ -313,7 +333,10 @@ def compare_scenarios(
         scn_metrics: dict[str, UncertaintyDistribution] = {}
         for m_name in metric_names:
             values = [t.final_metric(m_name) for t in run.trajectories]
-            scn_metrics[m_name] = summarize_distribution(values)
+            scn_metrics[m_name] = summarize_distribution(
+                values,
+                estimand=f"E_{{P_model}}[{m_name}]",
+            )
         results_by_scenario[run.scenario.name] = scn_metrics
 
     # Compute deltas and bootstrap intervals against baseline
@@ -347,6 +370,9 @@ def compare_scenarios(
                 confidence_level=confidence_level,
                 n_resamples=n_bootstrap,
                 seed=boot_seed,
+                paired=paired,
+                interval_method=interval_method,
+                estimand=f"E_{{P_model}}[{m_name}_candidate] - E_{{P_model}}[{m_name}_baseline]",
             )
 
         deltas[cand_name] = cand_deltas
@@ -401,4 +427,5 @@ def compare_scenarios(
         bootstrap_deltas=bootstrap_deltas,
         pareto_frontier=pareto_frontier,
         rankings=rankings,
+        estimand=estimand,
     )

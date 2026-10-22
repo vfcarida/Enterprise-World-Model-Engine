@@ -30,7 +30,7 @@ EWM Engine resolves this by emitting a **`CausalEquivalenceClass`** annotated wi
 | **Undirected** | $X \text{ --- } Y$ | Dependency exists, but orientation is observationally equivalent | `DIRECTIONAL_UNCERTAIN` |
 | **Bidirected** | $X \leftrightarrow Y$ | Latent common cause detected (FCI independence failure) | `CONFOUNDED` |
 
-In accordance with [ADR-039](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-039-responsible-ai-trust-and-anti-overclaiming-enforcement.md), no raw `"causes"` edge is ever emitted into `WorldSpec`; edges are formally designated `"directed_dependency"`, `"structural_dependency"`, or `"associated_with"`.
+In accordance with [ADR-039](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-039-responsible-ai-trust-and-anti-overclaiming-enforcement.md), no raw `"causes"` edge is ever emitted into `WorldSpec`; edges are formally designated `"directed_dependency"`, `"structural_dependency"`, or `"associated_with"`.
 
 ---
 

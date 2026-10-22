@@ -74,7 +74,7 @@ When flow conservation holds across $\ge 95\%$ of observed transitions with zero
 > **Permissive Core Invariant**: EWM Engine's core runtime is permissively licensed (Apache 2.0 / MIT). To prevent license contamination from copyleft third-party libraries (such as PM4Py, which is AGPL-3.0), EWM enforces a **strict out-of-process subprocess boundary**.
 
 - **Default Engine (`native`)**: Executes EWM's pure-Python/NumPy Inductive Miner and trace replay engine directly in-process with **zero optional external dependencies**.
-- **Optional Engine (`pm4py`)**: When the user explicitly requests `--engine pm4py` (via optional extra `[pm4py]`), EWM invokes an isolated external worker process communicating strictly through standard JSON pipes (`pm4py_bridge.py`). EWM core never links or imports PM4Py directly in-process ([ADR-047](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-047-world-model-induction-and-agpl-isolation.md)).
+- **Optional Engine (`pm4py`)**: When the user explicitly requests `--engine pm4py` (via optional extra `[pm4py]`), EWM invokes an isolated external worker process communicating strictly through standard JSON pipes (`pm4py_bridge.py`). EWM core never links or imports PM4Py directly in-process ([ADR-047](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-047-world-model-induction-and-agpl-isolation.md)).
 
 ---
 

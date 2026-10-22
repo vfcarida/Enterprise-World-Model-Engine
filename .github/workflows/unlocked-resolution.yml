@@ -41,3 +41,36 @@ jobs:
       - name: Run Core & Packaging Tests against Unpinned Upstream
         run: |
           pytest tests/unit tests/contract tests/packaging -q
+
+  lowest-direct-bounds:
+    name: SPEC 0 Lowest-Direct Bounds (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python and uv
+        uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: "false"
+
+      - name: Resolve and install minimum declared direct dependencies
+        run: |
+          uv pip install --system --resolution=lowest-direct ".[graphs,dsl,otel,cli,calibrate,uq,causal,dev]"
+
+      - name: Run Core, Numerical & Packaging Tests at Lower Bounds
+        run: |
+          pytest tests/unit tests/numerical tests/contract tests/packaging -q

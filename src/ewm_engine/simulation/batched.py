@@ -151,8 +151,12 @@ class SoAStateTensor:
 class BatchedSimulationEngine:
     """Structure-of-Arrays batched Monte Carlo simulation engine.
 
-    Accelerates high-volume rollouts across array backends while maintaining
-    bit-for-bit equivalence with pure-Python reference execution.
+    Accelerates high-volume rollouts across array backends while enforcing the
+    three-tier numerical reproducibility contract:
+    - BITWISE_REPRODUCIBLE: Bit-identical SHA-256 fingerprints to pure-Python reference
+      under a pinned runtime (same Python/NumPy, float64, OMP_NUM_THREADS=1).
+    - NUMERICALLY_EQUIVALENT_WITH_TOLERANCE: Agrees within backend.tolerance_contract.
+    - NON_CERTIFIED_BACKEND: Refused when `certify_equivalence=True`.
     """
 
     def __init__(
@@ -160,8 +164,21 @@ class BatchedSimulationEngine:
         backend: str | BackendType | ArrayBackend | None = None,
         certify_equivalence: bool = True,
     ) -> None:
+        from ewm_engine.exceptions import SimulationConfigurationError
+        from ewm_engine.simulation.backends import CertificationStatus
+
         self.backend = resolve_backend(backend)
         self.certify_equivalence = certify_equivalence
+        if (
+            self.certify_equivalence
+            and self.backend.certification == CertificationStatus.NON_CERTIFIED_BACKEND
+        ):
+            raise SimulationConfigurationError(
+                f"Backend {self.backend.backend_type.value!r} has certification status "
+                f"{self.backend.certification.value!r} and cannot be used with "
+                "certify_equivalence=True. Pass certify_equivalence=False for "
+                "non-certified throughput exploration."
+            )
 
     def run(
         self,
@@ -169,6 +186,8 @@ class BatchedSimulationEngine:
         scenario: Scenario,
     ) -> SimulationResult:
         """Execute N simulation rollouts in batched SoA mode."""
+        from ewm_engine import __version__
+
         start_time = time.perf_counter()
 
         # 1. Deterministic PRNG seeding
@@ -269,7 +288,7 @@ class BatchedSimulationEngine:
         )
 
         provenance = Provenance(
-            engine_version="0.1.0",
+            engine_version=__version__,
             scenario_fingerprint=scenario.fingerprint,
             initial_state_fingerprint=world.initial_state.fingerprint,
             seed=scenario.seed,
@@ -280,6 +299,7 @@ class BatchedSimulationEngine:
                 "scenario_name": scenario.name,
                 "backend": self.backend.backend_type.value,
                 "backend_certification": self.backend.certification.value,
+                "backend_tolerance_contract": self.backend.tolerance_contract,
                 "batched": True,
                 "metrics": run_metrics.model_dump(),
                 **scenario.metadata,

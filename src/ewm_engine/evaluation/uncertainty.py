@@ -2,11 +2,184 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
-from typing import Any
+from enum import StrEnum
+from typing import Any, Literal
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
+
+BootstrapIntervalMethod = Literal["percentile", "basic", "normal", "studentized", "bca"]
+FloatSequence = Sequence[float] | np.ndarray[Any, np.dtype[Any]]
+
+
+class UncertaintySourceType(StrEnum):
+    """Principled 6-part taxonomy of uncertainty sources in enterprise world modeling."""
+
+    ALEATORIC = "aleatoric"
+    PARAMETER = "parameter"
+    STRUCTURAL_MODEL = "structural_model"
+    RUNTIME_CONTEXT = "runtime_context"
+    MONTE_CARLO_ERROR = "monte_carlo_error"
+    MODEL_DISCREPANCY_VS_REALITY = "model_discrepancy_vs_reality"
+
+
+class UncertaintyTaxonomyBreakdown(BaseModel):
+    """Explicit decomposition of uncertainty by epistemic/ontic source.
+
+    Core Principle:
+        Never report a generic 'uncertainty' scalar when the source is knowable,
+        and never pretend a source is estimated when it is unidentifiable from the
+        experiment (e.g., model discrepancy vs. physical reality in purely
+        in-silico simulations).
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    aleatoric_std: float | None = Field(
+        default=None,
+        description="Irreducible stochastic dispersion within the declared transition/observation model (sigma_aleatoric).",
+    )
+    parameter_std: float | None = Field(
+        default=None,
+        description="Epistemic dispersion induced by posterior uncertainty over continuous parameters theta.",
+    )
+    structural_model_std: float | None = Field(
+        default=None,
+        description="Epistemic dispersion across competing mechanism graphs or functional forms.",
+    )
+    runtime_context_std: float | None = Field(
+        default=None,
+        description="Dispersion attributable to shifting or partially observed runtime operational context C_t.",
+    )
+    monte_carlo_standard_error: float | None = Field(
+        default=None,
+        description="Finite-sample Monte Carlo estimation standard error (SE_MC = sigma / sqrt(N)), vanishing as N -> inf.",
+    )
+    model_discrepancy_vs_reality: float | None = Field(
+        default=None,
+        description=(
+            "Kennedy & O'Hagan (2001) structural discrepancy |Y_real - Y_model|. "
+            "Must be None unless external real-world validation data is provided."
+        ),
+    )
+    unestimable_sources: tuple[str, ...] = Field(
+        default_factory=lambda: (
+            UncertaintySourceType.PARAMETER.value,
+            UncertaintySourceType.STRUCTURAL_MODEL.value,
+            UncertaintySourceType.RUNTIME_CONTEXT.value,
+            UncertaintySourceType.MODEL_DISCREPANCY_VS_REALITY.value,
+        ),
+        description="Uncertainty sources that cannot be estimated from the current experiment design.",
+    )
+    source_status: dict[str, str] = Field(
+        default_factory=dict,
+        description="Explicit audit status per uncertainty source ('estimated', 'zero_deterministic', or reason unestimable).",
+    )
+
+    @classmethod
+    def from_simulation_rollouts(
+        cls,
+        values: FloatSequence,
+        *,
+        parameter_std: float | None = None,
+        structural_model_std: float | None = None,
+        runtime_context_std: float | None = None,
+        model_discrepancy_vs_reality: float | None = None,
+    ) -> UncertaintyTaxonomyBreakdown:
+        """Construct an honest uncertainty breakdown from simulated rollout outcomes."""
+        arr = np.asarray(values, dtype=float) if values is not None else np.array([], dtype=float)
+        n = len(arr)
+        if n == 0:
+            aleatoric = 0.0
+            mc_se = 0.0
+            aleatoric_status = "empty_sample"
+            mc_status = "empty_sample"
+        elif n == 1:
+            aleatoric = 0.0
+            mc_se = 0.0
+            aleatoric_status = "unestimable_single_trajectory"
+            mc_status = "unestimable_single_trajectory"
+        else:
+            aleatoric = float(np.std(arr, ddof=1))
+            mc_se = float(aleatoric / math.sqrt(n))
+            aleatoric_status = (
+                "zero_deterministic" if aleatoric == 0.0 else "estimated_from_rollouts"
+            )
+            mc_status = "zero_deterministic" if mc_se == 0.0 else "estimated_from_rollouts"
+
+        unestimable: list[str] = []
+        status: dict[str, str] = {
+            UncertaintySourceType.ALEATORIC.value: aleatoric_status,
+            UncertaintySourceType.MONTE_CARLO_ERROR.value: mc_status,
+        }
+        if n == 1:
+            unestimable.append(UncertaintySourceType.ALEATORIC.value)
+            unestimable.append(UncertaintySourceType.MONTE_CARLO_ERROR.value)
+
+        if parameter_std is None:
+            unestimable.append(UncertaintySourceType.PARAMETER.value)
+            status[UncertaintySourceType.PARAMETER.value] = (
+                "unestimable_fixed_parameters_no_posterior_draws"
+            )
+        else:
+            status[UncertaintySourceType.PARAMETER.value] = "estimated_from_parameter_ensemble"
+
+        if structural_model_std is None:
+            unestimable.append(UncertaintySourceType.STRUCTURAL_MODEL.value)
+            status[UncertaintySourceType.STRUCTURAL_MODEL.value] = (
+                "unestimable_single_mechanism_specification"
+            )
+        else:
+            status[UncertaintySourceType.STRUCTURAL_MODEL.value] = "estimated_from_model_ensemble"
+
+        if runtime_context_std is None:
+            unestimable.append(UncertaintySourceType.RUNTIME_CONTEXT.value)
+            status[UncertaintySourceType.RUNTIME_CONTEXT.value] = (
+                "unestimable_fixed_context_specification"
+            )
+        else:
+            status[UncertaintySourceType.RUNTIME_CONTEXT.value] = "estimated_from_context_sweeps"
+
+        if model_discrepancy_vs_reality is None:
+            unestimable.append(UncertaintySourceType.MODEL_DISCREPANCY_VS_REALITY.value)
+            status[UncertaintySourceType.MODEL_DISCREPANCY_VS_REALITY.value] = (
+                "unestimable_without_external_real_world_validation"
+            )
+        else:
+            status[UncertaintySourceType.MODEL_DISCREPANCY_VS_REALITY.value] = (
+                "estimated_from_external_telemetry_residuals"
+            )
+
+        return cls(
+            aleatoric_std=aleatoric if n >= 2 else None,
+            parameter_std=parameter_std,
+            structural_model_std=structural_model_std,
+            runtime_context_std=runtime_context_std,
+            monte_carlo_standard_error=mc_se if n >= 2 else None,
+            model_discrepancy_vs_reality=model_discrepancy_vs_reality,
+            unestimable_sources=tuple(unestimable),
+            source_status=status,
+        )
+
+
+def _norm_cdf(x: float) -> float:
+    """Standard normal cumulative distribution function Phi(x)."""
+    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+
+def _norm_ppf(p: float) -> float:
+    """Inverse standard normal CDF Phi^{-1}(p) via bisection to 1e-12 accuracy."""
+    p_clipped = min(max(float(p), 1e-12), 1.0 - 1e-12)
+    lo, hi = -8.0, 8.0
+    for _ in range(60):
+        mid = 0.5 * (lo + hi)
+        if _norm_cdf(mid) < p_clipped:
+            lo = mid
+        else:
+            hi = mid
+    return 0.5 * (lo + hi)
 
 
 class UncertaintyDistribution(BaseModel):
@@ -25,9 +198,35 @@ class UncertaintyDistribution(BaseModel):
     max_val: float = Field(description="Observed maximum.")
     iqr: float = Field(description="Interquartile range (p75 - p25).")
     cvar_05: float = Field(description="Conditional Value-at-Risk below 5th percentile.")
+    estimand: str = Field(
+        default="E_{P_model}[Y]",
+        description="Formal statistical estimand under the simulation distribution P_model.",
+    )
+    uncertainty_taxonomy: UncertaintyTaxonomyBreakdown = Field(
+        default_factory=lambda: UncertaintyTaxonomyBreakdown.from_simulation_rollouts([]),
+        description="Explicit decomposition of uncertainty into aleatoric, Monte Carlo, and unestimable sources.",
+    )
+
+    @property
+    def mc_standard_error(self) -> float:
+        """Monte Carlo standard error SE_MC = sample_std_ddof1 / sqrt(N)."""
+        if (
+            self.uncertainty_taxonomy is not None
+            and self.uncertainty_taxonomy.monte_carlo_standard_error is not None
+        ):
+            return self.uncertainty_taxonomy.monte_carlo_standard_error
+        return 0.0
 
 
-def summarize_distribution(values: Sequence[float]) -> UncertaintyDistribution:
+def summarize_distribution(
+    values: FloatSequence,
+    *,
+    estimand: str = "E_{P_model}[Y]",
+    parameter_std: float | None = None,
+    structural_model_std: float | None = None,
+    runtime_context_std: float | None = None,
+    model_discrepancy_vs_reality: float | None = None,
+) -> UncertaintyDistribution:
     """Compute comprehensive uncertainty metrics from a sequence of rollout values."""
     if values is None or len(values) == 0:
         return UncertaintyDistribution(
@@ -42,6 +241,14 @@ def summarize_distribution(values: Sequence[float]) -> UncertaintyDistribution:
             max_val=0.0,
             iqr=0.0,
             cvar_05=0.0,
+            estimand=estimand,
+            uncertainty_taxonomy=UncertaintyTaxonomyBreakdown.from_simulation_rollouts(
+                [],
+                parameter_std=parameter_std,
+                structural_model_std=structural_model_std,
+                runtime_context_std=runtime_context_std,
+                model_discrepancy_vs_reality=model_discrepancy_vs_reality,
+            ),
         )
 
     arr = np.array(values, dtype=float)
@@ -66,11 +273,19 @@ def summarize_distribution(values: Sequence[float]) -> UncertaintyDistribution:
         max_val=float(np.max(arr)),
         iqr=p75 - p25,
         cvar_05=cvar_05,
+        estimand=estimand,
+        uncertainty_taxonomy=UncertaintyTaxonomyBreakdown.from_simulation_rollouts(
+            values,
+            parameter_std=parameter_std,
+            structural_model_std=structural_model_std,
+            runtime_context_std=runtime_context_std,
+            model_discrepancy_vs_reality=model_discrepancy_vs_reality,
+        ),
     )
 
 
 class BootstrapConfidenceInterval(BaseModel):
-    """Bootstrap confidence interval for a metric estimate."""
+    """Bootstrap confidence interval for a metric estimate with explicit estimand and assumptions."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -79,10 +294,54 @@ class BootstrapConfidenceInterval(BaseModel):
     ci_upper: float = Field(description="Upper bound of confidence interval.")
     confidence_level: float = Field(default=0.95, description="Confidence level (e.g. 0.95).")
     standard_error: float = Field(description="Standard error of the bootstrap estimate.")
+    estimand: str = Field(
+        default="E_{P_model}[Y]",
+        description="Formal target estimand (under P_model unless external calibration/identification is supplied).",
+    )
+    interval_method: BootstrapIntervalMethod = Field(
+        default="percentile",
+        description="Bootstrap interval construction strategy ('percentile', 'basic', 'normal', 'studentized', 'bca').",
+    )
+    resampling_unit: str = Field(
+        default="independent_trajectory",
+        description="Unit of resampling (e.g., 'independent_trajectory').",
+    )
+    n_samples: int = Field(default=0, description="Number of observed trajectories/samples.")
+    n_resamples: int = Field(default=1000, description="Number of bootstrap replicates.")
+    seed: int | None = Field(default=None, description="PRNG seed used for bootstrap resampling.")
+    is_degenerate: bool = Field(
+        default=False,
+        description="True when sample size < 2 or sample variance is identically zero.",
+    )
+    small_sample_warning: bool = Field(
+        default=False,
+        description="True when n_samples < 30, where asymptotic bootstrap coverage may under-cover.",
+    )
+    assumptions: tuple[str, ...] = Field(
+        default_factory=lambda: (
+            "Independent and identically distributed (i.i.d.) trajectory draws under P_model.",
+            "Quantifies Monte Carlo simulation error under P_model, NOT real-world structural discrepancy.",
+        ),
+        description="Statistical assumptions required for interval validity.",
+    )
+    uncertainty_taxonomy: UncertaintyTaxonomyBreakdown | None = Field(
+        default=None,
+        description="Explicit uncertainty taxonomy decomposition for this estimate.",
+    )
+
+    @property
+    def point_estimate(self) -> float:
+        """Alias for mean point estimate."""
+        return self.mean
+
+    @property
+    def zero_variance(self) -> bool:
+        """Alias for is_degenerate."""
+        return self.is_degenerate
 
 
 class BootstrapDelta(BaseModel):
-    """Statistical delta between candidate and baseline with bootstrap uncertainty."""
+    """Statistical delta between candidate and baseline with bootstrap uncertainty and estimand."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -94,23 +353,185 @@ class BootstrapDelta(BaseModel):
     ci_upper: float = Field(description="Upper bound of bootstrap CI for absolute delta.")
     confidence_level: float = Field(default=0.95, description="Confidence level for delta CI.")
     p_value: float = Field(description="Empirical two-tailed bootstrap p-value for H0: delta = 0.")
-    is_significant: bool = Field(description="True if delta CI strictly excludes zero.")
+    is_significant: bool = Field(
+        description=(
+            "True if and only if the comparison is stochastic (is_deterministic=False) "
+            "and the bootstrap CI strictly excludes zero under P_model."
+        )
+    )
+    is_deterministic: bool = Field(
+        default=False,
+        description="True when both baseline and candidate distributions are degenerate point masses (zero variance or single sample).",
+    )
+    status_label: str = Field(
+        default="non_significant",
+        description=(
+            "Semantic comparison status: 'statistically_significant' (stochastic bootstrap CI excludes 0 under P_model), "
+            "'deterministic_difference' (zero-variance deterministic delta != 0), "
+            "'deterministic_identical' (zero-variance deterministic delta == 0), or "
+            "'non_significant' (stochastic bootstrap CI spans 0)."
+        ),
+    )
     n_resamples: int = Field(default=1000, description="Number of bootstrap resamples.")
+    estimand: str = Field(
+        default="E_{P_model}[Y_candidate] - E_{P_model}[Y_baseline]",
+        description="Formal target estimand of the comparison (under P_model, not real-world P(Y|do(X)) unless identified).",
+    )
+    design: Literal["independent", "paired"] = Field(
+        default="independent",
+        description="Experimental resampling design ('independent' two-sample vs 'paired' common-random-numbers).",
+    )
+    interval_method: BootstrapIntervalMethod = Field(
+        default="percentile",
+        description="Bootstrap interval construction strategy ('percentile', 'basic', 'normal', 'studentized', 'bca').",
+    )
+    resampling_unit: str = Field(
+        default="independent_trajectory",
+        description="Resampling unit ('independent_trajectory' or 'paired_seed_trajectory').",
+    )
+    n_baseline: int = Field(default=0, description="Number of baseline trajectories.")
+    n_candidate: int = Field(default=0, description="Number of candidate trajectories.")
+    seed: int | None = Field(default=None, description="PRNG seed used for bootstrap resampling.")
+    effect_size_cohens_d: float | None = Field(
+        default=None,
+        description="Standardized mean difference (Cohen's d) when pooled sample variance > 0; None if deterministic.",
+    )
+    small_sample_warning: bool = Field(
+        default=False,
+        description="True when min(n_baseline, n_candidate) < 30, where bootstrap intervals may under-cover.",
+    )
+    assumptions: tuple[str, ...] = Field(
+        default_factory=lambda: (
+            "Estimand is evaluated under the simulator distribution P_model.",
+            "Does NOT establish real-world causal effect P(Y|do(X)) without external causal identification and calibration.",
+        ),
+        description="Statistical and epistemic assumptions governing this delta.",
+    )
+    limitations: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Explicit methodological limitations (e.g. zero-variance degeneracy, small sample size, unmodeled reality gap).",
+    )
+    uncertainty_taxonomy: UncertaintyTaxonomyBreakdown | None = Field(
+        default=None,
+        description="Explicit uncertainty taxonomy decomposition for the delta.",
+    )
+
+    @property
+    def zero_variance(self) -> bool:
+        """True if the comparison has zero sample variance (deterministic point mass)."""
+        return self.is_deterministic
+
+
+def _compute_bootstrap_bounds_from_replicates(
+    point_estimate: float,
+    replicates: np.ndarray,
+    confidence_level: float,
+    method: BootstrapIntervalMethod,
+    *,
+    raw_sample: np.ndarray | None = None,
+    boot_se_replicates: np.ndarray | None = None,
+) -> tuple[float, float]:
+    """Compute bootstrap confidence interval bounds under the specified strategy."""
+    alpha = 1.0 - confidence_level
+    lower_pct = (alpha / 2.0) * 100.0
+    upper_pct = (1.0 - alpha / 2.0) * 100.0
+    std_err = float(np.std(replicates, ddof=1)) if len(replicates) > 1 else 0.0
+
+    if std_err <= 1e-15:
+        return point_estimate, point_estimate
+
+    if method == "percentile":
+        return (
+            float(np.percentile(replicates, lower_pct)),
+            float(np.percentile(replicates, upper_pct)),
+        )
+    if method == "basic":
+        q_low = float(np.percentile(replicates, lower_pct))
+        q_high = float(np.percentile(replicates, upper_pct))
+        return (2.0 * point_estimate - q_high, 2.0 * point_estimate - q_low)
+    if method == "normal":
+        z = _norm_ppf(1.0 - alpha / 2.0)
+        return (point_estimate - z * std_err, point_estimate + z * std_err)
+    if method == "studentized":
+        if boot_se_replicates is not None and raw_sample is not None and len(raw_sample) >= 2:
+            sample_se = float(np.std(raw_sample, ddof=1) / math.sqrt(len(raw_sample)))
+            safe_boot_se = np.where(boot_se_replicates > 1e-12, boot_se_replicates, sample_se)
+            if sample_se > 1e-12:
+                t_stats = (replicates - point_estimate) / safe_boot_se
+                t_low = float(np.percentile(t_stats, lower_pct))
+                t_high = float(np.percentile(t_stats, upper_pct))
+                return (
+                    point_estimate - t_high * sample_se,
+                    point_estimate - t_low * sample_se,
+                )
+        return (
+            float(np.percentile(replicates, lower_pct)),
+            float(np.percentile(replicates, upper_pct)),
+        )
+    if method == "bca":
+        # Bias-Corrected and Accelerated (BCa; Efron, 1987)
+        prop_less = float(np.mean(replicates < point_estimate))
+        if prop_less <= 0.0 or prop_less >= 1.0 or raw_sample is None or len(raw_sample) < 3:
+            return (
+                float(np.percentile(replicates, lower_pct)),
+                float(np.percentile(replicates, upper_pct)),
+            )
+        z0 = _norm_ppf(prop_less)
+        n = len(raw_sample)
+        total_sum = float(np.sum(raw_sample))
+        jack_means = (total_sum - raw_sample) / float(n - 1)
+        jack_mean_avg = float(np.mean(jack_means))
+        diffs = jack_mean_avg - jack_means
+        denom = float(np.sum(diffs**2)) ** 1.5
+        a_hat = float(np.sum(diffs**3)) / (6.0 * denom) if denom > 1e-18 else 0.0
+
+        z_low = _norm_ppf(alpha / 2.0)
+        z_high = _norm_ppf(1.0 - alpha / 2.0)
+
+        denom_low = 1.0 - a_hat * (z0 + z_low)
+        denom_high = 1.0 - a_hat * (z0 + z_high)
+        if abs(denom_low) < 1e-9 or abs(denom_high) < 1e-9:
+            return (
+                float(np.percentile(replicates, lower_pct)),
+                float(np.percentile(replicates, upper_pct)),
+            )
+        a1 = _norm_cdf(z0 + (z0 + z_low) / denom_low) * 100.0
+        a2 = _norm_cdf(z0 + (z0 + z_high) / denom_high) * 100.0
+        a1_c = min(max(a1, 0.0), 100.0)
+        a2_c = min(max(a2, 0.0), 100.0)
+        lo_b = float(np.percentile(replicates, min(a1_c, a2_c)))
+        hi_b = float(np.percentile(replicates, max(a1_c, a2_c)))
+        return lo_b, hi_b
+
+    raise ValueError(f"Unsupported bootstrap interval method: {method!r}")
 
 
 def compute_bootstrap_ci(
-    values: Sequence[float],
+    values: FloatSequence,
     confidence_level: float = 0.95,
     n_resamples: int = 1000,
     seed: int | None = None,
+    *,
+    method: BootstrapIntervalMethod | None = None,
+    interval_method: BootstrapIntervalMethod = "percentile",
+    estimand: str = "E_{P_model}[Y]",
+    resampling_unit: str = "independent_trajectory",
 ) -> BootstrapConfidenceInterval:
     """Compute non-parametric bootstrap confidence interval for the sample mean.
 
+    Supports multiple explicitly named interval strategies:
+        - ``"percentile"``: Standard percentile bootstrap $[\\hat{\\theta}^*_{(\\alpha/2)}, \\hat{\\theta}^*_{(1-\\alpha/2)}]$.
+        - ``"basic"``: Basic pivotal bootstrap $[2\\hat{\\theta} - \\hat{\\theta}^*_{(1-\\alpha/2)}, 2\\hat{\\theta} - \\hat{\\theta}^*_{(\\alpha/2)}]$.
+        - ``"normal"``: Normal approximation $\\hat{\\theta} \\pm z_{1-\\alpha/2} \\widehat{\\text{SE}}_{\\text{boot}}$.
+        - ``"studentized"``: Studentized bootstrap-t interval using per-resample plug-in SE.
+        - ``"bca"``: Bias-Corrected and Accelerated bootstrap (Efron, 1987) with jackknife skewness acceleration.
+
     Epistemic Note:
         The resulting confidence interval quantifies stochastic simulation sampling
-        variance across Monte Carlo rollouts (P_model). It does not reflect empirical
+        variance across Monte Carlo rollouts ($P_{\\text{model}}$). It does not reflect empirical
         real-world ground truth confidence unless the model is empirically identified.
     """
+    resolved_method: BootstrapIntervalMethod = method if method is not None else interval_method
     if values is None or len(values) == 0:
         return BootstrapConfidenceInterval(
             mean=0.0,
@@ -118,56 +539,112 @@ def compute_bootstrap_ci(
             ci_upper=0.0,
             confidence_level=confidence_level,
             standard_error=0.0,
+            estimand=estimand,
+            interval_method=resolved_method,
+            resampling_unit=resampling_unit,
+            n_samples=0,
+            n_resamples=n_resamples,
+            seed=seed,
+            is_degenerate=True,
+            small_sample_warning=True,
+            uncertainty_taxonomy=UncertaintyTaxonomyBreakdown.from_simulation_rollouts([]),
         )
 
     arr = np.asarray(values, dtype=float)
     n = len(arr)
-    if n < 2 or n_resamples <= 0:
-        mean_val = float(np.mean(arr))
+    mean_val = float(np.mean(arr))
+    sample_std = float(np.std(arr))
+    is_degen = n < 2 or sample_std == 0.0 or n_resamples <= 0
+
+    if is_degen:
         return BootstrapConfidenceInterval(
             mean=mean_val,
             ci_lower=mean_val,
             ci_upper=mean_val,
             confidence_level=confidence_level,
             standard_error=0.0,
+            estimand=estimand,
+            interval_method=resolved_method,
+            resampling_unit=resampling_unit,
+            n_samples=n,
+            n_resamples=n_resamples,
+            seed=seed,
+            is_degenerate=True,
+            small_sample_warning=n < 30,
+            uncertainty_taxonomy=UncertaintyTaxonomyBreakdown.from_simulation_rollouts(values),
         )
 
     rng = np.random.default_rng(seed)
     boot_indices = rng.integers(0, n, size=(n_resamples, n))
-    resampled_means = np.mean(arr[boot_indices], axis=1)
+    boot_samples = arr[boot_indices]
+    resampled_means = np.mean(boot_samples, axis=1)
+    boot_ses = (
+        np.std(boot_samples, axis=1, ddof=1) / math.sqrt(n)
+        if resolved_method == "studentized"
+        else None
+    )
 
-    alpha = 1.0 - confidence_level
-    lower_pct = (alpha / 2.0) * 100.0
-    upper_pct = (1.0 - alpha / 2.0) * 100.0
-
-    ci_lower = float(np.percentile(resampled_means, lower_pct))
-    ci_upper = float(np.percentile(resampled_means, upper_pct))
+    ci_lower, ci_upper = _compute_bootstrap_bounds_from_replicates(
+        point_estimate=mean_val,
+        replicates=resampled_means,
+        confidence_level=confidence_level,
+        method=resolved_method,
+        raw_sample=arr,
+        boot_se_replicates=boot_ses,
+    )
     std_err = float(np.std(resampled_means))
 
     return BootstrapConfidenceInterval(
-        mean=float(np.mean(arr)),
+        mean=mean_val,
         ci_lower=ci_lower,
         ci_upper=ci_upper,
         confidence_level=confidence_level,
         standard_error=std_err,
+        estimand=estimand,
+        interval_method=resolved_method,
+        resampling_unit=resampling_unit,
+        n_samples=n,
+        n_resamples=n_resamples,
+        seed=seed,
+        is_degenerate=False,
+        small_sample_warning=n < 30,
+        uncertainty_taxonomy=UncertaintyTaxonomyBreakdown.from_simulation_rollouts(values),
     )
 
 
 def compute_bootstrap_delta(
-    baseline_values: Sequence[float],
-    candidate_values: Sequence[float],
+    baseline_values: FloatSequence,
+    candidate_values: FloatSequence,
     confidence_level: float = 0.95,
     n_resamples: int = 1000,
     seed: int | None = None,
+    *,
+    paired: bool = False,
+    method: BootstrapIntervalMethod | None = None,
+    interval_method: BootstrapIntervalMethod = "percentile",
+    estimand: str | None = None,
 ) -> BootstrapDelta:
     """Compute non-parametric bootstrap confidence interval and significance for a counterfactual delta.
 
     Epistemic Guardrail:
         Statistical significance flags in this engine measure whether a simulated policy
-        difference is distinguishable from zero given simulation stochasticity.
-        It MUST NOT be cited as empirical causal proof (P(Y|do(X))) without real-world
-        observational identification and unconfoundedness verification.
+        difference is distinguishable from zero given simulation stochasticity under $P_{\\text{model}}$.
+        When both baseline and candidate rollouts have zero sample variance (or $n < 2$),
+        the comparison is tagged with ``is_deterministic=True``, ``is_significant=False``,
+        and ``status_label='deterministic_difference'`` (or ``'deterministic_identical'``)
+        rather than claiming stochastic statistical significance.
+        It MUST NOT be cited as empirical real-world causal proof ($P(Y \\mid \\text{do}(X))$)
+        without external causal identification and empirical validation.
     """
+    resolved_method: BootstrapIntervalMethod = method if method is not None else interval_method
+    resolved_design: Literal["independent", "paired"] = "paired" if paired else "independent"
+    resolved_unit = "paired_seed_trajectory" if paired else "independent_trajectory"
+    resolved_estimand = estimand or (
+        "E_{P_model}[Y_candidate(U) - Y_baseline(U)]"
+        if paired
+        else "E_{P_model}[Y_candidate] - E_{P_model}[Y_baseline]"
+    )
+
     if (
         baseline_values is None
         or len(baseline_values) == 0
@@ -182,52 +659,152 @@ def compute_bootstrap_delta(
             confidence_level=confidence_level,
             p_value=1.0,
             is_significant=False,
+            is_deterministic=False,
+            status_label="non_significant",
             n_resamples=n_resamples,
+            estimand=resolved_estimand,
+            design=resolved_design,
+            interval_method=resolved_method,
+            resampling_unit=resolved_unit,
+            n_baseline=0,
+            n_candidate=0,
+            seed=seed,
+            effect_size_cohens_d=None,
+            small_sample_warning=True,
+            limitations=("Empty baseline or candidate sample.",),
+            uncertainty_taxonomy=UncertaintyTaxonomyBreakdown.from_simulation_rollouts([]),
         )
 
     base_arr = np.asarray(baseline_values, dtype=float)
     cand_arr = np.asarray(candidate_values, dtype=float)
+
+    n_base = len(base_arr)
+    n_cand = len(cand_arr)
+    if paired and n_base != n_cand:
+        raise ValueError(
+            f"Paired bootstrap design requires equal sample sizes, got n_baseline={n_base}, n_candidate={n_cand}."
+        )
 
     base_mean = float(np.mean(base_arr))
     cand_mean = float(np.mean(cand_arr))
     abs_delta = cand_mean - base_mean
     pct_delta = (abs_delta / base_mean * 100.0) if base_mean != 0.0 else 0.0
 
-    n_base = len(base_arr)
-    n_cand = len(cand_arr)
+    if paired:
+        diff_arr = cand_arr - base_arr
+        zero_variance = float(np.std(diff_arr)) == 0.0
+    else:
+        diff_arr = None
+        zero_variance = float(np.std(base_arr)) == 0.0 and float(np.std(cand_arr)) == 0.0
 
-    if (n_base < 2 and n_cand < 2) or n_resamples <= 0:
+    small_sample = min(n_base, n_cand) < 30
+    limitations_list: list[str] = [
+        "Evaluated under simulator measure P_model; real-world model discrepancy is unestimated."
+    ]
+    if small_sample:
+        limitations_list.append(
+            f"Small trajectory sample size (n_baseline={n_base}, n_candidate={n_cand} < 30); bootstrap intervals may under-cover tails."
+        )
+
+    if (n_base < 2 and n_cand < 2) or zero_variance or n_resamples <= 0:
+        limitations_list.append(
+            "Degenerate zero-variance deterministic sample: frequentist p-values and stochastic significance do not apply."
+        )
         return BootstrapDelta(
             absolute_delta=abs_delta,
             percent_delta=pct_delta,
             ci_lower=abs_delta,
             ci_upper=abs_delta,
             confidence_level=confidence_level,
-            p_value=0.0 if abs_delta != 0.0 else 1.0,
-            is_significant=abs_delta != 0.0,
+            p_value=1.0,
+            is_significant=False,
+            is_deterministic=True,
+            status_label="deterministic_difference"
+            if abs_delta != 0.0
+            else "deterministic_identical",
             n_resamples=n_resamples,
+            estimand=resolved_estimand,
+            design=resolved_design,
+            interval_method=resolved_method,
+            resampling_unit=resolved_unit,
+            n_baseline=n_base,
+            n_candidate=n_cand,
+            seed=seed,
+            effect_size_cohens_d=None,
+            small_sample_warning=small_sample,
+            limitations=tuple(limitations_list),
+            uncertainty_taxonomy=UncertaintyTaxonomyBreakdown.from_simulation_rollouts([abs_delta]),
         )
 
     rng = np.random.default_rng(seed)
-    base_idx = rng.integers(0, n_base, size=(n_resamples, n_base))
-    cand_idx = rng.integers(0, n_cand, size=(n_resamples, n_cand))
+    if paired and diff_arr is not None:
+        idx = rng.integers(0, n_base, size=(n_resamples, n_base))
+        boot_samples = diff_arr[idx]
+        boot_deltas = np.mean(boot_samples, axis=1)
+        boot_ses = (
+            np.std(boot_samples, axis=1, ddof=1) / math.sqrt(n_base)
+            if resolved_method == "studentized"
+            else None
+        )
+        raw_for_method = diff_arr
+        sd_diff = float(np.std(diff_arr, ddof=1))
+        cohens_d = float(abs_delta / sd_diff) if sd_diff > 1e-12 else None
+    else:
+        base_idx = rng.integers(0, n_base, size=(n_resamples, n_base))
+        cand_idx = rng.integers(0, n_cand, size=(n_resamples, n_cand))
 
-    boot_base_means = np.mean(base_arr[base_idx], axis=1)
-    boot_cand_means = np.mean(cand_arr[cand_idx], axis=1)
-    boot_deltas = boot_cand_means - boot_base_means
+        boot_base_samples = base_arr[base_idx]
+        boot_cand_samples = cand_arr[cand_idx]
+        boot_base_means = np.mean(boot_base_samples, axis=1)
+        boot_cand_means = np.mean(boot_cand_samples, axis=1)
+        boot_deltas = boot_cand_means - boot_base_means
+        boot_ses = None
+        if resolved_method == "studentized" and n_base >= 2 and n_cand >= 2:
+            var_b = np.var(boot_base_samples, axis=1, ddof=1) / n_base
+            var_c = np.var(boot_cand_samples, axis=1, ddof=1) / n_cand
+            boot_ses = np.sqrt(var_b + var_c)
+        raw_for_method = cand_arr - np.mean(base_arr) if n_base == n_cand else None
 
-    alpha = 1.0 - confidence_level
-    lower_pct = (alpha / 2.0) * 100.0
-    upper_pct = (1.0 - alpha / 2.0) * 100.0
+        var_base = float(np.var(base_arr, ddof=1)) if n_base >= 2 else 0.0
+        var_cand = float(np.var(cand_arr, ddof=1)) if n_cand >= 2 else 0.0
+        pooled_sd = math.sqrt(0.5 * (var_base + var_cand))
+        cohens_d = float(abs_delta / pooled_sd) if pooled_sd > 1e-12 else None
 
-    ci_lower = float(np.percentile(boot_deltas, lower_pct))
-    ci_upper = float(np.percentile(boot_deltas, upper_pct))
+    ci_lower, ci_upper = _compute_bootstrap_bounds_from_replicates(
+        point_estimate=abs_delta,
+        replicates=boot_deltas,
+        confidence_level=confidence_level,
+        method=resolved_method,
+        raw_sample=raw_for_method,
+        boot_se_replicates=boot_ses,
+    )
 
     is_significant = (ci_lower > 0.0) or (ci_upper < 0.0)
 
     p_neg = float(np.mean(boot_deltas <= 0.0))
     p_pos = float(np.mean(boot_deltas >= 0.0))
     p_val = float(min(1.0, 2.0 * min(p_neg, p_pos)))
+
+    # Construct delta taxonomy breakdown
+    delta_se = float(np.std(boot_deltas, ddof=1)) if len(boot_deltas) > 1 else 0.0
+    taxonomy = UncertaintyTaxonomyBreakdown(
+        aleatoric_std=float(np.std(cand_arr, ddof=1)) if n_cand >= 2 else None,
+        monte_carlo_standard_error=delta_se,
+        unestimable_sources=(
+            UncertaintySourceType.PARAMETER.value,
+            UncertaintySourceType.STRUCTURAL_MODEL.value,
+            UncertaintySourceType.RUNTIME_CONTEXT.value,
+            UncertaintySourceType.MODEL_DISCREPANCY_VS_REALITY.value,
+        ),
+        source_status={
+            UncertaintySourceType.ALEATORIC.value: "estimated_from_rollouts",
+            UncertaintySourceType.MONTE_CARLO_ERROR.value: "estimated_from_bootstrap_replicates",
+            UncertaintySourceType.PARAMETER.value: "unestimable_fixed_parameters_no_posterior_draws",
+            UncertaintySourceType.STRUCTURAL_MODEL.value: "unestimable_single_mechanism_specification",
+            UncertaintySourceType.RUNTIME_CONTEXT.value: "unestimable_fixed_context_specification",
+            UncertaintySourceType.MODEL_DISCREPANCY_VS_REALITY.value: "unestimable_without_external_real_world_validation",
+        },
+    )
 
     return BootstrapDelta(
         absolute_delta=abs_delta,
@@ -237,7 +814,20 @@ def compute_bootstrap_delta(
         confidence_level=confidence_level,
         p_value=p_val,
         is_significant=is_significant,
+        is_deterministic=False,
+        status_label="statistically_significant" if is_significant else "non_significant",
         n_resamples=n_resamples,
+        estimand=resolved_estimand,
+        design=resolved_design,
+        interval_method=resolved_method,
+        resampling_unit=resolved_unit,
+        n_baseline=n_base,
+        n_candidate=n_cand,
+        seed=seed,
+        effect_size_cohens_d=cohens_d,
+        small_sample_warning=small_sample,
+        limitations=tuple(limitations_list),
+        uncertainty_taxonomy=taxonomy,
     )
 
 
@@ -779,3 +1369,213 @@ def compute_pit_calibration(
         quantile_coverages=coverages,
         pit_bins=tuple(pit_bins),
     )
+
+
+# ==============================================================================
+# Safe-Testing e-Values & Anytime-Valid e-Processes (Grünwald et al., 2024; Ramdas et al., 2023)
+# ==============================================================================
+
+
+class SafeTestingEValueResult(BaseModel):
+    """Anytime-valid sequential safe-testing e-value / e-process summary.
+
+    Terminology Disambiguation (CRITICAL):
+        This is a **safe-testing e-value / e-process** ($e_t \\ge 0$ with
+        $\\mathbb{E}_{H_0}[e_t] \\le 1$ and Ville's inequality guarantee
+        $\\mathbb{P}_{H_0}(\\exists t \\ge 1 : E_t \\ge 1/\\alpha) \\le \\alpha$ under optional stopping;
+        Grünwald et al., 2024, JRSSB; Ramdas et al., 2023, Statistical Science).
+        It MUST NEVER be confused with VanderWeele & Ding's (2017) **Sensitivity E-value**
+        ($E_{\\text{sens}} = RR + \\sqrt{RR(RR-1)} \\ge 1$), which measures unmeasured
+        confounding sensitivity on the risk-ratio scale in observational causal studies.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    concept_type: Literal["safe_testing_e_value"] = "safe_testing_e_value"
+    e_value: float = Field(
+        ge=0.0,
+        description="Final anytime-valid test martingale / e-process value E_T >= 0.",
+    )
+    running_max_e_value: float = Field(
+        ge=0.0,
+        description="Supremum of the e-process trajectory sup_{1 <= t <= T} E_t.",
+    )
+    anytime_valid_p_value: float = Field(
+        ge=0.0,
+        le=1.0,
+        description="Anytime-valid p-value p_t = min(1.0, 1.0 / sup_{s <= t} E_s) via Ville's inequality.",
+    )
+    alpha: float = Field(default=0.05, description="Target Type-I error threshold alpha.")
+    reject_null: bool = Field(
+        description="True if running_max_e_value >= 1 / alpha (valid under optional stopping)."
+    )
+    n_observations: int = Field(description="Number of sequential observations processed.")
+    null_mean: float = Field(default=0.0, description="Tested null hypothesis mean mu_0.")
+    estimand: str = Field(
+        default="E_{P_model}[D_t] - mu_0",
+        description="Sequential drift estimand tested against H_0: E[D_t | F_{t-1}] = mu_0.",
+    )
+    assumptions: tuple[str, ...] = Field(
+        default_factory=lambda: (
+            "Observations (D_t - mu_0)/sigma are conditionally 1-sub-Gaussian under H_0 given filtration F_{t-1}.",
+            "Betting / mixture parameter lambda_t is predictable (chosen prior to observing D_t).",
+            "Valid under arbitrary filtration-adapted stopping times tau via Ville's maximal inequality.",
+        ),
+        description="Mathematical assumptions required for anytime-valid Type-I error control.",
+    )
+    disambiguation_note: str = Field(
+        default=(
+            "Safe-testing e-value / e-process (E_{H0}[E] <= 1, Grunwald et al., 2024; Ramdas et al., 2023) "
+            "for sequential optional stopping. Distinct from VanderWeele & Ding (2017) confounding Sensitivity E-value."
+        ),
+    )
+
+
+class SafeTestingEProcess:
+    """Sequential anytime-valid e-process (test supermartingale) for optional-stopping inference.
+
+    Maintains a non-negative wealth process $E_t = \\prod_{i=1}^t e_i$ testing
+    $H_0: \\mathbb{E}[X_i \\mid \\mathcal{F}_{i-1}] = \\mu_0$ for conditionally
+    $\\sigma$-sub-Gaussian increments using predictable mixture / plug-in betting:
+
+    $$e_i = \\exp\\left( \\lambda_i z_i - \\frac{1}{2} \\lambda_i^2 \\right), \\quad z_i = \\frac{X_i - \\mu_0}{\\sigma}$$
+
+    Because $\\lambda_i$ is $\\mathcal{F}_{i-1}$-measurable (computed strictly from
+    past observations $1, \\dots, i-1$), $\\mathbb{E}_{H_0}[e_i \\mid \\mathcal{F}_{i-1}] \\le 1$
+    holds at every step, and $(E_t)_{t \\ge 0}$ is a non-negative supermartingale with $E_0 = 1$.
+    By Ville's inequality (1939):
+
+    $$\\mathbb{P}_{H_0}\\left( \\exists t \\ge 1 : E_t \\ge \\frac{1}{\\alpha} \\right) \\le \\alpha$$
+    """
+
+    def __init__(
+        self,
+        null_mean: float = 0.0,
+        sigma: float = 1.0,
+        alpha: float = 0.05,
+        max_lambda: float = 0.8,
+        estimand: str = "E_{P_model}[D_t] - mu_0",
+    ) -> None:
+        if sigma <= 0.0:
+            raise ValueError(f"sigma must be strictly positive, got {sigma}")
+        if not 0.0 < alpha < 1.0:
+            raise ValueError(f"alpha must be in (0, 1), got {alpha}")
+        self.null_mean = float(null_mean)
+        self.sigma = float(sigma)
+        self.alpha = float(alpha)
+        self.max_lambda = float(max_lambda)
+        self.estimand = estimand
+
+        self._log_e: float = 0.0
+        self._max_log_e: float = 0.0
+        self._n: int = 0
+        self._sum_z: float = 0.0
+        self._history: list[float] = []
+
+    def step(self, observation: float) -> SafeTestingEValueResult:
+        """Process one sequential observation X_t and update the test martingale E_t."""
+        # Predictable plug-in parameter lambda_t depends ONLY on F_{t-1} (past observations)
+        if self._n == 0:
+            lam_t = 0.0
+        else:
+            running_mean_z = self._sum_z / math.sqrt(self._n * (self._n + 1))
+            lam_t = float(np.clip(running_mean_z, -self.max_lambda, self.max_lambda))
+
+        z_t = (float(observation) - self.null_mean) / self.sigma
+        log_inc = (lam_t * z_t) - (0.5 * (lam_t**2))
+        self._log_e = float(np.clip(self._log_e + log_inc, -500.0, 500.0))
+        self._max_log_e = max(self._max_log_e, self._log_e)
+        self._n += 1
+        self._sum_z += z_t
+        e_val = float(math.exp(self._log_e))
+        self._history.append(e_val)
+        return self.summary()
+
+    def update_batch(self, observations: FloatSequence) -> SafeTestingEValueResult:
+        """Process a sequence of observations in order."""
+        for obs in observations:
+            self.step(float(obs))
+        return self.summary()
+
+    def summary(self) -> SafeTestingEValueResult:
+        """Return the current anytime-valid SafeTestingEValueResult."""
+        e_val = float(math.exp(self._log_e))
+        max_e = float(math.exp(self._max_log_e))
+        anytime_p = float(min(1.0, 1.0 / max(1.0, max_e)))
+        threshold = 1.0 / self.alpha
+        return SafeTestingEValueResult(
+            e_value=e_val,
+            running_max_e_value=max_e,
+            anytime_valid_p_value=anytime_p,
+            alpha=self.alpha,
+            reject_null=bool(max_e >= threshold),
+            n_observations=self._n,
+            null_mean=self.null_mean,
+            estimand=self.estimand,
+        )
+
+
+def compute_safe_e_value(
+    observations: FloatSequence,
+    *,
+    null_mean: float = 0.0,
+    sigma: float | None = None,
+    alpha: float = 0.05,
+    estimand: str = "E_{P_model}[D_t] - mu_0",
+) -> SafeTestingEValueResult:
+    """Compute an anytime-valid safe-testing e-value / e-process over a sequence of observations.
+
+    Note on Sigma:
+        For strict finite-sample supermartingale validity under $H_0$, ``sigma`` should be a
+        known upper bound on the sub-Gaussian scale of $(X_t - \\mu_0)$. If ``sigma=None``,
+        an empirical pre-standardized scale is used with an explicit assumption caveat.
+    """
+    if observations is None or len(observations) == 0:
+        return SafeTestingEValueResult(
+            e_value=1.0,
+            running_max_e_value=1.0,
+            anytime_valid_p_value=1.0,
+            alpha=alpha,
+            reject_null=False,
+            n_observations=0,
+            null_mean=null_mean,
+            estimand=estimand,
+        )
+
+    arr = np.asarray(observations, dtype=float)
+    if sigma is None:
+        emp_std = float(np.std(arr, ddof=1)) if len(arr) >= 2 else 0.0
+        if emp_std <= 1e-12:
+            return SafeTestingEValueResult(
+                e_value=1.0,
+                running_max_e_value=1.0,
+                anytime_valid_p_value=1.0,
+                alpha=alpha,
+                reject_null=False,
+                n_observations=len(arr),
+                null_mean=null_mean,
+                estimand=estimand,
+                assumptions=(
+                    "Degenerate zero-variance sample: sequential safe-testing e-process remains at neutral E_0 = 1.0.",
+                ),
+            )
+        scale = emp_std
+        custom_assumptions = (
+            "Empirical scale sigma_hat plugged in from sample; exact finite-sample supermartingale validity requires known sub-Gaussian bound sigma.",
+            "Predictable betting parameter lambda_t chosen strictly from filtration F_{t-1}.",
+            "Anytime-valid under optional stopping via Ville's inequality.",
+        )
+    else:
+        scale = float(sigma)
+        custom_assumptions = None
+
+    proc = SafeTestingEProcess(
+        null_mean=null_mean,
+        sigma=scale,
+        alpha=alpha,
+        estimand=estimand,
+    )
+    res = proc.update_batch(arr.tolist())
+    if custom_assumptions is not None:
+        return res.model_copy(update={"assumptions": custom_assumptions})
+    return res

@@ -1,7 +1,7 @@
 # EWM Engine Launch Announcement Narrative
 
 > Headline Asset: **Proof, Not Assertion.**
-> Through-line Identity: *"The only world-model engine scored on being right about its own uncertainty."*
+> Through-line Identity: *"A hybrid causal simulation engine scored on structural validity, conservation bounds, and uncertainty calibration."*
 
 This document coordinates the public announcement across Hacker News, Reddit, academic communities, and social media. In accordance with our anti-overclaiming policy, all communications lead with reproducible evidence, transparent benchmarks, and explicit failure/refusal modes rather than buzzwords.
 
@@ -21,12 +21,12 @@ Hi HN,
 Most recent work in "world models" focuses on video generation or autoregressive LLM rollouts (e.g., predicting pixels or next tokens). While impressive, these systems struggle in socio-technical and operational settings: they accumulate error over long horizons, create or destroy mass, and hallucinate unwarranted certainty on counterfactual queries.
 
 We built the Enterprise World Model (EWM) Engine to approach this from a different angle:
-1. **Explicit Separation of Known vs. Learned**: Hard physical and structural invariants (conservation of mass, capacity limits, double-entry balance) are enforced via nullspace projection—they cannot drift numerically.
-2. **Native Structural Causal Models**: True Pearlian counterfactuals via three-step Abduction-Action-Prediction with coupled noise ("Twin-Rollout"), with automated backdoor/frontdoor identifiability checks that refuse unidentifiable claims.
-3. **Scored on Honesty, Not Just Rollout Error**: Beyond MSE, the engine evaluates coverage calibration (TARP / conformal prediction), metamorphic physical tests (Physics-IQ), and sensitivity bounds (E-values).
-4. **Deterministic & Auditable**: Every run generates a cryptographic SHA-256 fingerprint. The entire test suite and results gallery run on standard single-core CPUs without requiring GPUs or API keys.
+1. **Explicit Separation of Known vs. Learned**: Hard physical and structural invariants (conservation of mass, capacity limits, double-entry balance) are enforced via nullspace projection within IEEE-754 machine precision ($\le 10^{-12}$).
+2. **Native Structural Causal Models**: Pearlian counterfactuals via three-step Abduction-Action-Prediction with coupled noise ("Twin-Rollout"), with automated backdoor/frontdoor/ID checks that fail closed (`UnqualifiedCausalClaimError`) on unidentifiable claims.
+3. **Scored on Honesty, Not Just Rollout Error**: Beyond MSE, the engine evaluates coverage calibration (TARP / split-conformal prediction), metamorphic physical tests (Physics-IQ), and sensitivity bounds (VanderWeele & Ding E-values).
+4. **Deterministic & Auditable**: Every run generates a cryptographic SHA-256 fingerprint under the `BITWISE_REPRODUCIBLE` pure-Python/NumPy tier. The entire test suite and results gallery run on standard single-core CPUs without requiring GPUs or API keys.
 
-You can reproduce our full results gallery (6 domain cards, including SEIR mass conservation, Beer Game bullwhip amplification, and TARP posterior calibration) with a single command:
+You can reproduce our full results gallery (7 domain cards, including SEIR mass conservation, Beer Game bullwhip amplification, and TARP posterior calibration) and 12-family benchmark suite with a single command:
 
     git clone https://github.com/vfcarida/Enterprise-World-Model-Engine
     cd Enterprise-World-Model-Engine
@@ -35,7 +35,7 @@ You can reproduce our full results gallery (6 domain cards, including SEIR mass 
 
 - **Docs & Results Gallery**: https://vfcarida.github.io/Enterprise-World-Model-Engine/results/
 - **Reproducible Benchmarks**: https://vfcarida.github.io/Enterprise-World-Model-Engine/results/benchmarks/
-- **arXiv Companion Paper**: https://arxiv.org/abs/2603.xxxxx
+- **Companion Paper Preprint**: https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/paper/arxiv/paper.md
 - **GitHub**: https://github.com/vfcarida/Enterprise-World-Model-Engine
 
 We'd love your feedback on the architecture, the calibration bounds, and how you approach counterfactual decision-making in complex systems.
@@ -56,7 +56,7 @@ Hello everyone,
 
 We are sharing our open-source framework and companion methods paper: **Enterprise World Model (EWM) Engine**.
 
-- **Paper (arXiv preprint)**: https://arxiv.org/abs/2603.xxxxx
+- **Companion Paper (Preprint Draft)**: https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/paper/arxiv/paper.md
 - **GitHub Repository**: https://github.com/vfcarida/Enterprise-World-Model-Engine
 - **Interactive Results Gallery**: https://vfcarida.github.io/Enterprise-World-Model-Engine/results/
 
@@ -68,7 +68,7 @@ Recent theoretical work by Richens & Everitt (ICLR 2024 oral, arXiv:2402.10877) 
 ### Key Contributions:
 1. **Grey-Box SCM Kernel**: Separates known constraints (enforced via algebraic projection) from learned probabilistic dynamics.
 2. **Coupled Twin-Rollout**: Implements Pearl's counterfactual definition $Y_{X \leftarrow x}(u)$ by conditioning exogenous noise on historical observed states before intervening.
-3. **Certified Calibration**: Validates posterior distributions using the Tests of Accuracy of Recovery of Posterior (TARP, ICML 2023) and split-conformal coverage guarantees.
+3. **Empirical Calibration Diagnostics**: Validates posterior distributions using Tests of Accuracy with Random Points (TARP, Lemos et al., ICML 2023) and split-conformal coverage intervals.
 4. **Proof-Carrying Integrity**: Automatically refuses to assert causal effects when unobserved confounding violates the backdoor/ID criteria.
 
 ### Quick Verification:

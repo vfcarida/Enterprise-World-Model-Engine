@@ -1,6 +1,6 @@
-# Simulation Performance, Scaling Curves & Cross-Backend Bit-Identity
+# Simulation Performance, Scaling Curves & Cross-Backend Reproducibility Contract
 
-> **Epistemic Invariant #5**: Bit-identical logical state and SHA-256 fingerprints across backends (pure-Python ⇄ NumPy ⇄ JAX-CPU ⇄ JAX-GPU ⇄ Distributed). Hardware non-deterministic paths are throughput-only and explicitly refused from certified audit paths.
+> **Epistemic Invariant #5 (Three-Tier Reproducibility Contract)**: EWM enforces an explicit three-tier numerical reproducibility contract across execution backends (`BITWISE_REPRODUCIBLE`, `NUMERICALLY_EQUIVALENT_WITH_TOLERANCE`, `NON_CERTIFIED_BACKEND`). EWM does **not** promise universal bit-identity across unspecified hardware architectures, GPU compilers, multi-threaded BLAS schedules, or differing dtypes/library versions.
 
 Enterprise World Model Engine (EWM) scales Monte Carlo simulation along three decoupled axes:
 1. **Vectorization**: Structure-of-Arrays (SoA) array projection advancing $N$ branches simultaneously.
@@ -29,7 +29,7 @@ Before vectorizing, execution bottlenecks were profiled using **Scalene** (nativ
 +-----------------------------------------------------------------------------------+
 |                  Structure-of-Arrays (SoA) Vectorized Tensor                      |
 |  [N x D_R Resource Array] === Vectorized Array Ops ===> [N x D_R Resource Array]   |
-|                 (Zero per-step allocations, 100% bit-identical)                  |
+|                 (Zero per-step allocations, pinned-runtime bit-exact)            |
 +-----------------------------------------------------------------------------------+
 ```
 
@@ -48,24 +48,23 @@ To eliminate RNG correlation across ensemble branches while guaranteeing reprodu
 seed_seq = np.random.SeedSequence(scenario.seed)
 child_seeds = seed_seq.spawn(scenario.samples)
 ```
-Each branch $i \in [0, N-1]$ derives its random stream exclusively from `child_seeds[i]`. Under JAX, these seeds map directly to 128-bit Threefry PRNG keys.
+Each branch $i \in [0, N-1]$ derives its random stream exclusively from `child_seeds[i]`. Under JAX, these seeds map to 128-bit Threefry PRNG keys.
 
 ---
 
-## 3. Cross-Backend Certification Hierarchy
+## 3. Three-Tier Cross-Backend Certification Hierarchy
 
-Different execution environments provide distinct computational guarantees. EWM formalizes a strict two-tier certification contract:
+Because IEEE-754 floating-point addition and fused multiply-add (FMA) contractions are non-associative across hardware architectures, compiler pipelines, and BLAS thread counts (Goldberg, 1991), EWM formalizes an honest **three-tier numerical reproducibility contract**:
 
-| Backend | Engine / Framework | PRNG Mechanism | Certification Status | Bit-Identical to Python? |
-|:---|:---|:---|:---|:---:|
-| `pure_python` | Python Reference Kernel | NumPy PCG64 (`SeedSequence.spawn`) | `CERTIFIED_BIT_IDENTICAL` (Oracle) | :white_check_mark: Ground Truth |
-| `numpy` | Array API Standard (`numpy`) | Vectorized PCG64 draws | `CERTIFIED_BIT_IDENTICAL` | :white_check_mark: Bit-Exact |
-| `jax_cpu` | JAX `jit(vmap(scan))` | Threefry 4x32 counter-based PRNG | `CERTIFIED_BIT_IDENTICAL` | :white_check_mark: Bit-Exact |
-| `jax_gpu` | JAX GPU Compiler | Threefry counter-based PRNG | `CERTIFIED_BIT_IDENTICAL` | :white_check_mark: Bit-Exact |
-| `cuda_cupy` | CuPy raw CUDA kernels | Hardware float atomics | `THROUGHPUT_ONLY` | :warning: Labeled Non-Certified |
+| Backend | Engine / Framework | PRNG Mechanism | Certification Status | Reproducibility Contract |
+|:---|:---|:---|:---|:---|
+| `pure_python` | Python Reference Kernel | NumPy PCG64 (`SeedSequence.spawn`) | `BITWISE_REPRODUCIBLE` | Bit-exact SHA-256 under pinned runtime (`float64`, `OMP_NUM_THREADS=1`, pinned Python/NumPy) |
+| `numpy` | Array API Standard (`numpy`) | Vectorized PCG64 draws | `BITWISE_REPRODUCIBLE` | Bit-exact to `pure_python` under pinned runtime (`rtol=0.0, atol=0.0`) |
+| `jax` (`cpu`/`gpu`) | JAX `jit(vmap(scan))` (`x64=True`) | Threefry counter-based PRNG | `NUMERICALLY_EQUIVALENT_WITH_TOLERANCE` | Deterministic PRNG stream; state trajectories match reference within `rtol=1e-6, atol=1e-7` |
+| `cupy` (`cuda`) | CuPy raw CUDA kernels | Hardware float atomics | `NON_CERTIFIED_BACKEND` | Refused when `certify_equivalence=True`; allowed only for uncertified throughput exploration |
 
 > [!IMPORTANT]
-> **GPU Float Determinism Guarantee**: JAX's Threefry counter-based PRNG is documented CPU/GPU-identical. Standard floating-point additions on GPUs that employ non-deterministic atomic reductions are classified as `THROUGHPUT_ONLY` and forbidden from emitting certified decision audits.
+> **No Universal Bit-Identity Overclaim**: `BITWISE_REPRODUCIBLE` applies strictly when the execution environment (Python/NumPy version, `float64` precision, single-threaded BLAS `OMP_NUM_THREADS=1`, and CPU ISA) is pinned. Compiled XLA/GPU backends (`JaxBackend`) are certified as `NUMERICALLY_EQUIVALENT_WITH_TOLERANCE` (`rtol=1e-6, atol=1e-7`), while backends using non-deterministic GPU atomic reductions (`CuPyBackend`) are labeled `NON_CERTIFIED_BACKEND` and rejected from certified audit paths.
 
 ---
 

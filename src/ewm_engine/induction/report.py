@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -114,7 +113,7 @@ class InductionReport(BaseModel):
     source_type: Literal[
         "dataframe", "sql", "relational_schema", "ocel_2_0", "causal", "dynamics", "invariants"
     ]
-    induced_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+    induced_at: str = "1970-01-01T00:00:00+00:00"
     seed: int = 42
     point_in_time_cutoff: str | None = None
 

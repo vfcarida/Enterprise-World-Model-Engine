@@ -1,152 +1,170 @@
-# Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty
+# Structural World Models: Evaluating Hybrid Conservation, Learned Residual Dynamics, and Runtime Context Discovery Under Organizational Regime Shift
 
-**Authors:** Vinicius Caridá  
+**Author:** Vinicius Caridá  
 **Affiliation:** Independent Researcher (`vfcarida@gmail.com`)  
-**Target Category:** arXiv `cs.MS` (Mathematical Software) & `cs.DC` (Distributed, Computing)  
+**Target Category:** arXiv `cs.AI` / `cs.MS` (Mathematical Software) / `stat.ME` (Methodology)  
 **Date:** October 2026  
+**Software Version:** `ewm-engine v1.5.0`  
 **Repository:** [https://github.com/vfcarida/Enterprise-World-Model-Engine](https://github.com/vfcarida/Enterprise-World-Model-Engine)  
-**Permanent Identifiers:**  
-- **Zenodo Concept DOI:** [10.5281/zenodo.14000000](https://doi.org/10.5281/zenodo.14000000)  
-- **Zenodo Version DOI:** [10.5281/zenodo.14000001](https://doi.org/10.5281/zenodo.14000001)  
-- **Software Heritage SWHID:** `swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c` (ISO/IEC 18670:2025)  
+**Permanent Identifiers & Publication Status:**
+- **Publication Status:** In-tree manuscript preprint draft (*external arXiv identifier, JOSS DOI, Zenodo release DOI, and Software Heritage SWHID are not yet registered and will be assigned only upon external archival*).
 
 ---
 
 ## Abstract
 
-Modern machine learning research in "world models" has focused heavily on continuous control, video generation, and latent-space imagination for robotics and games. Concurrently, enterprise organizations demand simulation tools to answer prescriptive interventional questions: *"What would happen if we enact decision $a$ instead of baseline $a'$?"* 
+Research in learned world models has focused primarily on perceptual latent spaces for continuous control, robotics, and video generation. Concurrently, operational organizations require simulation tools to evaluate prescriptive policy interventions (*"What happens under $\text{do}(A_t = a)$ vs. $\text{do}(A_t = a')$?"*) subject to conservation laws, capacity constraints, and non-stationary regime shifts. Unconstrained regression and generative world models exhibit three recurring failure modes in these settings: they violate physical and accounting conservation laws, conflate observational correlation with interventional effect under confounding, and suffer uncalibrated predictive degradation when latent operational regimes shift mid-deployment.
 
-When applied to organizational and socio-technical domains (such as supply chain resilience, capital allocation, and crisis logistics), unconstrained neural and generative world models suffer from critical failure modes: they violate fundamental physical and accounting conservation laws, compound autoregressive rollout errors, and emit unjustified point forecasts.
+We introduce the **Enterprise World Model Engine (`ewm-engine`)**, an open-source Python framework that couples symbolic structural invariants with probabilistic residual learning and causal identifiability gates. Rather than claiming universal dominance across all modeling regimes, we formulate and test a **falsifiable architectural hypothesis** across a 12-family synthetic operational benchmark suite (Families `A` through `L`) and 7 domain validation packs:
+1. **When Hybrid + Runtime Discovery Dominates (Families `A`–`H`, `L`):** Under mid-deployment structural regime shifts with identifiable latent context $Z$, combining enforced linear conservation projection ($\mathcal{P}_{\text{null}} = I - A^+ A$), learned residual dynamics, and online context inference reduces downstream decision regret ($0.025$ vs. $0.320$ for rules-only on Family `A`), improves shift recovery (3 steps vs. unrecovered), and restores empirical 90% split-conformal coverage ($0.900$ vs. $0.450$ for static models) while maintaining $0.0$ conservation violations within IEEE-754 double-precision tolerance ($\le 10^{-12}$; observed max residual $4.55 \times 10^{-13}$ on 80-step SEIR).
+2. **When Simpler Baselines Suffice or Refusal Is Required (Negative Controls `I`, `J`, `K`):** In stationary fully specified systems (`Family I`), a rules-only model achieves lower regret ($0.015$) than runtime discovery ($0.028$) because latent-context estimation adds estimation variance; under severe out-of-distribution shifts outside training support (`Family J`), all learned models degrade and trigger out-of-support abstention (`SupportBoundaryOODDetector`); and under unmeasured confounding without valid backdoor/frontdoor/ID adjustment (`Family K`), `ewm-engine` fails closed (`UnqualifiedCausalClaimError`) rather than emitting unidentifiable policy recommendations.
 
-In this paper, we introduce the **Enterprise World Model Engine (EWM)**, an open-source, domain-neutral structural simulation kernel. EWM establishes an architectural firewall between **KNOWN explicit conservation laws** (enforced as hard algebraic invariants) and **LEARNED probabilistic dynamics** (restricted to conservative nullspace projections). We establish the theoretical license for this architecture via Richens & Everitt's Causal World Model Theorem (ICLR 2024, arXiv:2402.10877), demonstrating that robust interventional planning strictly requires structural causal models (SCMs). 
-
-EWM operationalizes this framework through six key capabilities:
-1. **Twin-Rollout SCM Kernel:** Native execution of Pearl's three-step counterfactual algorithm (abduction, action, prediction) under coupled exogenous disturbance streams.
-2. **Automated World-Model Induction with Fail-Closed Refusal:** Discovery of transition topologies from relational process logs (OCEL 2.0) with mandatory DAG identifiability gates, VanderWeele & Ding sensitivity E-values, and refutation testing.
-3. **Certified Amortized Calibration:** Simulation-Based Inference (SBI) with finite-sample coverage certified via the Test of Accuracy of Related Probabilities (TARP, Lemos et al., ICML 2023).
-4. **Epistemic Honesty Protocol:** Anytime-valid E-values under optional stopping, mandatory non-point predictive intervals, and active refusal on unidentifiable queries.
-5. **Cross-Backend Bit-Identical Fingerprints:** Structure-of-Arrays (SoA) memory layouts producing bit-identical SHA-256 state fingerprints across pure-Python, NumPy, and compiled JAX runtimes.
-6. **World Model Interchange Format (WMIF):** A standardized container format (Level 1, Packages: `graph_state`, `conformal_intervals`, `event_sourced_replay`) paired with an executable, standalone conformance test suite.
-
-Across seven empirical validation benchmarks (including SEIR epidemic waves, Beer Distribution Game bullwhips, WORLD3 macro limits, and supply logistics), EWM achieves bit-for-bit determinism, zero mass-balance drift ($0.000000$), and certified calibration. All results, figures, and cryptographic state fingerprints are fully reproducible with a single command (`make reproduce`) in-browser via Binder, in the cloud via GitHub Codespaces, or locally via pinned Docker containers.
+All benchmark metrics, figures, and SHA-256 state fingerprints are deterministically traceable from committed raw artifacts (`reproduction_manifest.json` and `docs/results/artifacts/enterprise_benchmark_suite.json`) via single-command CPU execution (`python scripts/reproduce.py`).
 
 ---
 
-## 1. Introduction: The Crisis of Unconstrained World Models
+## 1. Introduction & Falsifiable Hypothesis
 
-In recent years, the paradigm of world models (Hafner et al., 2023; Assran et al., 2025) has emerged as an active frontier in artificial intelligence. By learning predictive environment dynamics, agents can simulate counterfactual trajectories and optimize actions without risky trial-and-error in reality.
+Recent advances in action-conditioned world models—such as DreamerV3 (Hafner et al., 2025) and V-JEPA 2 (Assran et al., 2025)—demonstrate that learning latent transition dynamics enables planning in high-dimensional perceptual environments. However, socio-technical and operational systems (supply chains, hospital capacity networks, treasury liquidity ledgers) differ structurally from pixel-based control:
+1. **Known Algebraic Invariants:** Inventory conservation, double-entry ledger balance, and non-negative physical capacities are known *a priori* and must hold at every simulation step.
+2. **Observational Confounding (Lucas Critique):** Historical action policies correlate with unobserved demand or risk regimes; naive conditioning $P(Y \mid A)$ fails when decision policies intervene via $\text{do}(A)$.
+3. **Mid-Deployment Regime Shifts:** Supplier lead times, customer elasticities, and bottleneck capacities shift abruptly during operational disruptions.
 
-However, a fundamental disconnect exists between unconstrained neural world models and the operational requirements of enterprise decision systems:
-1. **The Conservation Vacuum:** Latent and video world models optimize for perceptual realism. When tasked with simulating balance sheets or supply inventories, unconstrained neural representations violate mass and financial balance, shipping nonexistent inventory or conjuring positive cash flow out of thin air.
-2. **The Flaw of Averages:** Deep regression models output conditional expectations $\mathbb{E}[Y \mid X]$, concealing catastrophic downside insolvency risks from decision-makers.
-3. **The Confounding Trap:** Supervised learning optimizes observational correlations $P(Y \mid X)$. When an enterprise alters an operational policy, the data-generating mechanism shifts, invalidating historical correlations (the Lucas Critique).
+We investigate the following **falsifiable hypothesis**:
 
-To address these deficiencies, we propose **Structural World Models (SWM)** and implement the paradigm in the open-source **Enterprise World Model Engine (`ewm-engine`)**.
-
----
-
-## 2. Theoretical License: Why World Models Must Be Causal
-
-The foundational theoretical justification for EWM’s architecture is licensed by the **Causal World Model Theorem** established by Richens & Everitt (ICLR 2024, arXiv:2402.10877):
-
-> **Theorem 1 (Richens & Everitt, 2024):** *Any agent capable of achieving robust optimal performance across an arbitrary family of distributional shifts must learn a world model that is structurally causal.*
-
-An agent relying on purely associative predictive models can always be subjected to an interventional shift where its predictions suffer unbounded regret. Therefore, an enterprise decision engine must not merely model correlation; it must represent the structural causal DAG $\mathcal{G}$ and evaluate the interventional $do$-operator (Pearl, 2009).
+> **Central Hypothesis ($\mathcal{H}_1$):** *In operational environments governed by known linear conservation invariants ($A_{\text{cons}} \Delta s_t = 0$) and subject to identifiable mid-deployment regime shifts in latent parameters $Z_t$, a grey-box architecture that (i) projects learned residual dynamics onto $\text{Null}(A_{\text{cons}})$, (ii) infers latent context $Z_t$ online from transition residuals, and (iii) gates causal claims on structural identifiability achieves lower decision regret and higher post-shift calibration coverage than rules-only, learned-only, or static-hybrid baselines — whereas in stationary fully specified systems ($\mathcal{H}_0^{\text{stat}}$) or unidentifiable confounded systems ($\mathcal{H}_0^{\text{conf}}$), runtime adaptation is unnecessary or must be refused.*
 
 ---
 
-## 3. Architecture: Decoupling KNOWN Rules from LEARNED Dynamics
+## 2. Theoretical Motivation & Scope of External Theorems
 
-EWM enforces an absolute architectural separation:
+Our separation between structural causal mechanisms and observational associations is motivated by Richens & Everitt (2024, `arXiv:2402.10877`):
 
-$$\Delta \mathbf{s}_t = \underbrace{f_{\text{known}}(\mathbf{s}_t, \mathbf{a}_t)}_{\text{KNOWN Explicit Invariants}} + \underbrace{\mathcal{P}_{\text{null}}\left( g_\theta(\mathbf{s}_t, \mathbf{a}_t) \right)}_{\text{LEARNED Residual Dynamics}}$$
+> **Proposition 1 (Informal summary of Theorem 1, Richens & Everitt, 2024):** *Under the assumptions of finite discrete variables and local mechanism interventions on parent sets, any policy oracle whose regret vanishes across arbitrary distributional shifts induced by local interventions must encode an internal model isomorphic to the environment's Structural Causal Model (SCM).*
 
-### Hard Conservation Layers
-Let $\mathbf{A}_{\text{cons}} \Delta \mathbf{s} = \mathbf{0}$ represent the system of linear conservation laws (mass balance, double-entry ledger constraints). The learned component $g_\theta$ is projected onto the nullspace of $\mathbf{A}_{\text{cons}}$:
-
-$$\mathcal{P}_{\text{null}}(\mathbf{v}) = \left( \mathbf{I} - \mathbf{A}_{\text{cons}}^+ \mathbf{A}_{\text{cons}} \right) \mathbf{v}$$
-
-This guarantees that physical and accounting invariants can never be breached by approximation error.
-
-### Twin-Rollout Counterfactual SCM Kernel
-EWM implements Judea Pearl’s three-step counterfactual algorithm:
-1. **Abduction:** From observed factual trajectory $\tau = (\mathbf{s}_0, \mathbf{a}_0, \mathbf{s}_1, \dots)$, abduce the exact sequence of realized exogenous disturbances $\mathbf{U} = (\mathbf{u}_0, \mathbf{u}_1, \dots)$.
-2. **Action:** Perform causal graph surgery $\text{do}(\mathbf{a}_t = \mathbf{a}')$ by severing structural dependency arrows into $\mathbf{a}_t$.
-3. **Prediction:** Re-simulate the dynamics under the abducted disturbance sequence $\mathbf{U}$ (Twin-Rollout noise coupling).
-
-Because $\mathbf{U}$ is coupled, the observed counterfactual difference $\Delta \tau = \tau_{\text{cf}} - \tau_{\text{fact}}$ is mathematically guaranteed to reflect the causal consequence of the policy change, rather than random sampling divergence.
+**Scope Qualification:** Richens & Everitt's theorem is a mathematical necessity result under its stated assumptions (complete family of local mechanism shifts over discrete variables). In `ewm-engine`, this result motivates representing explicit structural mechanisms (`StructuralCausalModel`) separately from predictive associations (`EvidenceLevel.PREDICTIVE`). It does **not** imply that declaring a `CausalGraph` in software guarantees real-world causal validity; real-world validity requires domain identification, backdoor/frontdoor/ID verification, and empirical refutation testing.
 
 ---
 
-## 4. World-Model Induction with Honest Refusal Gate
+## 3. Architecture: Grey-Box Conservation, Twin-Rollout SCM, and Calibration
 
-In real-world enterprise deployments, explicit SCMs are rarely pre-specified. EWM incorporates automated world-model induction from event-stream logs (OCEL 2.0):
-1. **Process Topology Induction:** Maps relational events and object interactions into candidate state-transition graphs.
-2. **Identifiability Verification:** Validates backdoor and frontdoor criteria on the induced causal DAG.
-3. **Fail-Closed Refusal Gate:** When unobserved confounding violates identifiability or covariate overlap is insufficient ($d \ge 5$), the engine raises an explicit refusal exception (`UnqualifiedCausalClaimError`) rather than returning an ungrounded estimate.
-4. **Sensitivity Refutation:** All accepted causal estimates are paired with VanderWeele & Ding sensitivity E-values and audited via DoWhy refuters (placebo treatment, random common cause addition, subset validation).
+### 3.1 Grey-Box Nullspace Projection Within IEEE-754 Precision
+`ewm-engine` decomposes state transitions into known explicit rules $f_{\text{known}}$ and learned residual dynamics $g_\theta$ projected onto the nullspace of linear conservation constraints $A_{\text{cons}} \Delta s_t = 0$:
+
+$$\Delta s_t = f_{\text{known}}(s_t, a_t) + \mathcal{P}_{\text{null}}\!\left(g_\theta(s_t, a_t)\right), \qquad \mathcal{P}_{\text{null}}(v) = \left(I - A_{\text{cons}}^+ A_{\text{cons}}\right) v$$
+
+followed by active-set boundary scaling to respect $[R_{\min}, R_{\max}]$. In IEEE-754 `float64` arithmetic, this bounds conservation drift within machine tolerance ($\le 10^{-12}$; observed max residual $4.547 \times 10^{-13}$ over 80 steps in the SEIR benchmark), rather than exact symbolic rational zero.
+
+### 3.2 Twin-Rollout Counterfactual SCM & Identifiability Gates
+`world.counterfactual()` executes Pearl's (2009) three-step counterfactual algorithm (*Abduction–Action–Prediction*) with coupled exogenous noise streams $U$ across factual and counterfactual branches (`CLM-006`). For observational and interventional effect queries, `ewm_engine.experimental.causal` enforces:
+- **Backdoor & Frontdoor Criteria** (`check_backdoor_identifiability`, `check_frontdoor_identifiability`) and the recursive **Tian–Pearl / Shpitser–Pearl ID Algorithm** (`check_id_algorithm`, Shpitser & Pearl, 2008) with c-component decomposition and hedge detection.
+- **Fail-Closed Refusal (`CLM-007`):** When unmeasured confounding creates an unidentifiable hedge, the engine raises `UnqualifiedCausalClaimError` or returns `NotIdentifiableResult` with zero `"causes"` strings emitted into `WorldSpec`.
+- **Disambiguated E-Values (`CLM-008`):** Confounding **Sensitivity E-values** on the risk-ratio scale ($E_{\text{sens}} = RR + \sqrt{RR(RR-1)}$, VanderWeele & Ding, 2017) are strictly separated in type and API from sequential **safe-testing e-processes** ($\mathbb{E}_{H_0}[e_t \mid \mathcal{F}_{t-1}] \le 1$, Grünwald et al., 2024).
+
+### 3.3 Amortized SBI, TARP Diagnostics & Split-Conformal Coverage
+- **Posterior Calibration (`CLM-010`):** `ewm calibrate` audits approximate posteriors using **Tests of Accuracy with Random Points (TARP)** (Lemos et al., 2023) with independent per-instance random reference points $\theta_{r,j} \sim \text{Uniform}(\text{bounds})$ and Posterior Simulation-Based Calibration (SBC).
+- **Predictive Intervals (`CLM-011`):** `SplitConformalCalibrator` constructs distribution-free predictive intervals with finite-sample **marginal** coverage $\frac{\lceil(n+1)(1-\alpha)\rceil}{n+1} \le \mathbb{P}(Y_{\text{test}} \in \hat{C}(X_{\text{test}})) < \frac{\lceil(n+1)(1-\alpha)\rceil + 1}{n+1}$ under exchangeability, augmented with conditional `slice_coverages` and online `AdaptiveConformalInference` (Gibbs & Candès, 2021).
 
 ---
 
-## 5. Cross-Backend Bit-Identical Fingerprints & WMIF Standard
+## 4. Three-Tier Numerical Reproducibility Contract & WMIF Standard
 
-To support high-throughput Monte Carlo rollouts without sacrificing reproducibility:
-1. **Structure-of-Arrays (SoA) State Tensor:** Vectorizes world states into contiguous float/int arrays, enabling $1000\times$ faster execution while preserving identical canonical SHA-256 state fingerprints across pure-Python, NumPy, and compiled JAX runtimes.
-2. **World Model Interchange Format (WMIF):** A self-contained directory container specification (Level 1, Packages: `graph_state`, `conformal_intervals`, `event_sourced_replay`) allowing models to be exported, shared, and executed across heterogeneous tools.
-3. **Standalone Conformance Suite:** Validates third-party implementations against reference models (`ref_seed_trivial`, `ref_closed_form_stochastic`, `ref_constraint_stress`) with bit-exact fingerprint oracle matching.
+Floating-point reduction order differs across CPU and GPU compilers (Goldberg, 1991). Rather than claiming universal cross-hardware bit-identity, `ewm_engine.simulation.soa` enforces a three-tier reproducibility contract (`CLM-019`):
+1. **`BITWISE_REPRODUCIBLE` (Pure-Python & NumPy CPU Kernel):** Produces bit-identical SHA-256 `WorldState` fingerprints under a pinned Python/NumPy runtime (`OMP_NUM_THREADS=1`) via hierarchical `SeedSequence` spawning (Salmon et al., 2011).
+2. **`NUMERICALLY_EQUIVALENT_WITH_TOLERANCE` (JAX `x64` Backend):** Uses functional `jax.random.fold_in` Threefry splitting and is certified against the NumPy reference trajectory within `rtol = 1e-6, atol = 1e-7`.
+3. **`NON_CERTIFIED_BACKEND` (CuPy Accelerator):** High-throughput GPU simulation where parallel atomic float reductions can reorder additions; explicitly rejected when `certify_equivalence=True`.
+
+Models and trajectories serialize to the **World Model Interchange Format (WMIF v1.0)** (`CLM-014`), verified against three standalone reference oracle worlds (`ref_seed_trivial`, `ref_closed_form_stochastic`, `ref_constraint_stress`).
 
 ---
 
-## 6. Empirical Validation Gallery
+## 5. Experimental Evaluation & Artifact Traceability
 
-We evaluate EWM across seven reproducible benchmark cards:
+### 5.1 Seven Domain Validation Cards (`reproduction_manifest.json`)
 
-| Pillar | Benchmark Card | Domain | Invariant Tested | Empirical Result | Status |
+| Card ID | Domain & Literature Anchor | Primary Invariant / Metric | Observed Value | Certified Tolerance / Gate |
+| :--- | :--- | :--- | :--- | :--- |
+| `seir` | SEIR Epidemic (Kermack & McKendrick, 1927) | Closed-population mass $S+E+I+R=N$ (80 steps) | Max residual $4.547 \times 10^{-13}$ | $\le 1.0 \times 10^{-12}$ |
+| `beer_game` | Supply Chain (Sterman, 1989) | Upstream/downstream order variance amplification | Bullwhip ratio $3.8025$ | $> 2.0$, stock conserved |
+| `world3` | Macro Resource Dynamics (Meadows et al., 1972) | Non-linear resource depletion & industrial peak | Peak at step $t = 99$ | Step $99 \pm 5$, non-negative |
+| `calibrated_posterior` | Amortized SBI (Lemos et al., ICML 2023) | Per-instance random-reference TARP ECP deviation | Mean TARP error $0.0283$ | $\le 0.050$ (`is_calibrated=True`) |
+| `counterfactual_scm` | Twin-Rollout SCM (Pearl, 2009) | Coupled exogenous noise $U$ intervention effect | Net effect $+35.0$ units | Exact coupled noise |
+| `decision_discovery` | Robust Decision Making (Friedman & Fisher, 1999) | PRIM vulnerability box density & coverage | Density $0.9116$, recall $0.8000$ | Density $\ge 0.80$, recall $\ge 0.75$ |
+| `induction_validation` | Causal Discovery Gate (Spirtes et al., 2000) | Fail-closed refusal on CPDAG/FCI ambiguity | $7$ admitted, $2$ refused, $0$ `"causes"` | $0$ overclaimed edges |
+
+### 5.2 Twelve-Family Enterprise Benchmark Suite (`enterprise_benchmark_suite.json`)
+
+We evaluate four baselines across 12 synthetic operational families (`A` through `L`, 13 metrics per run, `suite_fingerprint = 7dadf02addfc7a434538cc587c8ce8a4dbc2009a4394c323c19384b3a0349c67`):
+
+| Family Group | Operational Regime | Mean Post-Shift RMSE (Rules / Learned / Static-Hybrid / **Hybrid+Discovery**) | Mean Decision Regret (Rules / Learned / Static-Hybrid / **Hybrid+Discovery**) | Conformal 90% Coverage (**Hybrid+Discovery**) | Conservation Violations (Learned vs. **Hybrid**) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Pillar 1** | SEIR Outbreak | Epidemiology | $S+E+I+R = N$ | Max Drift $= 4.54 \times 10^{-13}$ | **Zero Drift** |
-| **Pillar 2** | Beer Game | Supply Chain | Inventory conservation | Bullwhip Ratio $= 3.80$ | **Conserved** |
-| **Pillar 3** | WORLD3 | Global Dynamics | Non-linear limits | Inflection at $t=99$ | **Stable** |
-| **Pillar 4** | Calibrated Posterior | Bayesian SBI | Credible coverage | TARP Error $= 0.028$ | **Certified** |
-| **Pillar 5** | Counterfactual SCM | Logistics Surgery | Exogenous coupling | Net ATE $= +35.0$ units | **Coupled** |
-| **Pillar 6** | Decision Discovery | Vulnerability | Subspace purity | Density $= 91.2\%$, Recall $= 80\%$ | **Audited** |
-| **Pillar 7** | Induction Validation | Process Logs | Refusal integrity | Fails closed on confounding | **Verified** |
+| **Family `A`** (`shift_supply_chain`) | Mid-deployment lead-time & yield shift | $14.20$ / $11.50$ / $9.80$ / **$2.40$** | $0.320$ / $0.290$ / $0.210$ / **$0.025$** | **$0.900$** (vs. $0.450$ rules) | $18.5$ vs. **$0.0$** |
+| **Families `B`–`H`, `L`** (7 shift families) | Backlog, finance, maintenance, workforce, policy, multi-site, shock | $9.50\text{–}45.0$ / $8.40\text{–}38.0$ / $6.90\text{–}29.0$ / **$1.80\text{–}6.50$** | $0.240\text{–}0.380$ / $0.210\text{–}0.340$ / $0.150\text{–}0.240$ / **$0.019\text{–}0.038$** | **$0.890\text{–}0.910$** | $6.2\text{–}24.0$ vs. **$0.0$** |
+| **Family `I`** (Negative Control 1) | Stationary rules-sufficient system | **$1.10$** / $2.80$ / $1.15$ / $1.45$ | **$0.015$** / $0.065$ / $0.018$ / $0.028$ | $0.920$ (rules) / $0.910$ | $3.2$ vs. **$0.0$** |
+| **Family `J`** (Negative Control 2) | Extreme $10\sigma$ OOD shock outside support | $38.0$ / $64.0$ / $35.0$ / $32.0$ (OOD alert) | $0.520$ / $0.780$ / $0.490$ / $0.450$ | Degrades to $0.550$ (abstains) | $28.0$ vs. **$0.0$** |
+| **Family `K`** (Negative Control 3) | Confounded unobserved common cause | $4.20$ / $3.90$ / $3.50$ / $3.40$ | Refused (`causal_gate = False`) | $0.880$ | $5.1$ vs. **$0.0$** |
+
+### 5.3 End-to-End Artifact Provenance Map (`Command → Raw Artifact → Transformation → Table/Figure`)
+
+Every numerical result and visual figure in this paper and repository is generated programmatically without manual transcription:
+
+| Paper / Docs Target | Execution Command | Raw Committed Artifact | Transformation / Generator | Verification Test |
+| :--- | :--- | :--- | :--- | :--- |
+| **Table 5.1** (7 Domain Validation Cards) | `python scripts/reproduce.py` | [`reproduction_manifest.json`](../../reproduction_manifest.json) | `scripts/reproduce_results.py` (`run_all_cards()`) | `pytest tests/contract/test_provenance.py -q` |
+| **Table 5.2** (12-Family Benchmark Suite A–L) | `python scripts/run_enterprise_benchmark_suite.py` | [`docs/results/artifacts/enterprise_benchmark_suite.json`](../../docs/results/artifacts/enterprise_benchmark_suite.json) | `ewm_engine.benchmarks.suite.run_enterprise_benchmark_suite()` | `pytest tests/unit/test_enterprise_benchmark_suite.py -q` |
+| **Hero & Benchmark SVG Figures** | `python scripts/generate_readme_assets.py` | `assets/hero-proof-dark.svg`, `assets/results-gallery-dark.svg`, `assets/benchmark-comparison-dark.svg` | `scripts/generate_readme_assets.py` | `python scripts/check_readme_links.py` |
+| **Numerical Tier Equivalence** | `pytest tests/unit/test_numerical_reproducibility_p05.py` | `BACKEND_REPRODUCIBILITY_CONTRACTS` in `src/ewm_engine/simulation/soa.py` | `SoASimulationKernel.verify_equivalence()` | `python scripts/check_release_truth.py` |
 
 ---
 
-## 7. Single-Command Reproducibility Layer
+## 6. Limitations & Threats to Validity
 
-All seven benchmark cards, three WMIF reference models, and cross-backend SoA tensors reproduce bit-for-bit via a single command:
+To prevent scientific overclaiming, we explicitly document seven operational and methodological boundaries:
+1. **Model-Conditioned Counterfactual Validity ($P_{\text{model}}$ vs. Reality):** Counterfactual trajectories (`world.counterfactual()`) and bootstrap deltas (`compare_scenarios()`) evaluate consequences *under the declared simulation model* ($P_{\text{model}}$). If a real organization contains unmodeled feedback loops, gaming behavior, or omitted variables, simulated estimates can diverge from reality (`model_discrepancy_vs_reality` in `UncertaintyTaxonomyBreakdown`).
+2. **Regime-Shift Extrapolation Failure (Family `J`):** Learned residual dynamics (`LinearResidualDynamics`, `TorchNeuralResidualDynamics`, `RelationalGNNDynamics`) extrapolate poorly when deployment states leave the convex support of training data. While `SupportBoundaryOODDetector` flags out-of-support queries, predictive accuracy degrades until new interventional data is collected.
+3. **Causal Identification Preconditions (Family `K`):** Automated causal discovery from observational telemetry identifies at most a Markov equivalence class (CPDAG/PAG). Unoriented or confounded edges are refused (`DIRECTIONAL_UNCERTAIN`, `CONFOUNDED`), and graph-based backdoor/ID checks cannot detect latent confounders omitted entirely from the variable set.
+4. **Marginal Conformal Exchangeability Scope:** Split-conformal intervals (`SplitConformalInterval`) guarantee finite-sample **marginal** coverage under exchangeability, not exact conditional coverage $\mathbb{P}(Y \in C(X) \mid X=x)$. Under abrupt distribution shift, coverage drops below $1-\alpha$ until online `AdaptiveConformalInference` or context discovery re-converges.
+5. **Stylized Benchmark Scope:** The 7 validation cards and 12 benchmark families (`A`–`L`) are controlled, low-to-medium dimensional synthetic environments designed for fast CPU verification and ground-truth counterfactual scoring. They are not substitutes for domain-calibrated enterprise ERP deployments.
+6. **Numerical Precision Envelope:** Conservation invariants hold within IEEE-754 double-precision tolerance ($\le 10^{-12}$), not exact symbolic arithmetic. Bitwise SHA-256 state fingerprint identity holds on the `BITWISE_REPRODUCIBLE` CPU tier under a pinned Python/NumPy runtime (`OMP_NUM_THREADS=1`), whereas JAX `x64` is certified to numerical tolerance (`rtol=1e-6, atol=1e-7`).
+7. **Decision Support, Not Autonomous Actuation:** All policy rankings (`ewm decide`), scenario comparisons, and MCP agent outputs are decision-support artifacts requiring human governance review.
+
+---
+
+## 7. Reproducibility Instructions
+
+Reproduce all 7 validation cards, 3 WMIF conformance worlds, and the 12-family benchmark suite on a standard CPU without GPUs or external API keys:
 
 ```bash
-make reproduce
+python -m pip install -e ".[dev]"
+python scripts/reproduce.py
+python scripts/run_enterprise_benchmark_suite.py
+python scripts/check_release_truth.py
 ```
-
-Every execution validates against the cryptographic run-manifest [`reproduction_manifest.json`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/reproduction_manifest.json), re-verifying host environment, Python/BLAS versions, git SHA, and SHA-256 state fingerprints. In addition, zero-setup cloud reproduction is supported via:
-- **Binder:** In-browser execution via JupyterLab ([Launch Binder](https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb)).
-- **GitHub Codespaces:** Instant pre-configured development environment ([Open Codespaces](https://codespaces.new/vfcarida/Enterprise-World-Model-Engine)).
-- **Pinned Docker:** Multi-platform containerized run via `docker run --rm -v $(pwd):/app ewm-engine:pinned`.
-
----
-
-## 8. Conclusion
-
-The Enterprise World Model Engine demonstrates that rigor, auditability, and causal honesty can be engineered directly into simulation software without sacrificing performance. By open-sourcing the kernel under Apache-2.0 with cryptographic verification manifests and zero mandatory cloud/GPU infrastructure, EWM provides a trusted, reproducible foundation for the emerging discipline of Decision Intelligence.
 
 ---
 
 ## References
 
-* Assran, M. et al. (2025). V-JEPA 2: Self-Supervised Vision with Action-Conditioned World Models. arXiv:2506.09985.
-* D'Amour, A., Ding, P., Feller, A., Lei, L., & Sekhon, J. (2021). Overlap in Observational Studies with High-Dimensional Covariates. *Journal of Econometrics*, 221(2), 644–654.
-* Friedman, J. H. & Fisher, N. I. (1999). Bump hunting in high-dimensional data. *Statistics and Computing*, 9(2), 123–143.
-* Gneiting, T. & Raftery, A. E. (2007). Strictly Proper Scoring Rules, Prediction, and Estimation. *Journal of the American Statistical Association*, 102(477), 359–378.
-* Grünwald, P., de Heide, R., & Koolen, W. M. (2024). Safe Testing and E-Values. *Statistica Neerlandica*, 78(1), 79–110.
-* Hafner, D. et al. (2023). Mastering Diverse Domains through World Models. arXiv:2301.04104.
-* Lemos, P. et al. (2023). Sampling-based accuracy testing of posterior estimators for astronomical imaging (TARP). *ICML 2023*, arXiv:2302.03026.
-* Papamakarios, G., Sterratt, D., & Murray, I. (2019). Sequential Neural Likelihood: Fast Likelihood-free Inference with Autoregressive Flows. *AISTATS 2019*.
-* Pearl, J. (2009). *Causality: Models, Reasoning, and Inference* (2nd ed.). Cambridge University Press.
-* Richens, J. & Everitt, T. (2024). Robust agents learn causal world models. *ICLR 2024 (Oral)*, arXiv:2402.10877.
-* Schölkopf, B. et al. (2021). Toward Causal Representation Learning. *Proceedings of the IEEE*, 109(5), 612–634.
-* Sterman, J. D. (1989). Modeling Managerial Behavior: Misperceptions of Feedback in a Dynamic Decision Making Experiment. *Management Science*, 35(3), 321–339.
-* Talvitie, E. (2014). Model Diagnostics for Model-Based Reinforcement Learning. *AAAI 2014*, 2074–2080.
-* VanderWeele, T. J. & Ding, P. (2017). Sensitivity Analysis in Observational Research: Introducing the E-Value. *Annals of Internal Medicine*, 167(4), 268–274.
+* Angelopoulos, A. N., & Bates, S. (2023). A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification. *Foundations and Trends in Machine Learning*, 16(4), 494–591. DOI: `10.1561/2200000101` (`arXiv:2107.07511`).
+* Assran, M., Bardes, A., Fan, D., Garrido, Q., Howes, R., Muckley, M., et al. (2025). V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning. `arXiv:2506.09985`.
+* Brunton, S. L., Proctor, J. L., & Kutz, J. N. (2016). Discovering Governing Equations from Data by Sparse Identification of Nonlinear Dynamical Systems. *PNAS*, 113(15), 3932–3937. DOI: `10.1073/pnas.1517384113`.
+* D'Amour, A., Ding, P., Feller, A., Lei, L., & Sekhon, J. (2021). Overlap in Observational Studies with High-Dimensional Covariates. *Journal of Econometrics*, 221(2), 644–654. DOI: `10.1016/j.jeconom.2020.04.045`.
+* Elmachtoub, A. N., & Grigas, P. (2022). Smart "Predict, then Optimize". *Management Science*, 68(1), 9–26. DOI: `10.1287/mnsc.2020.3922`.
+* Friedman, J. H., & Fisher, N. I. (1999). Bump Hunting in High-Dimensional Data. *Statistics and Computing*, 9(2), 123–143. DOI: `10.1023/A:1008979822606`.
+* Gibbs, I., & Candès, E. (2021). Adaptive Conformal Inference Under Distribution Shift. *NeurIPS 2021*, `arXiv:2106.00170`.
+* Gneiting, T., & Raftery, A. E. (2007). Strictly Proper Scoring Rules, Prediction, and Estimation. *Journal of the American Statistical Association*, 102(477), 359–378. DOI: `10.1198/016214506000001437`.
+* Grünwald, P., de Heide, R., & Koolen, W. M. (2024). Safe Testing. *Journal of the Royal Statistical Society Series B*, 86(5), 1091–1128. DOI: `10.1093/jrsssb/qkae011` (`arXiv:1906.07801`).
+* Hafner, D., Pasukonis, J., Ba, J., & Lillicrap, T. (2025). Mastering Diverse Domains through World Models. *Nature*, 640, 647–653. DOI: `10.1038/s41586-025-08744-2` (`arXiv:2301.04104`).
+* Kermack, W. O., & McKendrick, A. G. (1927). A Contribution to the Mathematical Theory of Epidemics. *Proceedings of the Royal Society A*, 115(772), 700–721. DOI: `10.1098/rspa.1927.0118`.
+* Lemos, P., Coogan, A., Hezaveh, Y., & Perreault-Levasseur, L. (2023). Sampling-Based Accuracy Testing of Posterior Estimators for General Inference (TARP). *ICML 2023*, PMLR 202:19256–19273, `arXiv:2302.03026`.
+* Liu, Z., & Tegmark, M. (2021). AI Poincaré: Machine Learning Conservation Laws from Trajectories. *Physical Review Letters*, 126(18), 180604. DOI: `10.1103/PhysRevLett.126.180604` (`arXiv:2011.04698`).
+* Meadows, D. H., Meadows, D. L., Randers, J., & Behrens, W. W. (1972). *The Limits to Growth*. Universe Books.
+* Pearl, J. (2009). *Causality: Models, Reasoning, and Inference* (2nd ed.). Cambridge University Press. DOI: `10.1017/CBO9780511803160`.
+* Richens, J., & Everitt, T. (2024). Robust Agents Learn Causal World Models. *ICLR 2024 (Oral)*, `arXiv:2402.10877`.
+* Salmon, J. K., Moraes, M. A., Dror, R. O., & Shaw, D. E. (2011). Parallel Random Numbers: As Easy as 1, 2, 3. *SC11*, DOI: `10.1145/2063384.2063405`.
+* Schölkopf, B., Locatello, F., Bauer, S., Ke, N. R., Kalchbrenner, N., Goyal, A., & Bengio, Y. (2021). Toward Causal Representation Learning. *Proceedings of the IEEE*, 109(5), 612–634. DOI: `10.1109/JPROC.2021.3058954`.
+* Sharma, A., & Kiciman, E. (2020). DoWhy: An End-to-End Library for Causal Inference. `arXiv:2011.04216`.
+* Shpitser, I., & Pearl, J. (2008). Complete Identification Methods for the Causal Hierarchy. *Journal of Machine Learning Research*, 9, 1941–1979.
+* Spirtes, P., Glymour, C., & Scheines, R. (2000). *Causation, Prediction, and Search* (2nd ed.). MIT Press.
+* Sterman, J. D. (1989). Modeling Managerial Behavior: Misperceptions of Feedback in a Dynamic Decision Making Experiment. *Management Science*, 35(3), 321–339. DOI: `10.1287/mnsc.35.3.321`.
+* VanderWeele, T. J., & Ding, P. (2017). Sensitivity Analysis in Observational Research: Introducing the E-Value. *Annals of Internal Medicine*, 167(4), 268–274. DOI: `10.7326/M16-2607`.

@@ -16,7 +16,7 @@ Epistemic Invariant:
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any, Self
+from typing import Any, Literal, Self
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -60,6 +60,10 @@ class IdentifiabilityResult(BaseModel):
     causal_level: EvidenceLevel = Field(
         description="Epistemic standing warranted by graph structure (never inferred from data).",
     )
+    identification_provenance: str = Field(
+        default="declared_structural_causal_graph_backdoor_criterion",
+        description="Explicit provenance for causal identification assumptions.",
+    )
     diagnostic_message: str = Field(
         description="Human-readable explanation of identifiability status."
     )
@@ -72,6 +76,8 @@ class IdentifiabilityResult(BaseModel):
             claimed_level=self.causal_level,
             is_identifiable=self.is_identifiable,
             overlap_satisfied=True,
+            identification_provenance=self.identification_provenance,
+            require_provenance=True,
             strict=True,
         )
         return self
@@ -102,6 +108,7 @@ def check_backdoor_identifiability(
             outcome=outcome,
             conditioning_set=tuple(sorted(cond_set)),
             causal_level=EvidenceLevel.PREDICTIVE,
+            identification_provenance="unidentified_forbidden_descendant_conditioning",
             diagnostic_message=(
                 f"Backdoor criterion violated: Conditioning set contains descendants of treatment: "
                 f"{sorted(forbidden_descendants)}. Conditioning on descendants induces selection bias."
@@ -138,6 +145,7 @@ def check_backdoor_identifiability(
             open_backdoor_paths=tuple(open_paths),
             unobserved_confounders=tuple(sorted(unobserved_on_paths)),
             causal_level=EvidenceLevel.PREDICTIVE,
+            identification_provenance="unidentified_open_backdoor_paths",
             diagnostic_message=msg,
         )
 
@@ -149,6 +157,7 @@ def check_backdoor_identifiability(
         open_backdoor_paths=(),
         unobserved_confounders=(),
         causal_level=EvidenceLevel.INTERVENTIONAL,
+        identification_provenance=f"declared_dag_backdoor_adjustment:{sorted(cond_set)}",
         diagnostic_message=(
             f"Under declared causal graph, the effect of do({treatment}) on {outcome} "
             f"is IDENTIFIABLE using backdoor adjustment over {sorted(cond_set)}."
@@ -162,12 +171,16 @@ def check_backdoor_identifiability(
 
 
 class ObservationalQueryResult(BaseModel):
-    """Result of an observational conditional expectation query P(Y | X)."""
+    """Result of an observational conditional expectation query P(Y | X) (Rung 1: Association)."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     treatment: str
     outcome: str
+    estimand: str = Field(
+        default="E[Y | X=1] - E[Y | X=0]",
+        description="Rung-1 associational estimand P(Y | X) without interventional identification.",
+    )
     conditional_mean_treated: float
     conditional_mean_control: float
     observational_association: float
@@ -179,27 +192,51 @@ class ObservationalQueryResult(BaseModel):
 
 
 class EValueResult(BaseModel):
-    """Sensitivity diagnostic reporting the E-value for unmeasured confounding.
+    """Sensitivity diagnostic reporting the Sensitivity E-value for unmeasured confounding.
 
     (VanderWeele & Ding, 2017; Annals of Internal Medicine)
-    The E-value represents the minimum strength of association on the risk ratio scale
-    that an unmeasured confounder would need to have with both the treatment and the
+    The Sensitivity E-value represents the minimum strength of association on the risk ratio
+    scale that an unmeasured confounder would need to have with both the treatment and the
     outcome to explain away an observed treatment-outcome association.
+
+    Terminology Disambiguation:
+        This is the observational confounding *Sensitivity E-value* ($E \\ge 1$, VanderWeele & Ding, 2017),
+        NOT the sequential *Safe-testing e-value / e-process* ($\\mathbb{E}_{H_0}[e] \\le 1$,
+        Grünwald et al., 2024; Ramdas et al., 2023) used for optional-stopping hypothesis tests.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
+    concept_type: Literal["confounding_sensitivity_e_value"] = Field(
+        default="confounding_sensitivity_e_value",
+        description="Explicit disambiguation tag: VanderWeele & Ding (2017) confounding Sensitivity E-value.",
+    )
     point_estimate: float
     e_value_point: float = Field(
-        description="E-value for the point estimate (minimum RR to nullify effect)."
+        description="Sensitivity E-value for the point estimate (minimum RR to nullify effect)."
     )
     e_value_ci_limit: float | None = Field(
         default=None,
-        description="E-value for the confidence interval limit closest to null (1.0 if CI crosses null).",
+        description="Sensitivity E-value for the confidence interval limit closest to null (1.0 if CI crosses null).",
     )
     ci_lower: float | None = Field(default=None)
     ci_upper: float | None = Field(default=None)
     interpretation: str
+    disambiguation_note: str = Field(
+        default=(
+            "Sensitivity E-value (VanderWeele & Ding, 2017) for unmeasured confounding on the risk-ratio "
+            "scale (E >= 1); distinct from safe-testing e-values / e-processes (E_{H0}[e] <= 1) used for "
+            "anytime-valid sequential inference."
+        ),
+        description="Mandatory disambiguation between Sensitivity E-values and safe-testing e-values.",
+    )
+    assumptions: tuple[str, ...] = Field(
+        default=(
+            "Risk-ratio conversion from continuous standardized mean difference uses Chinn (2000) approximation RR ≈ exp(0.91 * d) when is_risk_ratio=False.",
+            "Bounds worst-case unmeasured confounder associations RR_UD and RR_UY on the risk-ratio scale.",
+        ),
+        description="Mathematical assumptions underlying the Sensitivity E-value calculation.",
+    )
 
 
 def compute_e_value(
@@ -209,7 +246,11 @@ def compute_e_value(
     is_risk_ratio: bool = False,
     outcome_std: float | None = None,
 ) -> EValueResult:
-    """Compute the E-value for a causal effect estimate and its confidence interval limit.
+    """Compute the Sensitivity E-value for a causal effect estimate and its confidence interval limit.
+
+    Terminology Disambiguation:
+        Computes VanderWeele & Ding's (2017) confounding Sensitivity E-value on the risk-ratio
+        scale, distinct from safe-testing e-values / e-processes (Grünwald et al., 2024).
 
     References:
         - VanderWeele & Ding (2017), Ann Intern Med.
@@ -245,11 +286,12 @@ def compute_e_value(
             e_ci = _calc_e(rr_high)
 
     interp = (
-        f"Point E-value = {e_point:.2f}. An unmeasured confounder must have a risk ratio of at least "
-        f"{e_point:.2f} with both the treatment and outcome to explain away the observed effect."
+        f"Point Sensitivity E-value = {e_point:.2f} (VanderWeele & Ding, 2017). An unmeasured confounder "
+        f"must have a risk ratio of at least {e_point:.2f} with both the treatment and outcome to explain "
+        f"away the observed effect."
     )
     if e_ci is not None:
-        interp += f" CI limit E-value = {e_ci:.2f}."
+        interp += f" CI limit Sensitivity E-value = {e_ci:.2f}."
 
     return EValueResult(
         point_estimate=point_estimate,
@@ -261,20 +303,33 @@ def compute_e_value(
     )
 
 
+# Explicit disambiguated aliases for VanderWeele & Ding (2017) confounding sensitivity E-value
+SensitivityEValueResult = EValueResult
+compute_sensitivity_e_value = compute_e_value
+
+
 class InterventionalQueryResult(BaseModel):
-    """Result of an interventional query P(Y | do(X)) evaluated under declared structural assumptions."""
+    """Result of an interventional query P(Y | do(X)) evaluated under declared structural assumptions (Rung 2)."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     treatment: str
     outcome: str
+    estimand: str = Field(
+        default="E[Y | do(X=1)] - E[Y | do(X=0)]",
+        description="Rung-2 interventional estimand under declared causal graph.",
+    )
     adjusted_effect: float
     identifiability: IdentifiabilityResult
     causal_level: EvidenceLevel
+    identification_provenance: str = Field(
+        default="declared_structural_causal_graph_backdoor_criterion",
+        description="Explicit provenance for the causal identification assumptions.",
+    )
     assumptions_summary: str
     e_value: EValueResult | None = Field(
         default=None,
-        description="E-value sensitivity diagnostic against unmeasured confounding (VanderWeele & Ding, 2017).",
+        description="Sensitivity E-value diagnostic against unmeasured confounding (VanderWeele & Ding, 2017).",
     )
     positivity_report: PositivityReport | None = Field(
         default=None,
@@ -292,6 +347,8 @@ class InterventionalQueryResult(BaseModel):
             claimed_level=self.causal_level,
             is_identifiable=self.identifiability.is_identifiable,
             overlap_satisfied=overlap,
+            identification_provenance=self.identification_provenance,
+            require_provenance=True,
             strict=True,
         )
         return self
@@ -729,6 +786,10 @@ class TwinRolloutResult(BaseModel):
 
     seed: int
     horizon: int
+    estimand: str = Field(
+        default="Y_{x'}(u) - Y_x(u) under coupled exogenous noise u in P_model",
+        description="Rung-3 structural counterfactual estimand under shared exogenous noise u.",
+    )
     target_effects: dict[str, float] = Field(
         description="Counterfactual minus factual delta on target resources."
     )
@@ -740,6 +801,12 @@ class TwinRolloutResult(BaseModel):
     )
     locality_preserved: bool = Field(
         description="True if off-target variables experienced zero unexpected divergence.",
+    )
+    assumptions: tuple[str, ...] = Field(
+        default=(
+            "Structural equations and exogenous noise coupling u are specified by the simulator World; unit-level counterfactuals Y_{x'}(u) - Y_x(u) are valid under P_model and are NOT point-identified from observational data alone without functional/monotonicity assumptions.",
+        ),
+        description="Explicit Rung-3 structural counterfactual assumptions.",
     )
     diagnostic_message: str
 

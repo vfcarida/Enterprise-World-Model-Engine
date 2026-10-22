@@ -6,12 +6,14 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   label:
     name: Auto-Label Pull Request
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     timeout-minutes: 5
     steps:
       - name: Harden Runner

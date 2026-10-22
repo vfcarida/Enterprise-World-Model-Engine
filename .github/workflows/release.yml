@@ -51,11 +51,15 @@ jobs:
       - name: Install build dependencies
         run: uv sync --extra dev
 
+      - name: Verify Canonical Artifacts & Security Truth Gate
+        run: uv run python scripts/check_release_truth.py
+
       - name: Assert Version Equals Git Tag & Reject .dev/Local Builds (Truth Gate)
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           TAG_NAME: ${{ github.ref_name }}
         run: |
+          uv run python scripts/check_release_truth.py --tag "${TAG_NAME}"
           # Expected version stripped of leading 'v'
           EXPECTED_VERSION="${TAG_NAME#v}"
           DETECTED_VERSION=$(uv run python -c "import ewm_engine; print(ewm_engine.__version__)")

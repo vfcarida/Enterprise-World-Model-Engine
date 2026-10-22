@@ -1,83 +1,75 @@
 # Competitive Landscape & Positioning
 
-> *"Enterprise World Model Engine (EWM) is a deterministic, auditable structural simulation kernel for organizational and socio-technical systems. It simulates the consequences of a decision before you make it — with reproducible provenance and no GPU or LLM required."*
+> *"Enterprise World Model Engine (`ewm-engine`) is a deterministic, auditable structural simulation kernel for organizational and socio-technical systems. It evaluates the operational consequences of candidate interventions under explicit resource constraints and calibrated uncertainty—without requiring a GPU or LLM in the core simulation loop."*
 
 ---
 
-## 1. The 2×2 Landscape: Where EWM Fits
+## 1. Scope & Taxonomy of World-Modeling Systems
 
-Simulation engines and digital twins generally bifurcate along two major axes:
-1. **System Type:** Physical / Industrial Systems (turbines, robots, circuits) $\longleftrightarrow$ Socio-Technical / Organizational Systems (supply chains, healthcare logistics, workforce policies, resource allocation).
-2. **Governance & Accessibility:** Closed / Proprietary Black-Boxes $\longleftrightarrow$ Open, Transparent & Auditable Kernels.
+**Comparison Context:** Evaluated as of **October 2026** (`ewm-engine v1.5.0`) across open-source and proprietary simulation, optimization, causal inference, and neural world-model frameworks.
 
-```
+Simulation engines and world models generally bifurcate along two structural axes:
+1. **Primary State Representation:** Physical / Sensorimotor Systems (continuous 3D kinematics, pixel frames, fluid meshes) $\longleftrightarrow$ Organizational / Socio-Technical Systems (typed entities, bounded inventories, financial ledgers, workflow queues, regulatory rules).
+2. **Governance & Inspection Model:** Closed / Proprietary Runtimes $\longleftrightarrow$ Open-Source, Cryptographically Auditable Kernels.
+
+```text
                   Closed / Proprietary
                            │
-      Siemens MindSphere   │   Palantir Foundry / AIP
+      Siemens Digital Twin │   Palantir Foundry / AIP
       GE Digital Twin      │   AnyLogic Enterprise
       Ansys Twin Builder   │   Cosmo Tech
                            │
 ───────────────────────────┼───────────────────────────
                            │
       OpenFOAM             │   ★ Enterprise World Model
-      NVIDIA Isaac Sim     │     Engine (EWM)
-      MuJoCo               │   Mesa / AgentTorch
+      NVIDIA Isaac Sim     │     Engine (ewm-engine)
+      MuJoCo               │   Mesa / SimPy / PySD
                            │
                   Open / Auditable
   ◄────────────────────────┼──────────────────────────►
-   Physical / Industrial             Socio-Technical /
-   Systems                           Organizational Systems
+   Physical / Sensorimotor            Socio-Technical /
+   Systems                            Organizational Systems
 ```
 
-### The Unoccupied Quadrant: Open Socio-Technical Systems
-Industrial engineering has enjoyed rigorous open-source physics engines (OpenFOAM, MuJoCo) for decades. Conversely, socio-technical systems have historically been dominated by either:
-- **Opaque Proprietary Platforms:** High-cost, vendor-locked enterprise suites (Palantir, AnyLogic) that hide dynamics behind proprietary runtimes.
-- **Academic Black-Boxes:** Academic ABMs with non-reproducible RNG state, no causal structural grounding, and no certified calibration.
+---
 
-**EWM Engine occupies the Open, Auditable, Socio-Technical quadrant.** It delivers deterministic execution, cryptographically sealed state hashes, explicit conservation laws, and native counterfactual SCM graph surgery — free of vendor lock-in and zero mandatory cloud/GPU infrastructure.
+## 2. Neutral Peer Comparison Matrix
+
+The table below compares `ewm-engine` against representative peer systems across their intended design scopes. Each system is evaluated against its primary published architecture; an architectural difference indicates a distinct design scope rather than a defect in the peer tool.
+
+| System (Version / Date Context) | Primary Domain & Citation | Core State & Transition Paradigm | Strengths & When to Choose It | Architectural Contrast with `ewm-engine` (`v1.5.0`) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Mesa** (`3.x`, 2020–2026) | Agent-Based Modeling (ABM) in social and complex systems ([Kazil et al., 2020](https://doi.org/10.1007/978-3-030-61255-9_30)) | Imperative Python agent step loops over grid or network spaces | Flexible bottom-up agent rules, interactive browser visualization, broad social-science teaching adoption | Mesa is designed for emergent agent-rule exploration rather than structural causal graph surgery (`do(X)`), KKT nullspace conservation projections, or split-conformal / TARP calibration diagnostics. `ewm-engine` provides an interoperability adapter (`ewm_engine.cosim.mesa`) to host Mesa models inside constrained rollouts. |
+| **SimPy** (`4.1.x`, 2020–2026) | Process-based discrete-event simulation ([The SimPy Team, 2020](https://simpy.readthedocs.io/)) | Generator-based coroutine event queues and shared resource capacities | Lightweight queuing, contention, and discrete-event timing simulation in pure Python | SimPy models event-queue scheduling without built-in immutable state branching (`world.branch()`), declarative JSON/WSL schemas, or causal identifiability gates. `ewm-engine` interoperates with SimPy via `ewm_engine.cosim.simpy`. |
+| **PySD** (`3.14.x`, 2015–2026) | System Dynamics ([Houghton & Siegel, 2015](https://doi.org/10.1002/sdr.1541)) | Aggregate differential equations (stocks and flows) compiled from Vensim/XMILE | Translating continuous macro-level system dynamics models into Python/NumPy | PySD models aggregate continuous compartments rather than heterogeneous entity-relationship graphs, discrete action pre-condition rejection, or abducted-noise counterfactual twin rollouts. |
+| **DoWhy** (`0.11+`, 2020–2026) | Observational Causal Inference ([Sharma & Kiciman, 2020](https://arxiv.org/abs/2011.04216)) | Four-step causal effect estimation (model, identify, estimate, refute) over static datasets | Estimating average or conditional treatment effects ($\text{ATE}/\text{CATE}$) from historical tabular data | DoWhy is an econometric/statistical effect estimator for static observational logs, not a forward multi-step state-transition simulator with phase-aware operational constraints. `ewm-engine` adopts DoWhy-style refutation gates (`ewm_engine.induction.validation`) for induced causal graphs. |
+| **PyMC** (`5.x`, 2023–2026) | Probabilistic Programming ([Abril-Pla et al., 2023](https://doi.org/10.7717/peerj-cs.1516)) | Declarative Bayesian graphical models with NUTS/HMC and variational inference | Full Bayesian posterior inference over explicit likelihood models | PyMC is a statistical inference engine rather than a stateful multi-actor operational simulator. `ewm-engine` complements Bayesian workflows via simulation-based inference (`ewm calibrate`) when closed-form likelihoods are intractable. |
+| **Google OR-Tools** (`9.8+`, 2023–2026) | Combinatorial & Mathematical Optimization ([Perron & Furnon, 2023](https://developers.google.com/optimization)) | CP-SAT constraint programming, MILP, and vehicle routing solvers | Solving static or single-horizon resource allocation and scheduling problems to optimality | OR-Tools solves mathematical programs for a given objective and constraint set; `ewm-engine` simulates how chosen allocations evolve forward over multi-step stochastic horizons and hosts OR-Tools (`ewm_engine.integrations.ortools`) as a policy planner. |
+| **Concordia** (`2023–2026`) | Generative Social Simulation ([Vezhnevets et al., 2023](https://arxiv.org/abs/2312.03664)) | LLM-mediated associative memory agents arbitrated by a natural-language Game Master | Open-ended qualitative social, negotiation, and narrative interaction studies | Concordia grounds state transitions through LLM text mediation. `ewm-engine` enforces a zero-LLM deterministic numerical core so resource conservation holds within IEEE-754 tolerance ($\le 10^{-12}$), while providing `EWMWorldArbiter` (`ewm_engine.integrations.concordia`) to validate LLM agent intents against hard rules. |
+| **DreamerV3 / V-JEPA 2 / Cosmos** (`2023–2026`) | Neural & Video World Models ([Hafner et al., 2023](https://arxiv.org/abs/2301.04104); [Assran et al., 2025](https://arxiv.org/abs/2506.09985)) | Recurrent latent state-space models (RSSM) or joint-embedding video transformers | Sensorimotor control, visual dynamics prediction, and robotics planning from pixels | Neural world models operate on visual tokens or dense latent vectors without explicit symbolic accounting invariants or backdoor causal refusal gates. `ewm-engine` adopts DreamerV3's symlog scaling inside optional residual modules (`TorchNeuralResidualDynamics`) while keeping conservation laws structural. |
 
 ---
 
-## 2. Nearest-Neighbor Comparison
+## 3. Explicit Non-Goals (What EWM Engine Is NOT)
 
-The following table provides an honest, peer-level comparison of tools often encountered in the decision-intelligence and simulation ecosystem:
+To maintain clear scope boundaries, `ewm-engine` explicitly excludes the following use cases:
 
-| Tool | Primary Domain | Core Paradigm | Why Teams Choose It | How EWM Engine Differs |
-|---|---|---|---|---|
-| **Mesa** | Social Sciences & ABM | Pure Python agent-based modeling | Simple agent loops, visual grid spaces, active academic community | Mesa focuses on visual agent interactions. EWM provides native Structural Causal Models (SCM), Twin-Rollout counterfactuals ($do(x)$), exact mass conservation, conformal uncertainty bands, and zero-drift replay. |
-| **DoWhy** | Causal Inference | Static observational causal graph estimation | Estimating average treatment effects ($\text{ATE}$) from static CSV/SQL logs | DoWhy infers causal effects from *past historical data*. EWM is a *forward generative simulation kernel* that simulates multi-step future state trajectories under dynamic policy interventions. |
-| **PyMC** | Bayesian Statistics | Probabilistic programming & MCMC | Fitting Bayesian priors and hierarchical parameters | PyMC performs statistical parameter inference. EWM executes stateful discrete-event and graph dynamics. (EWM integrates with Bayesian calibration via `ewm calibrate`). |
-| **OR-Tools** | Operations Research | Deterministic mathematical optimization & CP-SAT | Solving linear, mixed-integer, and vehicle routing constraints | OR-Tools finds a single optimal static schedule. EWM simulates stochastic forward trajectories under deep uncertainty, modeling feedback loops and multi-step policy rollouts. |
-| **AgentTorch** | High-Performance ABM | PyTorch tensorized agent simulation on GPUs | Simulating millions of homogeneous agents on multi-GPU clusters | AgentTorch requires PyTorch and GPU infrastructure for vectorized loops. EWM is zero-GPU, zero-LLM in core, emphasizing exact rule audits, legal constraints, and causal identifiability. |
-| **Concordia** | Social Simulation | LLM-driven generative agents (generative ABM) | Exploring open-ended natural language social interactions | Concordia uses LLMs to hallucinate dialogue and actions. EWM forbids LLM hallucinations in core; physical and accounting quantities cannot be created or destroyed by token probability. |
-| **NVIDIA Cosmos / Meta V-JEPA / DreamerV3** | Neural World Models | Autoregressive pixel / video or latent vector prediction | High visual fidelity for robotics and autonomous driving | Neural world models predict *pixels or latent embeddings*. EWM models *typed, constrained organizational state* (inventories, balance sheets, staff, contracts) with certified conservation laws. |
-
----
-
-## 3. Explicit Non-Goals (What EWM Engine is NOT)
-
-To eliminate ambiguity, EWM Engine explicitly rejects the following categories:
-
-1. **NOT a Video or Pixel World Model:**  
-   EWM does not generate video frames, point clouds, or 3D meshes. If your goal is rendering a driving video or predicting camera frames, use NVIDIA Cosmos, Meta V-JEPA, Sora, or Runway. EWM simulates typed business resources, ledger balances, logistics routes, and regulatory constraints.
-2. **NOT an Autonomous LLM Agent Framework:**  
-   EWM is not an orchestration wrapper around LLM prompts (like CrewAI, AutoGen, or LangGraph). In EWM's philosophy: **Agents orbit the engine; they are not the engine.** Autonomous agents may query EWM as an external queryable simulator to test hypothetical actions, but the engine itself is a deterministic mathematical kernel.
-3. **NOT an Observational Time-Series Regressor:**  
-   Standard supervised time-series forecasting (Prophet, ARIMA, DeepAR) models conditional probability $P(Y \mid X)$. EWM evaluates interventional probability $P(Y \mid do(A))$. It models the structural mechanism so that predictions do not collapse when business rules change.
-4. **NOT a Streaming Data Pipeline:**  
-   EWM is not an event streaming bus (like Apache Kafka, Flink, or Spark). EWM consumes historical telemetry to calibrate its parameters (`ewm calibrate`) and emits audited simulation traces, but it is not a real-time event broker.
+1. **Not a Video, Pixel, or 3D Physics World Model:**  
+   `ewm-engine` does not generate video frames, point clouds, or 3D meshes. For visual or robotic simulation, use NVIDIA Isaac Sim, MuJoCo, DreamerV3, or V-JEPA 2. `ewm-engine` models typed organizational state, inventories, ledgers, and operational constraints.
+2. **Not an Autonomous LLM Agent Orchestration Framework:**  
+   `ewm-engine` is not a prompt-routing or multi-agent chat framework (such as LangGraph, AutoGen, or CrewAI). External agents interact with `ewm-engine` as an environment simulator (via Python or the `ewm mcp` server) to test candidate actions before execution.
+3. **Not an Observational Time-Series Forecaster:**  
+   Univariate or multivariate time-series libraries (ARIMA, Prophet, Chronos) extrapolate conditional correlations $P(Y_{t+1:t+H} \mid Y_{1:t})$. `ewm-engine` simulates action-conditioned transitions $P(S_{t+1:t+H} \mid S_t, \text{do}(A_t), K_t)$ under explicit structural rules.
+4. **Not a Real-Time Event Streaming Bus:**  
+   `ewm-engine` is not a substitute for Apache Kafka, Flink, or transactional OLTP databases. It ingests historical event logs (`OCEL 2.0`, Parquet, DuckDB) offline to induce and calibrate simulation models, and emits audited trajectory artifacts.
 
 ---
 
-## 4. The One Honest Claim
+## 4. Core Architectural Commitments
 
-Across all enterprise world models, causal simulators, and digital twin engines, EWM Engine makes one definitive claim that no competitor can match:
+Rather than claiming universal superiority across all simulation tasks, `ewm-engine` makes four verifiable engineering commitments backed by the [Claim-to-Evidence Registry](../scientific/claim-evidence-matrix.md):
 
-> **The only world-model engine scored on being right about its own uncertainty.**
-
-This identity is enforced by four architectural pillars:
-
-1. **E-Values & Safe Testing:** Every interventional claim is evaluated beside an anytime-valid E-value, eliminating false-discovery inflation under optional stopping.
-2. **Mandatory Non-Point Uncertainty:** EWM strictly rejects bare point forecasts. Every simulation rollout provides conformal predictive coverage intervals and bootstrap confidence bounds.
-3. **Epistemic Causal Refusal:** When unobserved confounding violates backdoor or instrumental variable identifiability, the engine **actively refuses** to rank counterfactual scenarios. It never auto-upgrades observational correlations into causal truth.
-4. **Calibration-Rewarding Epistemic Competence:** Rollouts that extrapolate beyond the verified horizon or historical support bounds trigger epistemic abstention signals (RWM-U) and are automatically down-weighted in decision optimization (`ewm decide`).
+1. **Tolerance-Bounded Structural Conservation (`CLM-004`, `CLM-018`):** Known physical and accounting invariants are enforced via pre/post validation gates and KKT nullspace projections (`ConservationProjectionLayer`), maintaining closed-system balance within IEEE-754 double-precision tolerance ($\le 10^{-12}$; observed max residual $4.55 \times 10^{-13}$ in SEIR).
+2. **Disambiguated Statistical & Causal Diagnostics (`CLM-008`, `CLM-009`):** Sequential simulation monitoring uses anytime-valid **safe-testing e-processes** (`SafeTestingEProcess`, $\mathbb{E}_{H_0}[e_t \mid \mathcal{F}_{t-1}] \le 1$; Grünwald et al., 2024), while observational causal analyses report **confounding Sensitivity E-values** (`compute_sensitivity_e_value`; VanderWeele & Ding, 2017) on the risk-ratio scale. Zero-variance deterministic differences are labeled `(det)` rather than statistically significant (`*`).
+3. **Explicit Uncertainty Decomposition & Marginal Coverage (`CLM-010`, `CLM-011`):** Every comparison and forecast decomposes uncertainty into a 6-part taxonomy (`UncertaintyTaxonomyBreakdown`: aleatoric, parameter, structural, runtime context, Monte Carlo error, and unmeasured real-world discrepancy), paired with finite-sample marginal split-conformal intervals under exchangeability and TARP posterior coverage diagnostics.
+4. **Fail-Closed Causal & Competence Guardrails (`CLM-007`, `CLM-018`):** When unobserved confounding violates backdoor identifiability on the declared causal graph, or when inputs extrapolate into unmodeled out-of-distribution regimes (Benchmark Family K), the engine fails closed (`UnqualifiedCausalClaimError`) or emits an explicit `CompetenceEstimator` abstention signal rather than silently extrapolating.

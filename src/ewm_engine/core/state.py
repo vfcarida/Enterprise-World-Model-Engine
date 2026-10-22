@@ -188,6 +188,26 @@ class WorldState(BaseModel):
         """Alias for state_hash conforming to canonical fingerprinting specification."""
         return self.state_hash
 
+    @property
+    def ontic_fingerprint(self) -> str:
+        """Cryptographic SHA-256 fingerprint of pure ontic state (excluding any _epistemic_* keys)."""
+        return self.to_ontic_state().state_hash
+
+    def to_ontic_state(self) -> WorldState:
+        """Return a pure ontic WorldState with any epistemic scratch keys (_epistemic_*) removed."""
+        ontic_mem = {k: v for k, v in self.memory.items() if not str(k).startswith("_epistemic_")}
+        ontic_ctx = {k: v for k, v in self.context.items() if not str(k).startswith("_epistemic_")}
+        if len(ontic_mem) == len(self.memory) and len(ontic_ctx) == len(self.context):
+            return self.clone()
+        return self.model_copy(
+            update={"memory": ontic_mem, "context": ontic_ctx},
+            deep=True,
+        )
+
+    def clone(self) -> WorldState:
+        """Return a deep immutable copy of this WorldState."""
+        return self.model_copy(deep=True)
+
     def get_entity(self, entity_id: EntityId) -> Entity:
         """Fetch an entity by ID or raise InvalidWorldStateError."""
         if entity_id not in self.entities:

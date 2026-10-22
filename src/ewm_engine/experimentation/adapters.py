@@ -33,8 +33,8 @@ class SBINeuralInferenceAdapter:
     Epistemic Note (SBI Trust Crisis):
         Neural posterior estimators are vulnerable to overconfidence and false certainty
         when the generative world model is misspecified relative to empirical real-world data.
-        Always run Simulation-Based Calibration (SBC) and TARP (Test of Accuracy of
-        Rank Posteriors) diagnostics before treating amortized neural posteriors as credible.
+        Always run Simulation-Based Calibration (SBC) and TARP (Tests of Accuracy with
+        Random Points; Lemos et al., ICML 2023) diagnostics before treating amortized neural posteriors as credible.
     """
 
     def __init__(self, method: str = "SNPE", allow_fallback: bool = False) -> None:

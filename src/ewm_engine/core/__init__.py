@@ -8,9 +8,31 @@ from ewm_engine.core._canonical import (
     is_native_accel_available,
 )
 from ewm_engine.core.actions import Action, Intervention
+from ewm_engine.core.context import (
+    AuditMetadataContextDiscovery,
+    AutomationRuleConfig,
+    ContextDiscoveryProvider,
+    ContextSnapshot,
+    ContractTermConfig,
+    ServiceEndpointConfig,
+    WorkflowConfig,
+)
 from ewm_engine.core.deprecation import deprecate, deprecated
+from ewm_engine.core.drift import DriftKind, DriftSignal, detect_world_drift
 from ewm_engine.core.entities import Entity, Relationship
+from ewm_engine.core.epistemic import (
+    EpistemicState,
+    resolve_fail_closed_evidence_level,
+    separate_ontic_epistemic,
+)
 from ewm_engine.core.events import ExogenousEvent, ExogenousEventSource
+from ewm_engine.core.observation import (
+    BeliefState,
+    BeliefUpdater,
+    ExponentialSmoothingBeliefUpdater,
+    ObservationFilter,
+    ObservationSpec,
+)
 from ewm_engine.core.resources import Resource
 from ewm_engine.core.scm import (
     AbductionResult,
@@ -70,19 +92,30 @@ __all__ = [
     "Action",
     "ActionId",
     "ActorId",
+    "AuditMetadataContextDiscovery",
+    "AutomationRuleConfig",
     "BarePointEstimateWarning",
+    "BeliefState",
+    "BeliefUpdater",
     "ComponentRegistry",
     "ComponentSpec",
     "ConstraintId",
     "ConstraintSpec",
+    "ContextDiscoveryProvider",
+    "ContextSnapshot",
+    "ContractTermConfig",
     "DecisionBlockedError",
+    "DriftKind",
+    "DriftSignal",
     "Entity",
     "EntityId",
     "EntitySpec",
+    "EpistemicState",
     "EventId",
     "ExogenousEvent",
     "ExogenousEventSource",
     "ExogenousVariable",
+    "ExponentialSmoothingBeliefUpdater",
     "ExtrapolationWarning",
     "GateValidationReport",
     "InductionRefusalError",
@@ -90,6 +123,8 @@ __all__ = [
     "Intervention",
     "InvertibilityType",
     "NonUniqueAbductionWarning",
+    "ObservationFilter",
+    "ObservationSpec",
     "RandomGenerator",
     "Relationship",
     "RelationshipId",
@@ -101,12 +136,14 @@ __all__ = [
     "ResponsibleAIWarning",
     "ScenarioForecastResult",
     "ScenarioId",
+    "ServiceEndpointConfig",
     "StructuralAssignment",
     "StructuralCausalModel",
     "TrajectoryId",
     "UncertaintyRequiredError",
     "UnqualifiedCausalClaimError",
     "WideUncertaintyWarning",
+    "WorkflowConfig",
     "World",
     "WorldFactory",
     "WorldMetadataSpec",
@@ -116,8 +153,11 @@ __all__ = [
     "canonical_sha256",
     "deprecate",
     "deprecated",
+    "detect_world_drift",
     "fast_canonical_sha256",
     "is_evidence_at_least",
     "is_native_accel_available",
+    "resolve_fail_closed_evidence_level",
+    "separate_ontic_epistemic",
     "validate_causal_claim",
 ]

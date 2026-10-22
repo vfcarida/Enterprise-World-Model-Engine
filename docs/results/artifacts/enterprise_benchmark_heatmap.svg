@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 543" role="img" aria-labelledby="title-hm desc-hm">
+  <title id="title-hm">Enterprise World-Model Benchmark Suite (Families A-L) Primary Metric Comparison</title>
+  <desc id="desc-hm">Comparative matrix across 12 independent benchmark families and 4 baseline paradigms generated directly from enterprise_benchmark_suite.json.</desc>
+  <rect width="100%" height="100%" fill="#0f172a" rx="8"/>
+  <text x="24" y="34" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="16" font-weight="bold">Enterprise World-Model Evaluation Suite (A-L): Primary Metric Profile</text>
+  <text x="24" y="54" fill="#94a3b8" font-family="monospace" font-size="11">Spec v2.0.0 | Seed=42 | Suite SHA-256=7dadf02addfc7a43...</text>
+  <text x="370" y="80" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">rules-only</text>
+  <text x="505" y="80" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">learned-only</text>
+  <text x="640" y="80" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">static hybrid</text>
+  <text x="775" y="80" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">contextual hybrid</text>
+  <text x="24" y="111" fill="#e2e8f0" font-family="monospace" font-size="11">[A] A_DirectDynamics</text>
+  <rect x="310" y="94" width="124" height="28" fill="#1e3a8a" rx="4"/>
+  <text x="372" y="111" fill="#eff6ff" font-family="monospace" font-size="11" text-anchor="middle">0.754</text>
+  <rect x="445" y="94" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="507" y="111" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <rect x="580" y="94" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="642" y="111" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <rect x="715" y="94" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="111" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <text x="24" y="145" fill="#e2e8f0" font-family="monospace" font-size="11">[B] B_HiddenWorkflowCascades</text>
+  <rect x="310" y="128" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="372" y="145" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.932</text>
+  <rect x="445" y="128" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="507" y="145" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.264</text>
+  <rect x="580" y="128" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="642" y="145" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.991</text>
+  <rect x="715" y="128" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="145" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.991</text>
+  <text x="24" y="179" fill="#e2e8f0" font-family="monospace" font-size="11">[C] C_RuntimeConfiguration</text>
+  <rect x="310" y="162" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="372" y="179" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.369</text>
+  <rect x="445" y="162" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="507" y="179" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.379</text>
+  <rect x="580" y="162" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="642" y="179" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.379</text>
+  <rect x="715" y="162" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="179" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.992</text>
+  <text x="24" y="213" fill="#e2e8f0" font-family="monospace" font-size="11">[D] D_DeploymentShift</text>
+  <rect x="310" y="196" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="372" y="213" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.297</text>
+  <rect x="445" y="196" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="507" y="213" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.308</text>
+  <rect x="580" y="196" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="642" y="213" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.308</text>
+  <rect x="715" y="196" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="213" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.990</text>
+  <text x="24" y="247" fill="#e2e8f0" font-family="monospace" font-size="11">[E] E_PartialObservability</text>
+  <rect x="310" y="230" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="372" y="247" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.392</text>
+  <rect x="445" y="230" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="507" y="247" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.465</text>
+  <rect x="580" y="230" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="642" y="247" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.468</text>
+  <rect x="715" y="230" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="247" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.925</text>
+  <text x="24" y="281" fill="#e2e8f0" font-family="monospace" font-size="11">[F] F_LongHorizonBusinessOpera</text>
+  <rect x="310" y="264" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="372" y="281" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.994</text>
+  <rect x="445" y="264" width="124" height="28" fill="#1e3a8a" rx="4"/>
+  <text x="507" y="281" fill="#eff6ff" font-family="monospace" font-size="11" text-anchor="middle">3.580</text>
+  <rect x="580" y="264" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="642" y="281" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.726</text>
+  <rect x="715" y="264" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="281" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.073</text>
+  <text x="24" y="315" fill="#e2e8f0" font-family="monospace" font-size="11">[G] G_MultiAgentEconomy</text>
+  <rect x="310" y="298" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="372" y="315" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <rect x="445" y="298" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="507" y="315" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.000</text>
+  <rect x="580" y="298" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="642" y="315" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <rect x="715" y="298" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="315" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <text x="24" y="349" fill="#e2e8f0" font-family="monospace" font-size="11">[H] H_CausalCounterfactualCorr</text>
+  <rect x="310" y="332" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="372" y="349" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.838</text>
+  <rect x="445" y="332" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="507" y="349" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.056</text>
+  <rect x="580" y="332" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="642" y="349" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <rect x="715" y="332" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="349" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <text x="24" y="383" fill="#e2e8f0" font-family="monospace" font-size="11">[I] I_ConservationConstraintSt</text>
+  <rect x="310" y="366" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="372" y="383" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <rect x="445" y="366" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="507" y="383" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.000</text>
+  <rect x="580" y="366" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="642" y="383" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <rect x="715" y="366" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="383" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <text x="24" y="417" fill="#e2e8f0" font-family="monospace" font-size="11">[J] J_UncertaintyCalibration</text>
+  <rect x="310" y="400" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="372" y="417" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.000</text>
+  <rect x="445" y="400" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="507" y="417" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.336</text>
+  <rect x="580" y="400" width="124" height="28" fill="#1e3a8a" rx="4"/>
+  <text x="642" y="417" fill="#eff6ff" font-family="monospace" font-size="11" text-anchor="middle">0.711</text>
+  <rect x="715" y="400" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="417" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.974</text>
+  <text x="24" y="451" fill="#e2e8f0" font-family="monospace" font-size="11">[K] K_OODRegimeShift</text>
+  <rect x="310" y="434" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="372" y="451" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.000</text>
+  <rect x="445" y="434" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="507" y="451" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.000</text>
+  <rect x="580" y="434" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="642" y="451" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.000</text>
+  <rect x="715" y="434" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="451" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
+  <text x="24" y="485" fill="#e2e8f0" font-family="monospace" font-size="11">[L] L_DecisionQuality</text>
+  <rect x="310" y="468" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="372" y="485" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.000</text>
+  <rect x="445" y="468" width="124" height="28" fill="#7f1d1d" rx="4"/>
+  <text x="507" y="485" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">171.350</text>
+  <rect x="580" y="468" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="642" y="485" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.000</text>
+  <rect x="715" y="468" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="777" y="485" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.000</text>
+  <text x="24" y="529" fill="#64748b" font-family="system-ui, sans-serif" font-size="10">Auto-generated from docs/results/artifacts/enterprise_benchmark_suite.json — Green: strong in-dimension performance; Red: exposed failure mode.</text>
+</svg>

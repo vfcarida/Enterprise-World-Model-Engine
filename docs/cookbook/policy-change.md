@@ -1,4 +1,4 @@
-# Recipe: How Do I Test a Policy Change Before Deploying It?
+﻿# Recipe: How Do I Test a Policy Change Before Deploying It?
 
 > **Question:** *Our operations team wants to change a critical routing rule or capacity allocation. How can we simulate the downstream effects under stochastic variation before deploying it to production?*
 
@@ -6,7 +6,7 @@
 
 ## The Scenario
 
-Suppose your organization manages two regional fulfillment nodes (`stock_north` and `stock_south`). Under current operations, `stock_south` experiences recurrent stockouts. Leadership proposes shifting 30 inventory units from North to South at $t=1$. 
+Suppose your organization manages two regional fulfillment nodes (`stock_north` and `stock_south`). Under current operations, `stock_south` experiences recurrent stockouts. Leadership proposes shifting 30 inventory units from North to South at $t=1$.
 
 You need to evaluate:
 1. Does this intervention statistically improve availability in South?
@@ -67,10 +67,10 @@ print(diff.summary_table())
 
 ## Verification & Audit Guarantees
 
-1. **Conservation Invariance:**  
+1. **Conservation Invariance:**
    Total stock across nodes remains exactly constant:
    $$\text{stock}_{\text{north}}(t) + \text{stock}_{\text{south}}(t) = 120.0 \quad \forall t$$
-2. **Branch Isolation:**  
+2. **Branch Isolation:**
    Mutating or simulating `counterfactual` does not alter the baseline `world` object or its cryptographic SHA-256 state fingerprint.
-3. **Statistical Significance:**  
-   Asterisks (`*`) in `summary_table()` denote deltas whose bootstrap confidence intervals exclude zero.
+3. **Deterministic vs. Stochastic Delta Status:**
+   Zero-variance deterministic differences (such as single-trajectory deterministic runs) are labeled `(det)` in `summary_table()`, whereas stochastic Monte Carlo runs (`samples >= 2`) whose bootstrap confidence intervals exclude zero are flagged with `*`.

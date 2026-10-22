@@ -1,32 +1,32 @@
-# ReScience C Replication Report & Submission Dossier
+﻿# ReScience C Replication Dossier Template (Prepared â€” Not Yet Externally Submitted)
 
-> **Journal**: *ReScience C* (ISSN 2430-3658) — Open peer-reviewed journal dedicated to computational replication.  
-> **Original Article**: *Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty* (arXiv:2610.01234 [cs.MS])  
-> **Repository Under Review**: `https://github.com/vfcarida/Enterprise-World-Model-Engine`  
-> **ReScience C Submission Repository**: `https://github.com/rescience-c/submissions`  
+> **Target Journal**: *ReScience C* (ISSN 2430-3658) â€” Open peer-reviewed journal dedicated to computational replication.
+> **Associated Manuscript Draft**: *Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty* (`paper/arxiv/paper.md` â€” *arXiv ID not yet published*)
+> **Repository Under Review**: `https://github.com/vfcarida/Enterprise-World-Model-Engine`
+> **Status**: Prepared self-replication template for prospective independent reviewers (*external third-party replication not yet published*).
 
 ---
 
-## 1. Article Metadata
+## 1. Article Metadata (Template)
 
-- **Title**: `[Re] Structural World Models: Independent Replication of Counterfactual Simulation and Bit-Exact Conservation Invariants`
-- **Original Author**: Vinicius Caridá
-- **Replicating Author(s)**: ReScience C Reviewers / Independent Evaluators
+- **Proposed Title**: `[Re] Structural World Models: Independent Replication of Counterfactual Simulation and Conservation Invariants`
+- **Original Author**: Vinicius CaridÃ¡
+- **Replicating Author(s)**: *To be completed by independent ReScience C reviewers*
 - **Target Software**: Enterprise World Model Engine (`ewm-engine`) v1.5.0
-- **Software Heritage SWHID**: `swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c`
-- **Zenodo Archive**: [10.5281/zenodo.14000001](https://doi.org/10.5281/zenodo.14000001)
+- **Software Heritage SWHID**: *Not yet published (to be assigned upon archival)*
+- **Zenodo Archive**: *Not yet published (to be assigned upon release deposition)*
 
 ---
 
 ## 2. Scope of Replication
 
-The objective of this replication study is to verify the central methodological claims of EWM Engine:
+The objective of this replication protocol is to verify the central methodological claims of EWM Engine:
 
-1. **Exact Conservation Preservation**: Whether physical and accounting conservation laws hold with mathematical exactness ($0.0$ drift) under algebraic nullspace projections ($\mathcal{P}_{\text{null}}$), rather than merely approximate convergence.
-2. **Causal Treatment Isolation via Noise Coupling**: Whether the Twin-Rollout counterfactual SCM kernel successfully isolates the policy effect ($\Delta \tau = +35.0$ units) from sampling divergence.
-3. **Posterior Calibration Certification**: Whether amortized Bayesian neural posterior estimators pass the Test of Accuracy of Related Probabilities (TARP error $\le 0.05$).
+1. **Tolerance-Bounded Conservation Preservation**: Whether physical and accounting conservation laws hold within IEEE-754 floating-point tolerance ($\le 10^{-12}$; observed max residual $4.54 \times 10^{-13}$) under algebraic nullspace projections ($\mathcal{P}_{\text{null}}$).
+2. **Causal Treatment Isolation via Noise Coupling**: Whether the Twin-Rollout counterfactual SCM kernel isolates the policy effect ($\Delta \tau = +35.0$ units) from sampling divergence.
+3. **Posterior Calibration Diagnostics**: Whether amortized Bayesian posterior estimators pass the Tests of Accuracy with Random Points (TARP error $\le 0.05$).
 4. **Epistemic Abstention under Confounding**: Whether automated world-model induction refuses causal inference when unobserved confounding violates the Backdoor Criterion.
-5. **Cross-Architecture Bit-Identity**: Whether Structure-of-Arrays (SoA) state tensor representations generate identical SHA-256 state fingerprints across varying BLAS/NumPy backends.
+5. **SoA State Fingerprint Identity**: Whether Structure-of-Arrays (SoA) state tensor representations generate identical SHA-256 state fingerprints to object-oriented `WorldState` instances.
 
 ---
 
@@ -47,19 +47,19 @@ This triggers `scripts/reproduce.py`, which evaluates each benchmark card, gathe
 
 ---
 
-## 4. Replication Findings & Scorecard
+## 4. Internal Baseline Findings & Scorecard
 
-| Experiment | Target Invariant / Metric | Published Claim | Replicated Finding | Assessment |
+| Experiment | Target Invariant / Metric | Baseline Target | Local Reproduction Output | Assessment |
 | :--- | :--- | :--- | :--- | :--- |
-| **Pillar 1: SEIR** | Conservation $\sum_i S_i = N$ | Drift $= 4.54 \times 10^{-13}$ | Drift $= 4.54 \times 10^{-13}$ | **Confirmed Exact** |
-| **Pillar 2: Beer Game** | Supply chain order variance | Bullwhip Ratio $= 3.80$ | Bullwhip Ratio $= 3.80$ | **Confirmed Exact** |
-| **Pillar 3: WORLD3** | Non-linear industrial peak | Peak at $t=99$ | Peak at $t=99$ | **Confirmed Exact** |
-| **Pillar 4: SBI** | Credible coverage | TARP Error $= 0.028$ | TARP Error $= 0.028$ | **Confirmed Certified** |
-| **Pillar 5: Twin-Rollout**| Coupled noise ATE | $\Delta = +35.0$ | $\Delta = +35.0$ | **Confirmed Coupled** |
-| **Pillar 6: Discovery** | PRIM box purity | Density $= 91.2\%$ | Density $= 91.2\%$ | **Confirmed Audited** |
-| **Pillar 7: Induction** | Unobserved confounding | Refusal exception | Refusal exception | **Confirmed Blocked** |
+| **Pillar 1: SEIR** | Conservation $\sum_i S_i = N$ | Residual $\le 10^{-12}$ | Max residual $= 4.54 \times 10^{-13}$ | **Within Tolerance** |
+| **Pillar 2: Beer Game** | Supply chain order variance | Bullwhip Ratio $= 3.80$ | Bullwhip Ratio $= 3.80$ | **Reproduced** |
+| **Pillar 3: WORLD3** | Non-linear industrial peak | Peak at $t=99$ | Peak at $t=99$ | **Reproduced** |
+| **Pillar 4: SBI** | Credible coverage | TARP Error $\le 0.05$ | TARP Error $= 0.028$ | **Calibrated** |
+| **Pillar 5: Twin-Rollout**| Coupled noise ATE | $\Delta = +35.0$ | $\Delta = +35.0$ | **Coupled** |
+| **Pillar 6: Discovery** | PRIM box purity | Density $= 91.2\%$ | Density $= 91.2\%$ | **Audited** |
+| **Pillar 7: Induction** | Unobserved confounding | Refusal exception | Refusal exception | **Blocked** |
 | **WMIF Conformance** | Reference suite | 3 / 3 models passed | 3 / 3 models passed | **100% Conformance** |
-| **SoA Batched State**| Bit-identity | Exact SHA-256 match | Exact SHA-256 match | **Bit-Identical** |
+| **SoA Batched State**| Fingerprint identity | Exact SHA-256 match | Exact SHA-256 match | **Identical** |
 
 ---
 

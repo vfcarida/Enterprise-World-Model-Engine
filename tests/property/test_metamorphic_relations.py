@@ -276,3 +276,237 @@ def test_mr5_monotonic_action_rejection_relation(
     # Both actions must be rejected
     assert len(res_q1.trajectories[0].steps[0].actions_accepted) == 0
     assert len(res_q2.trajectories[0].steps[0].actions_accepted) == 0
+
+
+@given(
+    init_src=st.floats(min_value=10.0, max_value=80.0),
+    init_dst=st.floats(min_value=10.0, max_value=80.0),
+    excess=st.floats(min_value=0.5, max_value=100.0),
+)
+def test_mr6_rejection_semantics_invalid_action_preserves_state(
+    init_src: float,
+    init_dst: float,
+    excess: float,
+) -> None:
+    """MR-6 (Rejection Semantics): A not in A_valid => S_{t+1} == S_t on all resources and entities."""
+    state = WorldState(
+        entities=[Entity(id="depot_1", type="depot")],
+        resources=[
+            Resource(
+                id="src", entity_id="depot_1", current=init_src, min_value=0.0, max_value=200.0
+            ),
+            Resource(
+                id="dst", entity_id="depot_1", current=init_dst, min_value=0.0, max_value=200.0
+            ),
+        ],
+    )
+    world = World(
+        state=state,
+        dynamics=DeterministicTransferDynamics(),
+        constraints=[ActionTransferAvailabilityConstraint()],
+    )
+    invalid_action = Action(
+        id="act_invalid",
+        type="transfer_resource",
+        parameters={
+            "source_resource": "src",
+            "target_resource": "dst",
+            "quantity": init_src + excess,
+        },
+    )
+    scen = Scenario(
+        name="RejectionSemantics",
+        horizon=1,
+        samples=1,
+        seed=42,
+        scheduled_actions=(ScheduledAction(step=0, action=invalid_action),),
+    )
+    res = SimulationEngine().run(world, scen)
+    step_rec = res.trajectories[0].steps[0]
+    next_state = res.trajectories[0].final_state
+
+    assert len(step_rec.actions_proposed) == 1
+    assert len(step_rec.actions_accepted) == 0
+    assert len(step_rec.constraint_violations) == 1
+    assert_allclose(next_state.get_resource("src").current, init_src, rtol=0.0, atol=1e-12)
+    assert_allclose(next_state.get_resource("dst").current, init_dst, rtol=0.0, atol=1e-12)
+    assert next_state.entities == state.entities
+
+
+@given(
+    init_src=st.floats(min_value=40.0, max_value=100.0),
+    init_dst=st.floats(min_value=10.0, max_value=50.0),
+    transfer_qty=st.floats(min_value=5.0, max_value=30.0),
+    extra_capacity=st.floats(min_value=0.0, max_value=500.0),
+)
+def test_mr7_monotone_capacity_increase_never_invalidates_valid_trajectory(
+    init_src: float,
+    init_dst: float,
+    transfer_qty: float,
+    extra_capacity: float,
+) -> None:
+    """MR-7 (Monotone Constraint Relaxation): Capacity increase alone never turns valid -> invalid."""
+    from ewm_engine.simulation.trajectory import TrajectoryStatus
+
+    base_cap = 150.0
+    state_base = WorldState(
+        resources=[
+            Resource(id="src", current=init_src, min_value=0.0, max_value=base_cap),
+            Resource(id="dst", current=init_dst, min_value=0.0, max_value=base_cap),
+        ]
+    )
+    state_expanded = WorldState(
+        resources=[
+            Resource(
+                id="src", current=init_src, min_value=0.0, max_value=base_cap + extra_capacity
+            ),
+            Resource(
+                id="dst", current=init_dst, min_value=0.0, max_value=base_cap + extra_capacity
+            ),
+        ]
+    )
+    constraints = [
+        ResourceCapacityConstraint(resource_id="src", severity=ConstraintSeverity.HARD),
+        ResourceCapacityConstraint(resource_id="dst", severity=ConstraintSeverity.HARD),
+    ]
+    action = Action(
+        id="act_valid",
+        type="transfer_resource",
+        parameters={"source_resource": "src", "target_resource": "dst", "quantity": transfer_qty},
+    )
+    scen = Scenario(
+        name="MonotoneCapacity",
+        horizon=1,
+        samples=1,
+        seed=42,
+        scheduled_actions=(ScheduledAction(step=0, action=action),),
+    )
+
+    res_base = SimulationEngine().run(
+        World(state=state_base, dynamics=DeterministicTransferDynamics(), constraints=constraints),
+        scen,
+    )
+    res_exp = SimulationEngine().run(
+        World(
+            state=state_expanded,
+            dynamics=DeterministicTransferDynamics(),
+            constraints=constraints,
+        ),
+        scen,
+    )
+
+    if res_base.trajectories[0].status == TrajectoryStatus.COMPLETED:
+        assert res_exp.trajectories[0].status == TrajectoryStatus.COMPLETED
+        assert res_exp.trajectories[0].hard_violations == 0
+
+
+@given(
+    slope=st.floats(min_value=0.5, max_value=4.0),
+    intercept=st.floats(min_value=-2.0, max_value=5.0),
+    query_action_val=st.floats(min_value=1.0, max_value=10.0),
+)
+def test_mr8_learned_dynamics_irrelevant_id_permutation_invariance(
+    slope: float,
+    intercept: float,
+    query_action_val: float,
+) -> None:
+    """MR-8 (Learned Dynamics Metamorphic Invariance): Irrelevant entity-ID permutation preserves learned dynamics."""
+    import numpy as np
+
+    from ewm_engine.dynamics.learned import (
+        LinearResidualDynamics,
+        TransitionDataset,
+        TransitionSample,
+    )
+
+    def _make_dataset(entity_prefix: str) -> TransitionDataset:
+        samples: list[TransitionSample] = []
+        for idx, u_val in enumerate([1.0, 2.0, 4.0, 6.0]):
+            ents = [
+                Entity(id=f"{entity_prefix}_a", type="node"),
+                Entity(id=f"{entity_prefix}_b", type="node"),
+            ]
+            s_t = WorldState(
+                entities=ents,
+                resources=[
+                    Resource(
+                        id="target_stock",
+                        entity_id=f"{entity_prefix}_a",
+                        current=100.0,
+                        min_value=0.0,
+                        max_value=500.0,
+                    )
+                ],
+                step=idx,
+                timestamp=float(idx),
+            )
+            delta = slope * u_val + intercept
+            s_next = s_t.update_resource("target_stock", delta=delta).advance_time(1.0)
+            act = Action(id=f"a_{idx}", type="replenish", parameters={"value": u_val})
+            samples.append(TransitionSample(state=s_t, actions=(act,), next_state=s_next))
+        return TransitionDataset(samples)
+
+    ds_orig = _make_dataset("node_alpha")
+    ds_perm = _make_dataset("permuted_entity_omega")
+
+    model_orig = LinearResidualDynamics(target_resource="target_stock", action_type="replenish")
+    model_perm = LinearResidualDynamics(target_resource="target_stock", action_type="replenish")
+    model_orig.fit(ds_orig)
+    model_perm.fit(ds_perm)
+
+    assert_allclose(model_orig.action_weight, model_perm.action_weight, rtol=1e-7, atol=1e-9)
+    assert_allclose(model_orig.bias, model_perm.bias, rtol=1e-7, atol=1e-9)
+
+    q_act = Action(id="q", type="replenish", parameters={"value": query_action_val})
+    out_orig = model_orig.transition(ds_orig[0].state, [q_act], [], rng=np.random.default_rng(0))
+    out_perm = model_perm.transition(ds_perm[0].state, [q_act], [], rng=np.random.default_rng(0))
+    assert_allclose(
+        out_orig.next_state.get_resource("target_stock").current,
+        out_perm.next_state.get_resource("target_stock").current,
+        rtol=1e-7,
+        atol=1e-9,
+    )
+
+
+@given(
+    raw_delta_a=st.floats(min_value=-500.0, max_value=500.0),
+    raw_delta_b=st.floats(min_value=-500.0, max_value=500.0),
+    raw_delta_c=st.floats(min_value=-500.0, max_value=500.0),
+)
+def test_mr9_projected_residual_satisfies_conservation_and_bounds_invariants(
+    raw_delta_a: float,
+    raw_delta_b: float,
+    raw_delta_c: float,
+) -> None:
+    """MR-9 (Projected Residual Invariance): Projected residual strictly satisfies conservation and bounds."""
+    from ewm_engine.experimental.conservation import (
+        ConservationProjectionLayer,
+        LinearConservationLaw,
+    )
+
+    state = WorldState(
+        resources=[
+            Resource(id="r_a", current=100.0, min_value=0.0, max_value=200.0),
+            Resource(id="r_b", current=100.0, min_value=0.0, max_value=200.0),
+            Resource(id="r_c", current=100.0, min_value=0.0, max_value=200.0),
+        ]
+    )
+    law = LinearConservationLaw.zero_sum(["r_a", "r_b", "r_c"])
+    projector = ConservationProjectionLayer([law], enforce_capacity_bounds=True)
+
+    projected = projector.project_deltas(
+        state,
+        {"r_a": raw_delta_a, "r_b": raw_delta_b, "r_c": raw_delta_c},
+    )
+
+    next_state = state
+    for rid, d_val in projected.items():
+        next_state = next_state.update_resource(rid, delta=d_val, clamp=False, enforce_bounds=True)
+        res = next_state.get_resource(rid)
+        assert res.min_value - 1e-9 <= res.current <= res.max_value + 1e-9
+
+    # Total mass conservation: sum_i R_i(t+1) == sum_i R_i(t)
+    total_before = sum(r.current for r in state.resources.values())
+    total_after = sum(r.current for r in next_state.resources.values())
+    assert_allclose(total_after, total_before, rtol=1e-7, atol=1e-7)
+    assert law.is_satisfied(state, next_state, tolerance=1e-7)

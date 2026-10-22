@@ -29,10 +29,10 @@ EWM's deterministic and cryptographically fingerprinted substrate enables a uniq
      - **Binder**: Interactive JupyterLab notebook (`notebooks/reproduce.ipynb`) with `.binder/` environment specification.
      - **GitHub Codespaces**: Cloud development container (`.devcontainer/devcontainer.json`, `.devcontainer/Dockerfile`) with automated post-creation reproduction.
      - **Pinned Docker Container**: Hermetic OCI image (`Dockerfile`) verifying lockfile hashes.
-   - **Persistent Archival Identifiers**:
-     - **Zenodo**: Concept DOI (`10.5281/zenodo.14000000`) and Version DOI (`10.5281/zenodo.14000001`) configured in `.zenodo.json`.
-     - **Software Heritage**: SWHID Merkle DAG identifier (`swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c`, ISO/IEC 18670:2025).
-     - **Cross-Linking**: Bidirectional linkage across `CITATION.cff`, `.zenodo.json`, SWHID, and arXiv.
+   - **Persistent Archival Identifiers (Metadata & Readiness)**:
+     - **Zenodo**: Metadata configured in `.zenodo.json` (*Concept and Version DOIs to be assigned upon release deposition*).
+     - **Software Heritage**: SWHID documentation in `docs/scientific/swhid.md` (ISO/IEC 18670:2025; *public SWHID to be assigned upon snapshot ingestion*).
+     - **Cross-Linking**: Synchronized metadata across `CITATION.cff`, `.zenodo.json`, and `reproduction_manifest.json` (with explicit `CERTIFIED_RELEASE` vs. `REPRODUCIBLE_DIRTY_WORKTREE` worktree certification).
    - **Peer-Reviewed Manuscripts**:
      - **JOSS Software Paper**: Focuses on software design, modularity, and statement of need (`paper/paper.md`, `paper/paper.bib`).
      - **arXiv cs.MS & cs.DC Companion**: Methods and benchmark paper (*Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty*) evaluated under the NeurIPS Datasets & Benchmarks checklist.

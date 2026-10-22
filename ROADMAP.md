@@ -6,13 +6,13 @@ This document outlines the phased development roadmap for the **Enterprise World
 >
 > **Interactive Project Tracker:** Follow live development progress, sprint backlogs, and milestone deliverables on the pinned GitHub Project board:
 > - **Pinned GitHub Project:** [https://github.com/users/vfcarida/projects/1](https://github.com/users/vfcarida/projects/1)
-> - **Milestone v1.5.0 (Shipped):** [v1.5.0 Interop & Ecosystem](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/1)
-> - **Milestone v1.5.x (Shipped):** Positioning & Narrative
-> - **Milestone v1.6.0 (Shipped):** [v1.6.0 Learned Dynamics & Causal Epistemics](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/2)
-> - **Milestone v1.7.0 (Shipped):** Decision Intelligence (`ewm decide`)
-> - **Milestone v1.8.0 (Shipped):** Calibration to Reality (`ewm calibrate`)
-> - **Milestone v1.9.0 (Shipped):** World-Model Induction (`ewm induce`), MCP Server (`ewm mcp`) & Neuro-Symbolic Maturation
-> - **Milestone v2.0.0 (Shipped / Reference Architecture):** Reference Release (Stable Kernel + Relational GNNs & WSL)
+> - **Milestone v1.5.0 (Current Stable Release):** [v1.5.0 Interop & Ecosystem](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/1)
+> - **Milestone v1.5.x (In-Tree):** Positioning & Narrative
+> - **Milestone v1.6.0 (In-Tree — Beta/Experimental):** [v1.6.0 Learned Dynamics & Causal Epistemics](https://github.com/vfcarida/Enterprise-World-Model-Engine/milestone/2)
+> - **Milestone v1.7.0 (In-Tree — Beta):** Decision Intelligence (`ewm decide`)
+> - **Milestone v1.8.0 (In-Tree — Beta):** Calibration to Reality (`ewm calibrate`)
+> - **Milestone v1.9.0 (In-Tree — Beta):** World-Model Induction (`ewm induce`), MCP Server (`ewm mcp`) & Neuro-Symbolic Maturation
+> - **Milestone v2.0.0 (In-Tree — Beta/Experimental):** Reference Architecture (Relational GNNs & WSL)
 
 ---
 
@@ -51,22 +51,22 @@ Capabilities in EWM Engine are classified under explicit, strictly enforced matu
 | **Platform Interoperability (T5)** | **Stable (v1.5.0)** | Master co-simulation stepping loop (CORE), FMI 3.0 / FMU adapter, SimPy/DiscreteEvent, Mesa, and PySD (ADR-029) |
 | **Multi-Agent Coordination (T6)** | **Stable (v1.5.0)** | Multi-actor observation/action views, deterministic mediator, support-enumeration Nash & RK4 replicator dynamics, PettingZoo, OpenSpiel, and Concordia (ADR-029) |
 | **Reporting & Serving (T7, T8)** | **Stable (v1.5.0)** | Pydantic `ReportModel`, interactive fan charts (Plotly + standalone HTML), local multiprocessing `JobRunner`, and REST simulation service (ADR-029) |
-| **Learned-Dynamics Eval Harness**| **Stable (v1.6.0)** | Multi-step rollout divergence, invariant verification, and dataset collection (ADR-019) |
-| **Torch Neural Residual Baseline**| **Stable (v1.6.0)** | PyTorch MLP residual baseline with symlog scaling (`[ml]` extra, ADR-019) |
-| **Scientific Benchmark Families**| **Stable (v1.6.0)** | 5 scientific shift benchmark families probing structural dynamics under change |
-| **Planning & Controller Layer** | **Stable (v1.6.0)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control (ADR-020) |
-| **OOD & Regime-Shift Detection** | **Stable (v1.6.0)** | Grounded-regime detection (support bounds, Mahalanobis covariance, ADR-021) |
-| **Honest Causal Diagnostics** | **Stable (v1.6.0)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling (ADR-021) |
-| **Counterfactual SCM Kernel** | **Stable (v1.6.0)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040, AC-033) |
-| **Grey-Box Dynamics & Conservation** | **Stable (v1.6.0)** | Residual-only learning, hard nullspace projection for conservation laws, SINDy promotion (FEAT-010, ADR-042, AC-034) |
-| **Causal-Correctness & Metamorphic Suite** | **Stable (v1.6.0)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044, AC-035) |
-| **Decision Scenario Discovery** | **Stable (v1.7.0)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (`ewm decide`, FEAT-009, ADR-041, AC-036) |
-| **Amortized Calibration & TARP Coverage** | **Stable (v1.8.0)** | Simulation-Based Inference, certified coverage via TARP/Posterior-SBC, misspecification refusal (`ewm calibrate`, FEAT-011, ADR-043, AC-037) |
-| **World-Model Induction & Honesty Gate** | **Stable (v1.9.0)** | Process/causal/dynamics/invariant induction from logs with strict review gate (`ewm induce`, ADR-046–ADR-049, AC-038) |
-| **Model Context Protocol (MCP) Server** | **Stable (v1.9.0)** | Agent tool server exposing world loading, counterfactual simulation, and epistemic checks (`ewm mcp`, ADR-045, AC-039) |
-| **Scientific Results Gallery & Benchmarks** | **Stable (v2.0.0)** | CI-reproducible gallery, NeurIPS D&B checklist, arXiv companion methods paper (FEAT-012, ADR-044) |
-| **Heterogeneous Graph State & GNN**| **Stable (v2.0.0)**| Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
-| **World Specification Language (WSL)**| **Stable (v2.0.0)**| Declarative safe YAML/JSON & authored `.wsl` grammar, zero-dep fallback parser, compiler, and WMIF (FEAT-003, ADR-023, AC-040) |
+| **Learned-Dynamics Eval Harness**| **In-Tree (v1.5.0 — Beta)** | Multi-step rollout divergence, invariant verification, and dataset collection (ADR-019) |
+| **Torch Neural Residual Baseline**| **In-Tree (v1.5.0 — Experimental)** | PyTorch MLP residual baseline with symlog scaling (`[ml]` extra, ADR-019) |
+| **Scientific Benchmark Families**| **In-Tree (v1.5.0 — Beta)** | 5 scientific shift benchmark families probing structural dynamics under change |
+| **Planning & Controller Layer** | **In-Tree (v1.5.0 — Beta)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control (ADR-020) |
+| **OOD & Regime-Shift Detection** | **In-Tree (v1.5.0 — Beta)** | Grounded-regime detection (support bounds, Mahalanobis covariance, ADR-021) |
+| **Honest Causal Diagnostics** | **In-Tree (v1.5.0 — Beta)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling (ADR-021) |
+| **Counterfactual SCM Kernel** | **In-Tree (v1.5.0 — Beta)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040, AC-033) |
+| **Grey-Box Dynamics & Conservation** | **In-Tree (v1.5.0 — Beta)** | Residual-only learning, hard nullspace projection for conservation laws, SINDy promotion (FEAT-010, ADR-042, AC-034) |
+| **Causal-Correctness & Metamorphic Suite** | **In-Tree (v1.5.0 — Beta)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044, AC-035) |
+| **Decision Scenario Discovery** | **In-Tree (v1.5.0 — Beta)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (`ewm decide`, FEAT-009, ADR-041, AC-036) |
+| **Amortized Calibration & TARP Coverage** | **In-Tree (v1.5.0 — Beta)** | Simulation-Based Inference, empirical coverage via TARP/Posterior-SBC, misspecification refusal (`ewm calibrate`, FEAT-011, ADR-043, AC-037) |
+| **World-Model Induction & Honesty Gate** | **In-Tree (v1.5.0 — Beta)** | Process/causal/dynamics/invariant induction from logs with strict review gate (`ewm induce`, ADR-046–ADR-049, AC-038) |
+| **Model Context Protocol (MCP) Server** | **In-Tree (v1.5.0 — Beta)** | Agent tool server exposing world loading, counterfactual simulation, and epistemic checks (`ewm mcp`, ADR-045, AC-039) |
+| **Scientific Results Gallery & Benchmarks** | **In-Tree (v1.5.0 — Beta)** | CI-reproducible gallery, NeurIPS D&B checklist, companion methods manuscript (FEAT-012, ADR-044) |
+| **Heterogeneous Graph State & GNN**| **In-Tree (v1.5.0 — Experimental)**| Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
+| **World Specification Language (WSL)**| **In-Tree (v1.5.0 — Beta)**| Declarative safe YAML/JSON & authored `.wsl` grammar, zero-dep fallback parser, compiler, and WMIF (FEAT-003, ADR-023, AC-040) |
 
 ---
 
@@ -123,28 +123,28 @@ See [Frontier Architecture & Causal Roadmap](docs/architecture/frontier-roadmap.
 - **Executive Narrative & Governance**: `docs/executive/` (intellectual lineage, decision-grade guarantees, C-suite use-case gallery, maturity model, reference architectures) + `docs/governance/compliance-mapping.md` (NIST AI RMF, EU AI Act).
 - **Handbook Scaffold**: Initial `docs/handbook/` question-organized structure + "When to Refuse a Claim" flagship honesty chapter.
 
-### v1.6.0 — Causal Epistemics & Learned Dynamics [Shipped]
+### v1.6.0 Track — Causal Epistemics & Learned Dynamics [Implemented In-Tree in v1.5.0 — Beta/Experimental]
 - **Counterfactual SCM Kernel (Keystone)**: Native Structural Causal Model with addressable seeded exogenous noise; Pearl's Abduction-Action-Prediction Twin-Rollout with coupled noise; non-unique-abduction distributions; ID-gate integration. Theoretical license: Richens & Everitt (ICLR '24 oral, arXiv:2402.10877).
-- **Grey-Box Dynamics & Conservation**: Residual-only learned dynamics (`DynamicsModel` with zero residual ≡ symbolic kernel, fingerprint-identical) + hard architectural nullspace projection ensuring zero mass/flow violations by construction.
+- **Grey-Box Dynamics & Conservation**: Residual-only learned dynamics (`DynamicsModel` with zero residual ≡ symbolic kernel, fingerprint-identical) + hard architectural nullspace projection ensuring mass/flow conservation within floating-point tolerance.
 - **Causal-Correctness & Metamorphic Suite**: `do(x)`-descendant selectivity gates, label-free metamorphic test cards (MR-cards), mutation adequacy testing, and first-class epistemic abstention.
-- **Verification Metrics**: NumPy-only verification metrics (rollout error compounding, CRPS, PIT/ECE calibration) and identifiability gate + E-values.
+- **Verification Metrics**: NumPy-only verification metrics (rollout error compounding, CRPS, PIT/ECE calibration) and identifiability gate + Sensitivity E-values.
 
-### v1.7.0 — Decision Intelligence (`ewm decide`) [Shipped]
+### v1.7.0 Track — Decision Intelligence (`ewm decide`) [Implemented In-Tree in v1.5.0 — Beta]
 - **Scenario Discovery & Robust Decision-Making**: PRIM bump-hunting vulnerability boxes and CART scenario discovery; multi-robustness metric comparison (minimax regret, CVaR regret, satisficing) with explicit refusal to over-rank when metrics conflict; optional Expected Free Energy (EFE) scoring; `ewm decide` CLI and decision reporting.
 - **Scientific Benchmarks**: Scored shift families under reproducible protocol.
 
-### v1.8.0 — Calibration to Reality (`ewm calibrate`) [Shipped]
-- **Amortized Calibration with Certified Coverage**: Simulation-Based Inference (SBI) wrapper over the engine; amortized posterior estimation over `WorldSpec` parameters; mandatory TARP and Posterior-SBC coverage certification; misspecification-robust scoring; `ewm calibrate` CLI.
+### v1.8.0 Track — Calibration to Reality (`ewm calibrate`) [Implemented In-Tree in v1.5.0 — Beta]
+- **Amortized Calibration with Empirical Coverage Diagnostics**: Simulation-Based Inference (SBI) wrapper over the engine; amortized posterior estimation over `WorldSpec` parameters; TARP and Posterior-SBC coverage diagnostics; misspecification-robust scoring; `ewm calibrate` CLI.
 - **Validation Packs**: Empirical validation targets (SEIR, Beer-Game, WORLD3) and batched/vectorized Monte Carlo engine for scalable simulation budgets.
 
-### v1.9.0 — Induction, MCP & Neuro-Symbolic Maturation [Shipped]
+### v1.9.0 Track — Induction, MCP & Neuro-Symbolic Maturation [Implemented In-Tree in v1.5.0 — Beta]
 - **World-Model Induction & Honesty Gate (`ewm induce`)**: Automated process mining, lagged causal discovery, dynamics residual fitting, and invariant mining from telemetry logs with strict candidate review gating (`PROPOSED` vs `ACCEPTED`, `EvidenceLevel.PREDICTIVE`).
 - **Model Context Protocol (`ewm mcp`)**: Standardized MCP server exposing deterministic world loading, counterfactual simulation, and epistemic checks to AI agents.
 - **Symbolic Promotion Flywheel**: Equation discovery and residual extraction via sparse regression (SINDy/PySR) with human-in-the-loop spec-driven promotion workflow (LEARNED → KNOWN).
 - **End-to-End Abstention**: Out-of-competence signaling integrated across `ewm decide` and `ewm calibrate`.
 - **Handbook Completion**: Four-part Diátaxis documentation, client-side Distill-style interactive SVG explorables, and complete whole-game tutorial ladder.
 
-### v2.0.0 — Reference Release & Standard [Shipped]
-- **Stable Core Graduation**: Counterfactual SCM kernel and grey-box residual/conservation contract graduated to **Stable** under SemVer guarantees and contract gates.
-- **Capstone Deliverables**: CI-reproducible `docs/results/` gallery with SHA-256 fingerprints, arXiv methods/benchmark companion paper (NeurIPS D&B checklist QA), reproducible competitive comparison harness, and launch assets.
+### v2.0.0 Track — Reference Architecture & Standard [Implemented In-Tree in v1.5.0 — Beta/Experimental]
+- **Core Graduation Target**: Counterfactual SCM kernel and grey-box residual/conservation contract targeted for Stable graduation in the `2.0.0` release tag.
+- **Capstone Deliverables**: CI-reproducible `docs/results/` gallery with SHA-256 fingerprints, companion methods manuscript draft (NeurIPS D&B checklist), reproducible competitive comparison harness, and launch assets.
 - **Relational GNNs & World Specification Language**: Heterogeneous relational graph state & GNN dynamics adapters (`FEAT-003`, `ADR-022`), declarative safe WSL language with zero-dependency fallback parser (`ADR-023`), and WMIF interchange format with conformance test suite.

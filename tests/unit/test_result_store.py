@@ -139,7 +139,12 @@ def test_run_memoized_helper_function() -> None:
     )
 
 
-def test_redis_and_s3_stubs_raise_informative_error() -> None:
+def test_redis_and_s3_stubs_raise_informative_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import importlib.util
+
+    monkeypatch.setattr(importlib.util, "find_spec", lambda _: None)
     with pytest.raises(NotImplementedError, match="available with the '\\[cache\\]' extra"):
         RedisResultStore()
 

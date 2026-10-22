@@ -73,17 +73,18 @@ flowchart TD
     L2 -->|"Requires Abduction & Coupled Noise"| L3
 ```
 
-### 3.1 Rung 1: Observational Association
-Observational expectations $\mathbb{E}[Y \mid X=x]$ are evaluated via `query_observational()`. They are strictly tagged with `EvidenceLevel.PREDICTIVE`. They reflect correlation and carry an explicit disclaimer that observational associations do not imply causal effects.
+### 3.1 Rung 1: Observational Association (`estimand="E[Y | X=1] - E[Y | X=0]"`)
+Observational expectations $\mathbb{E}[Y \mid X=x]$ are evaluated via `query_observational()`. They report `estimand="E[Y | X=1] - E[Y | X=0]"` and are strictly tagged with `EvidenceLevel.PREDICTIVE`. They reflect correlation and carry an explicit disclaimer that observational associations do not imply causal effects.
 
-### 3.2 Rung 2: Interventional Identification & Backdoor Checking
+### 3.2 Rung 2: Interventional Identification, Provenance & Backdoor Checking (`estimand="E[Y | do(X=1)] - E[Y | do(X=0)]"`)
 Interventional queries $\mathbb{E}[Y \mid \text{do}(X=x)]$ perform causal surgery on the data-generating mechanism.
 
-Before asserting `EvidenceLevel.INTERVENTIONAL`, the engine validates **Judea Pearl's Backdoor Criterion** on the declared [`CausalGraph`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/scm.py):
+Before asserting `EvidenceLevel.INTERVENTIONAL`, the engine validates **Judea Pearl's Backdoor Criterion** on the declared [`CausalGraph`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/scm.py) and records explicit `identification_provenance`:
 1. **Descendant Check**: No variable in the conditioning set $Z$ may be a descendant of treatment $X$.
 2. **Backdoor Blocking Check**: Conditioning set $Z$ must block all active backdoor paths from $X$ to outcome $Y$.
+3. **Mandatory Provenance Gate (`validate_causal_claim`)**: Any `IdentifiabilityResult` or `InterventionalQueryResult` asserting `INTERVENTIONAL` or `COUNTERFACTUAL` standing must supply non-empty `identification_provenance` (`require_provenance=True`), failing closed with `UnqualifiedCausalClaimError` (or downgrading to `PREDICTIVE` when `strict=False`) if identification or provenance is absent.
 
-If backdoor paths remain open or unobserved confounders exist, the engine refuses to return a scalar effect estimate, returning a [`NotIdentifiableResult`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/causal.py) tagged with `EvidenceLevel.PREDICTIVE`.
+If backdoor paths remain open or unobserved confounders exist, the engine refuses to return a scalar effect estimate, returning a [`NotIdentifiableResult`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/experimental/causal.py) tagged with `EvidenceLevel.PREDICTIVE`.
 
 ### 3.3 Rung 3: Native Counterfactual SCM Kernel (`world.counterfactual()`)
 Rung 3 answers entity-level retrospective queries: *"Given that this specific warehouse stocked out at step 2 under observed demand, what would have happened had we rerouted supply at step 0?"*
@@ -91,8 +92,8 @@ Rung 3 answers entity-level retrospective queries: *"Given that this specific wa
 Under Pearl (2009), counterfactuals require three algorithmic steps:
 1. **Abduction**: Infer the posterior over exogenous background noise $U$ given the factual trajectory $\tau = (S_0, A_{0:T}, S_{1:T})$.
    - Invertible / deterministic mechanisms yield unique, exact algebraic recovery: $U_i := f_i^{-1}(V_i, \text{PA}_i)$.
-   - All exogenous draws are addressably recorded in [`SystemicTrace.exogenous_noise`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/provenance/trace.py).
-   - If a mechanism is non-invertible, the engine refuses to emit a false point counterfactual, returning a posterior distribution with `is_unique=False` and a structured [`NonUniqueAbductionWarning`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/scm.py).
+   - All exogenous draws are addressably recorded in [`SystemicTrace.exogenous_noise`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/provenance/trace.py).
+   - If a mechanism is non-invertible, the engine refuses to emit a false point counterfactual, returning a posterior distribution with `is_unique=False` and a structured [`NonUniqueAbductionWarning`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/scm.py).
 2. **Action (Graph Surgery)**: Apply $\text{do}(X = x)$ by mutilating the structural assignment:
    $$X := x, \quad \text{severing } \text{PA}(X) \to X$$
 3. **Prediction (Twin-Rollout Noise Coupling)**: Re-run the simulation holding all exogenous noise variables $U$ coupled bit-for-bit to the factual branch.
@@ -127,10 +128,11 @@ $$0 < P(X = 1 \mid Z = z) < 1 \quad \forall z$$
 - **Extreme Propensity Identification**: Identifies near-deterministic treatment assignments ($P \approx 0$ or $P \approx 1$) that lead to extreme variance and ungrounded extrapolation.
 - **High-Dimensional Warnings**: Incorporates D'Amour et al. (arXiv:1711.02582) overlap collapse warnings as covariate dimensionality increases.
 
-### 4.2 Confounding Sensitivity Diagnostics (`report_confounding_sensitivity` & E-values)
-No observational study can empirically prove the absence of unobserved confounding. The engine provides two rigorous sensitivity diagnostics:
+### 4.2 Confounding Sensitivity Diagnostics (`report_confounding_sensitivity` & Sensitivity E-values)
+No observational study can empirically prove the absence of unobserved confounding. The engine provides two sensitivity diagnostics:
 1. **Rosenbaum Bounds ($\Gamma$)**: Measures how strong an unobserved confounder would have to alter treatment odds to nullify the effect estimate.
-2. **E-values (VanderWeele & Ding, 2017)**: Computes the minimum risk ratio that an unmeasured confounder must have with both treatment and outcome to explain away the observed effect.
+2. **Confounding Sensitivity E-values (VanderWeele & Ding, 2017)**: Computes the minimum risk ratio ($RR + \sqrt{RR(RR - 1)}$) that an unmeasured confounder must have with both treatment and outcome to explain away the observed effect (`compute_sensitivity_e_value` / `SensitivityEValueResult`).
+   - *Terminological Disambiguation*: VanderWeele & Ding's **Sensitivity E-value** is an unmeasured-confounding sensitivity metric on the risk-ratio scale ($E_{\text{sens}} \in [1, \infty)$). It must not be conflated with **safe-testing e-values / e-processes** (Grünwald et al., 2024; Ramdas et al., 2023), which are nonnegative random variables satisfying $\mathbb{E}_{H_0}[E] \le 1$ for optional-stopping hypothesis tests.
 
 ---
 

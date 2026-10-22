@@ -116,17 +116,17 @@ print(comparison.summary_table())
 Metric                    | Scenario             | Mean (Std)         | p50 [p05, p95]       | Delta vs Base [CI] (*sig)   
 ---------------------------------------------------------------------------------------------------------------------------
 resource_stock_a          | Baseline             | 100.00 (+/-0.00)   | 100.00 [100.00, 100.00] | -                           
-                          | Transfer 40 Units A -> B | 60.00 (+/-0.00)    | 60.00 [60.00, 60.00] | -40.00 (-40.0%) [-40.00, -40.00] *
+                          | Transfer 40 Units A -> B | 60.00 (+/-0.00)    | 60.00 [60.00, 60.00] | -40.00 (-40.0%) [-40.00, -40.00] (det)
 ---------------------------------------------------------------------------------------------------------------------------
 resource_stock_b          | Baseline             | 20.00 (+/-0.00)    | 20.00 [20.00, 20.00] | -                           
-                          | Transfer 40 Units A -> B | 60.00 (+/-0.00)    | 60.00 [60.00, 60.00] | +40.00 (+200.0%) [+40.00, +40.00] *
+                          | Transfer 40 Units A -> B | 60.00 (+/-0.00)    | 60.00 [60.00, 60.00] | +40.00 (+200.0%) [+40.00, +40.00] (det)
 ---------------------------------------------------------------------------------------------------------------------------
 violations_count          | Baseline             | 0.00 (+/-0.00)     | 0.00 [0.00, 0.00]    | -                           
                           | Transfer 40 Units A -> B | 0.00 (+/-0.00)     | 0.00 [0.00, 0.00]    | +0.00 (+0.0%) [+0.00, +0.00]
 ---------------------------------------------------------------------------------------------------------------------------
 ```
 
-Notice how the engine records exact empirical percentile confidence intervals and automatically flags statistically significant shifts under $P_{\text{model}}$.
+Notice how the engine distinguishes single-sample/zero-variance deterministic deltas (`(det)`, `status_label="deterministic_difference"`) from multi-sample stochastic Monte Carlo shifts where non-degenerate percentile bootstrap confidence intervals exclude zero (`*`, `status_label="statistically_significant"` under $P_{\text{model}}$).
 
 ---
 

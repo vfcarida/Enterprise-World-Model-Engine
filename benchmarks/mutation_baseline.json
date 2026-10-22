@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0.0",
+  "strategy": "selective_critical_deterministic_modules",
+  "overall": {
+    "total_mutants": 12,
+    "killed_mutants": 12,
+    "survived_mutants": 0,
+    "mutation_score_pct": 100.0
+  },
+  "modules": {
+    "constraints": {
+      "total": 2,
+      "killed": 2,
+      "survived": 0,
+      "score_pct": 100.0,
+      "mutants": [
+        {
+          "mutant_id": "constraints.capacity_strict_lt_boundary",
+          "module_family": "constraints",
+          "description": "Replace <= with < on ResourceCapacityConstraint upper bound",
+          "status": "killed"
+        },
+        {
+          "mutant_id": "constraints.transfer_availability_always_true",
+          "module_family": "constraints",
+          "description": "Force ActionTransferAvailabilityConstraint.evaluate to accept excess transfers",
+          "status": "killed"
+        }
+      ]
+    },
+    "transition_validation": {
+      "total": 2,
+      "killed": 2,
+      "survived": 0,
+      "score_pct": 100.0,
+      "mutants": [
+        {
+          "mutant_id": "transition_validation.unfiltered_rejected_action",
+          "module_family": "transition_validation",
+          "description": "Pass rejected actions into dynamics.transition violating A not in A_valid => S_{t+1} == S_t",
+          "status": "killed"
+        },
+        {
+          "mutant_id": "transition_validation.suppress_hard_violation_invalidation",
+          "module_family": "transition_validation",
+          "description": "Suppress TrajectoryStatus.INVALID when a POST_TRANSITION HARD constraint fails",
+          "status": "killed"
+        }
+      ]
+    },
+    "branching_isolation": {
+      "total": 2,
+      "killed": 2,
+      "survived": 0,
+      "score_pct": 100.0,
+      "mutants": [
+        {
+          "mutant_id": "branching_isolation.shared_parent_state_mutation",
+          "module_family": "branching_isolation",
+          "description": "Allow child branch state update to overwrite parent branch state",
+          "status": "killed"
+        },
+        {
+          "mutant_id": "branching_isolation.silent_clamp_instead_of_bounds_error",
+          "module_family": "branching_isolation",
+          "description": "Silently clamp out-of-bounds resource delta instead of raising ResourceBoundsError",
+          "status": "killed"
+        }
+      ]
+    },
+    "fingerprints": {
+      "total": 2,
+      "killed": 2,
+      "survived": 0,
+      "score_pct": 100.0,
+      "mutants": [
+        {
+          "mutant_id": "fingerprints.unsorted_entity_order",
+          "module_family": "fingerprints",
+          "description": "Omit canonical sorting of entity keys prior to SHA-256 hashing",
+          "status": "killed"
+        },
+        {
+          "mutant_id": "fingerprints.ignore_resource_delta",
+          "module_family": "fingerprints",
+          "description": "Omit resource current values from WorldState.fingerprint calculation",
+          "status": "killed"
+        }
+      ]
+    },
+    "causal_semantics": {
+      "total": 2,
+      "killed": 2,
+      "survived": 0,
+      "score_pct": 100.0,
+      "mutants": [
+        {
+          "mutant_id": "causal_semantics.bypass_unobserved_confounder_refusal",
+          "module_family": "causal_semantics",
+          "description": "Mark confounded graph U -> X, U -> Y as identifiable despite unobserved backdoor path",
+          "status": "killed"
+        },
+        {
+          "mutant_id": "causal_semantics.uncoupled_abduction_noise",
+          "module_family": "causal_semantics",
+          "description": "Replace abducted exogenous disturbance U with independent PRNG draw in counterfactual prediction",
+          "status": "killed"
+        }
+      ]
+    },
+    "statistical_utilities": {
+      "total": 2,
+      "killed": 2,
+      "survived": 0,
+      "score_pct": 100.0,
+      "mutants": [
+        {
+          "mutant_id": "statistical_utilities.e_value_drop_radical",
+          "module_family": "statistical_utilities",
+          "description": "Replace VanderWeele & Ding E-value RR + sqrt(RR*(RR-1)) with linear RR",
+          "status": "killed"
+        },
+        {
+          "mutant_id": "statistical_utilities.conformal_omit_finite_sample_correction",
+          "module_family": "statistical_utilities",
+          "description": "Omit finite-sample ceil((n+1)*(1-alpha))/n correction in ConformalIntervalPredictor",
+          "status": "killed"
+        }
+      ]
+    }
+  }
+}

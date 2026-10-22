@@ -83,5 +83,5 @@ $$\textbf{KNOWN Rules} \quad \neq \quad \textbf{LEARNED Dynamics}$$
 ## 6. Recommended Next Steps for Leadership
 
 1. **Benchmark Your Maturity:** Review the [5-Level Enterprise Maturity Model](maturity-model.md) to diagnose your current decision architecture.
-2. **Review the Proof:** Inspect the live, CI-generated benchmark overlay in the [README](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/README.md) showing bit-for-bit mass balance conservation.
-3. **Commission an Acceptance Pilot:** Direct your data science or enterprise architecture team to run the pre-built [Acceptance Fixture](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/examples/minimal_warehouse/run.py) (`python examples/minimal_warehouse/run.py`).
+2. **Review the Proof:** Inspect the live, CI-generated benchmark overlay in the [README](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/README.md) showing bit-for-bit mass balance conservation.
+3. **Commission an Acceptance Pilot:** Direct your data science or enterprise architecture team to run the pre-built [Acceptance Fixture](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/examples/minimal_warehouse/run.py) (`python examples/minimal_warehouse/run.py`).

@@ -15,7 +15,7 @@ However, in strategic enterprise planning, geopolitical regime shifts, emerging 
 * Different stakeholders hold fundamentally divergent models of how the world operates.
 * The true probabilities may be unknowable.
 
-To make defensible decisions under deep uncertainty, EWM’s decision engine (`ewm decide`, [ADR-041](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-041-decision-focused-scenario-discovery.md)) implements four non-probabilistic and robust decision metrics:
+To make defensible decisions under deep uncertainty, EWM’s decision engine (`ewm decide`, [ADR-041](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-041-decision-focused-scenario-discovery.md)) implements four non-probabilistic and robust decision metrics:
 
 ```
                      Taxonomy of Robust Decision Metrics

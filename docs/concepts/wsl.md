@@ -1,6 +1,6 @@
 # World Specification Language (WSL)
 
-The **World Specification Language (WSL)** is a declarative, human-readable serialization grammar for defining, sharing, and versioning enterprise world models in YAML or JSON ([ADR-023](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-023-declarative-world-specification-language-wsl.md)).
+The **World Specification Language (WSL)** is a declarative, human-readable serialization grammar for defining, sharing, and versioning enterprise world models in YAML or JSON ([ADR-023](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-023-declarative-world-specification-language-wsl.md)).
 
 ---
 

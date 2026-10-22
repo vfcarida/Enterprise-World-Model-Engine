@@ -169,6 +169,45 @@ class Trajectory(BaseModel):
         """Canonical SHA-256 fingerprint over all addressable exogenous noise draws."""
         return self.systemic_trace.exogenous_noise_fingerprint
 
+    @property
+    def epistemic_state(self) -> Any:
+        """Extract the formal EpistemicState P_t for this rollout trajectory."""
+        from ewm_engine.core.epistemic import (
+            EpistemicState,
+            resolve_fail_closed_evidence_level,
+        )
+        from ewm_engine.provenance.evidence import EvidenceLevel
+
+        mech_provs: list[dict[str, Any]] = []
+        ctx_versions: list[str] = []
+        ctx_fingerprints: list[str] = []
+        levels = [step.transition_result.evidence_level for step in self.steps]
+
+        for step in self.steps:
+            mp = step.transition_result.diagnostics.get("mechanism_provenance")
+            if isinstance(mp, dict):
+                mech_provs.append(mp)
+            cm = step.transition_result.context_metadata
+            if cm is not None:
+                ver = cm.get("version")
+                fp = cm.get("fingerprint")
+                if isinstance(ver, str):
+                    ctx_versions.append(ver)
+                if isinstance(fp, str):
+                    ctx_fingerprints.append(fp)
+
+        eff_level = (
+            resolve_fail_closed_evidence_level(levels) if levels else EvidenceLevel.STRUCTURAL
+        )
+        return EpistemicState.from_world_state(
+            self.final_state,
+            trace=self.systemic_trace,
+            effective_evidence_level=eff_level,
+            mechanism_provenances=mech_provs,
+            context_versions=ctx_versions,
+            context_fingerprints=ctx_fingerprints,
+        )
+
     def final_metric(self, metric_name: str) -> float:
         """Get the final value of a metric at the end of the rollout."""
         if not self.steps:

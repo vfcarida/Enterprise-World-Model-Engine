@@ -118,12 +118,12 @@ print(comparison.summary_table())
 
 In less than 40 lines of Python, you executed an entire decision intelligence lifecycle:
 
-1. **Physical Conservation Held Bit-for-Bit:**  
+1. **Physical Conservation Held Bit-for-Bit:**
    The 30 units added to `stock_north` were deducted from `stock_south`. The total system stock ($20 + 100 = 120$) remained invariant. If the transfer had exceeded southern stock, EWM would have rejected the rollout immediately.
-2. **Determinism Guaranteed:**  
+2. **Determinism Guaranteed:**
    Because both scenarios ran under `seed=42` with isolated PRNG trees, any stochastic exogenous events were coupled. The observed delta is purely attributable to your action.
-3. **Certified Significance:**  
-   The output table reports non-parametric bootstrap confidence intervals and flags statistically significant improvements (`*sig`), ensuring that leadership does not act on sampling noise.
+3. **Epistemically Honest Comparison (`(det)` vs. `*`):**
+   Because `DeterministicTransferDynamics` has zero simulation variance across rollouts, `compare_scenarios` labels the exact shift as a deterministic difference (`(det)`, `status_label="deterministic_difference"`, `is_significant=False`) rather than fabricating a frequentist p-value. When stochastic dynamics are used, the table reports bootstrap confidence intervals under the simulator measure $P_{\text{model}}$ and marks stochastic differences whose interval excludes zero (`*`).
 
 ---
 

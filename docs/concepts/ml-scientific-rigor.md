@@ -125,8 +125,8 @@ For continuous regression forecasts, `compute_pit_calibration` executes Probabil
 
 To eliminate reliance on Gaussian or parametric assumptions, the engine provides distribution-free conformal calibration:
 
-- **`ConformalIntervalPredictor`**: Computes non-conformity quantiles $\hat{q} = \text{Quantile}\left(\frac{\lceil (n+1)(1-\alpha)\rceil}{n}\right)$ on calibration hold-outs, guaranteeing exact finite-sample coverage $P(Y \in \mathcal{C}(X)) \ge 1 - \alpha$ under exchangeability (Vovk et al., 2005; Romano et al., 2019).
-- **`AdaptiveConformalInference` (ACI / Conformal-PID)**: Under non-stationary simulation drift or real-world regime shifts, exchangeability fails. ACI (Gibbs & Candès, 2021; Angelopoulos et al., 2023) dynamically updates target miscoverage rates online:
+- **`ConformalIntervalPredictor`**: Computes non-conformity quantiles $\hat{q}$ via the exact order statistic $\lceil (n_{\text{cal}}+1)(1-\alpha)\rceil$ on calibration hold-outs, guaranteeing exact finite-sample **marginal** coverage $P(Y \in \mathcal{C}(X)) \in [1 - \alpha, 1 - \alpha + 1/(n_{\text{cal}}+1)]$ under exchangeability (Vovk et al., 2005; Romano et al., 2019). Because distribution-free pointwise conditional coverage $P(Y \in \mathcal{C}(X) \mid X=x) \ge 1 - \alpha$ is impossible without distributional assumptions (Foygel Barber et al., 2021), `ConformalEvaluationSummary` sets `coverage_scope="marginal"` and audits subgroup `slice_coverages` and `worst_slice_coverage`.
+- **`AdaptiveConformalInference` (ACI / Conformal-PID) & `evaluate_conformal_under_shift`**: Under non-stationary simulation drift or real-world regime shifts, exchangeability fails. ACI (Gibbs & Candès, 2021; Angelopoulos et al., 2023) dynamically updates target miscoverage rates online:
   $$\alpha_{t+1} = \alpha_t + \gamma (\alpha - \text{err}_t)$$
   Bursts of interval miscoverage trigger an automated **OOD / Regime-Shift Alert**, linking directly into the engine's out-of-distribution detector.
 
@@ -151,13 +151,13 @@ The engine formulates uncertainty quantification as a multi-criteria optimizatio
 
 ---
 
-## 4. Causal Rigor: Identifiability, Gated OPE, and E-Values
+## 4. Causal Rigor: Identifiability, Gated OPE, and Sensitivity E-Values
 
 The engine strictly rejects the notion of "automated causal discovery from observational data alone." All causal estimates are **hard-gated**:
 
-### 1. Identifiability as a Blocking Prerequisite
+### 1. Identifiability & Provenance as a Blocking Prerequisite
 
-Before calculating an interventional effect $P(Y \mid \text{do}(X))$, the declared causal DAG undergoes formal Backdoor Criterion analysis (`check_backdoor_identifiability`):
+Before calculating an interventional effect $P(Y \mid \text{do}(X))$, the declared causal DAG undergoes formal Backdoor Criterion analysis (`check_backdoor_identifiability`) and records explicit `identification_provenance`:
 - If all backdoor paths are blocked by observed covariates without conditioning on descendants of treatment $\to$ returns `InterventionalQueryResult`.
 - If confounding paths remain open $\to$ returns `NotIdentifiableResult` detailing the open confounding paths. **The engine NEVER outputs a numerical effect estimate when unidentifiable**.
 
@@ -187,13 +187,13 @@ Observational propensity scores must satisfy common support:
 - `check_positivity_overlap` calculates the Bhattacharyya overlap coefficient and **trimmed mass** (fraction of samples in extreme propensity tails $< \epsilon$ or $> 1 - \epsilon$).
 - **High-Dimensional Warning**: Citing **D'Amour et al. (2017, arXiv:1711.02582)**, strict overlap collapses exponentially as covariate dimension $d$ grows. When $d \ge 5$, the engine attaches a high-dimensional overlap fragility warning.
 
-### 4. VanderWeele & Ding E-Values
+### 4. VanderWeele & Ding Confounding Sensitivity E-Values (Disambiguated from Safe-Testing e-Processes)
 
-Every causal point estimate and confidence interval limit carries an **E-value** (VanderWeele & Ding, 2017, *Ann. Intern. Med.*):
+Every causal point estimate and confidence interval limit carries a **Confounding Sensitivity E-value** (`SensitivityEValueResult`, `compute_sensitivity_e_value`; VanderWeele & Ding, 2017, *Ann. Intern. Med.*):
 
-$$E = \text{RR} + \sqrt{\text{RR}(\text{RR} - 1)}$$
+$$E_{\text{sens}} = \text{RR} + \sqrt{\text{RR}(\text{RR} - 1)} \ge 1$$
 
-The E-value specifies the minimum strength of association on the risk ratio scale that an unmeasured confounder must have with both the intervention and the outcome to nullify the observed effect.
+The Sensitivity E-value specifies the minimum strength of association on the risk-ratio scale that an unmeasured confounder must have with both the intervention and the outcome to nullify the observed effect. It is strictly distinct from sequential **safe-testing e-values / e-processes** (`SafeTestingEProcess`, `compute_safe_e_value`; Grünwald et al., 2024; Ramdas et al., 2023), which satisfy $\mathbb{E}_{H_0}[e_t \mid \mathcal{F}_{t-1}] \le 1$ and control Type-I error under optional stopping.
 
 ### 5. Causal Refutation Battery
 

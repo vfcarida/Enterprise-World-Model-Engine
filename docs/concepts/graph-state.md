@@ -2,13 +2,13 @@
 
 In complex socio-technical systems—such as multimodal supply chains, financial payment networks, hospital bed networks, or distributed energy grids—state is fundamentally relational, multi-typed, and dynamic.
 
-The Enterprise World Model Engine provides a first-class **Heterogeneous Temporal Relational Graph View** ([`ewm_engine.core.graph`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/graph.py)) and **Graph Neural Network Dynamics** ([`ewm_engine.experimental.graph_dynamics`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/graph_dynamics.py)) to model network-structured enterprises without sacrificing canonical state immutability.
+The Enterprise World Model Engine provides a first-class **Heterogeneous Temporal Relational Graph View** ([`ewm_engine.core.graph`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/graph.py)) and **Graph Neural Network Dynamics** ([`ewm_engine.experimental.graph_dynamics`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/experimental/graph_dynamics.py)) to model network-structured enterprises without sacrificing canonical state immutability.
 
 ---
 
 ## 1. The Additive Graph View Pattern
 
-Rather than forcing an incompatible state representation or rewriting the core data structures, EWM Engine adopts the **Additive Graph View Pattern** ([ADR-022](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-022-heterogeneous-graph-world-state-and-gnn-dynamics.md)):
+Rather than forcing an incompatible state representation or rewriting the core data structures, EWM Engine adopts the **Additive Graph View Pattern** ([ADR-022](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-022-heterogeneous-graph-world-state-and-gnn-dynamics.md)):
 
 ```mermaid
 flowchart LR
@@ -74,7 +74,7 @@ active_graph = graph.filter_temporal(current_time=15.0)
 
 ## 3. Relational GNN Dynamics (`GraphNeuralDynamics`)
 
-Under the `ml` extra, [`GraphNeuralDynamics`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/experimental/graph_dynamics.py) implements relational message passing:
+Under the `ml` extra, [`GraphNeuralDynamics`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/experimental/graph_dynamics.py) implements relational message passing:
 
 $$\mathbf{h}_v^{(l+1)} = \text{ReLU}\left( \mathbf{W}_{\text{self}} \mathbf{h}_v^{(l)} + \sum_{r \in \mathcal{R}} \frac{1}{\max(1, |\mathcal{N}_r(v)|)} \sum_{u \in \mathcal{N}_r(v)} \mathbf{W}_r \mathbf{h}_u^{(l)} \right)$$
 
@@ -88,7 +88,7 @@ $$\mathbf{h}_v^{(l+1)} = \text{ReLU}\left( \mathbf{W}_{\text{self}} \mathbf{h}_v
 
 ## 4. Schema Migration (v1.x $\leftrightarrow$ v2.0)
 
-To transition worlds between `schema_version="1.0.0"` and `schema_version="2.0.0"`, [`ewm_engine.core.migration`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/core/migration.py) provides bidirectional migration functions:
+To transition worlds between `schema_version="1.0.0"` and `schema_version="2.0.0"`, [`ewm_engine.core.migration`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/migration.py) provides bidirectional migration functions:
 
 ```python
 from ewm_engine.core.migration import migrate_v1_to_v2, migrate_v2_to_v1

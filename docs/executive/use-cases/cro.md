@@ -25,11 +25,11 @@ EWM models the enterprise risk architecture as a coupled graph of financial obli
 1. **Network Topology (`WorldState`):** Counterparties, internal business units, credit facilities, collateral pools, and capital reserve ratios.
 2. **Correlated Stochastic Shocks:** Multi-variate joint distributions over interest rates, counterparty liquidity, and asset valuations.
 3. **Automated Scenario Discovery (`ewm_engine.decision.discovery`):**
-   * Employs the **Patient Rule Induction Method (PRIM)** ([ADR-041](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-041-decision-focused-scenario-discovery.md)).
+   * Employs the **Patient Rule Induction Method (PRIM)** ([ADR-041](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-041-decision-focused-scenario-discovery.md)).
    * Instead of guessing failure scenarios, PRIM automatically carves out the precise hyper-rectangular boundary (box) in the parameter space where regulatory capital ratios drop below statutory thresholds ($< 10.5\%$).
 4. **Cryptographic Provenance Manifest (`ProvenanceManifest`):**
    * Every stress test rollout logs an event-sourced audit trace.
-   * Emits SHA-256 state fingerprints, git commit hashes, and random seed parameters conforming to SLSA Level 2+ provenance standards ([ADR-034](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md)).
+   * Emits SHA-256 state fingerprints, git commit hashes, and random seed parameters conforming to SLSA Level 2+ provenance standards ([ADR-034](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md)).
 
 ```
                       PRIM Scenario Discovery Subspace

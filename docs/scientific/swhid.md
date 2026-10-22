@@ -1,9 +1,8 @@
-# Software Heritage Persistent Identifiers (SWHID)
+﻿# Software Heritage Persistent Identifiers (SWHID)
 
-> **Standard**: ISO/IEC 18670:2025 (Information technology — Software Heritage persistent identifiers)  
-> **Repository Origin**: `https://github.com/vfcarida/Enterprise-World-Model-Engine`  
-> **Canonical Revision SWHID**: `swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c`  
-> **Canonical Directory SWHID**: `swh:1:dir:7b3e1a4c9d2f8a5e6b0c1d3e5f7a9b1c3d5e7f9a`  
+> **Standard**: ISO/IEC 18670:2025 (Information technology â€” Software Heritage persistent identifiers)
+> **Repository Origin**: `https://github.com/vfcarida/Enterprise-World-Model-Engine`
+> **Public Archival Status**: *Not yet published in the Software Heritage public vault (SWHID to be assigned upon release ingestion; intrinsic Git-tree SWHIDs can be computed locally via `swh identify`)*
 
 ---
 
@@ -35,25 +34,25 @@ Where:
 
 ---
 
-## 2. EWM Engine Canonical SWHIDs
+## 2. EWM Engine SWHID Structure (Template)
 
-The following persistent identifiers identify the EWM Engine codebase:
+Once a release tag is ingested by Software Heritage, intrinsic identifiers follow these schema levels:
 
-| Level | Object Type | Identifier | Purpose |
+| Level | Object Type | Identifier Template | Purpose |
 | :--- | :--- | :--- | :--- |
-| **Release v1.5.0** | `rel` | `swh:1:rel:c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine` | Tagged release snapshot for v1.5.0 |
-| **Commit Revision** | `rev` | `swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine` | Exact Git commit revision of reproduction baseline |
-| **Root Tree Directory** | `dir` | `swh:1:dir:7b3e1a4c9d2f8a5e6b0c1d3e5f7a9b1c3d5e7f9a;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine` | Root file tree containing src, tests, and conformance suite |
-| **WMIF Conformance** | `dir` | `swh:1:dir:4a2f8b1c9e3d7a5f6b0c2d4e6f8a0b2c4d6e8f0a;lines=1-250` | Standalone WMIF specification and conformance oracle |
+| **Release v1.5.0** | `rel` | `swh:1:rel:<git_tag_sha1>;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine` | Tagged release snapshot for v1.5.0 (*to be assigned*) |
+| **Commit Revision** | `rev` | `swh:1:rev:<git_commit_sha1>;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine` | Exact Git commit revision of reproduction baseline |
+| **Root Tree Directory** | `dir` | `swh:1:dir:<git_tree_sha1>;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine` | Root file tree containing `src`, `tests`, and `conformance` |
+| **WMIF Conformance** | `dir` | `swh:1:dir:<subdir_tree_sha1>;lines=1-250` | Standalone WMIF specification and conformance oracle |
 
 ---
 
 ## 3. Resolving and Archiving EWM Engine via SWH
 
 ### Resolving via the Web Resolver
-Any SWHID can be resolved directly in a browser via the Software Heritage public resolver:
+Once ingested, any SWHID can be resolved directly in a browser via the Software Heritage public resolver:
 ```text
-https://archive.softwareheritage.org/swh:1:rev:9a4f2e5c8e3b1a6d7c8e9f0a1b2c3d4e5f6a7b8c/
+https://archive.softwareheritage.org/swh:1:rev:<git_commit_sha1>/
 ```
 
 ### Triggering Automated Ingestion (Save Code Now)
@@ -82,32 +81,30 @@ pip install swh.model
 swh identify .
 ```
 
-Expected output:
+Output format:
 ```text
-swh:1:dir:7b3e1a4c9d2f8a5e6b0c1d3e5f7a9b1c3d5e7f9a
+swh:1:dir:<computed_40_hex_sha1>
 ```
 
-If the computed hash matches, your local source code is bit-for-bit identical to the archived snapshot in the Software Heritage vault.
+Additionally, `scripts/reproduce.py` computes a deterministic SHA-256 Merkle digest over all tracked repository files (`source_tree_sha256` in `reproduction_manifest.json`) to verify worktree integrity independently of external archival services.
 
 ---
 
 ## 5. Cross-Linking Architecture
 
-EWM Engine implements a four-way persistent identifier cross-link:
+Upon external publication and archival, EWM Engine links its artifacts across four metadata surfaces:
 
 ```
-                  ┌────────────────────────────────────────┐
-                  │          arXiv:2610.01234 [cs.MS]      │
-                  │        (Methods & Benchmark Paper)     │
-                  └───────────────────┬────────────────────┘
-                                      │
-            ┌─────────────────────────┼─────────────────────────┐
-            ▼                         ▼                         ▼
-┌───────────────────────┐ ┌───────────────────────┐ ┌───────────────────────┐
-│     CITATION.cff      │ │     .zenodo.json      │ │    ISO/IEC 18670      │
-│  (Machine-Readable    │ │  (Zenodo Concept/     │ │   Software Heritage   │
-│   Repo Citation)      │ │   Version Archive)    │ │      (SWHID)          │
-└───────────────────────┘ └───────────────────────┘ └───────────────────────┘
+                  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+                  â”‚       Companion Manuscript Draft       â”‚
+                  â”‚         (paper/arxiv/paper.md)         â”‚
+                  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                                      â”‚
+            â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+            â–¼                         â–¼                         â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚     CITATION.cff      â”‚ â”‚     .zenodo.json      â”‚ â”‚    ISO/IEC 18670      â”‚
+â”‚  (Machine-Readable    â”‚ â”‚  (Zenodo Metadata     â”‚ â”‚   Software Heritage   â”‚
+â”‚   Repo Citation)      â”‚ â”‚   Configuration)      â”‚ â”‚      (SWHID)          â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
-
-This guarantees that whether a researcher starts from the arXiv preprint, the Zenodo DOI, the SWHID, or the GitHub repository, all artifacts resolve to the identical immutable record.

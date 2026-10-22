@@ -1,8 +1,9 @@
 # Scientific Benchmark Families (Research Instrument)
 
-!!! info "Research Instrument — Spec §63"
+!!! info "Research Instrument — Spec §63 & ADR-054"
     The EWM Engine benchmark suite is a **measurement instrument** designed to probe whether candidate world models can simulate structural change correctly.
     Results reflect properties of **artificial, synthetic environments** only. They do **not** imply real-world empirical superiority or automated decision readiness.
+    For the comprehensive **12-family Enterprise World-Model Evaluation & Failure-Mode Suite (Families A–L)** comparing `rules-only`, `learned-only`, `static hybrid`, and `hybrid + runtime context discovery` across 13 orthogonal metric dimensions, see [**Enterprise Benchmark Suite (A–L)**](enterprise-benchmark-suite.md) and [`ADR-054`](../adr/ADR-054-enterprise-world-model-evaluation-benchmark-suite.md).
 
 ---
 

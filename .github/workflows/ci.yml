@@ -60,6 +60,12 @@ jobs:
       - name: ADR Link and Reciprocal Status Linter
         run: uv run python scripts/check_adr_links.py
 
+      - name: Verify Release & Security Truth Gate
+        run: uv run python scripts/check_release_truth.py
+
+      - name: Verify Selective Mutation Baseline & Ratchet
+        run: uv run python scripts/run_mutation_gate.py --verify-baseline
+
   towncrier-check:
     name: Changelog News Fragment Check (Towncrier)
     runs-on: ubuntu-latest
@@ -617,6 +623,55 @@ jobs:
       - name: Run Numerical Tests
         run: uv run pytest tests/numerical/ -v
 
+  optional-extras-matrix:
+    name: Optional Extras Matrix (${{ matrix.extras-profile }} on Py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+        extras-profile:
+          - minimal-core
+          - graphs
+          - dsl
+          - otel
+          - cli
+          - "calibrate,uq,causal"
+          - "interop,config"
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python and uv
+        uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Selected Extra Profile in Clean Virtualenv
+        env:
+          EXTRAS_PROFILE: ${{ matrix.extras-profile }}
+        run: |
+          uv venv /tmp/extras_env
+          if [ "${EXTRAS_PROFILE}" = "minimal-core" ]; then
+            uv pip install --python /tmp/extras_env/bin/python . pytest
+          else
+            uv pip install --python /tmp/extras_env/bin/python ".[${EXTRAS_PROFILE}]" pytest
+          fi
+
+      - name: Verify Public API & Optional Extra Boundaries
+        env:
+          EXTRAS_PROFILE: ${{ matrix.extras-profile }}
+        run: |
+          /tmp/extras_env/bin/python -c "import ewm_engine; from ewm_engine import World, WorldState, SimulationEngine; print('Profile OK:', '${EXTRAS_PROFILE}', ewm_engine.__version__)"
+          /tmp/extras_env/bin/pytest tests/unit/test_optional_dependencies.py tests/unit/test_core_flow.py -q
+
   ci-gates:
     name: All CI Quality Gates Passed
     if: always()
@@ -641,6 +696,7 @@ jobs:
       - docs-build
       - memory-gates
       - numerical-tests
+      - optional-extras-matrix
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate Gates
@@ -667,9 +723,10 @@ jobs:
           if [[ "${{ needs.docs-build.result }}" != "success" ]]; then failures+=("docs-build"); fi
           if [[ "${{ needs.memory-gates.result }}" != "success" ]]; then failures+=("memory-gates"); fi
           if [[ "${{ needs.numerical-tests.result }}" != "success" ]]; then failures+=("numerical-tests"); fi
+          if [[ "${{ needs.optional-extras-matrix.result }}" != "success" ]]; then failures+=("optional-extras-matrix"); fi
 
           if [ ${#failures[@]} -ne 0 ]; then
             echo "CI Gate Check FAILED! Failed jobs: ${failures[*]}"
             exit 1
           fi
-          echo "All 20 CI quality gates passed successfully."
+          echo "All 21 CI quality gates passed successfully."

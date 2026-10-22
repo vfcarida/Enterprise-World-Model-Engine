@@ -52,6 +52,16 @@ def _resolve_dependency_versions() -> dict[str, str]:
     return deps
 
 
+def _resolve_engine_version() -> str:
+    """Resolve current package version from the single VCS/runtime source of truth."""
+    try:
+        from ewm_engine import __version__
+
+        return str(__version__)
+    except Exception:
+        return "1.5.0"
+
+
 class RunManifest(BaseModel):
     """Cryptographic execution manifest mapping 1:1 to the NeurIPS reproducibility checklist.
 
@@ -74,7 +84,7 @@ class RunManifest(BaseModel):
         description="Measured wall-clock run duration in seconds.",
     )
     engine_version: str = Field(
-        default="1.1.0",
+        default_factory=_resolve_engine_version,
         description="Enterprise World Model Engine semantic release version.",
     )
     git_commit: str | None = Field(
@@ -160,11 +170,14 @@ def create_run_manifest(
     resolved_config: dict[str, Any] | None = None,
     execution_duration_sec: float | None = None,
     determinism_flags: dict[str, Any] | None = None,
-    engine_version: str = "1.1.0",
+    engine_version: str | None = None,
     component_version: str = "1.0.0",
     deterministic: bool = True,
 ) -> RunManifest:
     """Construct an immutable RunManifest from simulation configuration and runtime context."""
+    resolved_engine_version = (
+        engine_version if engine_version is not None else _resolve_engine_version()
+    )
     if scenario is not None:
         active_seed = seed if seed is not None else scenario.seed
         scen_id = scenario.scenario_id
@@ -232,7 +245,7 @@ def create_run_manifest(
     dep_versions_val = _resolve_dependency_versions()
 
     manifest_payload = {
-        "engine_version": engine_version,
+        "engine_version": resolved_engine_version,
         "git_commit": git_commit_val,
         "seed": active_seed,
         "seeds": seed_tuple,
@@ -254,7 +267,7 @@ def create_run_manifest(
         manifest_id=f"manifest_{manifest_hash[:16]}",
         timestamp=time.time(),
         execution_duration_sec=execution_duration_sec,
-        engine_version=engine_version,
+        engine_version=resolved_engine_version,
         git_commit=git_commit_val,
         seed=active_seed,
         seeds=seed_tuple,
