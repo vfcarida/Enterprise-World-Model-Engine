@@ -59,7 +59,7 @@ To ensure responsible scientific use, `ewm-engine` documents explicit boundaries
 
 # Reproducibility
 
-`ewm-engine` provides single-command CPU reproduction (`python scripts/reproduce.py` and `python scripts/run_enterprise_benchmark_suite.py`) backed by committed JSON manifests (`reproduction_manifest.json` for the 7 domain validation cards and `docs/results/artifacts/enterprise_benchmark_suite.json` for the 12-family shift-recovery benchmark suite) and audited by `python scripts/check_release_truth.py`.
+`ewm-engine` provides single-command CPU reproduction (`python scripts/reproduce.py` and `python -m benchmarks.enterprise_suite --seed 42`) backed by committed JSON manifests (`reproduction_manifest.json` for the 7 domain validation cards and `docs/results/artifacts/enterprise_benchmark_suite.json` for the 12-family enterprise benchmark suite) and audited by `python scripts/check_release_truth.py`.
 
 # Acknowledgements
 

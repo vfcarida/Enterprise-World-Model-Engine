@@ -163,32 +163,93 @@ def _run_spec(
         return 1
 
 
-def _handle_schema(action: str, name: str | None = None) -> int:
-    """Inspect or display committed JSON schemas."""
-    repo_schemas = Path(__file__).resolve().parent.parent.parent.parent / "schemas"
-    if not repo_schemas.exists():
-        sys.stderr.write("Schemas directory not found in repository root.\n")
-        return 1
+def _get_builtin_schema_models() -> dict[str, type[Any]]:
+    """Return canonical mapping from schema filename to Pydantic model class."""
+    from ewm_engine.cards.models import DatasetCard, ModelCard, ScenarioCard
+    from ewm_engine.core.actions import Action
+    from ewm_engine.core.spec import WorldSpec
+    from ewm_engine.core.state import WorldState
+    from ewm_engine.durability.events import TransitionEvent
+    from ewm_engine.experimentation.params import ParameterSpace
+    from ewm_engine.provenance.metadata import Provenance
+    from ewm_engine.reporting.model import ReportModel
+    from ewm_engine.serialization.wmif import WMIFManifest
+    from ewm_engine.simulation.scenario import Scenario
+    from ewm_engine.simulation.trajectory import Trajectory
+    from ewm_engine.verification.spec import PropertySpec
 
-    schemas = sorted(repo_schemas.glob("*.schema.json"))
-    schema_map = {s.name.replace(".schema.json", ""): s for s in schemas}
+    return {
+        "action.schema.json": Action,
+        "dataset-card.schema.json": DatasetCard,
+        "model-card.schema.json": ModelCard,
+        "parameter-space.schema.json": ParameterSpace,
+        "property-spec.schema.json": PropertySpec,
+        "provenance.schema.json": Provenance,
+        "report-model.schema.json": ReportModel,
+        "scenario-card.schema.json": ScenarioCard,
+        "scenario.schema.json": Scenario,
+        "trajectory.schema.json": Trajectory,
+        "transition-event.schema.json": TransitionEvent,
+        "wmif-manifest.schema.json": WMIFManifest,
+        "world-state.schema.json": WorldState,
+        "world.schema.json": WorldSpec,
+    }
+
+
+def _synthesize_draft202012_schema(model_cls: type[Any], filename: str) -> str:
+    """Synthesize a canonical Draft 2020-12 JSON Schema string from a Pydantic model."""
+    schema: dict[str, Any] = model_cls.model_json_schema()
+    schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+    schema["$id"] = f"https://ewm-engine.org/schemas/v1/{filename}"
+    if "properties" in schema and "schema_version" in schema["properties"]:
+        schema["properties"]["schema_version"]["const"] = "1.0.0"
+        if "required" in schema and "schema_version" not in schema["required"]:
+            schema["required"].append("schema_version")
+            schema["required"].sort()
+    return json.dumps(schema, indent=2, sort_keys=True) + "\n"
+
+
+def _handle_schema(
+    action: str,
+    name: str | None = None,
+    schemas_dir: Path | None = None,
+) -> int:
+    """Inspect or display committed or dynamically synthesized Draft 2020-12 JSON schemas."""
+    repo_schemas = (
+        schemas_dir
+        if schemas_dir is not None
+        else Path(__file__).resolve().parent.parent.parent.parent / "schemas"
+    )
+    if repo_schemas.exists():
+        schemas = sorted(repo_schemas.glob("*.schema.json"))
+        schema_names = [s.name.replace(".schema.json", "") for s in schemas]
+        disk_map = {s.name.replace(".schema.json", ""): s for s in schemas}
+        builtin_map: dict[str, type[Any]] = {}
+    else:
+        builtin_models = _get_builtin_schema_models()
+        schema_names = sorted(k.replace(".schema.json", "") for k in builtin_models)
+        disk_map = {}
+        builtin_map = {k.replace(".schema.json", ""): v for k, v in builtin_models.items()}
 
     if action == "list":
         sys.stdout.write("Available JSON Schemas (Draft 2020-12, schema_version 1.0.0):\n")
-        for s_name, s_path in schema_map.items():
-            sys.stdout.write(f"  - {s_name} ({s_path.name})\n")
+        for s_name in schema_names:
+            sys.stdout.write(f"  - {s_name} ({s_name}.schema.json)\n")
         return 0
     elif action == "show":
         if not name:
             sys.stderr.write("Error: Please provide a schema name to show (e.g. 'world-state').\n")
             return 1
         clean_name = name.replace(".schema.json", "")
-        if clean_name not in schema_map:
-            sys.stderr.write(
-                f"Error: Unknown schema '{name}'. Available: {list(schema_map.keys())}\n"
-            )
+        if clean_name not in schema_names:
+            sys.stderr.write(f"Error: Unknown schema '{name}'. Available: {schema_names}\n")
             return 1
-        schema_content = schema_map[clean_name].read_text(encoding="utf-8")
+        if clean_name in disk_map:
+            schema_content = disk_map[clean_name].read_text(encoding="utf-8")
+        else:
+            schema_content = _synthesize_draft202012_schema(
+                builtin_map[clean_name], f"{clean_name}.schema.json"
+            )
         sys.stdout.write(f"{schema_content}\n")
         return 0
     else:

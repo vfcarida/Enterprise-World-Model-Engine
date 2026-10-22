@@ -311,7 +311,7 @@ def generate_svg_artifacts(artifacts_dir: Path) -> dict[str, str]:
         '  <style>text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }</style>',
         f'  <rect width="{w}" height="{h}" rx="8" fill="#0f172a" />',
         '  <text x="30" y="40" font-size="16" font-weight="700" fill="#f8fafc">Multi-Seed Stochastic Ensembles: Deterministic SeedSequence Branching</text>',
-        '  <text x="30" y="60" font-size="12" fill="#94a3b8">Bit-exact cross-backend branch fingerprints across seeds 42, 1337, 999</text>',
+        '  <text x="30" y="60" font-size="12" fill="#94a3b8">Pinned-runtime BITWISE_REPRODUCIBLE branch fingerprints across seeds 42, 1337, 999</text>',
     ]
     seeds = [42, 1337, 999]
     means = [102.5, 98.3, 105.1]

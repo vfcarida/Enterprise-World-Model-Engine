@@ -122,5 +122,7 @@ model = LinearResidualDynamics(
 model.fit(train_ds)
 
 report = evaluate_dynamics_model(model=model, dataset=test_ds)
-print(f"One-step MAE: {report.one_step.mae:.4f} | Bounds preserved: {report.invariants.bounds_preserved}")
+print(
+    f"One-step MAE: {report.one_step.mae:.4f} | Bounds preserved: {report.invariants.bounds_preserved}"
+)
 ```

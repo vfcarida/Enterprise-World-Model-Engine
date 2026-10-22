@@ -66,7 +66,10 @@ Capabilities in EWM Engine are classified under explicit, strictly enforced matu
 | **Model Context Protocol (MCP) Server** | **In-Tree (v1.5.0 — Beta)** | Agent tool server exposing world loading, counterfactual simulation, and epistemic checks (`ewm mcp`, ADR-045, AC-039) |
 | **Scientific Results Gallery & Benchmarks** | **In-Tree (v1.5.0 — Beta)** | CI-reproducible gallery, NeurIPS D&B checklist, companion methods manuscript (FEAT-012, ADR-044) |
 | **Heterogeneous Graph State & GNN**| **In-Tree (v1.5.0 — Experimental)**| Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
-| **World Specification Language (WSL)**| **In-Tree (v1.5.0 — Beta)**| Declarative safe YAML/JSON & authored `.wsl` grammar, zero-dep fallback parser, compiler, and WMIF (FEAT-003, ADR-023, AC-040) |
+| **World Specification Language (WSL)**| **In-Tree (v1.5.0 — Beta)**| Declarative safe YAML/JSON & authored `.wsl` grammar, zero-dep fallback parser, compiler, and WMIF (FEAT-003, ADR-023, ADR-051, AC-040) |
+| **Batched SoA Scale & 3-Tier Reproducibility**| **In-Tree (v1.5.0 — Beta)**| Vectorized Structure-of-Arrays (SoA) kernel and 3-tier numerical certification (`BITWISE_REPRODUCIBLE`, `NUMERICALLY_EQUIVALENT_WITH_TOLERANCE`, `NON_CERTIFIED_BACKEND`, ADR-050) |
+| **Context-Aware Hybrid World-Model Semantics**| **Stable / In-Tree (v1.5.0)**| Formal 6-part state $(S_t, O_t, B_t, P_t, K_t, A_t)$, `ContextSnapshot` runtime discovery, `ObservationFilter`, `MechanismKind`, and 6-category `DriftKind` taxonomy (ADR-053, RFC-0002) |
+| **Enterprise Benchmark Suite (A–L)**| **In-Tree (v1.5.0 — Beta)**| 12-family failure-mode benchmark suite across 4 baseline paradigms and 13 orthogonal metric dimensions with non-leakage certificates (ADR-054) |
 
 ---
 

@@ -1,4 +1,4 @@
-"""Unit, oracle, property, and shift tests for PROMPT 04 statistical and causal honesty.
+"""Unit, oracle, property, and shift tests for statistical and causal honesty.
 
 Tests analytical oracles, bootstrap interval strategies, paired vs. independent designs,
 degenerate zero-variance reporting, Sensitivity E-values vs. safe-testing e-processes under

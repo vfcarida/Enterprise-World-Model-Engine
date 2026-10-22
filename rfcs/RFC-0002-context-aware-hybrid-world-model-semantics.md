@@ -4,7 +4,7 @@
 - **Status:** Implemented
 - **Author(s):** Vinicius Caridá (@vfcarida)
 - **Created Date:** 2026-04-12
-- **Target Release:** v0.1.3
+- **Target Release:** v1.5.0
 - **Steering Council Sponsor:** Vinicius Caridá (@vfcarida)
 - **Related ADRs:** [ADR-053](../docs/adr/ADR-053-formal-enterprise-world-model-semantics-and-context.md), [ADR-039](../docs/adr/ADR-039-responsible-ai-trust-and-anti-overclaiming-enforcement.md), [ADR-042](../docs/adr/ADR-042-grey-box-conservation-flywheel.md)
 - **Related Issues / PRs:** N/A
@@ -101,4 +101,4 @@ Given structural proposal $\hat{S}_{t+1}^{\text{struct}} = f_{\text{struct}}(S_t
 
 ## 8. Unresolved Questions
 
-- None for v0.1.3; physical removal of `WorldState.trace` is deferred to the v2.0 schema cycle.
+- None for v1.5.0; physical removal of `WorldState.trace` is deferred to the v2.0 schema cycle.

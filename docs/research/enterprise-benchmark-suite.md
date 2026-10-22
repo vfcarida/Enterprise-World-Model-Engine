@@ -105,9 +105,9 @@ The thirteen evaluation dimensions are formally defined in `benchmarks/protocol.
 | `DECISION_REGRET` | Lower ↓ | utility units | 19.0914 | 46.2545 | 16.3842 | 0.1557 |
 | `ABSTENTION_QUALITY` | Higher ↑ | score in [0, 1] | 0.6042 | 0.3072 | 0.6634 | 0.9378 |
 | `TRACE_PROVENANCE_COMPLETENESS` | Higher ↑ | recall in [0, 1] | 0.7292 | 0.0417 | 0.7792 | 0.9958 |
-| `LATENCY` | Lower ↓ | ms / step | 0.0681 | 0.1337 | 0.1209 | 0.2210 |
-| `MEMORY` | Lower ↓ | KB | 4.5483 | 4.7637 | 4.6752 | 6.2856 |
-| `THROUGHPUT` | Higher ↑ | steps / sec | 91511.0062 | 33518.8393 | 66896.9137 | 28620.6407 |
+| `LATENCY` | Lower ↓ | ms / step | 0.0455 | 0.0864 | 0.0751 | 0.1460 |
+| `MEMORY` | Lower ↓ | KB | 4.5495 | 4.7637 | 4.6752 | 6.4461 |
+| `THROUGHPUT` | Higher ↑ | steps / sec | 138759.8462 | 53365.1584 | 97179.0337 | 45322.9386 |
 
 ---
 

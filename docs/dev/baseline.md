@@ -136,7 +136,7 @@ Every one of the 24 Acceptance Criteria from the authoritative specification (`d
 ## 4. Safe Hygiene Debt Resolved
 
 1. **Hardcoded User Path in Documentation:**
-   - [`docs/stability-policy.md:78`](../stability-policy.md): Replaced machine-specific absolute path (`file:///c:/Users/vinicius/...`) with repository GitHub URL.
+   - [`docs/stability-policy.md:78`](../stability-policy.md): Replaced machine-specific absolute path (`file:///local/workspace/...`) with repository GitHub URL.
 2. **Relative Link Resolution in Specifications:**
    - [`docs/specs/features/FEAT-001-evaluation-upgrade.md`](../specs/features/FEAT-001-evaluation-upgrade.md): Fixed nested relative links to `../../adr/` and `../spec-driven-development.md`.
 3. **MkDocs Navigation Integrity:**

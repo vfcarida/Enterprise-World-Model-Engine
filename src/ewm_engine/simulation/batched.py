@@ -7,8 +7,10 @@ is represented in Structure-of-Arrays (SoA) format.
 Guarantees (Invariant #5):
 1. The canonical immutable WorldState typed-graph remains the ultimate source of truth.
 2. The SoA tensor is a high-performance mathematical projection.
-3. Batched execution under NumPy or JAX-CPU produces bit-identical per-branch SHA-256
-   fingerprints compared to sequential pure-Python execution.
+3. Batched execution under NumPy (`BITWISE_REPRODUCIBLE`) produces bit-identical per-branch
+   SHA-256 fingerprints compared to sequential pure-Python execution under a pinned runtime,
+   while JAX (`NUMERICALLY_EQUIVALENT_WITH_TOLERANCE`) guarantees numerical equivalence within
+   declared tolerances (`rtol=1e-6, atol=1e-7`).
 """
 
 from __future__ import annotations

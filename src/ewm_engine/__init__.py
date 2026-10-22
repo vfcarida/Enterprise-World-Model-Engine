@@ -51,6 +51,8 @@ except ImportError:
     except Exception:
         __version__ = "1.5.0"
 
+__author__ = "Vinicius Caridá"
+
 __all__ = [
     "Action",
     "Constraint",

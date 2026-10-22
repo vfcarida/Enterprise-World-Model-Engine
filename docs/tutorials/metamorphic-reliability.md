@@ -41,6 +41,6 @@ print(f"Violations Detected:   {report.violations_count}")
 ---
 
 ## 3. The Metamorphic Reliability Scorecard
-* **Invariant Conservation (Physics-IQ):** Hard checks that mass, energy, and accounting rules hold bit-for-bit across 100% of steps.
+* **Invariant Conservation (Physics-IQ):** Hard checks that mass, energy, and accounting rules hold within declared IEEE-754 numerical tolerance ($\le 10^{-12}$) across 100% of steps.
 * **Causal Directionality:** Intervening positively on a bottleneck must not worsen the throughput of downstream dependencies.
 * **Epistemic Abstention (RWM-U):** Automatically flagging when a test scenario ventures outside the historical support envelope.

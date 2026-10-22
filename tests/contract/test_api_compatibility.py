@@ -119,3 +119,25 @@ def test_schema_versions_locked_at_v1() -> None:
         assert props["schema_version"].get("const") == "1.0.0", (
             f"schema_version in {filename} drifted from 1.0.0"
         )
+
+
+@pytest.mark.contract
+def test_cli_schema_wheel_fallback_matches_committed_schemas(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Verify `ewm schema list|show` works without disk schemas/ directory and matches committed schemas."""
+    from ewm_engine.cli.main import _handle_schema
+
+    missing_dir = tmp_path / "no_schemas_dir"
+    rc_list = _handle_schema("list", schemas_dir=missing_dir)
+    assert rc_list == 0
+    list_out = capsys.readouterr().out
+    for filename in SCHEMA_REGISTRY:
+        short_name = filename.replace(".schema.json", "")
+        assert f"- {short_name} ({filename})" in list_out
+
+        rc_show = _handle_schema("show", name=short_name, schemas_dir=missing_dir)
+        assert rc_show == 0
+        synthesized = capsys.readouterr().out.strip()
+        committed = (SCHEMAS_DIR / filename).read_text(encoding="utf-8").strip()
+        assert synthesized == committed, f"Synthesized schema for {filename} drifted from committed"

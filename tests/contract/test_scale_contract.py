@@ -1,8 +1,10 @@
-"""Contract test for scale, Structure-of-Arrays batched execution, and cross-backend bit-identity.
+"""Contract test for scale, Structure-of-Arrays batched execution, and three-tier backend reproducibility.
 
 Enforces Invariant #5 and batched scale requirements:
-1. Certified backends (NumPy, JAX CPU/GPU with Threefry) guarantee bit-identical SHA-256 fingerprints.
-2. Residual float-nondeterministic backends (CUDA/CuPy) are explicitly labeled throughput-only.
+1. Three-tier backend reproducibility: BITWISE_REPRODUCIBLE (NumPy CPU under pinned runtime),
+   NUMERICALLY_EQUIVALENT_WITH_TOLERANCE (JAX CPU/GPU within rtol=1e-6, atol=1e-7), and
+   NON_CERTIFIED_BACKEND (CUDA/CuPy atomic reductions).
+2. Non-certified backends (CuPy) fail closed when certify_equivalence=True.
 3. Order-independent reduction under distributed parallel execution (Ray / Dask / Multiprocessing).
 4. Pure-Python oracle equivalence: Batched SoA Monte Carlo yields bit-identical traces to sequential rollouts.
 """

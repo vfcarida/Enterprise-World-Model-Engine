@@ -39,10 +39,10 @@ To ensure permanent archival and academic traceability, `ewm-engine` integrates 
                     │
          ┌──────────┴──────────┐
          ▼                     ▼
-┌──────────────────┐  ┌──────────────────┐
-│  Version v1.0.0  │  │  Version v1.1.0  │
-│ 10.5281/zenodo.1 │  │ 10.5281/zenodo.2 │ ──► Fixed, immutable snapshot for citations
-└──────────────────┘  └──────────────────┘
+┌──────────────────────┐  ┌──────────────────────┐
+│    Version v1.0.0    │  │    Version v1.1.0    │
+│ 10.5281/zenodo.<v1>  │  │ 10.5281/zenodo.<v2>  │ ──► Fixed, immutable snapshot for citations
+└──────────────────────┘  └──────────────────────┘
 ```
 
 1. **Concept DOI (`10.5281/zenodo.<concept_id>`)**:

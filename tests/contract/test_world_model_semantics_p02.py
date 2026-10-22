@@ -1,4 +1,4 @@
-"""Contract and property tests for Formal Enterprise World-Model Semantics (P1 / ADR-053 / RFC-0002).
+"""Contract and property tests for Formal Enterprise World-Model Semantics (ADR-053 / RFC-0002).
 
 Verifies all eight required executable properties:
 1. Deterministic mechanisms remain deterministic under identical state/context/seed.

@@ -71,14 +71,14 @@ COUNTERFACTUAL INTERVENTION: do(transfer 35.0 units South -> North)
 
 Mass Balance Conservation Check:
   Total System Units at t=0: 135.0
-  Total System Units at t=1: 135.0 (Delta = 0.000000 -> 100% CONSERVED)
+  Total System Units at t=1: 135.0 (Abs Residual <= 1e-12 -> CONSERVED)
 ```
 
 ---
 
 ## 5. Decision-Grade Guarantees Showcased
 
-1. **Zero Hallucination (Exact Mass Conservation):** Inventory cannot be conjured. The 35 units credited to North are bit-for-bit debited from South. Total system inventory remains perfectly invariant.
+1. **Tolerance-Bounded Mass Conservation:** Inventory cannot be conjured out of thin air. The 35 units credited to North are debited from South, and total system inventory remains conserved within IEEE-754 double-precision tolerance ($\le 10^{-12}$).
 2. **Causal Identifiability:** By using Pearl's three-step counterfactual algorithm (Abduction $\rightarrow$ Action $\rightarrow$ Prediction), the COO is guaranteed that the stockout mitigation was caused by the reroute decision, not by an accidental difference in simulated random customer orders.
 
 ---

@@ -1,6 +1,6 @@
 """Release engineering, version coherence, artifact freshness, and security control verifier.
 
-Enforces PROMPT 05 release & security engineering invariants:
+Enforces release, artifact freshness, and security engineering invariants:
 1. Version Coherence:
    `pyproject.toml (fallback_version) == CITATION.cff (version & preferred-citation.version)
    == base_version(ewm_engine.__version__)` (and `== git tag` when `--tag` is provided).
@@ -162,6 +162,79 @@ def check_canonical_artifacts() -> list[str]:
                     errors.append("reproduction_manifest.json is empty.")
         except Exception as exc:
             errors.append(f"Invalid reproduction_manifest.json: {exc}")
+
+    # 4. Verify docs/scientific/claim-evidence-matrix.md exists and all referenced repo paths exist
+    claim_matrix = REPO_ROOT / "docs" / "scientific" / "claim-evidence-matrix.md"
+    if not claim_matrix.exists():
+        errors.append("Missing canonical docs/scientific/claim-evidence-matrix.md artifact.")
+    else:
+        matrix_text = claim_matrix.read_text(encoding="utf-8")
+        # Check relative markdown links in claim-evidence-matrix.md
+        for link_match in re.finditer(r"\]\(([^)#]+)\)", matrix_text):
+            rel_target = link_match.group(1).strip()
+            if rel_target.startswith(("http://", "https://", "mailto:")):
+                continue
+            resolved = (claim_matrix.parent / rel_target).resolve()
+            if not resolved.exists():
+                errors.append(
+                    f"Broken link in claim-evidence-matrix.md: {rel_target!r} -> {resolved}"
+                )
+        # Check inline repo paths like src/..., tests/..., scripts/..., benchmarks/..., docs/...
+        for path_match in re.finditer(
+            r"`((?:src|tests|scripts|benchmarks|docs|conformance|paper)/[A-Za-z0-9_./\-]+)`",
+            matrix_text,
+        ):
+            repo_rel = path_match.group(1).rstrip("/")
+            if not (REPO_ROOT / repo_rel).exists():
+                errors.append(
+                    f"Non-existent repository path in claim-evidence-matrix.md: {repo_rel!r}"
+                )
+
+    # 5. Verify inline repository paths in docs/REFERENCES.md and paper manuscripts exist
+    for doc_rel in [
+        "docs/REFERENCES.md",
+        "paper/paper.md",
+        "paper/arxiv/paper.md",
+        "paper/arxiv/NEURIPS_CHECKLIST.md",
+    ]:
+        doc_path = REPO_ROOT / doc_rel
+        if not doc_path.exists():
+            errors.append(f"Missing canonical documentation/paper artifact: {doc_rel}")
+            continue
+        doc_text = doc_path.read_text(encoding="utf-8")
+        for path_match in re.finditer(
+            r"`((?:src|tests|scripts|benchmarks|docs|conformance|paper)/[A-Za-z0-9_./\-]+)`",
+            doc_text,
+        ):
+            repo_rel = path_match.group(1).rstrip("/")
+            if not (REPO_ROOT / repo_rel).exists():
+                errors.append(f"Non-existent repository path in {doc_rel}: {repo_rel!r}")
+
+    # 6. Verify enterprise benchmark suite fingerprint consistency across artifact and papers
+    suite_json_path = (
+        REPO_ROOT / "docs" / "results" / "artifacts" / "enterprise_benchmark_suite.json"
+    )
+    if not suite_json_path.exists():
+        errors.append("Missing docs/results/artifacts/enterprise_benchmark_suite.json.")
+    else:
+        suite_data = json.loads(suite_json_path.read_text(encoding="utf-8"))
+        suite_fp = str(suite_data.get("suite_fingerprint", ""))
+        if len(suite_fp) != 64:
+            errors.append(
+                f"Invalid suite_fingerprint in enterprise_benchmark_suite.json: {suite_fp!r}"
+            )
+        else:
+            for target_rel in [
+                "docs/research/enterprise-benchmark-suite.md",
+                "paper/arxiv/paper.md",
+                "paper/arxiv/paper.tex",
+                "paper/arxiv/NEURIPS_CHECKLIST.md",
+            ]:
+                target_path = REPO_ROOT / target_rel
+                if target_path.exists() and suite_fp not in target_path.read_text(encoding="utf-8"):
+                    errors.append(
+                        f"Stale or missing suite_fingerprint ({suite_fp}) in {target_rel}"
+                    )
 
     return errors
 

@@ -15,7 +15,7 @@
 - **Architecture / Type:** Multi-zone discrete-time structural resource-routing and constraint-validation scenario.
 - **Framework & Dependencies:** Core-only (`numpy`, `pydantic`).
 - **License:** Apache-2.0
-- **Governing ADRs:** [ADR-006: Constraint Representation and Enforcement Phases](../adr/ADR-006-constraint-representation-and-enforcement-phases.md), [ADR-018: Evaluation, Uncertainty, and Scenario Comparison](../adr/ADR-018-evaluation-uncertainty-and-scenario-comparison.md)
+- **Governing ADRs:** [ADR-008: Constraint Phase Semantics and Rollout Invalidation](../adr/ADR-008-constraint-phase-semantics-and-rollout-invalidation.md), [ADR-016: Evaluation Upgrade, Bootstrap CIs, and Pareto](../adr/ADR-016-evaluation-upgrade-bootstrap-cis-and-pareto.md)
 
 ### Primary Intended Uses
 1. **Constraint Enforcement Verification:** Demonstrating that capacity-aware interventional policies reduce unserved evacuee demand without violating road passability or shelter capacity limits.

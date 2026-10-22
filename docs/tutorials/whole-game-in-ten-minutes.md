@@ -118,8 +118,8 @@ print(comparison.summary_table())
 
 In less than 40 lines of Python, you executed an entire decision intelligence lifecycle:
 
-1. **Physical Conservation Held Bit-for-Bit:**
-   The 30 units added to `stock_north` were deducted from `stock_south`. The total system stock ($20 + 100 = 120$) remained invariant. If the transfer had exceeded southern stock, EWM would have rejected the rollout immediately.
+1. **Tolerance-Bounded Physical Conservation ($\le 10^{-12}$):**
+   The 30 units added to `stock_north` were deducted from `stock_south`. The total system stock ($20 + 100 = 120$) remained conserved within IEEE-754 double-precision tolerance. If the transfer had exceeded southern stock, EWM would have rejected the rollout immediately.
 2. **Determinism Guaranteed:**
    Because both scenarios ran under `seed=42` with isolated PRNG trees, any stochastic exogenous events were coupled. The observed delta is purely attributable to your action.
 3. **Epistemically Honest Comparison (`(det)` vs. `*`):**

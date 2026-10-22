@@ -183,7 +183,7 @@ Connect Claude, Cursor, or OpenAI Agents to simulate consequences of actions bef
 
 8/10
 Reproducibility Hero:
-Overlaid on our SEIR benchmark, EWM's discrete forward rollout matches analytical ground-truth ODEs bit-for-bit with exact mass balance conservation across all 80 steps.
+Overlaid on our SEIR benchmark, EWM's discrete forward rollout tracks analytical ground-truth ODEs with tolerance-bounded mass balance conservation ($\le 10^{-12}$; observed max residual $4.55 \times 10^{-13}$) across all 80 steps.
 
 Reproduce with: `make reproduce`
 

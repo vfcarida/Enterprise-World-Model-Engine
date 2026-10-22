@@ -1,72 +1,21 @@
 {
   "schema_version": "1.1.0",
   "title": "EWM Engine Universal Scientific Reproduction Manifest",
-  "timestamp_start": "2026-10-21T18:43:43.375355+00:00",
-  "timestamp_end": "2026-10-21T18:43:44.166935+00:00",
+  "timestamp_start": "2026-10-22T03:27:56.891699+00:00",
+  "timestamp_end": "2026-10-22T03:27:58.015428+00:00",
   "verification_checks_passed": true,
-  "certification_status": "REPRODUCIBLE_DIRTY_WORKTREE",
-  "certification_reason": "All functional, numerical, and fingerprint checks passed, but working tree has uncommitted changes. Refusing CERTIFIED_RELEASE status until committed to a clean tree.",
-  "overall_status": "REPRODUCIBLE_DIRTY_WORKTREE",
+  "certification_status": "CERTIFIED_RELEASE",
+  "certification_reason": "All verification checks passed on a clean working tree at an immutable Git commit.",
+  "overall_status": "CERTIFIED_RELEASE",
   "provenance": {
     "git": {
-      "commit": "e62c902e9d467b5fbe45d06a050d995e926a585b",
+      "commit": "ed81c53e7837777123519258eb317ff6373f8629",
       "branch": "main",
-      "dirty": true,
-      "dirty_files_count": 82,
-      "modified_or_untracked": [
-        "M .zenodo.json",
-        "M CITATION.cff",
-        "M README.md",
-        "M ROADMAP.md",
-        "M SHOWCASE.md",
-        "M assets/hero-proof-dark.svg",
-        "M assets/hero-proof-light.svg",
-        "M docs/REFERENCES.md",
-        "M docs/adr/ADR-024-opentelemetry-observability-adapter.md",
-        "M docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md",
-        "M docs/adr/ADR-035-modern-packaging-dynamic-versioning-and-typing-excellence.md",
-        "M docs/adr/ADR-052-scientific-reproduction-and-citation-capstone.md",
-        "M docs/architecture/frontier-roadmap.md",
-        "M docs/community/launch-announcement.md",
-        "M docs/concepts/calibration.md",
-        "M docs/concepts/causality.md",
-        "M docs/concepts/graph-state.md",
-        "M docs/concepts/ood.md",
-        "M docs/concepts/wsl.md",
-        "M docs/cookbook/historical-calibration.md",
-        "M docs/cookbook/policy-change.md",
-        "M docs/executive/decision-grade-guarantees.md",
-        "M docs/executive/index.md",
-        "M docs/executive/maturity-model.md",
-        "M docs/executive/use-cases/cfo.md",
-        "M docs/executive/use-cases/coo.md",
-        "M docs/executive/use-cases/cro.md",
-        "M docs/executive/use-cases/cso.md",
-        "M docs/getting-started.md",
-        "M docs/governance/compliance-mapping.md",
-        "M docs/guides/causal-dynamics-induction.md",
-        "M docs/guides/ocel-induction.md",
-        "M docs/handbook/calibration-and-sbi.md",
-        "M docs/handbook/causal-identifiability-and-graphs.md",
-        "M docs/handbook/choosing-robustness-metric.md",
-        "M docs/handbook/interventions-and-uncertainty.md",
-        "M docs/handbook/pitfalls-leakage-drift-overclaiming.md",
-        "M docs/handbook/when-to-refuse-a-claim.md",
-        "M docs/index.md",
-        "M docs/reference/api/calibration.md",
-        "M docs/reproducibility.md",
-        "M docs/results/artifacts/calibration_pit.svg",
-        "M docs/results/artifacts/ground_truth_overlay.svg",
-        "M docs/results/benchmarks.md",
-        "M docs/results/calibrated-posterior-s04.md",
-        "M docs/results/index.md",
-        "M docs/results/reproduction_manifest.json",
-        "M docs/results/seir-outbreak.md",
-        "M docs/scientific/acm_artifact_appendix.md",
-        "M docs/scientific/huggingface_papers.md"
-      ],
-      "source_tree_sha256": "e15d7141c6e40c1996cec1972442ae929923cd01917e9ff89cb97480a19c5979",
-      "files_hashed_count": 216
+      "dirty": false,
+      "dirty_files_count": 0,
+      "modified_or_untracked": [],
+      "source_tree_sha256": "014aab5e787143f0103f38f1aa8626e11e057f7c4688c54973fb256042ecaeab",
+      "files_hashed_count": 220
     },
     "environment": {
       "platform": "Windows-11-10.0.26300-SP0",
@@ -76,9 +25,9 @@
       "processor": "Intel64 Family 6 Model 142 Stepping 10, GenuineIntel",
       "python_version": "3.12.10",
       "python_implementation": "CPython",
-      "numpy_version": "2.5.2",
+      "numpy_version": "2.5.3",
       "uv_lock_sha256": "e7f9c755d9cffca66771676793bb6970ecc5d4dddd0a977d5f6387f479e37543",
-      "blas_config_summary": "{\"Compilers\": {\"c\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}, \"cython\": {\"name\": \"cython\", \"linker\": \"cython\", \"version\": \"3.2.9\", \"commands\": \"cython\"}, \"c++\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}}, \"Machine Information"
+      "blas_config_summary": "{\"Compilers\": {\"c\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}, \"cython\": {\"name\": \"cython\", \"linker\": \"cython\", \"version\": \"3.3.0\", \"commands\": \"cython\"}, \"c++\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}}, \"Machine Information"
     },
     "reproducibility_protocol": {
       "rng_seeds": {
@@ -244,7 +193,7 @@
   "visual_artifacts": {
     "ground_truth_overlay": "359ae92702bdc9c646fda3759f452a917e9afbc47605f7a2c0a3eac628e7ecdb",
     "calibration_pit": "52e24b1fa60eaea42049489869409727498147b99d4d0573e9b045241d379188",
-    "multiseed_error_bars": "1f4d6cdc53369cf9cb2f02df83d6b356d098efdcba4096c69faabb7129b092e9"
+    "multiseed_error_bars": "fb6405e7c437ea548d1c62731c6e2ce962253a54ce3c1f17a4a4a7e26a5c3d62"
   },
-  "reproduction_fingerprint": "20b1a5728acc5c89fec8d6ab096817aecdd36918a32b55c842f6044c4464cd6d"
+  "reproduction_fingerprint": "e40502f42067ddacae79588725d4f355f6967d4ed983e604ab059e308bdd829c"
 }

@@ -28,7 +28,7 @@ if str(repo_root) not in sys.path:
 
 
 def reproduce_seir() -> dict[str, Any]:
-    """Reproduce analytical SEIR epidemic outbreak with bit-for-bit mass conservation."""
+    """Reproduce analytical SEIR epidemic outbreak with tolerance-bounded mass conservation."""
     steps = 80
     dt = 0.5
     N = 1000.0

@@ -107,7 +107,7 @@ Use the interactive controls below to manipulate the live simulation kernel dire
   <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-family: monospace; font-size: 12px;">
     <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 4px; border-left: 3px solid #89b4fa;">
       <span style="color: #a6adc8;">Mass Balance Conservation:</span><br>
-      <strong id="metric-conservation" style="color: #a6e3a1; font-size: 14px;">100.00% Conserved</strong> (0.000000 Drift)
+      <strong id="metric-conservation" style="color: #a6e3a1; font-size: 14px;">100.00% Conserved</strong> (&lt;= 1e-12 Tolerance)
     </div>
 
     <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 4px; border-left: 3px solid #a6e3a1;">

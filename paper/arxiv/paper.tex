@@ -22,7 +22,7 @@
 \begin{abstract}
 Research in learned world models has focused primarily on perceptual latent spaces for continuous control, robotics, and video generation. Concurrently, operational organizations require simulation tools to evaluate prescriptive policy interventions (\emph{``What happens under $\text{do}(A_t = a)$ vs.\ $\text{do}(A_t = a')$?''}) subject to conservation laws, capacity constraints, and non-stationary regime shifts. Unconstrained regression and generative world models exhibit three recurring failure modes in these settings: they violate physical and accounting conservation laws, conflate observational correlation with interventional effect under confounding, and suffer uncalibrated predictive degradation when latent operational regimes shift mid-deployment.
 
-In this paper, we introduce the \textbf{Enterprise World Model Engine (\texttt{ewm-engine})}, an open-source Python framework that couples symbolic structural invariants with probabilistic residual learning and causal identifiability gates. We formulate and evaluate a falsifiable hypothesis across a 12-family synthetic operational benchmark suite (Families A--L) and 7 domain validation benchmarks: under mid-deployment structural regime shifts with identifiable latent context (Families A--H, L), combining linear conservation nullspace projection ($\mathcal{P}_{\text{null}} = I - A^+ A$), learned residual dynamics, and runtime context discovery reduces downstream decision regret ($0.025$ vs.\ $0.320$ for rules-only on Family A) and restores 90\% split-conformal coverage ($0.900$ vs.\ $0.450$) with $0.0$ conservation violations within IEEE-754 double-precision tolerance ($\le 10^{-12}$; observed max residual $4.55 \times 10^{-13}$ on SEIR). Conversely, in negative-control regimes, stationary rules-sufficient systems (Family I) favor simpler rules-only models ($0.015$ vs.\ $0.028$ regret), extreme out-of-distribution shocks (Family J) trigger out-of-support abstention, and unidentifiable confounded graphs (Family K) fail closed.
+In this paper, we introduce the \textbf{Enterprise World Model Engine (\texttt{ewm-engine})}, an open-source Python framework that couples symbolic structural invariants with probabilistic residual learning and causal identifiability gates. We formulate and evaluate a falsifiable hypothesis across a 12-family synthetic operational benchmark suite (Families A--L) and 7 domain validation benchmarks: under mid-deployment configuration and deployment shifts with identifiable runtime context $K_t$ (Families A--J, L), combining linear conservation nullspace projection ($\mathcal{P}_{\text{null}} = I - A^+ A$), learned residual dynamics, and runtime context discovery achieves exact or near-exact transition fidelity ($1.0000$ on \texttt{A\_DirectDynamics}, $0.9911$ on \texttt{B\_HiddenWorkflowCascades}), recovers from mid-rollout deployment shifts in $2$ steps after audit telemetry lag (\texttt{D\_DeploymentShift} steady-state $\text{MAE} = 0.158$ vs.\ $>34.6$ unrecovered), eliminates decision regret ($0.0000$ vs.\ $171.3500$ for \texttt{learned-only} on \texttt{L\_DecisionQuality}), and attains $0.9738$ calibration score on \texttt{J\_UncertaintyCalibration} while maintaining $1.0000$ constraint preservation within IEEE-754 double-precision tolerance ($\le 10^{-12}$; observed max residual $4.55 \times 10^{-13}$ on SEIR). Conversely, the suite exposes honest failure modes across all paradigms, including transient error during audit telemetry lag (Family D), bounded filtering lag under partial observability (Family E), fail-closed refusal under unobserved confounding (Family H), and raw prediction breakdown under unmodeled OOD structural collapse requiring abstention (Family K).
 \end{abstract}
 
 \section{Introduction \& Central Hypothesis}
@@ -57,7 +57,7 @@ Predictive rollouts use split-conformal intervals guaranteeing finite-sample \em
 Because IEEE-754 floating-point reduction order varies across CPU and GPU compilers, \texttt{ewm-engine} defines an explicit three-tier reproducibility contract: (1) \texttt{BITWISE\_REPRODUCIBLE} for pure-Python and vectorized NumPy Structure-of-Arrays (SoA) execution under a pinned runtime (\texttt{OMP\_NUM\_THREADS=1}), producing identical SHA-256 state fingerprints; (2) \texttt{NUMERICALLY\_EQUIVALENT\_WITH\_TOLERANCE} for compiled JAX \texttt{x64} execution within $\text{rtol}=10^{-6}, \text{atol}=10^{-7}$; and (3) \texttt{NON\_CERTIFIED\_BACKEND} for uncertified GPU atomic reductions. The World Model Interchange Format (WMIF v1.0) standardizes model exchange with a standalone conformance suite.
 
 \section{Empirical Validation \& Artifact Provenance}
-Table~\ref{tab:cards} summarizes the seven domain validation cards (\texttt{reproduction\_manifest.json}), and Table~\ref{tab:suite} summarizes the 12-family Enterprise Benchmark Suite (\texttt{docs/results/artifacts/enterprise\_benchmark\_suite.json}).
+Table~\ref{tab:cards} summarizes the seven domain validation cards (\texttt{reproduction\_manifest.json}), and Table~\ref{tab:suite} summarizes the 12-family Enterprise Benchmark Suite (\texttt{docs/results/artifacts/enterprise\_benchmark\_suite.json}, \texttt{suite\_fingerprint = 7dadf02addfc7a434538cc587c8ce8a4dbc2009a4394c323c19384b3a0349c67}).
 
 \begin{table}[h]
 \centering
@@ -82,26 +82,33 @@ Table~\ref{tab:cards} summarizes the seven domain validation cards (\texttt{repr
 \begin{table}[h]
 \centering
 \small
-\begin{tabular}{lllll}
+\begin{tabular}{llllll}
 \toprule
-\textbf{Benchmark Group} & \textbf{Rules-Only Regret} & \textbf{Learned-Only Regret} & \textbf{Static-Hybrid Regret} & \textbf{Hybrid+Discovery Regret} \\
+\textbf{Family} & \textbf{Primary Metric} & \textbf{Rules-Only} & \textbf{Learned-Only} & \textbf{Static Hybrid} & \textbf{Hybrid+Discovery} \\
 \midrule
-Family A (\texttt{shift\_supply\_chain}) & $0.320$ & $0.290$ & $0.210$ & \textbf{0.025} (Coverage $0.900$) \\
-Families B--H, L (Shift Regimes) & $0.240\text{--}0.380$ & $0.210\text{--}0.340$ & $0.150\text{--}0.240$ & \textbf{0.019--0.038} (Coverage $0.89\text{--}0.91$) \\
-Family I (Stationary Control) & \textbf{0.015} & $0.065$ & $0.018$ & $0.028$ (Rules sufficient) \\
-Family J (Extreme OOD Control) & $0.520$ & $0.780$ & $0.490$ & $0.450$ (Triggers OOD abstention) \\
-Family K (Confounded Control) & \multicolumn{4}{c}{Fails closed (\texttt{causal\_identifiability\_gate\_correctness = True})} \\
+A (\texttt{DirectDynamics}) & \texttt{TRANSITION\_FIDELITY} & $0.7545$ (det) & $1.0000$ (det) & $1.0000$ (det) & \textbf{1.0000} (det) \\
+B (\texttt{HiddenWorkflowCascades}) & \texttt{TRANSITION\_FIDELITY} & $0.9324$ & $0.2640$ & $0.9911$ & \textbf{0.9911} \\
+C (\texttt{RuntimeConfiguration}) & \texttt{SHIFT\_ROBUSTNESS} & $0.3686$ & $0.3785$ & $0.3785$ & \textbf{0.9920} \\
+D (\texttt{DeploymentShift}) & \texttt{SHIFT\_ROBUSTNESS} & $0.2970$ & $0.3076$ & $0.3076$ & \textbf{0.9900} (2 steps) \\
+E (\texttt{PartialObservability}) & \texttt{TRANSITION\_FIDELITY} & $0.3925$ & $0.4652$ & $0.4681$ & \textbf{0.9250} \\
+F (\texttt{LongHorizonBusiness}) & \texttt{ERROR\_GROWTH} $\downarrow$ & $0.9944$ & $3.5796$ & $0.7257$ & \textbf{0.0726} \\
+G (\texttt{MultiAgentEconomy}) & \texttt{CONSTRAINT\_PRESERV.} & $1.0000$ & $0.0000$ & $1.0000$ & \textbf{1.0000} \\
+H (\texttt{CausalCounterfactual}) & \texttt{CAUSAL\_CORRECTNESS} & $0.8377$ & $0.0556$ & $1.0000$ & \textbf{1.0000} \\
+I (\texttt{ConservationStress}) & \texttt{CONSTRAINT\_PRESERV.} & $1.0000$ (det) & $0.0000$ (det) & $1.0000$ (det) & \textbf{1.0000} (det) \\
+J (\texttt{UncertaintyCalibration}) & \texttt{CALIBRATION} & $0.0000$ & $0.3362$ & $0.7112$ & \textbf{0.9738} \\
+K (\texttt{OODRegimeShift}) & \texttt{ABSTENTION\_QUALITY} & $0.0000$ & $0.0000$ & $0.0000$ & \textbf{1.0000} (OOD abstains) \\
+L (\texttt{DecisionQuality}) & \texttt{DECISION\_REGRET} $\downarrow$ & $0.0000$ & $171.3500$ & $0.0000$ & \textbf{0.0000} \\
 \bottomrule
 \end{tabular}
-\caption{Decision regret across the 12-family benchmark suite generated by \texttt{python scripts/run\_enterprise\_benchmark\_suite.py}.}
+\caption{Primary dimension summary across the 12-family benchmark suite generated by \texttt{python -m benchmarks.enterprise\_suite --seed 42}.}
 \label{tab:suite}
 \end{table}
 
 \section{Limitations \& Threats to Validity}
-(1) Counterfactuals and bootstrap intervals are conditioned on the declared model $P_{\text{model}}$ and do not capture unmodeled organizational mechanisms; (2) learned residuals degrade under extreme OOD shifts outside training support (Family J); (3) observational causal discovery identifies only Markov equivalence classes (CPDAG/PAG) and cannot detect omitted latent confounders; (4) split-conformal coverage guarantees are marginal under exchangeability, not conditional; (5) conservation holds within IEEE-754 \texttt{float64} precision ($\le 10^{-12}$), not exact symbolic zero; and (6) all outputs are decision-support artifacts, not autonomous execution commands.
+(1) Counterfactuals and bootstrap intervals are conditioned on the declared model $P_{\text{model}}$ and do not capture unmodeled organizational mechanisms; (2) learned residuals degrade under unmodeled OOD structural shifts outside training support (Family K); (3) observational causal discovery identifies only Markov equivalence classes (CPDAG/PAG) and cannot detect omitted latent confounders; (4) split-conformal coverage guarantees are marginal under exchangeability, not conditional; (5) conservation holds within IEEE-754 \texttt{float64} precision ($\le 10^{-12}$), not exact symbolic zero; and (6) all outputs are decision-support artifacts, not autonomous execution commands.
 
 \section{Reproducibility}
-All tables and artifacts reproduce on a single CPU via \texttt{python scripts/reproduce.py} and \texttt{python scripts/run\_enterprise\_benchmark\_suite.py}. Source code is available under Apache-2.0 at \url{https://github.com/vfcarida/Enterprise-World-Model-Engine}.
+All tables and artifacts reproduce on a single CPU via \texttt{python scripts/reproduce.py} and \texttt{python -m benchmarks.enterprise\_suite --seed 42}. Source code is available under Apache-2.0 at \url{https://github.com/vfcarida/Enterprise-World-Model-Engine}.
 
 \bibliographystyle{plain}
 \bibliography{references}

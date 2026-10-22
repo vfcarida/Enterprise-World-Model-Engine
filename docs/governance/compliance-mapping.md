@@ -94,7 +94,7 @@ Technical Documentation     Human Oversight             Accuracy & Robustness
 #### 3. Article 15: Accuracy, Robustness, and Cybersecurity
 * **Requirement:** High-risk systems must achieve appropriate levels of accuracy, robustness, and resilience against errors, faults, and inconsistencies.
 * **EWM Solution:**
-  * **Bit-for-Bit Determinism:** Eliminates non-deterministic floating-point or seed drift across operating environments.
+  * **Pinned-Runtime Bitwise Reproducibility (`BITWISE_REPRODUCIBLE`):** Eliminates unseeded stochastic drift under pinned Python/NumPy CPU runtimes (`OMP_NUM_THREADS=1`), paired with explicit numerical equivalence tolerances (`NUMERICALLY_EQUIVALENT_WITH_TOLERANCE`) across heterogeneous accelerators.
   * **Physics-IQ Guardrail:** Continuously monitors invariant conservation rates, ensuring simulation trajectories cannot drift into physically impossible states.
   * **Supply-Chain Security:** Automated dependency pinning, vulnerability scanning, and SLSA Level 2+ build attestations.
 

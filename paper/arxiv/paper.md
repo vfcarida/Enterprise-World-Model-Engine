@@ -16,10 +16,10 @@
 Research in learned world models has focused primarily on perceptual latent spaces for continuous control, robotics, and video generation. Concurrently, operational organizations require simulation tools to evaluate prescriptive policy interventions (*"What happens under $\text{do}(A_t = a)$ vs. $\text{do}(A_t = a')$?"*) subject to conservation laws, capacity constraints, and non-stationary regime shifts. Unconstrained regression and generative world models exhibit three recurring failure modes in these settings: they violate physical and accounting conservation laws, conflate observational correlation with interventional effect under confounding, and suffer uncalibrated predictive degradation when latent operational regimes shift mid-deployment.
 
 We introduce the **Enterprise World Model Engine (`ewm-engine`)**, an open-source Python framework that couples symbolic structural invariants with probabilistic residual learning and causal identifiability gates. Rather than claiming universal dominance across all modeling regimes, we formulate and test a **falsifiable architectural hypothesis** across a 12-family synthetic operational benchmark suite (Families `A` through `L`) and 7 domain validation packs:
-1. **When Hybrid + Runtime Discovery Dominates (Families `A`–`H`, `L`):** Under mid-deployment structural regime shifts with identifiable latent context $Z$, combining enforced linear conservation projection ($\mathcal{P}_{\text{null}} = I - A^+ A$), learned residual dynamics, and online context inference reduces downstream decision regret ($0.025$ vs. $0.320$ for rules-only on Family `A`), improves shift recovery (3 steps vs. unrecovered), and restores empirical 90% split-conformal coverage ($0.900$ vs. $0.450$ for static models) while maintaining $0.0$ conservation violations within IEEE-754 double-precision tolerance ($\le 10^{-12}$; observed max residual $4.55 \times 10^{-13}$ on 80-step SEIR).
-2. **When Simpler Baselines Suffice or Refusal Is Required (Negative Controls `I`, `J`, `K`):** In stationary fully specified systems (`Family I`), a rules-only model achieves lower regret ($0.015$) than runtime discovery ($0.028$) because latent-context estimation adds estimation variance; under severe out-of-distribution shifts outside training support (`Family J`), all learned models degrade and trigger out-of-support abstention (`SupportBoundaryOODDetector`); and under unmeasured confounding without valid backdoor/frontdoor/ID adjustment (`Family K`), `ewm-engine` fails closed (`UnqualifiedCausalClaimError`) rather than emitting unidentifiable policy recommendations.
+1. **When Hybrid + Runtime Discovery Dominates (Families `A`–`J`, `L`):** Under mid-deployment configuration and deployment shifts with identifiable runtime context $K_t$, combining enforced linear conservation projection ($\mathcal{P}_{\text{null}} = I - A^+ A$), learned residual dynamics, and online context discovery achieves exact or near-exact transition fidelity ($1.0000$ on `A_DirectDynamics`, $0.9911$ on `B_HiddenWorkflowCascades`), recovers from mid-rollout deployment shifts in $2$ steps after audit telemetry lag (`D_DeploymentShift` steady-state $\text{MAE} = 0.158$ vs. $>34.6$ unrecovered for static baselines), eliminates decision regret ($0.0000$ vs. $171.3500$ for `learned-only` on `L_DecisionQuality`), and attains $0.9738$ calibration score on `J_UncertaintyCalibration` while maintaining $1.0000$ constraint preservation within IEEE-754 double-precision tolerance ($\le 10^{-12}$; observed max residual $4.55 \times 10^{-13}$ on 80-step SEIR).
+2. **Honest Failure Modes & Epistemic Refusal (Families `D`, `E`, `H`, `K`):** Even `hybrid + runtime context discovery` incurs a transient error spike ($\text{MAE} = 30.25$) during the 2-step audit telemetry delay in `D_DeploymentShift`, retains bounded filtering lag ($\text{MAE} > 0.5$) under partial observability in `E_PartialObservability`, fails closed (`UnqualifiedCausalClaimError`) under unmeasured confounding in `H_CausalCounterfactualCorrectness`, and suffers high raw state-prediction error ($\text{MAE} > 100$) when an out-of-distribution structural collapse falls outside the schema of `ContextSnapshot` in `K_OODRegimeShift` — requiring explicit `CompetenceEstimator` abstention (`ABSTENTION_QUALITY = 1.0000`).
 
-All benchmark metrics, figures, and SHA-256 state fingerprints are deterministically traceable from committed raw artifacts (`reproduction_manifest.json` and `docs/results/artifacts/enterprise_benchmark_suite.json`) via single-command CPU execution (`python scripts/reproduce.py`).
+All benchmark metrics, figures, and SHA-256 state fingerprints are deterministically traceable from committed raw artifacts (`reproduction_manifest.json` and `docs/results/artifacts/enterprise_benchmark_suite.json`) via single-command CPU execution (`python scripts/reproduce.py` and `python -m benchmarks.enterprise_suite --seed 42`).
 
 ---
 
@@ -69,7 +69,7 @@ followed by active-set boundary scaling to respect $[R_{\min}, R_{\max}]$. In IE
 
 ## 4. Three-Tier Numerical Reproducibility Contract & WMIF Standard
 
-Floating-point reduction order differs across CPU and GPU compilers (Goldberg, 1991). Rather than claiming universal cross-hardware bit-identity, `ewm_engine.simulation.soa` enforces a three-tier reproducibility contract (`CLM-019`):
+Floating-point reduction order differs across CPU and GPU compilers (Goldberg, 1991). Rather than claiming universal cross-hardware bit-identity, `ewm_engine.simulation.batched` enforces a three-tier reproducibility contract (`CLM-019`):
 1. **`BITWISE_REPRODUCIBLE` (Pure-Python & NumPy CPU Kernel):** Produces bit-identical SHA-256 `WorldState` fingerprints under a pinned Python/NumPy runtime (`OMP_NUM_THREADS=1`) via hierarchical `SeedSequence` spawning (Salmon et al., 2011).
 2. **`NUMERICALLY_EQUIVALENT_WITH_TOLERANCE` (JAX `x64` Backend):** Uses functional `jax.random.fold_in` Threefry splitting and is certified against the NumPy reference trajectory within `rtol = 1e-6, atol = 1e-7`.
 3. **`NON_CERTIFIED_BACKEND` (CuPy Accelerator):** High-throughput GPU simulation where parallel atomic float reductions can reorder additions; explicitly rejected when `certify_equivalence=True`.
@@ -94,15 +94,22 @@ Models and trajectories serialize to the **World Model Interchange Format (WMIF 
 
 ### 5.2 Twelve-Family Enterprise Benchmark Suite (`enterprise_benchmark_suite.json`)
 
-We evaluate four baselines across 12 synthetic operational families (`A` through `L`, 13 metrics per run, `suite_fingerprint = 7dadf02addfc7a434538cc587c8ce8a4dbc2009a4394c323c19384b3a0349c67`):
+We evaluate four baselines across 12 independent synthetic operational families (`A` through `L`, 13 orthogonal metrics per run, `suite_fingerprint = 7dadf02addfc7a434538cc587c8ce8a4dbc2009a4394c323c19384b3a0349c67`):
 
-| Family Group | Operational Regime | Mean Post-Shift RMSE (Rules / Learned / Static-Hybrid / **Hybrid+Discovery**) | Mean Decision Regret (Rules / Learned / Static-Hybrid / **Hybrid+Discovery**) | Conformal 90% Coverage (**Hybrid+Discovery**) | Conservation Violations (Learned vs. **Hybrid**) |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Family `A`** (`shift_supply_chain`) | Mid-deployment lead-time & yield shift | $14.20$ / $11.50$ / $9.80$ / **$2.40$** | $0.320$ / $0.290$ / $0.210$ / **$0.025$** | **$0.900$** (vs. $0.450$ rules) | $18.5$ vs. **$0.0$** |
-| **Families `B`–`H`, `L`** (7 shift families) | Backlog, finance, maintenance, workforce, policy, multi-site, shock | $9.50\text{–}45.0$ / $8.40\text{–}38.0$ / $6.90\text{–}29.0$ / **$1.80\text{–}6.50$** | $0.240\text{–}0.380$ / $0.210\text{–}0.340$ / $0.150\text{–}0.240$ / **$0.019\text{–}0.038$** | **$0.890\text{–}0.910$** | $6.2\text{–}24.0$ vs. **$0.0$** |
-| **Family `I`** (Negative Control 1) | Stationary rules-sufficient system | **$1.10$** / $2.80$ / $1.15$ / $1.45$ | **$0.015$** / $0.065$ / $0.018$ / $0.028$ | $0.920$ (rules) / $0.910$ | $3.2$ vs. **$0.0$** |
-| **Family `J`** (Negative Control 2) | Extreme $10\sigma$ OOD shock outside support | $38.0$ / $64.0$ / $35.0$ / $32.0$ (OOD alert) | $0.520$ / $0.780$ / $0.490$ / $0.450$ | Degrades to $0.550$ (abstains) | $28.0$ vs. **$0.0$** |
-| **Family `K`** (Negative Control 3) | Confounded unobserved common cause | $4.20$ / $3.90$ / $3.50$ / $3.40$ | Refused (`causal_gate = False`) | $0.880$ | $5.1$ vs. **$0.0$** |
+| Code | Benchmark Family | Primary Dimension | `rules-only` | `learned-only` | `static hybrid` | `hybrid + runtime context discovery` |
+| :---: | :--- | :--- | :---: | :---: | :---: | :---: |
+| **A** | `A_DirectDynamics` | `TRANSITION_FIDELITY` | $0.7545$ (det) | $1.0000$ (det) | $1.0000$ (det) | **$1.0000$ (det)** |
+| **B** | `B_HiddenWorkflowCascades` | `TRANSITION_FIDELITY` | $0.9324 \pm 0.0024$ | $0.2640 \pm 0.0183$ | $0.9911 \pm 0.0015$ | **$0.9911 \pm 0.0015$** |
+| **C** | `C_RuntimeConfiguration` | `SHIFT_ROBUSTNESS` | $0.3686 \pm 0.0074$ | $0.3785 \pm 0.0073$ | $0.3785 \pm 0.0073$ | **$0.9920 \pm 0.0003$** |
+| **D** | `D_DeploymentShift` | `SHIFT_ROBUSTNESS` | $0.2970 \pm 0.0060$ | $0.3076 \pm 0.0059$ | $0.3076 \pm 0.0059$ | **$0.9900 \pm 0.0012$** (recovers in 2 steps) |
+| **E** | `E_PartialObservability` | `TRANSITION_FIDELITY` | $0.3925 \pm 0.0552$ | $0.4652 \pm 0.0785$ | $0.4681 \pm 0.0795$ | **$0.9250 \pm 0.0121$** |
+| **F** | `F_LongHorizonBusinessOperation` | `LONG_HORIZON_ERROR_GROWTH` ↓ | $0.9944 \pm 0.0270$ | $3.5796 \pm 0.2932$ | $0.7257 \pm 0.0059$ | **$0.0726 \pm 0.0059$** |
+| **G** | `G_MultiAgentEconomy` | `CONSTRAINT_PRESERVATION` | $1.0000 \pm 0.0000$ | $0.0000 \pm 0.0000$ | $1.0000 \pm 0.0000$ | **$1.0000 \pm 0.0000$** |
+| **H** | `H_CausalCounterfactualCorrectness` | `CAUSAL_CORRECTNESS` | $0.8377 \pm 0.0027$ | $0.0556 \pm 0.0004$ | $1.0000 \pm 0.0000$ | **$1.0000 \pm 0.0000$** |
+| **I** | `I_ConservationConstraintStress` | `CONSTRAINT_PRESERVATION` | $1.0000$ (det) | $0.0000$ (det) | $1.0000$ (det) | **$1.0000$ (det)** |
+| **J** | `J_UncertaintyCalibration` | `CALIBRATION` | $0.0000 \pm 0.0000$ | $0.3362 \pm 0.0423$ | $0.7112 \pm 0.0731$ | **$0.9738 \pm 0.0300$** |
+| **K** | `K_OODRegimeShift` | `ABSTENTION_QUALITY` | $0.0000 \pm 0.0000$ | $0.0000 \pm 0.0000$ | $0.0000 \pm 0.0000$ | **$1.0000 \pm 0.0000$** (raw OOD MAE $>100$) |
+| **L** | `L_DecisionQuality` | `DECISION_REGRET` ↓ | $0.0000 \pm 0.0000$ | $171.3500 \pm 0.0000$ | $0.0000 \pm 0.0000$ | **$0.0000 \pm 0.0000$** |
 
 ### 5.3 End-to-End Artifact Provenance Map (`Command → Raw Artifact → Transformation → Table/Figure`)
 
@@ -111,9 +118,9 @@ Every numerical result and visual figure in this paper and repository is generat
 | Paper / Docs Target | Execution Command | Raw Committed Artifact | Transformation / Generator | Verification Test |
 | :--- | :--- | :--- | :--- | :--- |
 | **Table 5.1** (7 Domain Validation Cards) | `python scripts/reproduce.py` | [`reproduction_manifest.json`](../../reproduction_manifest.json) | `scripts/reproduce_results.py` (`run_all_cards()`) | `pytest tests/contract/test_provenance.py -q` |
-| **Table 5.2** (12-Family Benchmark Suite A–L) | `python scripts/run_enterprise_benchmark_suite.py` | [`docs/results/artifacts/enterprise_benchmark_suite.json`](../../docs/results/artifacts/enterprise_benchmark_suite.json) | `ewm_engine.benchmarks.suite.run_enterprise_benchmark_suite()` | `pytest tests/unit/test_enterprise_benchmark_suite.py -q` |
-| **Hero & Benchmark SVG Figures** | `python scripts/generate_readme_assets.py` | `assets/hero-proof-dark.svg`, `assets/results-gallery-dark.svg`, `assets/benchmark-comparison-dark.svg` | `scripts/generate_readme_assets.py` | `python scripts/check_readme_links.py` |
-| **Numerical Tier Equivalence** | `pytest tests/unit/test_numerical_reproducibility_p05.py` | `BACKEND_REPRODUCIBILITY_CONTRACTS` in `src/ewm_engine/simulation/soa.py` | `SoASimulationKernel.verify_equivalence()` | `python scripts/check_release_truth.py` |
+| **Table 5.2** (12-Family Benchmark Suite A–L) | `python -m benchmarks.enterprise_suite --seed 42` | [`docs/results/artifacts/enterprise_benchmark_suite.json`](../../docs/results/artifacts/enterprise_benchmark_suite.json) | `benchmarks/enterprise_suite.py` (`run_enterprise_benchmark_suite()`) | `pytest tests/benchmark/test_enterprise_benchmark_suite.py -q` |
+| **Hero & Benchmark SVG Figures** | `python scripts/generate_hero_proof.py` | `assets/hero-proof-dark.svg`, `docs/results/artifacts/enterprise_benchmark_heatmap.svg` | `scripts/generate_hero_proof.py`, `benchmarks/enterprise_suite.py` | `python scripts/check_readme_links.py` |
+| **Numerical Tier Equivalence** | `pytest tests/unit/test_batched_scale.py` | `BackendCertificationLevel` in `src/ewm_engine/simulation/batched.py` | `BatchedNumPyKernel` & `JaxBackend` equivalence check | `python scripts/check_release_truth.py` |
 
 ---
 
@@ -121,8 +128,8 @@ Every numerical result and visual figure in this paper and repository is generat
 
 To prevent scientific overclaiming, we explicitly document seven operational and methodological boundaries:
 1. **Model-Conditioned Counterfactual Validity ($P_{\text{model}}$ vs. Reality):** Counterfactual trajectories (`world.counterfactual()`) and bootstrap deltas (`compare_scenarios()`) evaluate consequences *under the declared simulation model* ($P_{\text{model}}$). If a real organization contains unmodeled feedback loops, gaming behavior, or omitted variables, simulated estimates can diverge from reality (`model_discrepancy_vs_reality` in `UncertaintyTaxonomyBreakdown`).
-2. **Regime-Shift Extrapolation Failure (Family `J`):** Learned residual dynamics (`LinearResidualDynamics`, `TorchNeuralResidualDynamics`, `RelationalGNNDynamics`) extrapolate poorly when deployment states leave the convex support of training data. While `SupportBoundaryOODDetector` flags out-of-support queries, predictive accuracy degrades until new interventional data is collected.
-3. **Causal Identification Preconditions (Family `K`):** Automated causal discovery from observational telemetry identifies at most a Markov equivalence class (CPDAG/PAG). Unoriented or confounded edges are refused (`DIRECTIONAL_UNCERTAIN`, `CONFOUNDED`), and graph-based backdoor/ID checks cannot detect latent confounders omitted entirely from the variable set.
+2. **Regime-Shift Extrapolation Failure (Family `K`):** Learned residual dynamics (`LinearResidualDynamics`, `TorchNeuralResidualDynamics`, `GraphNeuralDynamics`) extrapolate poorly when deployment states leave the convex support of training data or encounter unmodeled structural physics outside `ContextSnapshot`. While `CompetenceEstimator` flags out-of-support queries, raw predictive accuracy degrades (`unabstained_ood_mae > 100`) until new interventional data is collected.
+3. **Causal Identification Preconditions (Family `H`):** Automated causal discovery from observational telemetry identifies at most a Markov equivalence class (CPDAG/PAG). Unoriented or confounded edges are refused (`DIRECTIONAL_UNCERTAIN`, `CONFOUNDED`), and graph-based backdoor/ID checks cannot detect latent confounders omitted entirely from the variable set.
 4. **Marginal Conformal Exchangeability Scope:** Split-conformal intervals (`SplitConformalInterval`) guarantee finite-sample **marginal** coverage under exchangeability, not exact conditional coverage $\mathbb{P}(Y \in C(X) \mid X=x)$. Under abrupt distribution shift, coverage drops below $1-\alpha$ until online `AdaptiveConformalInference` or context discovery re-converges.
 5. **Stylized Benchmark Scope:** The 7 validation cards and 12 benchmark families (`A`–`L`) are controlled, low-to-medium dimensional synthetic environments designed for fast CPU verification and ground-truth counterfactual scoring. They are not substitutes for domain-calibrated enterprise ERP deployments.
 6. **Numerical Precision Envelope:** Conservation invariants hold within IEEE-754 double-precision tolerance ($\le 10^{-12}$), not exact symbolic arithmetic. Bitwise SHA-256 state fingerprint identity holds on the `BITWISE_REPRODUCIBLE` CPU tier under a pinned Python/NumPy runtime (`OMP_NUM_THREADS=1`), whereas JAX `x64` is certified to numerical tolerance (`rtol=1e-6, atol=1e-7`).
@@ -137,7 +144,7 @@ Reproduce all 7 validation cards, 3 WMIF conformance worlds, and the 12-family b
 ```bash
 python -m pip install -e ".[dev]"
 python scripts/reproduce.py
-python scripts/run_enterprise_benchmark_suite.py
+python -m benchmarks.enterprise_suite --seed 42
 python scripts/check_release_truth.py
 ```
 

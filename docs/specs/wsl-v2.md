@@ -11,7 +11,7 @@ The World Specification Language (WSL) is a human-authored and machine-verifiabl
 
 ### Core Principles
 1. **Separation of Definition and Execution**: A WSL document defines states, topologies, constraints, and initial resources. It never executes code or defines arbitrary algorithms.
-2. **Deterministic Parity**: An authored `.wsl` document compiles into an immutable `World` that yields **100% bit-identical SHA-256 fingerprints** across execution environments.
+2. **Deterministic Parity**: An authored `.wsl` document compiles into an immutable `World` that yields **bit-identical SHA-256 fingerprints** under pinned Python/NumPy runtimes (`BITWISE_REPRODUCIBLE`).
 3. **Draft 2020-12 Schema Alignment**: Every construct maps 1-to-1 to the versioned `world.schema.json` and OpenAPI 3.1 representations.
 
 ---
