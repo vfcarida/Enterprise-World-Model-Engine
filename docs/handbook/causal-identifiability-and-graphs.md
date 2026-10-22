@@ -39,21 +39,20 @@ $$\forall z \text{ with } P(Z=z) > 0, \quad 0 < P(A=a \mid Z=z) < 1$$
 ## 2. Practical Usage & API Pattern
 
 ```python
-from ewm_engine.core.scm import SCMGraph
+from ewm_engine.core.scm import CausalGraph
 from ewm_engine.core.trust import validate_causal_claim
 from ewm_engine.provenance.evidence import EvidenceLevel
 
 # 1. Define Causal DAG Topology
-graph = SCMGraph()
-graph.add_variable("unobserved_sentiment", is_observed=False)
-graph.add_variable("competitor_pricing", is_observed=True)
-graph.add_variable("price_action", is_observed=True)
-graph.add_variable("quarterly_sales", is_observed=True)
-
-# Add structural dependencies (Edges)
-graph.add_edge("competitor_pricing", "price_action")
-graph.add_edge("competitor_pricing", "quarterly_sales")
-graph.add_edge("price_action", "quarterly_sales")
+graph = CausalGraph(
+    nodes={"unobserved_sentiment", "competitor_pricing", "price_action", "quarterly_sales"},
+    edges={
+        ("competitor_pricing", "price_action"),
+        ("competitor_pricing", "quarterly_sales"),
+        ("price_action", "quarterly_sales"),
+    },
+    unobserved_nodes={"unobserved_sentiment"},
+)
 
 # 2. Test Backdoor Identifiability
 identifiable, adjustment_set = graph.check_backdoor_identifiability(

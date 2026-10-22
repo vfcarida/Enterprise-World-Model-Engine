@@ -49,9 +49,8 @@ EWM models the enterprise balance sheet and investment pipeline as an audited dy
 The scenario comparison is executed using EWM's native evaluation API:
 
 ```python
-from ewm_engine.core.actions import ScheduledAction
 from ewm_engine.evaluation.comparison import compare_scenarios
-from ewm_engine.simulation.scenario import Scenario
+from ewm_engine.simulation.scenario import Scenario, ScheduledAction
 
 # 1. Define Baseline (Treasury Reserve Preservation) vs CapEx Allocation
 baseline = Scenario(scenario_id="treasury-status-quo", horizon=12, samples=1000, seed=42)

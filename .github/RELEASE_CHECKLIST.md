@@ -70,12 +70,11 @@
 
 ---
 
-## 5. Post-Release & Academic Archival
-- [ ] **Zenodo DOI Minting**: Verify GitHub release hook triggered Zenodo deposit per `.zenodo.json`; confirm Version DOI and Concept DOI.
-- [ ] **Software Heritage Archival**: Trigger archive snapshot on [Software Heritage Save Code Now](https://archive.softwareheritage.org/save/).
+## 5. Post-Release Verification
 - [ ] **Documentation Deployment**: Verify `.github/workflows/docs.yml` deployed documentation to GitHub Pages.
-- [ ] Verify PyPI package installs in clean environment:
+- [ ] Verify package installs in clean environment:
   ```bash
-  uv pip install --no-cache-dir ewm-engine==X.Y.Z
+  uv pip install --no-cache-dir dist/ewm_engine-*.whl
   python -c "import ewm_engine; print('Deployed:', ewm_engine.__version__)"
   ```
+

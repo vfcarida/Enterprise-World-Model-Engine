@@ -128,7 +128,7 @@ The regulatory landscape (EU AI Act, ISO/IEC 42001, US Executive Orders) is impo
 
 #### Shipped Evidence & Runnable Proof
 * **Governance Guide:** [`docs/responsible-ai.md`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/responsible-ai.md) & [`docs/governance/compliance-mapping.md`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/docs/governance/compliance-mapping.md).
-* **Automated Unit Test:** [`tests/unit/test_cards.py`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/tests/unit/test_cards.py) (testing `to_annex_iv()` export compliance).
+* **Automated Unit Test:** [`tests/unit/test_native_cards.py`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/tests/unit/test_native_cards.py) (testing `to_annex_iv()` export compliance).
 
 ---
 

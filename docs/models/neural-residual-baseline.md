@@ -103,14 +103,25 @@
 ### Executable Verification Snippet
 
 ```python
+from ewm_engine.core import Resource, World, WorldState
+from ewm_engine.dynamics.deterministic import DeterministicTransferDynamics
 from ewm_engine.experimental import (
     LinearResidualDynamics,
     collect_transition_dataset,
     evaluate_dynamics_model,
 )
-from ewm_engine.scenarios.library import create_warehouse_world
+from ewm_engine.simulation.scenario import Scenario
 
-world, scenario = create_warehouse_world(seed=42)
+world = World(
+    state=WorldState(
+        resources=[
+            Resource(id="inventory", current=100.0, max_value=200.0),
+            Resource(id="cash", current=50.0, max_value=200.0),
+        ]
+    ),
+    dynamics=DeterministicTransferDynamics(),
+)
+scenario = Scenario(horizon=15, samples=6, seed=42)
 dataset = collect_transition_dataset(world, scenario, steps_per_rollout=15, n_rollouts=6, seed=42)
 train_ds, test_ds = dataset.split(train_ratio=0.8, seed=42)
 

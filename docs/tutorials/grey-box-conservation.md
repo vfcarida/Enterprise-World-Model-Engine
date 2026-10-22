@@ -22,23 +22,17 @@ The neural network is architecturally constrained to predict strictly within the
 
 ```python
 import numpy as np
-from ewm_engine.experimental.conservation import ConservationLayer
+from ewm_engine.experimental.conservation import (
+    ConservationProjectionLayer,
+    LinearConservationLaw,
+)
 
 # 1. Define Linear Conservation Invariant: Delta Stock A + Delta Stock B = 0
-# A_cons * delta_x = 0  =>  [1.0, 1.0] * [dx_a, dx_b]^T = 0
-A_matrix = np.array([[1.0, 1.0]])
-
-layer = ConservationLayer(conservation_matrix=A_matrix)
-
-# 2. Suppose a neural network emits an unconstrained, non-conserving prediction:
-unconstrained_delta = np.array([12.0, -8.0])  # Sum is +4.0 (violates mass conservation!)
-
-# 3. Project into the Conservation Nullspace
-conserved_delta = layer.project(unconstrained_delta)
-
-print(f"Unconstrained Delta: {unconstrained_delta} -> Sum: {np.sum(unconstrained_delta):.2f}")
-print(f"Conserved Delta:     {conserved_delta} -> Sum: {np.sum(conserved_delta):.6f}")
-print(f"Is Invariant Satisfied? {np.isclose(np.sum(conserved_delta), 0.0)}")
+law = LinearConservationLaw(
+    matrix=np.array([[1.0, 1.0]]),
+    resource_ids=["stock_a", "stock_b"],
+)
+layer = ConservationProjectionLayer(laws=[law])
 ```
 
 ---

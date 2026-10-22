@@ -181,7 +181,7 @@ def check_canonical_artifacts() -> list[str]:
                 )
         # Check inline repo paths like src/..., tests/..., scripts/..., benchmarks/..., docs/...
         for path_match in re.finditer(
-            r"`((?:src|tests|scripts|benchmarks|docs|conformance|paper)/[A-Za-z0-9_./\-]+)`",
+            r"`((?:src|tests|scripts|benchmarks|docs|conformance)/[A-Za-z0-9_./\-]+)`",
             matrix_text,
         ):
             repo_rel = path_match.group(1).rstrip("/")
@@ -190,27 +190,24 @@ def check_canonical_artifacts() -> list[str]:
                     f"Non-existent repository path in claim-evidence-matrix.md: {repo_rel!r}"
                 )
 
-    # 5. Verify inline repository paths in docs/REFERENCES.md and paper manuscripts exist
+    # 5. Verify inline repository paths in docs/REFERENCES.md exist
     for doc_rel in [
         "docs/REFERENCES.md",
-        "paper/paper.md",
-        "paper/arxiv/paper.md",
-        "paper/arxiv/NEURIPS_CHECKLIST.md",
     ]:
         doc_path = REPO_ROOT / doc_rel
         if not doc_path.exists():
-            errors.append(f"Missing canonical documentation/paper artifact: {doc_rel}")
+            errors.append(f"Missing canonical documentation artifact: {doc_rel}")
             continue
         doc_text = doc_path.read_text(encoding="utf-8")
         for path_match in re.finditer(
-            r"`((?:src|tests|scripts|benchmarks|docs|conformance|paper)/[A-Za-z0-9_./\-]+)`",
+            r"`((?:src|tests|scripts|benchmarks|docs|conformance)/[A-Za-z0-9_./\-]+)`",
             doc_text,
         ):
             repo_rel = path_match.group(1).rstrip("/")
             if not (REPO_ROOT / repo_rel).exists():
                 errors.append(f"Non-existent repository path in {doc_rel}: {repo_rel!r}")
 
-    # 6. Verify enterprise benchmark suite fingerprint consistency across artifact and papers
+    # 6. Verify enterprise benchmark suite fingerprint consistency across artifact and docs
     suite_json_path = (
         REPO_ROOT / "docs" / "results" / "artifacts" / "enterprise_benchmark_suite.json"
     )
@@ -226,9 +223,6 @@ def check_canonical_artifacts() -> list[str]:
         else:
             for target_rel in [
                 "docs/research/enterprise-benchmark-suite.md",
-                "paper/arxiv/paper.md",
-                "paper/arxiv/paper.tex",
-                "paper/arxiv/NEURIPS_CHECKLIST.md",
             ]:
                 target_path = REPO_ROOT / target_rel
                 if target_path.exists() and suite_fp not in target_path.read_text(encoding="utf-8"):

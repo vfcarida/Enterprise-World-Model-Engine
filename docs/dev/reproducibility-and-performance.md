@@ -33,7 +33,7 @@ We integrate **CodSpeed** (`pytest-codspeed`, `CodSpeedHQ/action`) in **instrume
 
 ### 2.3 Curated Performance-Critical Subset
 
-Benchmarks are defined in [`benchmarks/test_curated_benchmarks.py`](file:///benchmarks/test_curated_benchmarks.py) and executed via pytest's standard `benchmark` fixture:
+Benchmarks are defined in [`benchmarks/test_curated_benchmarks.py`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/benchmarks/test_curated_benchmarks.py) and executed via pytest's standard `benchmark` fixture:
 
 | Benchmark Target | Method / Operation | Target Budget (Instructions / Ops) | Rationale |
 |---|---|---|---|
@@ -58,7 +58,7 @@ This produces detailed statistics (Min, Max, Mean, StdDev, Median, IQR, OPS) for
 
 While CodSpeed gates individual PRs, long-term trends and historical bisections require a dedicated system-of-record.
 
-We configure **Airspeed Velocity (ASV)** (`asv.conf.json`, [`benchmarks/benchmarks_asv.py`](file:///benchmarks/benchmarks_asv.py)):
+We configure **Airspeed Velocity (ASV)** (`asv.conf.json`, [`benchmarks/benchmarks_asv.py`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/benchmarks/benchmarks_asv.py)):
 - **Commit-Range History**: Tracks performance evolution across all commits on `main`.
 - **Automatic Change-Point Detection**: Detects statistically significant regression steps across releases.
 - **Bisecting Regressions (`asv find`)**: Automatically bisects git commit ranges to identify the exact commit introducing a throughput dip.
@@ -79,7 +79,7 @@ Unlike wall-clock execution time, peak heap memory allocation and object counts 
 
 ### 4.2 Enforcement Strategy
 
-We implement a dual enforcement architecture in [`tests/performance/test_memory_gates.py`](file:///tests/performance/test_memory_gates.py):
+We implement a dual enforcement architecture in [`tests/performance/test_memory_gates.py`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/tests/performance/test_memory_gates.py):
 1. **Linux CI (C Allocator Instrumentation)**: Uses `pytest-memray` with `@pytest.mark.limit_memory("N MB")` and `@pytest.mark.limit_leaks`. `memray` tracks every `malloc`, `calloc`, `realloc`, and `free` call at the native C runtime level.
 2. **Cross-Platform / Windows (tracemalloc)**: Standard library `tracemalloc` budget assertions (`assert_memory_budget`, `assert_no_memory_leak`) ensure deterministic memory enforcement runs smoothly on Windows and macOS developer machines.
 
@@ -139,7 +139,7 @@ To detect silent algorithmic degradation, fast-path bugs, or solver drift, the e
 3. **Serial vs Distributed Rollout Determinism**:  
    `SerialExecutor` and `MultiprocessingExecutor` must produce bit-for-bit identical final state fingerprints and resource trajectories under the same master seed.
 
-All differential tests are codified in [`tests/numerical/test_differential_and_tolerances.py`](file:///tests/numerical/test_differential_and_tolerances.py).
+All differential tests are codified in [`tests/numerical/test_differential_and_tolerances.py`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/tests/numerical/test_differential_and_tolerances.py).
 
 ---
 

@@ -8,7 +8,7 @@
 Ensure `ewm_engine.decision.discovery` is imported:
 
 ```python
-from ewm_engine.decision.discovery import ScenarioDiscovery
+from ewm_engine.decision.discovery import ParameterSpace, run_prim
 ```
 
 ---
@@ -30,21 +30,20 @@ Y = 98.0 - (X[:, 0] * 50.0) - (X[:, 1] * 2.5) - (X[:, 2] * 20.0)
 ```
 
 ### Step 2: Configure and Run PRIM
-Initialize `ScenarioDiscovery` with peeling fraction $\alpha$ (typically $0.05$) and minimum box mass (typically $0.10$):
+Configure `ParameterSpace` and run `run_prim` with peeling fraction $\alpha$ (typically $0.05$) and minimum support ratio:
 
 ```python
-discovery = ScenarioDiscovery(
-    peeling_alpha=0.05,
-    pasting_beta=0.05,
-    min_box_mass=0.10,
+points = [
+    {"labor_shortage": float(r[0]), "transit_delay": float(r[1]), "tariff_surge": float(r[2])}
+    for r in X
+]
+failures = [bool(val < 85.0) for val in Y]  # SLA failure threshold
+space = ParameterSpace(
+    bounds={"labor_shortage": (0.0, 0.30), "transit_delay": (1.0, 14.0), "tariff_surge": (0.0, 0.25)}
 )
 
-box = discovery.find_box(
-    parameters=X,
-    outcomes=Y,
-    failure_criterion=lambda val: val < 85.0,  # SLA failure threshold
-    parameter_names=["labor_shortage", "transit_delay", "tariff_surge"],
-)
+result = run_prim(points=points, targets=failures, parameter_space=space, alpha=0.05)
+box = result.selected_box
 ```
 
 ### Step 3: Interpret and Export Discovered Box

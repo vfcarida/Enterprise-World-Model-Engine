@@ -76,7 +76,7 @@ $$\text{grounded\_fraction} = \frac{\sum_{t=0}^T \mathbb{I}[S_t \text{ is in-dis
 - A score of `0.4` indicates that 60% of the simulated horizon stepped into ungrounded territory, alerting decision-makers that downstream conclusions rely on extrapolation.
 
 ### 4.2 Systemic Trace Integration
-OOD events are recorded directly into the [`SystemicTrace`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/core/trace.py):
+OOD events are recorded directly into the [`SystemicTrace`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/src/ewm_engine/provenance/trace.py):
 - Added as non-causal trace metadata nodes (`ood_regime_shift`, `ood_covariance_novelty`).
 - Captures the exact step index, anomalous feature names, and distance scores.
 - **Strict Epistemic Invariant**: OOD detection does **not** alter or auto-downgrade `EvidenceLevel`, nor does it emit forbidden `"causes"` edges. Traces remain honest dependency audits.
@@ -86,7 +86,7 @@ OOD events are recorded directly into the [`SystemicTrace`](https://github.com/v
 ## 5. Usage Example
 
 ```python
-from ewm_engine.core.resource import Resource
+from ewm_engine.core.resources import Resource
 from ewm_engine.core.state import WorldState
 from ewm_engine.experimental.ood import (
     SupportBoundaryOODDetector,

@@ -32,9 +32,6 @@ for link in all_targets:
         continue
     if link.startswith("#"):
         anchor = link[1:]
-        # Permit all-contributors badge markers (e.g. #code-user)
-        if anchor.endswith("-vfcarida"):
-            continue
         if anchor not in valid_anchors:
             missing.append((link, f"anchor #{anchor} not found in headings or explicit IDs"))
         continue

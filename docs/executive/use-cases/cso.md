@@ -57,24 +57,23 @@ EWM's decision-focused learning engine (`ewm decide`) operationalizes robust sce
 The strategic robustness ranking is executed via the `decision` module:
 
 ```python
-from ewm_engine.decision.robustness import RobustDecisionEngine
+from ewm_engine.decision.robustness import evaluate_decision_robustness
 
 # 1. Payoff matrix: 3 candidate strategies evaluated across 4 divergent futures ($M NPV)
-payoffs = [
-    # World 1 (Global Boom), World 2 (Fragmented), World 3 (Stagnation), World 4 (Green Mandate)
-    [120.0, 15.0, 30.0, 45.0],  # Strategy 1: Aggressive Global Expansion
-    [85.0, 70.0, 55.0, 80.0],  # Strategy 2: Modular Regional Resilience
-    [60.0, 40.0, 50.0, 55.0],  # Strategy 3: Digital-First Asset-Light
-]
+outcomes = {
+    "Global Expansion": [120.0, 15.0, 30.0, 45.0],
+    "Modular Resilience": [85.0, 70.0, 55.0, 80.0],
+    "Asset-Light": [60.0, 40.0, 50.0, 55.0],
+}
 
 # 2. Evaluate Minimax Regret and Satisficing (Hurdle Rate >= $50M)
-engine = RobustDecisionEngine(hurdle_threshold=50.0)
-results = engine.evaluate(
-    payoffs=payoffs,
-    strategy_names=["Global Expansion", "Modular Resilience", "Asset-Light"],
+results = evaluate_decision_robustness(
+    outcomes=outcomes,
+    satisficing_threshold=50.0,
+    higher_is_better=True,
 )
 
-print(results.format_report())
+print("Recommended (Minimax Regret):", results.recommended_by_regret)
 ```
 
 ### Verified Strategic Ranking Output

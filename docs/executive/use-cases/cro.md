@@ -55,27 +55,21 @@ The vulnerability discovery is executed using EWM's native decision suite:
 
 ```python
 import numpy as np
-from ewm_engine.decision.discovery import ScenarioDiscovery
+from ewm_engine.decision.discovery import ParameterSpace, run_prim
 
 # 1. Sample 1,000 multi-factor macroeconomic stress conditions
-parameter_samples = np.random.uniform(low=[0.0, 0.0], high=[0.5, 0.5], size=(1000, 2))
-# Evaluate capital ratio across all samples (synthetic demonstration)
-capital_ratios = 15.0 - (parameter_samples[:, 0] * 12.0) - (parameter_samples[:, 1] * 8.0)
+raw = np.random.default_rng(42).uniform(low=[0.0, 0.0], high=[0.5, 0.5], size=(1000, 2))
+points = [{"default_surge": float(r[0]), "collections_drop": float(r[1])} for r in raw]
+capital_ratios = 15.0 - (raw[:, 0] * 12.0) - (raw[:, 1] * 8.0)
+failures = [bool(y < 10.5) for y in capital_ratios]
 
 # 2. Run PRIM to isolate the precise failure subspace (capital_ratio < 10.5)
-discovery = ScenarioDiscovery(peeling_alpha=0.05, min_box_mass=0.10)
-box = discovery.find_box(
-    parameters=parameter_samples,
-    outcomes=capital_ratios,
-    failure_criterion=lambda y: y < 10.5,
-    parameter_names=["default_surge", "collections_drop"],
-)
+space = ParameterSpace(bounds={"default_surge": (0.0, 0.5), "collections_drop": (0.0, 0.5)})
+result = run_prim(points=points, targets=failures, parameter_space=space, alpha=0.05)
+box = result.selected_box
 
 print(f"Discovered Failure Box Density:  {box.density:.1%}")
 print(f"Discovered Failure Box Coverage: {box.coverage:.1%}")
-print("Dominant Vulnerability Restrictions:")
-for param, (low, high) in box.restrictions.items():
-    print(f"  - {param}: [{low:.2f}, {high:.2f}]")
 ```
 
 ### Verified Audit Trail & Discovery Output

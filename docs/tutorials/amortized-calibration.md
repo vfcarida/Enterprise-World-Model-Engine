@@ -15,34 +15,30 @@ In complex organizational simulators, many parameters (e.g. true customer elasti
 ## 2. Running SBI Calibration
 
 ```python
-import numpy as np
-from ewm_engine.calibration.sbi import SBICalibrationEngine
-from ewm_engine.calibration.certification import evaluate_tarp_coverage
+from ewm_engine.calibration.certification import compute_tarp_coverage
+from ewm_engine.calibration.priors import CalibrationPrior
+from ewm_engine.calibration.sbi import AmortizedPosteriorEstimator, PriorSet
 
 # 1. Define parameter search bounds (Priors)
-prior_bounds = {
-    "transit_delay": (1.0, 10.0),
-    "demand_elasticity": (0.1, 2.0),
-}
-
-# 2. Instantiate Calibration Engine with Target World
-engine = SBICalibrationEngine(world=world, priors=prior_bounds)
-
-# 3. Fit Neural Posterior on Target Telemetry
-posterior = engine.fit(
-    observations=historical_telemetry_array,
-    num_simulations=1000,
+priors = PriorSet(
+    priors=(
+        CalibrationPrior(name="transit_delay", distribution="uniform", low=1.0, high=10.0),
+        CalibrationPrior(name="demand_elasticity", distribution="uniform", low=0.1, high=2.0),
+    )
 )
 
-# 4. Evaluate Certified Coverage via TARP
-tarp_score, is_certified = evaluate_tarp_coverage(
-    posterior=posterior,
-    test_simulations=200,
-    alpha_threshold=0.05,
+# 2. Instantiate and fit Amortized Posterior Estimator
+estimator = AmortizedPosteriorEstimator(prior_set=priors)
+estimator.fit(thetas=train_thetas, xs=train_xs)
+
+# 3. Evaluate Certified Coverage via TARP
+alphas, coverages, ece, max_disc = compute_tarp_coverage(
+    test_thetas=test_thetas,
+    test_xs=test_xs,
+    estimator=estimator,
 )
 
-print(f"Calibration TARP Score: {tarp_score:.3f}")
-print(f"Coverage Certified:     {is_certified}")
+print(f"Calibration TARP ECE: {ece:.3f} | Max Discrepancy: {max_disc:.3f}")
 ```
 
 ---

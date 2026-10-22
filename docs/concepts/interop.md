@@ -60,5 +60,5 @@ flowchart TD
 ## Key Design Principles
 
 1. **Zero-Dependency Substrates:** The master scheduling loop, multi-agent mediation, report data models, local job runner, and file tracker require zero external packages beyond stdlib, NumPy, and Pydantic.
-2. **Deterministic Constraint Mediation:** In accordance with [ADR-004](file:///docs/adr/ADR-004-no-llm-dependency.md), multi-agent proposals are adjudicated strictly using pre-defined priorities, arrival timestamps, and resource capacity limits without non-deterministic LLM arbiters.
+2. **Deterministic Constraint Mediation:** In accordance with [ADR-004](../adr/ADR-004-no-llm-dependency.md), multi-agent proposals are adjudicated strictly using pre-defined priorities, arrival timestamps, and resource capacity limits without non-deterministic LLM arbiters.
 3. **Cryptographic Provenance:** Every report, Vega-Lite chart specification, orchestrator cache key, and experiment log is cryptographically keyed to the canonical simulation SHA-256 fingerprint.

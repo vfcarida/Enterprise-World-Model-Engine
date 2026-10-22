@@ -11,7 +11,7 @@ Because the **Enterprise World Model Engine (EWM)** core runtime is strictly dec
 This delivers a unique advantage in decision tooling: **instant, verifiable evaluation without installing a single package**.
 
 <div style="margin: 24px 0; border: 1px solid #334155; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
-  <iframe src="../playground/index.html" width="100%" height="820" style="border: none; display: block; background: #0b0f19;"></iframe>
+  <iframe src="playground/index.html" width="100%" height="820" style="border: none; display: block; background: #0b0f19;"></iframe>
 </div>
 
 > [!TIP]

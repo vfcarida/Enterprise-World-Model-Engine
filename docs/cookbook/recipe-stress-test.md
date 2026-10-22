@@ -8,36 +8,25 @@
 
 ```python
 import numpy as np
-from ewm_engine.decision.discovery import ScenarioDiscovery
+from ewm_engine.decision.discovery import ParameterSpace, run_prim
 
 
 def execute_stress_test_recipe(num_samples: int = 1000) -> None:
     # 1. Sample Multi-Factor Parameters: [Interest Rate Surge (%), Energy Inflation (%)]
     rng = np.random.default_rng(123)
-    parameters = rng.uniform(low=[0.0, 0.0], high=[0.08, 0.50], size=(num_samples, 2))
+    raw = rng.uniform(low=[0.0, 0.0], high=[0.08, 0.50], size=(num_samples, 2))
+    points = [{"rate_surge": float(r[0]), "energy_inflation": float(r[1])} for r in raw]
 
-    # 2. Simulate Capital Coverage Ratio (%)
-    # Synthetic response surface: baseline ratio = 14.0%
-    coverage_ratios = 14.0 - (parameters[:, 0] * 80.0) - (parameters[:, 1] * 12.0)
+    # 2. Simulate Capital Coverage Ratio (%) and binary failure (< 9.0%)
+    coverage_ratios = 14.0 - (raw[:, 0] * 80.0) - (raw[:, 1] * 12.0)
+    failures = [bool(val < 9.0) for val in coverage_ratios]
 
-    # 3. Discover Vulnerability Subspace where Coverage Ratio < 9.0% (Statutory Minimum)
-    discovery = ScenarioDiscovery(peeling_alpha=0.05, min_box_mass=0.10)
-    box = discovery.find_box(
-        parameters=parameters,
-        outcomes=coverage_ratios,
-        failure_criterion=lambda y: y < 9.0,
-        parameter_names=["rate_surge", "energy_inflation"],
-    )
+    # 3. Discover Vulnerability Subspace where Coverage Ratio < 9.0%
+    space = ParameterSpace(bounds={"rate_surge": (0.0, 0.08), "energy_inflation": (0.0, 0.50)})
+    result = run_prim(points=points, targets=failures, parameter_space=space, alpha=0.05)
+    box = result.selected_box
 
-    print("==================================================")
-    print("PRIM VULNERABILITY SUBSPACE DISCOVERY RESULT")
-    print("==================================================")
-    print(f"Evaluated Runs:  {num_samples}")
-    print(f"Subspace Density: {box.density:.1%} (Concentration of failures in box)")
-    print(f"Subspace Coverage: {box.coverage:.1%} (Fraction of all failures captured)")
-    print("\nIdentified Failure Restrictions:")
-    for name, (low, high) in box.restrictions.items():
-        print(f"  • {name}: [{low:.4f}, {high:.4f}]")
+    print(f"Evaluated Runs: {num_samples} | Subspace Density: {box.density:.1%} | Coverage: {box.coverage:.1%}")
 
 
 if __name__ == "__main__":

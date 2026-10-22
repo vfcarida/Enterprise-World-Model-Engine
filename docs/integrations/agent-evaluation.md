@@ -45,7 +45,7 @@ EWM Engine enforces a strict boundary:
 
 ## Runnable Example: Hospital Supply Chain Evaluation
 
-The complete executable example is provided in [`examples/agent_evaluation/`](file:///examples/agent_evaluation/):
+The complete executable example is provided in [`examples/agent_evaluation/`](https://github.com/vfcarida/Enterprise-World-Model-Engine/tree/main/examples/agent_evaluation):
 
 ```python
 from examples.agent_evaluation.run import run_agent_evaluation

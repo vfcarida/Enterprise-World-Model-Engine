@@ -47,31 +47,30 @@ ewm calibrate --spec world.yaml --data telemetry.csv --samples 5000 --out poster
 ```
 
 ```python
-from ewm_engine.calibration.sbi import SBICalibrationEngine
-from ewm_engine.calibration.certification import evaluate_tarp_coverage
+from ewm_engine.calibration.certification import compute_tarp_coverage
+from ewm_engine.calibration.priors import CalibrationPrior
+from ewm_engine.calibration.sbi import AmortizedPosteriorEstimator, PriorSet
 
-# 1. Define Parameter Prior Envelope and Target Observations
-prior_bounds = {
-    "warehouse_transit_delay": (1.0, 7.0),
-    "supplier_elasticity": (0.2, 1.8),
-}
+# 1. Define Parameter Prior Envelope
+priors = PriorSet(
+    priors=(
+        CalibrationPrior(name="warehouse_transit_delay", distribution="uniform", low=1.0, high=7.0),
+        CalibrationPrior(name="supplier_elasticity", distribution="uniform", low=0.2, high=1.8),
+    )
+)
 
 # 2. Run Amortized Simulation-Based Inference
-engine = SBICalibrationEngine(world=world, priors=prior_bounds)
-posterior = engine.fit(
-    observations=real_world_telemetry_df,
-    num_simulations=2000,
-)
+estimator = AmortizedPosteriorEstimator(prior_set=priors)
+estimator.fit(thetas=train_thetas, xs=train_xs)
 
 # 3. Certify Calibration Coverage using TARP
-tarp_score, is_certified = evaluate_tarp_coverage(
-    posterior=posterior,
-    test_simulations=500,
-    alpha_threshold=0.05,
+alphas, coverages, ece, max_disc = compute_tarp_coverage(
+    test_thetas=test_thetas,
+    test_xs=test_xs,
+    estimator=estimator,
 )
 
-print(f"Calibration TARP Score: {tarp_score:.3f}")
-print(f"Is Posterior Certified? {is_certified}")
+print(f"Calibration TARP ECE: {ece:.3f} | Max Discrepancy: {max_disc:.3f}")
 ```
 
 ---

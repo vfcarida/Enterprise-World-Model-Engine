@@ -112,8 +112,8 @@ Once an ensemble produces a `CausalEquivalenceClass`, compiling it to an executa
 
 ```python
 import numpy as np
-from ewm_engine.core.scm import counterfactual_rollout
 from ewm_engine.induction.causal import induce_causal
+from ewm_engine.simulation.counterfactual import CounterfactualEngine, Intervention
 
 # 1. Provide observational & interventional data
 data = {
@@ -124,19 +124,7 @@ data = {
 
 # 2. Induce causal equivalence class
 equiv_class, report = induce_causal(data=data, seed=42)
-
-# 3. Compile ASSERTED edges into an executable SCM
-scm = equiv_class.to_scm()
-
-# 4. Perform Pearl Rung-3 Counterfactual:
-# "Given observed sales=41 when marketing=20, what would sales have been if marketing had been 35?"
-cf_result = counterfactual_rollout(
-    scm=scm,
-    factual_observations={"marketing_spend": 20.0, "sales": 41.0},
-    intervention={"marketing_spend": 35.0},
-)
-
-print(f"Counterfactual Sales: {cf_result.counterfactual_state['sales']:.2f}")
+print("Induced equivalence class edges:", len(equiv_class.edges))
 ```
 
 ---

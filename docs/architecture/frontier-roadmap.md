@@ -35,7 +35,7 @@ Every new capability enters at **Experimental** (isolated behind extras), advanc
 | **v1.7.0** | Decision Intelligence | `ewm decide`: PRIM scenario discovery, minimax regret ranking, Expected Free Energy scoring | Stable |
 | **v1.8.0** | Calibration to Reality | `ewm calibrate`: Simulation-based inference (SBI), TARP certified coverage, empirical validation packs | Stable |
 | **v1.9.0** | Induction, MCP & Flywheel | `ewm induce` honesty-gated induction, `ewm mcp` server, symbolic-regression promotion (SINDy/PySR), epistemic abstention | Stable + Beta |
-| **v2.0.0** | Reference Architecture | Stable transformative kernel, CI-reproducible results gallery, arXiv companion paper, Relational GNNs & WSL | Stable + Beta |
+| **v2.0.0** | Reference Architecture | Stable transformative kernel, CI-reproducible results gallery, Relational GNNs & WSL | Stable + Beta |
 
 ---
 
@@ -69,7 +69,7 @@ Every new capability enters at **Experimental** (isolated behind extras), advanc
 
 ### v2.0.0 — Reference Architecture & Standard
 - **Core Stability Graduation:** Graduation of the counterfactual SCM kernel and grey-box conservation layers to **Stable** under SemVer compatibility guarantees.
-- **Scientific Results Gallery & Paper:** CI-reproducible results gallery with cryptographic SHA-256 state fingerprints, companion methods/benchmark arXiv paper audited against the NeurIPS Datasets & Benchmarks checklist, and public benchmark harnesses.
+- **Scientific Results Gallery & Benchmarks:** CI-reproducible results gallery with cryptographic SHA-256 state fingerprints and public benchmark harnesses.
 - **Relational GNNs & World Specification Language:** Heterogeneous relational graph states, Graph Neural Network dynamics adapters, declarative World Specification Language (WSL), and World Model Interchange Format (WMIF).
 
 ---
@@ -106,4 +106,4 @@ flowchart TD
 ## 7. Master Roadmap Synchronization
 
 This roadmap refines the repository's declared **v1.6.0 "Learned Dynamics & Causal Epistemics"** and subsequent milestones:
-> The engine provides a bit-reproducible counterfactual SCM kernel (grounded in Richens & Everitt's theorem that robust agents must learn causal world models), a grey-box architecture that enforces enterprise conservation laws by construction and whitens itself over time, and a causal-correctness + metamorphic test suite that scores the engine on interventional correctness and epistemic abstention. It advances through decision intelligence (`v1.7`, `ewm decide`: scenario discovery and robust regret ranking) and empirical calibration (`v1.8`, `ewm calibrate`: simulation-based inference with certified coverage), consolidates the neuro-symbolic flywheel (`v1.9`), and culminates in a **v2.0 reference release** with a reproducible results gallery and companion arXiv methods paper.
+> The engine provides a bit-reproducible counterfactual SCM kernel (grounded in Richens & Everitt's theorem that robust agents must learn causal world models), a grey-box architecture that enforces enterprise conservation laws by construction and whitens itself over time, and a causal-correctness + metamorphic test suite that scores the engine on interventional correctness and epistemic abstention. It advances through decision intelligence (`v1.7`, `ewm decide`: scenario discovery and robust regret ranking) and empirical calibration (`v1.8`, `ewm calibrate`: simulation-based inference with certified coverage), consolidates the neuro-symbolic flywheel (`v1.9`), and culminates in a **v2.0 reference release** with a reproducible results gallery and multi-family evaluation benchmark suite.

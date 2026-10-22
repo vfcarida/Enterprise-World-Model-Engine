@@ -168,4 +168,4 @@ print(f"Disclaimer: {cf_result.disclaimer}")
 print(cf_result.trace_diff.to_mermaid())
 ```
 
-For a comprehensive worked example preventing warehouse stockouts under identical demand shocks, see [examples/counterfactual_warehouse_reroute.py](file:///examples/counterfactual_warehouse_reroute.py) and [ADR-040](file:///docs/adr/ADR-040-twin-rollout-counterfactual-scm-kernel.md).
+For a comprehensive worked example preventing warehouse stockouts under identical demand shocks, see [`examples/counterfactual_warehouse_reroute.py`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/examples/counterfactual_warehouse_reroute.py) and [ADR-040](../adr/ADR-040-twin-rollout-counterfactual-scm-kernel.md).

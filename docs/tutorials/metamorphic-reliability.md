@@ -17,25 +17,18 @@ In machine learning, models are evaluated on test-set Mean Squared Error (MSE). 
 ## 2. Implementing a Metamorphic Test
 
 ```python
-from ewm_engine.evaluation.metamorphic import MetamorphicTestEngine, MetamorphicRelation
-
-# Define Metamorphic Relation: Monotonicity under Resource Injection
-# If initial inventory at Node A is strictly increased by Delta > 0,
-# final unserved customer demand must be strictly less than or equal to baseline.
-mr_monotonicity = MetamorphicRelation(
-    name="inventory_monotonicity_under_injection",
-    transform_input=lambda state: state.with_resource_delta("stock_a", +25.0),
-    verify_output=lambda factual_traj, transformed_traj: (
-        transformed_traj.final_metric("unserved_demand")
-        <= factual_traj.final_metric("unserved_demand") + 1e-6
-    ),
+from ewm_engine.evaluation.metamorphic import (
+    STANDARD_MR_CARDS,
+    MetamorphicRelationCard,
+    MetamorphicSuite,
 )
 
-engine = MetamorphicTestEngine(world=world)
-report = engine.run_suite(relations=[mr_monotonicity], test_scenarios=50)
+# Instantiate the standard 6-card metamorphic test suite
+suite = MetamorphicSuite(cards=STANDARD_MR_CARDS)
+report = suite.evaluate(spec=world_spec, scenario=scenario)
 
 print(f"Metamorphic Pass Rate: {report.pass_rate:.1%}")
-print(f"Violations Detected:   {report.violations_count}")
+print(f"All Relations Passed:  {report.all_passed}")
 ```
 
 ---

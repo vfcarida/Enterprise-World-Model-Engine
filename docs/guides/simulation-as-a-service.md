@@ -55,9 +55,9 @@ app = create_simulation_app()
 EWM canonical fingerprints provide the optimal cache key for workflow orchestrators:
 
 ```python
-from ewm_engine.service.orchestration import get_prefect_cache_key, get_dagster_cache_key
+from ewm_engine.service.orchestration import compute_simulation_fingerprint
 
 # Deterministic cache key based on world initial state, rules, and scenario
-cache_key = get_prefect_cache_key(world=world, scenario=scenario)
-print("Prefect cache key:", cache_key)
+cache_key = compute_simulation_fingerprint(world=world, scenario=scenario)
+print("Orchestration cache key:", cache_key)
 ```

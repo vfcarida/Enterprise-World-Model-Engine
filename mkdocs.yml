@@ -82,15 +82,9 @@ nav:
       - "Decision Scenario Discovery": results/decision-discovery-s02.md
       - "Induction Honesty & Validation": results/induction-validation-s09.md
       - "Performance & Scaling Curves": performance.md
-      - Scientific Reproduction & Adoption:
+      - Scientific Reproduction:
           - "Claim-to-Evidence Registry": scientific/claim-evidence-matrix.md
           - "Reproducibility & Citation Guide": reproducibility.md
-          - "Software Heritage (SWHID)": scientific/swhid.md
-          - "MLRC 2026 Replication Package": scientific/mlrc_2026_replication_pkg.md
-          - "ReScience C Submission Dossier": scientific/rescience_c_submission.md
-          - "ACM Artifact Review & Badging": scientific/acm_artifact_appendix.md
-          - "Pre-Registered Study Protocol": scientific/registered_report_protocol.md
-          - "Hugging Face Papers Discovery": scientific/huggingface_papers.md
 
   - Executive & Strategy:
       - "Executive Briefing (One-Pager)": executive/index.md
@@ -278,15 +272,11 @@ nav:
           - "ADR-054: Enterprise World-Model Evaluation Suite": adr/ADR-054-enterprise-world-model-evaluation-benchmark-suite.md
 
   - Community & Governance:
-      - "Community Health & CHAOSS": community-health.md
+      - "Community Health & Triage": community-health.md
       - "Curated Starter Tasks": good-first-issues.md
-      - "NumFOCUS Sponsorship Prospectus": numfocus-sponsorship.md
       - "Responsible AI Governance Mapping": responsible-ai.md
       - "NIST AI RMF & EU AI Act Compliance": governance/compliance-mapping.md
       - "Open-Source Governance (ADR-038)": adr/ADR-038-open-source-governance-community-health-and-rfc-process.md
-      - "Launch Announcement": community/launch-announcement.md
-      - "Coordinated Launch Pack": community/launch-pack.md
-      - "Outreach & Ecosystem Plan": community/outreach-plan.md
 
   - Explanation:
       - "What is a World Model?": concepts/world-models.md

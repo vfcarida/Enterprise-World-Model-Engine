@@ -40,13 +40,12 @@ Chosen option: **Option 3: Meritocratic Steering Council with SPEC 9 Ladder, CHA
   * Formulates a 2-tier decision model: lazy consensus for routine maintenance and 2/3 Council voting for major architectural changes.
   * Adopts Contributor Covenant 2.1 with a four-tier enforcement ladder (Correction, Warning, Temporary Ban, Permanent Ban) and direct contact (`vfcarida@gmail.com`).
   * Establishes a formal RFC process in `rfcs/` for user-facing API changes and paradigm shifts, distinct from internal ADRs.
-  * Implements automated triage and contributor recognition via `all-contributors`, `actions/labeler`, `actions/stale`, and first-time greeting automation.
-  * Tracks project health via CHAOSS metrics (Bus Factor $\ge 3$, TTFR $< 48$h, Elephant Factor) with a live CollectOSS dashboard link.
-  * Targets NumFOCUS fiscal sponsorship and configures `.github/FUNDING.yml`.
+  * Implements automated triage via `actions/labeler`, `actions/stale`, and first-time contributor greeting workflows.
+  * Documents community health guidelines in `docs/community-health.md` and configures `.github/FUNDING.yml`.
   * Adopts MADR 4.x for subsequent Architecture Decision Records and enforces an automated ADR link and status linter in CI.
 * **Bad, because**:
   * Introduces governance overhead and deliberation time for cross-cutting proposals (14-day RFC review window).
-  * Requires active triage monitoring to maintain the $< 48$h TTFR SLA.
+  * Requires active triage monitoring to maintain response times.
 
 ### Confirmation
 
@@ -59,7 +58,7 @@ Chosen option: **Option 3: Meritocratic Steering Council with SPEC 9 Ladder, CHA
 ### Option 1: Informal Solo Maintainer
 
 * Good, because zero governance overhead or delay in approving pull requests.
-* Bad, because project Bus Factor remains 1, blocking institutional grant funding and NumFOCUS eligibility.
+* Bad, because project Bus Factor remains 1, limiting external collaboration.
 
 ### Option 2: Pure Corporate Consortium
 
@@ -77,4 +76,4 @@ Chosen option: **Option 3: Meritocratic Steering Council with SPEC 9 Ladder, CHA
 * Related RFC: [`RFC-0001: The EWM Engine RFC Process`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/rfcs/RFC-0001-rfc-process.md)
 * Related Policy: [`GOVERNANCE.md`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/GOVERNANCE.md), [`CODE_OF_CONDUCT.md`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/CODE_OF_CONDUCT.md)
 * Community Health: [`docs/community-health.md`](../community-health.md)
-* NumFOCUS Prospectus: [`docs/numfocus-sponsorship.md`](../numfocus-sponsorship.md)
+

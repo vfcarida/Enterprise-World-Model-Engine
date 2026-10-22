@@ -21,7 +21,6 @@ rfcs/ @vfcarida
 pyproject.toml @vfcarida
 uv.lock @vfcarida
 CITATION.cff @vfcarida
-.zenodo.json @vfcarida
 
 # Core Architecture & Execution Engine
 src/ewm_engine/core/ @vfcarida

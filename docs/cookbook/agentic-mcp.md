@@ -38,30 +38,23 @@ Add the following block to your `claude_desktop_config.json`:
 ### Step 3: Programmatic Interaction via Python Client
 
 ```python
-import json
-from ewm_engine.mcp.server import inspect_state, simulate_intervention
+from ewm_engine.mcp.server import EwmMcpServer, ServerConfig, SimulateInput
 
-# Tool 1: Inspect active enterprise state and resource balances
-state_summary = inspect_state(world_spec="tests/fixtures/civicflow/tiny_flood_v1.yaml")
-print("State Summary:", json.loads(state_summary)["resources"])
-
-# Tool 2: Simulate consequence of an intervention before taking it
-simulation_output = simulate_intervention(
-    action_type="transfer_resource",
-    parameters={
-        "quantity": 25.0,
-        "source_resource": "clean_water_depot",
-        "target_resource": "zone_a_water",
-    },
-    horizon=5,
-    samples=10,
-    seed=42,
+server = EwmMcpServer(
+    config=ServerConfig(default_spec_path="examples/worlds/supply_chain_world.yaml")
 )
 
-result = json.loads(simulation_output)
+# Tool: Simulate consequence of an intervention before taking it
+result = server.simulate(
+    SimulateInput(
+        spec_path="examples/worlds/supply_chain_world.yaml",
+        horizon=5,
+        samples=10,
+        seed=42,
+    )
+)
 print("Simulation Status:", result["status"])
-print("Expected Delta:", result.get("deltas"))
-print("Evidence Level:", result.get("evidence_level"))
+print("Evidence Level:", result["evidence_level"])
 ```
 
 ---

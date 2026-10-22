@@ -78,5 +78,5 @@ Chosen option: **Option 3: Pure NumPy Decision Layer with Optional EMA Workbench
 * Lempert, R. J., Popper, S. W., & Bankes, S. C. (2003). *Shaping the Next One Hundred Years: New Methods for Quantitative, Long-Term Policy Analysis*. RAND MR-1626.
 * McPhail, C., et al. (2018). "Robustness metrics: How choice of metric changes which policy wins." *Environmental Modelling & Software*, 107, 142-155.
 * Friston, K. (2010). "The free-energy principle: a unified brain theory?" *Nature Reviews Neuroscience*, 11(2), 127-138.
-* Feature Specification: [FEAT-009](file:///docs/specs/features/FEAT-009-decision-focused-scenario-discovery.md)
+* Feature Specification: [FEAT-009](../specs/features/FEAT-009-decision-focused-scenario-discovery.md)
 * Related ADRs: [ADR-003](ADR-003-explicit-constraints.md), [ADR-005](ADR-005-deterministic-reproducibility.md), [ADR-016](ADR-016-evaluation-upgrade-bootstrap-cis-and-pareto.md), [ADR-028](ADR-028-experimentation-suite-doe-backtesting-calibration-optimization.md), [ADR-039](ADR-039-responsible-ai-trust-and-anti-overclaiming-enforcement.md), [ADR-040](ADR-040-twin-rollout-counterfactual-scm-kernel.md).

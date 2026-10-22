@@ -47,7 +47,7 @@ EWM Engine is designed for:
 We welcome submissions from open-source contributors, academic labs, and enterprise data teams.
 
 ### Inclusion Criteria:
-1. **Public Preprint or Open Code**: Must link to a public repository, whitepaper, arXiv preprint, or peer-reviewed publication demonstrating EWM Engine usage.
+1. **Open Code or Publication**: Must link to a public repository, technical report, or peer-reviewed publication demonstrating EWM Engine usage.
 2. **Reproducibility**: Must include configuration files, parameters, and random seeds enabling independent verification.
 3. **Transparent Uncertainty**: Must report confidence intervals, posterior coverage, or sensitivity metrics.
 
@@ -72,9 +72,5 @@ If you use EWM Engine in academic research, benchmark evaluations, or technical 
 }
 ```
 
-### Companion Manuscripts (In-Tree Drafts — Not Yet Published)
-- **Methods & Benchmark Manuscript**: Draft in [`paper/arxiv/paper.md`](paper/arxiv/paper.md) (*arXiv ID not yet published / to be assigned upon submission*).
-- **JOSS Software Manuscript**: Draft in [`paper/paper.md`](paper/paper.md) (*JOSS DOI not yet published / to be assigned upon review*).
-- **Zenodo / SWHID Archival**: Metadata in [`.zenodo.json`](.zenodo.json) (*DOIs and SWHID not yet published / to be assigned upon release archival*).
-
 For machine-readable citation metadata, refer to [CITATION.cff](CITATION.cff).
+

@@ -68,3 +68,7 @@ Thumbs.db
 # Benchmarking & Performance
 .asv/
 .benchmarks/
+
+# Local manuscript drafts and quarantined academic artifacts
+_local_drafts/
+

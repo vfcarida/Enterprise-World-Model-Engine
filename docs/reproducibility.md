@@ -1,17 +1,17 @@
 # Research Reproducibility & Citation Guide
 
-> **Academic Rigor & Software Heritage Spine**  
-> Discipline: Research-software credibility, reproducibility checklists, persistent identifiers, and open science standards.  
-> Standards: [NeurIPS Paper Checklist](https://neurips.cc/public/guides/PaperChecklist), [FORCE11 Software Citation Principles](https://doi.org/10.7717/peerj-cs.86), [CITATION.cff v1.2.0](https://citation-file-format.github.io/), [Zenodo](https://zenodo.org/), [Software Heritage](https://www.softwareheritage.org/).
+> **Reproducibility & Software Citation**  
+> Discipline: Research-software reproducibility, cryptographic run manifests, and structured software citation.  
+> Standards: [NeurIPS Paper Checklist](https://neurips.cc/public/guides/PaperChecklist), [FORCE11 Software Citation Principles](https://doi.org/10.7717/peerj-cs.86), [CITATION.cff v1.2.0](https://citation-file-format.github.io/).
 
-The **Enterprise World Model Engine (`ewm-engine`)** is engineered from the ground up for scientific rigor and reproducibility. This document outlines the academic citation protocols, persistent identifiers, archival mechanisms, and the reproducibility checklist implemented across the engine.
+The **Enterprise World Model Engine (`ewm-engine`)** is engineered for deterministic execution and verifiable numerical reproducibility. This document outlines the software citation metadata, run-manifest certification semantics, and reproducibility checklist implemented in the repository.
 
 ---
 
-## 1. Academic Citation & Persistent Identifiers
+## 1. Software Citation & Claim Verification
 
 ### Native GitHub Citation (`CITATION.cff`)
-`ewm-engine` includes a machine-readable [`CITATION.cff`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/CITATION.cff) file at the repository root compliant with the Citation File Format (v1.2.0) schema. GitHub uses this file to provide automated, one-click citations in both **APA** and **BibTeX** formats via the **"Cite this repository"** button on the main repository page.
+`ewm-engine` includes a machine-readable [`CITATION.cff`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/CITATION.cff) file at the repository root compliant with the Citation File Format (v1.2.0) schema.
 
 #### BibTeX Citation
 ```bibtex
@@ -27,73 +27,9 @@ The **Enterprise World Model Engine (`ewm-engine`)** is engineered from the grou
 
 ---
 
-### Zenodo DOI: Concept DOI vs. Version DOI
+### Claim-to-Evidence Registry
 
-To ensure permanent archival and academic traceability, `ewm-engine` integrates with **Zenodo** through automated GitHub release webhooks, configured via [`.zenodo.json`](https://github.com/vfcarida/Enterprise-World-Model-Engine/blob/main/.zenodo.json):
-
-```
-       Concept DOI (All Versions)
-     ┌────────────────────────────┐
-     │ 10.5281/zenodo.<concept>   │ ──► Always resolves to the latest release
-     └──────────────┬─────────────┘
-                    │
-         ┌──────────┴──────────┐
-         ▼                     ▼
-┌──────────────────────┐  ┌──────────────────────┐
-│    Version v1.0.0    │  │    Version v1.1.0    │
-│ 10.5281/zenodo.<v1>  │  │ 10.5281/zenodo.<v2>  │ ──► Fixed, immutable snapshot for citations
-└──────────────────────┘  └──────────────────────┘
-```
-
-1. **Concept DOI (`10.5281/zenodo.<concept_id>`)**:
-   - Represents the software project conceptually across all releases (*not yet published / to be assigned upon Zenodo release deposition*).
-
-2. **Version DOI (`10.5281/zenodo.<version_id>`)**:
-   - Represents a specific, immutable release tarball (*not yet published / to be assigned upon Zenodo release deposition*).
-
----
-
-### Software Heritage Archival (SWHID - ISO/IEC 18670:2025)
-
-While Zenodo stores release tarballs, [Software Heritage](https://www.softwareheritage.org/) archives the Git development graph, tracking individual commits, trees, and blobs via cryptographic **SoftWare Heritage Identifiers (SWHIDs)** conforming to ISO/IEC 18670:2025 (*public SWHID not yet assigned; see local verification instructions in [Software Heritage Guide](scientific/swhid.md)*).
-
-- **Trigger Archival**: The repository can be submitted via the [Software Heritage Save Code Now](https://archive.softwareheritage.org/save/) service using the repository URL:
-  ```text
-  https://github.com/vfcarida/Enterprise-World-Model-Engine
-  ```
-- **Referencing via SWHID**: Specific versions follow the standard intrinsic syntax:
-  ```text
-  swh:1:rev:<git_commit_sha1>;origin=https://github.com/vfcarida/Enterprise-World-Model-Engine
-  ```
-  See the dedicated [Software Heritage Guide](scientific/swhid.md) for verification procedures.
-
----
-
-### Companion Manuscripts (In-Tree Drafts — Not Yet Published)
-
-EWM Engine includes two manuscript drafts in-tree (*neither has been assigned an external DOI or arXiv identifier yet*):
-
-1. **Methods & Benchmark Companion Manuscript**:
-   - Title: *Structural World Models: Auditable Counterfactual Simulation for Organizational Systems with Certified Uncertainty*
-   - Status: In-tree draft (*arXiv identifier not yet published / to be assigned upon submission*)
-   - Draft manuscript: `paper/arxiv/paper.md` and LaTeX source `paper/arxiv/paper.tex`.
-   - Checklist: `paper/arxiv/NEURIPS_CHECKLIST.md`.
-
-2. **Journal of Open Source Software (JOSS) Manuscript**:
-   - Paper manuscript: `paper/paper.md`
-   - Bibliography: `paper/paper.bib`
-   - Status: In-tree draft (*JOSS DOI not yet published / to be assigned upon review*).
-
----
-
-### Replication Protocols & Claim-to-Evidence Registry
-
-- **Claim-to-Evidence Registry**: All public claims, evidence tiers (`THEORETICAL`, `UNIT_VERIFIED`, `PROPERTY_VERIFIED`, `CONFORMANCE_VERIFIED`, `BENCHMARKED`, `CALIBRATED`, `EXTERNALLY_REPRODUCED`, `UNVERIFIED_RESEARCH`), and verification commands are cataloged in [`docs/scientific/claim-evidence-matrix.md`](scientific/claim-evidence-matrix.md).
-- **Replication Templates (Prepared for External Review — Not Yet Externally Replicated)**:
-  - MLRC protocol template: [`docs/scientific/mlrc_2026_replication_pkg.md`](scientific/mlrc_2026_replication_pkg.md).
-  - ReScience C template: [`docs/scientific/rescience_c_submission.md`](scientific/rescience_c_submission.md).
-  - ACM Artifact Appendix template: [`docs/scientific/acm_artifact_appendix.md`](scientific/acm_artifact_appendix.md).
-  - Pre-registered study protocol: [`docs/scientific/registered_report_protocol.md`](scientific/registered_report_protocol.md).
+All public scientific and engineering claims, evidence tiers (`THEORETICAL`, `UNIT_VERIFIED`, `PROPERTY_VERIFIED`, `CONFORMANCE_VERIFIED`, `BENCHMARKED`, `CALIBRATED`, `EXTERNALLY_REPRODUCED`, `UNVERIFIED_RESEARCH`), explicit boundary conditions, and executable verification commands are cataloged in [`docs/scientific/claim-evidence-matrix.md`](scientific/claim-evidence-matrix.md).
 
 ---
 
@@ -112,14 +48,14 @@ EWM Engine includes two manuscript drafts in-tree (*neither has been assigned an
 
 ### Single-Command Reproduction Layer
 
-Anyone, on any machine, reproduces our published numbers and fingerprints via:
+Published validation cards, WMIF reference worlds, and the 12-family Enterprise Benchmark Suite can be reproduced via:
 
-| Method | Environment | Command / Link | Output |
+| Method | Environment | Command | Output |
 | :--- | :--- | :--- | :--- |
-| **Interactive Jupyter** | In-Browser Binder | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb) | Interactive verification & SVG figures |
-| **Cloud Codespaces** | GitHub Cloud | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/vfcarida/Enterprise-World-Model-Engine) | Complete dev container |
-| **Local Terminal** | Python 3.10–3.12 | `make reproduce` | `reproduction_manifest.json` |
-| **Pinned Docker** | Docker Engine | `docker run --rm -v $(pwd):/app ewm-engine:pinned` | Verified run-manifest |
+| **Local CLI (`uv`)** | Python 3.11–3.13 | `uv run python scripts/reproduce.py` | `reproduction_manifest.json` |
+| **Benchmark Suite** | Python 3.11–3.13 | `uv run python -m benchmarks.enterprise_suite --seed 42` | `docs/results/artifacts/enterprise_benchmark_suite.json` |
+| **Pinned Docker** | Docker Engine | `docker build -t ewm-engine:pinned -f Dockerfile . && docker run --rm ewm-engine:pinned` | Verified run-manifest |
+
 
 ---
 

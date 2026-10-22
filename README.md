@@ -12,16 +12,11 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/ewm-engine/"><img src="https://img.shields.io/pypi/v/ewm-engine?color=blue&label=PyPI" alt="PyPI Version"></a>
-  <a href="https://pypi.org/project/ewm-engine/"><img src="https://img.shields.io/pypi/pyversions/ewm-engine?style=flat" alt="Python Versions"></a>
-  <a href="https://pepy.tech/project/ewm-engine"><img src="https://static.pepy.tech/badge/ewm-engine" alt="PyPI Downloads"></a>
   <a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/vfcarida/Enterprise-World-Model-Engine/ci.yml?branch=main&label=CI&style=flat" alt="CI Status"></a>
   <a href="https://vfcarida.github.io/Enterprise-World-Model-Engine/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue?style=flat" alt="Documentation"></a>
+  <a href="pyproject.toml"><img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue?style=flat" alt="Python Versions"></a>
   <a href="scripts/check_coverage.py"><img src="https://img.shields.io/badge/coverage-%E2%89%A585%25%20gated-success?style=flat" alt="Coverage Gate"></a>
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/types-mypy%20strict-1f2937?style=flat" alt="Mypy Strict"></a>
-  <a href="docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md"><img src="https://img.shields.io/badge/SLSA-Build%20L2%2B-blue?style=flat" alt="SLSA L2+"></a>
-  <a href="https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb"><img src="https://mybinder.org/badge_logo.svg" alt="Launch Binder"></a>
-  <a href="https://codespaces.new/vfcarida/Enterprise-World-Model-Engine"><img src="https://github.com/codespaces/badge.svg" alt="Open in GitHub Codespaces"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat" alt="License: Apache-2.0"></a>
 </p>
 
@@ -69,7 +64,7 @@ When an organization changes dispatch rules, reallocates working capital, or rer
 - **Current Release:** `v1.5.0` (`Development Status :: 4 - Beta`, Apache-2.0 License)
 - **Supported Runtime:** Python `>=3.11` (`3.11`, `3.12`, `3.13`) and NumPy `>=1.26.0` under [Scientific Python SPEC 0](docs/spec0-policy.md)
 - **Core Dependencies:** `pydantic>=2.6.0`, `numpy>=1.26.0`, `pyyaml>=6.0` (zero mandatory ML, solver, or cloud dependencies in core)
-- **Verification Gates:** Strict `mypy` typing, `ruff` lint/format, `>=85%` branch coverage gate (`>=90%` on core modules), Hypothesis property/metamorphic tests, selective mutation ratchet (`scripts/run_mutation_gate.py`), untrusted-input fuzz smoke (`scripts/run_fuzz_smoke.py`), and a 19-claim [Claim-to-Evidence Registry](docs/scientific/claim-evidence-matrix.md).
+- **Verification Gates:** Strict `mypy` typing, `ruff` lint/format, `>=85%` branch coverage gate (`>=90%` on core modules), Hypothesis property/metamorphic tests, selective mutation ratchet ([`scripts/run_mutation_gate.py`](scripts/run_mutation_gate.py)), untrusted-input fuzz smoke ([`scripts/run_fuzz_smoke.py`](scripts/run_fuzz_smoke.py)), and an 18-claim [Claim-to-Evidence Registry](docs/scientific/claim-evidence-matrix.md).
 
 ---
 
@@ -87,10 +82,12 @@ When an organization changes dispatch rules, reallocates working capital, or rer
 
 ## 5. Minimal Seeded Quickstart
 
-Install the core package:
+Install the core package from source:
 
 ```bash
-pip install ewm-engine
+git clone https://github.com/vfcarida/Enterprise-World-Model-Engine.git
+cd Enterprise-World-Model-Engine
+pip install -e .
 ```
 
 Simulate a deterministic baseline against a counterfactual resource transfer intervention in 12 lines of seeded Python:
@@ -203,7 +200,7 @@ flowchart LR
 - **State & Context (`ewm_engine.core`):** Immutable `WorldState` snapshots with canonical SHA-256 fingerprints, `ContextSnapshot` ($K_t$), `ObservationFilter`, and $O(1)$ isolated `world.branch()` snapshots (`AC-005`).
 - **Constraints (`ewm_engine.constraints`):** `PRE_ACTION` and `POST_TRANSITION` validation gates with `HARD` and `SOFT` severities (`AC-006`–`AC-008`).
 - **Dynamics (`ewm_engine.dynamics`):** Pluggable `DynamicsModel` protocol supporting deterministic rules, stochastic processes, and `LearnedDynamics` residuals with `InfeasibleResidualPolicy` enforcement.
-- **Simulation & Counterfactuals (`ewm_engine.simulation`):** Hierarchical `SeedSequence` Monte Carlo rollouts, Pearlian three-step `StructuralCausalModel` twin rollouts, receding-horizon control (`MPC`), and three-tier array backends.
+- **Simulation & Counterfactuals (`ewm_engine.simulation`):** Hierarchical `SeedSequence` Monte Carlo rollouts, Pearlian three-step `StructuralCausalModel` twin rollouts, receding-horizon control (`RecedingHorizonSimulator`), and three-tier array backends.
 - **Evaluation & Decision (`ewm_engine.evaluation`, `ewm_engine.decision`):** Paired/independent bootstrap confidence intervals, split-conformal intervals, safe-testing e-processes, PRIM scenario vulnerability discovery, and multi-metric robustness analysis.
 - **Provenance & Cards (`ewm_engine.provenance`, `ewm_engine.cards`):** Inspectable `SystemicTrace` DAGs tagged with `EvidenceLevel` tiers and Mitchell/Gebru/Croissant-compliant `ModelCard`, `DatasetCard`, and `ScenarioCard` artifacts.
 
@@ -217,7 +214,7 @@ Capabilities are governed across three explicit stability tiers ([Stability Poli
 
 | Tier | Guarantee & Namespace | Representative Subsystems |
 | :--- | :--- | :--- |
-| **Stable (`1.x`)** | Backward-compatible root public API (`ewm_engine.__all__`), deterministic CPU execution, zero mandatory ML/solver extras | Core simulation kernel, `World` & immutable `WorldState`, phase-aware `ConstraintEngine`, `DeterministicTransferDynamics`, `compare_scenarios` (5 bootstrap methods + 6-part uncertainty taxonomy), `SplitConformalCalibrator`, `SystemicTrace`, JSON Schema Draft 2020-12 & safe YAML loader, event-sourced `TraceLog`/`ResultStore`, `ModelCard`/`DatasetCard`/`ScenarioCard`, OR-Tools/SciPy/Z3/Gymnasium adapters, FMI/SimPy/Mesa/PySD co-simulation, reporting & FastAPI service |
+| **Stable (`1.x`)** | Backward-compatible root public API (`ewm_engine.__all__`), deterministic CPU execution, zero mandatory ML/solver extras | Core simulation kernel, `World` & immutable `WorldState`, phase-aware `ConstraintRegistry`, `DeterministicTransferDynamics`, `compare_scenarios` (5 bootstrap methods + 6-part uncertainty taxonomy), `ConformalIntervalPredictor`, `SystemicTrace`, JSON Schema Draft 2020-12 & safe YAML loader, event-sourced `TraceLog`/`ResultStore`, `ModelCard`/`DatasetCard`/`ScenarioCard`, OR-Tools/SciPy/Z3/Gymnasium adapters, FMI/SimPy/Mesa/PySD co-simulation, reporting & FastAPI service |
 | **In-Tree Beta (`1.5.0`)** | Verified by unit, contract, and benchmark suites; domain-specific optional extras (`[calibrate]`, `[causal]`, `[induction]`, `[dsl]`, `[mcp]`) | Twin-Rollout Counterfactual SCM (`ewm_engine.simulation.counterfactual`), Grey-Box `ConservationProjectionLayer` & SINDy flywheel, PRIM scenario discovery & multi-metric robustness (`ewm decide`), Amortized SBI calibration & TARP diagnostics (`ewm calibrate`), OCEL 2.0 / causal / invariant induction with refusal gate (`ewm induce`), World Specification Language (`.wsl`) & WMIF v1.0 conformance, MCP stdio server (`ewm mcp`), 12-family Enterprise Benchmark Suite (A–L) |
 | **Experimental (`ewm_engine.experimental.*`)** | Research prototypes isolated behind optional extras (`[ml]`, `[jax]`, `[cuda]`); interfaces may evolve across minor releases | `TorchNeuralResidualDynamics` (PyTorch MLP residual with symlog scaling), `GraphNeuralDynamics` (heterogeneous relational GNN), `JaxBackend` (`NUMERICALLY_EQUIVALENT_WITH_TOLERANCE`), `CuPyBackend` (`NON_CERTIFIED_BACKEND`) |
 
@@ -282,9 +279,7 @@ python scripts/check_release_truth.py
 | Environment | Launch / Command | Scope |
 | :--- | :--- | :--- |
 | **Local CLI (`uv`)** | `uv run python scripts/reproduce.py` | Verifies [`reproduction_manifest.json`](reproduction_manifest.json) (`CERTIFIED_RELEASE` on clean git worktrees; `REPRODUCIBLE_DIRTY_WORKTREE` when uncommitted edits exist) |
-| **Interactive Binder** | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb) | Executes reproduction notebook in browser |
-| **GitHub Codespaces** | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/vfcarida/Enterprise-World-Model-Engine) | Pre-configured container dev environment |
-| **Pinned Docker** | `docker run --rm -v $(pwd):/app ewm-engine:pinned` | Isolated Linux `float64` container with `OMP_NUM_THREADS=1` |
+| **Pinned Docker** | `docker build -t ewm-engine:pinned -f Dockerfile . && docker run --rm ewm-engine:pinned` | Isolated Linux `float64` container ([`Dockerfile`](Dockerfile)) with `OMP_NUM_THREADS=1` |
 
 See the [Reproducibility & Citation Guide](docs/reproducibility.md) and [Performance & Reproducibility Contract](docs/performance.md).
 
@@ -292,32 +287,18 @@ See the [Reproducibility & Citation Guide](docs/reproducibility.md) and [Perform
 
 ## 12. Security, Governance & Contributing
 
-- **Supply-Chain & Runtime Security ([SECURITY.md](SECURITY.md), [ADR-034](docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md)):** Safe YAML deserialization (`StrictSafeLoader`), closed `WorldFactory` registries (`AC-003`), 100% 40-char commit-SHA pinned GitHub Actions (`scripts/check_action_pins.py`), least-privilege workflow permissions, CodeQL, OSSF Scorecard, `pip-audit`, OSV-Scanner/Grype, CycloneDX + Syft SBOMs, and PyPI OIDC Trusted Publishing with PEP 740 / SLSA build provenance attestations.
-- **Contributing & Governance:** Contributions are welcome! Review [CONTRIBUTING.md](CONTRIBUTING.md), [GOVERNANCE.md](GOVERNANCE.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SPEC 0 Support Policy](docs/spec0-policy.md), and [Deprecation Policy](docs/deprecation-policy.md).
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/vfcarida"><img src="https://avatars.githubusercontent.com/u/1043329?v=4" width="100px;" alt="Vinicius Caridá"/><br /><sub><b>Vinicius Caridá</b></sub></a><br /><a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/commits?author=vfcarida" title="Code">💻</a> <a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/commits?author=vfcarida" title="Documentation">📖</a> <a href="#design-vfcarida" title="Design">🎨</a> <a href="#ideas-vfcarida" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-vfcarida" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#maintenance-vfcarida" title="Maintenance">🚧</a> <a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/pulls?q=is%3Apr+reviewed-by%3Avfcarida" title="Reviewed Pull Requests">👀</a> <a href="#security-vfcarida" title="Security">🛡️</a> <a href="https://github.com/vfcarida/Enterprise-World-Model-Engine/commits?author=vfcarida" title="Tests">⚠️</a></td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+- **Runtime & Deserialization Safety ([SECURITY.md](SECURITY.md), [ADR-034](docs/adr/ADR-034-supply-chain-security-provenance-and-vulnerability-management.md)):** Safe YAML deserialization via [`StrictSafeLoader`](src/ewm_engine/serialization/yaml.py) (rejecting custom tags and arbitrary object instantiation) and closed [`WorldFactory`](src/ewm_engine/core/spec.py) component registries (`AC-003`, verified by [`tests/contract/test_serialization_roundtrip.py`](tests/contract/test_serialization_roundtrip.py)).
+- **CI & Supply-Chain Workflows:** 40-character commit-SHA pinned GitHub Actions enforced by [`scripts/check_action_pins.py`](scripts/check_action_pins.py), least-privilege `permissions: contents: read` across workflows, static workflow auditing (`zizmor`) and dependency auditing (`pip-audit`) in [`.github/workflows/ci.yml`](.github/workflows/ci.yml), CodeQL analysis in [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml), scheduled OSSF Scorecard checks in [`.github/workflows/scorecard.yml`](.github/workflows/scorecard.yml), OSV-Scanner/Grype scans in [`.github/workflows/vulnerability-scan.yml`](.github/workflows/vulnerability-scan.yml), and release workflow definitions for CycloneDX/Syft SBOM generation, SLSA build provenance attestation, and OIDC publishing in [`.github/workflows/release.yml`](.github/workflows/release.yml).
+- **Contributing & Governance:** Review [CONTRIBUTING.md](CONTRIBUTING.md), [GOVERNANCE.md](GOVERNANCE.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SPEC 0 Support Policy](docs/spec0-policy.md), and [Deprecation Policy](docs/deprecation-policy.md).
+- **Maintainer:** [Vinicius Caridá](https://github.com/vfcarida)
 
 ---
 
 <a id="citation"></a>
 
-## 13. Citation & Publication Status
+## 13. Citation
 
-If you use `ewm-engine` in research or technical evaluations, please cite the software via [`CITATION.cff`](CITATION.cff) or the BibTeX entry below:
+If you use `ewm-engine` in research or technical evaluations, please cite the software repository via [`CITATION.cff`](CITATION.cff) or the BibTeX entry below:
 
 ```bibtex
 @software{carida2026ewmengine,
@@ -330,7 +311,3 @@ If you use `ewm-engine` in research or technical evaluations, please cite the so
 }
 ```
 
-- **In-Tree Companion Manuscripts (Drafts — Not Yet Externally Published):**
-  - *Methods & Benchmark Manuscript*: [`paper/arxiv/paper.md`](paper/arxiv/paper.md) and [`paper/arxiv/paper.tex`](paper/arxiv/paper.tex) (*arXiv identifier not yet assigned*).
-  - *JOSS Software Manuscript*: [`paper/paper.md`](paper/paper.md) and [`paper/paper.bib`](paper/paper.bib) (*JOSS DOI not yet assigned*).
-- **External Archival Metadata:** Configured in [`.zenodo.json`](.zenodo.json) and [`docs/scientific/swhid.md`](docs/scientific/swhid.md) (*Zenodo DOI and public SWHID not yet minted*).

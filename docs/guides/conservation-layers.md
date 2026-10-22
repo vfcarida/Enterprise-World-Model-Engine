@@ -18,13 +18,19 @@ For $D$ state variables where certain groups must sum to zero (e.g. transfers, d
 
 ```python
 import numpy as np
-from ewm_engine.experimental.conservation import ConservationLayer
+from ewm_engine.experimental.conservation import (
+    ConservationProjectionLayer,
+    LinearConservationLaw,
+)
 
 # Example: 3 accounts (Cash, Accounts Receivable, Inventory).
 # Total enterprise liquid asset value must be invariant under internal reallocation:
 # delta_cash + delta_ar + delta_inv = 0
-A = np.array([[1.0, 1.0, 1.0]])
-layer = ConservationLayer(conservation_matrix=A)
+law = LinearConservationLaw(
+    matrix=np.array([[1.0, 1.0, 1.0]]),
+    resource_ids=["cash", "ar", "inv"],
+)
+layer = ConservationProjectionLayer(laws=[law])
 ```
 
 ### Step 2: Project Raw Dynamics Deltas
