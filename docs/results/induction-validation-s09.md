@@ -67,6 +67,8 @@ The induction validation gate was evaluated against rigorous controls to verify 
 {
   "card": "induction_validation_s09",
   "validation_passed": false,
+  "all_candidates_admitted": false,
+  "gate_outcome": "REFUSED_UNIDENTIFIABLE_AS_DESIGNED",
   "admitted_elements_count": 7,
   "refused_elements_count": 2,
   "open_questions_count": 2,
@@ -76,9 +78,21 @@ The induction validation gate was evaluated against rigorous controls to verify 
   "causes_string_emitted": 0,
   "byte_identical_reproducibility": true,
   "sha256_fingerprint": "478e28f89ffd0022ebc5d379307da85a85e234ac68a23f03efb249a793111d90",
-  "status": "PASSED"
+  "status": "PASSED",
+  "card_verification_status": "PASSED_REFUSAL_GATE_VERIFIED",
+  "status_explanation": "validation_passed=False (all_candidates_admitted=False) means 2 negative-control unidentifiable/confounded edges were refused from WorldSpec and surfaced as 2 open questions (`gate_outcome='REFUSED_UNIDENTIFIABLE_AS_DESIGNED'`). status='PASSED' (`card_verification_status='PASSED_REFUSAL_GATE_VERIFIED'`) means the benchmark card verified that the positive control was admitted and negative controls were refused as designed."
 }
 ```
+
+### Status Vocabulary & Dual-Status Semantics
+
+Because this validation card intentionally feeds **both** an identifiable positive control and two unidentifiable/confounded negative controls into `InductionValidationGate`, the card distinguishes **candidate-graph admission status** from **benchmark-card verification status**:
+
+| Field | Value on Card `S09` | Exact Meaning |
+| :--- | :--- | :--- |
+| `validation_passed` / `all_candidates_admitted` | `false` | Whether *every* candidate element in the input `InductionReport` cleared `ASSERTED` with zero refusals. `false` because the 2 negative-control edges (`var_a --- var_b` and `var_c <-> var_d`) were refused from `WorldSpec`. |
+| `gate_outcome` | `"REFUSED_UNIDENTIFIABLE_AS_DESIGNED"` | Explicit `InductionGateOutcome` vocabulary (`ALL_CANDIDATES_ADMITTED` vs. `REFUSED_UNIDENTIFIABLE_AS_DESIGNED`), recording that the fail-closed gate withheld unasserted structure and surfaced 2 `OpenQuestion` records. |
+| `status` / `card_verification_status` | `"PASSED"` / `"PASSED_REFUSAL_GATE_VERIFIED"` | Whether the reproduction benchmark card passed its verification assertions (positive control admitted, 3/3 DoWhy refuters passed, 2/2 negative controls refused, 0 `"causes"` edges emitted, and byte-identical SHA-256 fingerprint). |
 
 - **Hard Constraint Leaks Admitted**: Exactly $0$. Leaky invariants are rejected.
 - **Forbidden `"causes"` Edge**: Exactly $0$. Zero overclaiming edges emitted into `WorldSpec`.

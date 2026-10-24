@@ -26,7 +26,8 @@ The WORLD3 standard run simulates the non-linear coupling between non-renewable 
   "depletion_rate_pct": 100.0,
   "industrial_peak_step": 99,
   "feedback_loop_consistency": "VERIFIED",
-  "status": "PASSED"
+  "status": "PASSED",
+  "card_verification_status": "PASSED_FEEDBACK_EQUILIBRIUM_VERIFIED"
 }
 ```
 

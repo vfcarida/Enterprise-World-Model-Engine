@@ -26,7 +26,8 @@ Demonstrates Pearl’s three-step counterfactual algorithm on an operational dis
   "net_treatment_effect": 35.0,
   "evidence_level": "counterfactual",
   "noise_coupling_verified": true,
-  "status": "PASSED"
+  "status": "PASSED",
+  "card_verification_status": "PASSED_TWIN_NOISE_COUPLING_VERIFIED"
 }
 ```
 

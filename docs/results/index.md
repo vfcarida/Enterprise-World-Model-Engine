@@ -45,6 +45,17 @@ Every result card below is backed by a committed, seeded Python test harness and
 | **Scenario Discovery (PRIM)** | Robust Decision Making & Regret (Friedman & Fisher 1999) | **Box Density = 91.2%**<br>(Coverage = 80.0%) | `python scripts/reproduce_results.py --card decision_discovery` | [View Card](decision-discovery-s02.md) |
 | **Induction Validation & Refusal** | Automated Causal Discovery (Pearl Rung-3) | **Refusal Rate = 100% on Leaks**<br>(Zero Unasserted Links) | `python scripts/reproduce_results.py --card induction_validation` | [View Card](induction-validation-s09.md) |
 
+### 2.1 ADR-053 / ADR-054 Decision-First & Enterprise Evidence Layer
+
+Every ADR-053/054 benchmark artifact is generated from executable code, verified by `scripts/reproduce.py`, and fingerprinted in `reproduction_manifest.json`:
+
+| Evidence Suite | Backing JSON Artifact | Headline Measured Result | Reproduction Command | Report Link |
+| :--- | :--- | :--- | :--- | :--- |
+| **12-Family Enterprise Suite (A–L)** | [`artifacts/enterprise_benchmark_suite.json`](artifacts/enterprise_benchmark_suite.json) | **12/12 Leakage Certificates Passed**<br>(Family D Recovery = 2 steps) | `python benchmarks/enterprise_suite.py` | [Enterprise Suite](../research/enterprise-benchmark-suite.md) |
+| **Flagship Cascade (Fraud → Declines → Call Center)** | [`artifacts/fraud_cascade_flagship.json`](artifacts/fraud_cascade_flagship.json) | **Myopic Regret = \$124,774.05 vs. EWM Regret = \$0.00**<br>(6/6 Mechanism Recovery Checks Passed) | `python scripts/run_fraud_cascade_flagship.py` | [Flagship Scenario](../reference/fraud-cascade-scenario.md) |
+| **Decision-First Comparative Evaluation (5 Rungs + 4 Baselines + 6 Ablations)** | [`artifacts/comparative_evaluation_ladder.json`](artifacts/comparative_evaluation_ladder.json) | **Rung 1→3 Call MAE -91.49% with \$0.00 Regret Change**<br>(4/4 Negative Results Confirmed) | `python scripts/run_comparative_evaluation.py` | [Comparative Evaluation](decision-first-comparative-evaluation.md) |
+| **Validity Limits (Performativity, Endogeneity & Stylized Adaptation)** | [`reproduction_manifest.json`](reproduction_manifest.json) (`validity_limits_evaluation`) | **Forecast Invalidation at Step 2; SLA Breach at Step 11**<br>(Utility Erosion = \$107,539.60) | `pytest tests/unit/test_validity_limits.py` | [Demarcation & Validity](../explanation/what-is-an-ewm.md) |
+
 ---
 
 ## 3. Visual Gallery Artifacts

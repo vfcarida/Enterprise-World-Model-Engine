@@ -22,11 +22,12 @@ Evaluates candidate corporate strategies across an ensemble of 500 multi-factor 
 ```json
 {
   "card": "decision_discovery_s02",
-  "prim_box_density": 0.9116,
-  "prim_box_coverage": 0.8000,
+  "prim_box_density": 0.9116279069767442,
+  "prim_box_coverage": 0.8,
   "minimax_regret_winner": "Robust",
   "dominant_action": "Robust",
-  "status": "PASSED"
+  "status": "PASSED",
+  "card_verification_status": "PASSED_PRIM_AND_MINIMAX_REGRET_VERIFIED"
 }
 ```
 

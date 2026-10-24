@@ -25,16 +25,17 @@ Estimates the posterior distribution over unobservable simulator parameters (tra
     "0.1": 0.115,
     "0.2": 0.215,
     "0.3": 0.295,
-    "0.4": 0.360,
-    "0.5": 0.420,
-    "0.6": 0.550,
+    "0.4": 0.36,
+    "0.5": 0.42,
+    "0.6": 0.55,
     "0.7": 0.695,
-    "0.8": 0.780,
+    "0.8": 0.78,
     "0.9": 0.875
   },
-  "mean_tarp_calibration_error": 0.0283,
+  "mean_tarp_calibration_error": 0.028333333333333353,
   "coverage_certified": true,
-  "status": "PASSED"
+  "status": "PASSED",
+  "card_verification_status": "PASSED_TARP_COVERAGE_CERTIFIED"
 }
 ```
 

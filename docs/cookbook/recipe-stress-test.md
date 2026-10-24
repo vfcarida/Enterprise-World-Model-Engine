@@ -26,7 +26,9 @@ def execute_stress_test_recipe(num_samples: int = 1000) -> None:
     result = run_prim(points=points, targets=failures, parameter_space=space, alpha=0.05)
     box = result.selected_box
 
-    print(f"Evaluated Runs: {num_samples} | Subspace Density: {box.density:.1%} | Coverage: {box.coverage:.1%}")
+    print(
+        f"Evaluated Runs: {num_samples} | Subspace Density: {box.density:.1%} | Coverage: {box.coverage:.1%}"
+    )
 
 
 if __name__ == "__main__":

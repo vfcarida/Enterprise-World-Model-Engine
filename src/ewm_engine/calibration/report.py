@@ -43,6 +43,10 @@ class CalibrationReport(BaseModel):
     misspecification_diagnostic: dict[str, Any] = Field(
         description="Diagnostic metrics evaluating simulator generative support consistency."
     )
+    abstention_decision: dict[str, Any] | None = Field(
+        default=None,
+        description="Optional structured ValidityLimitAbstentionDecision ('DO_NOT_USE_ME_HERE' when uncertified or misspecified).",
+    )
     run_manifest: dict[str, Any] = Field(
         default_factory=dict, description="Deterministic run manifest for exact reproduction."
     )

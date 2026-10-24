@@ -22,7 +22,12 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ewm_engine.core._canonical import canonical_sha256, normalize_canonical_value
 from ewm_engine.core.actions import Action, Intervention
-from ewm_engine.core.trust import ResponsibleAIWarning
+from ewm_engine.core.trust import ResponsibleAIWarning, validate_dependency_for_query
+from ewm_engine.provenance.evidence import (
+    DependencyEvidenceNature,
+    DependencyQueryKind,
+    EvidenceLevel,
+)
 
 if TYPE_CHECKING:
     from ewm_engine.core.spec import WorldSpec
@@ -205,9 +210,42 @@ class StructuralAssignment(BaseModel):
         default="",
         description="Human-readable mathematical or structural description of the mechanism.",
     )
+    evidence_nature: DependencyEvidenceNature = Field(
+        default=DependencyEvidenceNature.KNOWN_FUNCTIONAL,
+        description="Nature of evidence backing this assignment (defaults to KNOWN_FUNCTIONAL for structural equations).",
+    )
+    is_identifiable: bool = Field(
+        default=True,
+        description="Whether causal identifiability holds for this assignment.",
+    )
+    overlap_satisfied: bool = Field(
+        default=True,
+        description="Whether positivity / common support holds for this assignment.",
+    )
+    identification_provenance: str | None = Field(
+        default=None,
+        description="Explicit causal identification provenance when required.",
+    )
     fingerprint: str = Field(
         default="", description="Canonical SHA-256 fingerprint of the assignment."
     )
+
+    def validate_for_query(
+        self,
+        query_kind: DependencyQueryKind,
+        *,
+        strict: bool = True,
+    ) -> EvidenceLevel:
+        """Validate that this assignment's evidence nature permits ``query_kind``."""
+        return validate_dependency_for_query(
+            evidence_nature=self.evidence_nature,
+            query_kind=query_kind,
+            is_identifiable=self.is_identifiable,
+            overlap_satisfied=self.overlap_satisfied,
+            identification_provenance=self.identification_provenance,
+            dependency_id=f"{self.mechanism_id}:{self.target}",
+            strict=strict,
+        )
 
     def evaluate(self, parent_values: dict[str, Any], u_value: Any = None) -> Any:
         """Evaluate structural assignment under given parent and exogenous noise values."""
@@ -420,11 +458,16 @@ class StructuralCausalModel(BaseModel):
     def intervene(
         self,
         intervention: dict[str, Any] | Sequence[Action] | Intervention,
+        *,
+        enforce_evidence_gate: bool = True,
     ) -> StructuralCausalModel:
         """Perform Pearl's causal surgery do(X = x) on this structural causal model.
 
         Surgery replaces the structural assignments for intervened variables with constant
         values, severing all incoming directed parent edges in the causal graph.
+        When ``enforce_evidence_gate=True``, verifies that no downstream assignment (or
+        explicitly tagged target assignment) relies on a ``STATISTICAL_ASSOCIATION`` or
+        unidentified ``CAUSAL_HYPOTHESIS``.
         """
         # 1. Parse intervened variables and target forced values
         intervened_map: dict[str, Any] = {}
@@ -443,6 +486,25 @@ class StructuralCausalModel(BaseModel):
                         k if (":" in k or k in self.causal_graph.nodes) else f"resource:{k}"
                     )
                     intervened_map[target_key] = v
+
+        if enforce_evidence_gate:
+            checked_targets: set[str] = set()
+            for tgt in intervened_map:
+                downstream = set(self.causal_graph.descendants(tgt))
+                for cand_key, cand_asgn in self.assignments.items():
+                    if tgt in cand_asgn.parents or cand_key in downstream:
+                        if cand_key not in checked_targets:
+                            cand_asgn.validate_for_query(
+                                DependencyQueryKind.INTERVENTIONAL_DO, strict=True
+                            )
+                            checked_targets.add(cand_key)
+                if tgt in self.assignments and tgt not in checked_targets:
+                    tgt_asgn = self.assignments[tgt]
+                    if tgt_asgn.evidence_nature != DependencyEvidenceNature.KNOWN_FUNCTIONAL:
+                        tgt_asgn.validate_for_query(
+                            DependencyQueryKind.INTERVENTIONAL_DO, strict=True
+                        )
+                    checked_targets.add(tgt)
 
         # 2. Clone causal graph and sever incoming edges to intervened variables
         mutilated_graph = CausalGraph(

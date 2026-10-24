@@ -51,25 +51,26 @@ Capabilities in EWM Engine are classified under explicit, strictly enforced matu
 | **Platform Interoperability (T5)** | **Stable (v1.5.0)** | Master co-simulation stepping loop (CORE), FMI 3.0 / FMU adapter, SimPy/DiscreteEvent, Mesa, and PySD (ADR-029) |
 | **Multi-Agent Coordination (T6)** | **Stable (v1.5.0)** | Multi-actor observation/action views, deterministic mediator, support-enumeration Nash & RK4 replicator dynamics, PettingZoo, OpenSpiel, and Concordia (ADR-029) |
 | **Reporting & Serving (T7, T8)** | **Stable (v1.5.0)** | Pydantic `ReportModel`, interactive fan charts (Plotly + standalone HTML), local multiprocessing `JobRunner`, and REST simulation service (ADR-029) |
-| **Learned-Dynamics Eval Harness**| **In-Tree (v1.5.0 — Beta)** | Multi-step rollout divergence, invariant verification, and dataset collection (ADR-019) |
+| **Learned-Dynamics Eval Harness**| **Stable (v1.5.0)** | Multi-step rollout divergence, invariant verification, and dataset collection (ADR-019) |
 | **Torch Neural Residual Baseline**| **In-Tree (v1.5.0 — Experimental)** | PyTorch MLP residual baseline with symlog scaling (`[ml]` extra, ADR-019) |
-| **Scientific Benchmark Families**| **In-Tree (v1.5.0 — Beta)** | 5 scientific shift benchmark families probing structural dynamics under change |
-| **Planning & Controller Layer** | **In-Tree (v1.5.0 — Beta)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control (ADR-020) |
-| **OOD & Regime-Shift Detection** | **In-Tree (v1.5.0 — Beta)** | Grounded-regime detection (support bounds, Mahalanobis covariance, ADR-021) |
-| **Honest Causal Diagnostics** | **In-Tree (v1.5.0 — Beta)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling (ADR-021) |
-| **Counterfactual SCM Kernel** | **In-Tree (v1.5.0 — Beta)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040, AC-033) |
-| **Grey-Box Dynamics & Conservation** | **In-Tree (v1.5.0 — Beta)** | Residual-only learning, hard nullspace projection for conservation laws, SINDy promotion (FEAT-010, ADR-042, AC-034) |
-| **Causal-Correctness & Metamorphic Suite** | **In-Tree (v1.5.0 — Beta)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044, AC-035) |
-| **Decision Scenario Discovery** | **In-Tree (v1.5.0 — Beta)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (`ewm decide`, FEAT-009, ADR-041, AC-036) |
-| **Amortized Calibration & TARP Coverage** | **In-Tree (v1.5.0 — Beta)** | Simulation-Based Inference, empirical coverage via TARP/Posterior-SBC, misspecification refusal (`ewm calibrate`, FEAT-011, ADR-043, AC-037) |
-| **World-Model Induction & Honesty Gate** | **In-Tree (v1.5.0 — Beta)** | Process/causal/dynamics/invariant induction from logs with strict review gate (`ewm induce`, ADR-046–ADR-049, AC-038) |
-| **Model Context Protocol (MCP) Server** | **In-Tree (v1.5.0 — Beta)** | Agent tool server exposing world loading, counterfactual simulation, and epistemic checks (`ewm mcp`, ADR-045, AC-039) |
-| **Scientific Results Gallery & Benchmarks** | **In-Tree (v1.5.0 — Beta)** | CI-reproducible gallery, NeurIPS D&B checklist, companion methods manuscript (FEAT-012, ADR-044) |
+| **Scientific Benchmark Families**| **Stable (v1.5.0)** | 5 scientific shift benchmark families probing structural dynamics under change |
+| **Planning & Controller Layer** | **Stable (v1.5.0)** | Pluggable rollout scorers (CVaR, constraint-penalized) & receding-horizon control (ADR-020) |
+| **OOD & Regime-Shift Detection** | **Stable (v1.5.0)** | Grounded-regime detection (support bounds, Mahalanobis covariance, ADR-021) |
+| **Honest Causal Diagnostics** | **Stable (v1.5.0)** | Backdoor identifiability, positivity checks, and Twin Rollout noise coupling (ADR-021) |
+| **Counterfactual SCM Kernel** | **Stable (v1.5.0)** | Native Pearlian SCM, Abduction-Action-Prediction with coupled noise, identifiability gate (FEAT-008, ADR-040, AC-033) |
+| **Grey-Box Dynamics & Conservation** | **Stable (v1.5.0)** | Residual-only learning, hard nullspace projection for conservation laws, SINDy promotion (FEAT-010, ADR-042, AC-034) |
+| **Causal-Correctness & Metamorphic Suite** | **Stable (v1.5.0)** | do(x)-descendant selectivity, label-free MR cards, epistemic abstention, Physics-IQ (FEAT-012, ADR-044, AC-035) |
+| **Decision Scenario Discovery** | **Stable (v1.5.0)** | PRIM bump-hunting vulnerability boxes, multi-robustness metric comparison, EFE (`ewm decide`, FEAT-009, ADR-041, AC-036) |
+| **Amortized Calibration & TARP Coverage** | **Stable (v1.5.0)** | Simulation-Based Inference, empirical coverage via TARP/Posterior-SBC, misspecification refusal (`ewm calibrate`, FEAT-011, ADR-043, AC-037) |
+| **World-Model Induction & Honesty Gate** | **Stable (v1.5.0)** | Process/causal/dynamics/invariant induction from logs with strict review gate (`ewm induce`, ADR-046–ADR-049, AC-038) |
+| **Model Context Protocol (MCP) Server** | **Stable (v1.5.0)** | Agent tool server exposing world loading, counterfactual simulation, explanation verification, and abstention checks (`ewm mcp`, ADR-045, AC-039) |
+| **Scientific Results Gallery & Benchmarks** | **Stable (v1.5.0)** | CI-reproducible gallery, NeurIPS D&B checklist, 28-claim Claim-to-Evidence Registry (FEAT-012, ADR-044) |
 | **Heterogeneous Graph State & GNN**| **In-Tree (v1.5.0 — Experimental)**| Relational graph state representation, schema migration, and GNN dynamics (FEAT-003, ADR-022) |
-| **World Specification Language (WSL)**| **In-Tree (v1.5.0 — Beta)**| Declarative safe YAML/JSON & authored `.wsl` grammar, zero-dep fallback parser, compiler, and WMIF (FEAT-003, ADR-023, ADR-051, AC-040) |
-| **Batched SoA Scale & 3-Tier Reproducibility**| **In-Tree (v1.5.0 — Beta)**| Vectorized Structure-of-Arrays (SoA) kernel and 3-tier numerical certification (`BITWISE_REPRODUCIBLE`, `NUMERICALLY_EQUIVALENT_WITH_TOLERANCE`, `NON_CERTIFIED_BACKEND`, ADR-050) |
-| **Context-Aware Hybrid World-Model Semantics**| **Stable / In-Tree (v1.5.0)**| Formal 6-part state $(S_t, O_t, B_t, P_t, K_t, A_t)$, `ContextSnapshot` runtime discovery, `ObservationFilter`, `MechanismKind`, and 6-category `DriftKind` taxonomy (ADR-053, RFC-0002) |
-| **Enterprise Benchmark Suite (A–L)**| **In-Tree (v1.5.0 — Beta)**| 12-family failure-mode benchmark suite across 4 baseline paradigms and 13 orthogonal metric dimensions with non-leakage certificates (ADR-054) |
+| **Experimental Domain Composition & SWE Ecosystem**| **In-Tree (v1.5.0 — Experimental)**| Fenced research hypotheses on modular domain composition (`domain_composition.py`) and software-engineering change-impact/deployment dynamics (`swe_ecosystem.py`, `UNVERIFIED_RESEARCH`) |
+| **World Specification Language (WSL)**| **Stable (v1.5.0)**| Declarative safe YAML/JSON & authored `.wsl` grammar, zero-dep fallback parser, compiler, and WMIF (FEAT-003, ADR-023, ADR-051, AC-040) |
+| **Batched SoA Scale & 3-Tier Reproducibility**| **Stable (v1.5.0)**| Vectorized Structure-of-Arrays (SoA) kernel and 3-tier numerical certification (`BITWISE_REPRODUCIBLE`, `NUMERICALLY_EQUIVALENT_WITH_TOLERANCE`, `NON_CERTIFIED_BACKEND`, ADR-050) |
+| **Context-Aware Hybrid World-Model Semantics**| **Stable (v1.5.0)**| Formal 6-part state $(S_t, O_t, B_t, P_t, K_t, A_t)$, `ContextSnapshot` runtime discovery, `ObservationFilter`, `MechanismKind`, and 9-category `DriftKind` taxonomy (ADR-053, RFC-0002) |
+| **Enterprise Benchmark Suite (A–L)**| **Stable (v1.5.0)**| 12-family failure-mode benchmark suite across 4 baseline paradigms and 13 orthogonal metric dimensions with non-leakage certificates (ADR-054) |
 
 ---
 

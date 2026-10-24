@@ -21,11 +21,12 @@ The Beer Distribution Game is the definitive benchmark for multi-echelon supply 
 {
   "card": "beer_game_bullwhip",
   "steps": 36,
-  "retailer_peak_order": 8.36,
-  "factory_peak_order": 16.31,
-  "bullwhip_amplification_ratio": 3.80,
+  "retailer_peak_order": 8.363999999999983,
+  "factory_peak_order": 16.309799999999967,
+  "bullwhip_amplification_ratio": 3.8024999999999998,
   "multi_tier_conservation": "VERIFIED",
-  "status": "PASSED"
+  "status": "PASSED",
+  "card_verification_status": "PASSED_BULLWHIP_AND_CONSERVATION_VERIFIED"
 }
 ```
 

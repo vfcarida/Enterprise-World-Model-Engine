@@ -11,9 +11,20 @@ from __future__ import annotations
 
 import math
 from collections.abc import Sequence
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from ewm_engine.core.actions import Action
+from ewm_engine.core.context import ContextSnapshot
+from ewm_engine.core.drift import DriftKind, DriftSignal, PlanInvalidationAudit
+from ewm_engine.core.trust import EvidenceGateDecision
+from ewm_engine.dynamics.base import ValidityDomain
+from ewm_engine.evaluation.uncertainty import (
+    UncertaintySourceType,
+    UncertaintyTaxonomyBreakdown,
+)
 
 if TYPE_CHECKING:
     from ewm_engine.core.state import WorldState
@@ -225,3 +236,379 @@ class PhysicsIQGuardrail:
         is_sound = len(violations) == 0
 
         return physics_iq, is_sound, violations
+
+
+class AbstentionTriggerKind(StrEnum):
+    """Taxonomy of conditions triggering 'do not use me here' abstention."""
+
+    HIGH_UNCERTAINTY = "high_uncertainty"
+    OUT_OF_DOMAIN_STATE = "out_of_domain_state"
+    UNSUPPORTED_REGIME_CONTEXT = "unsupported_regime_context"
+    PERFORMATIVE_INVALIDATION = "performative_invalidation"
+    ENDOGENOUS_CONFOUNDING = "endogenous_confounding"
+    ADVERSARIAL_DEGRADATION = "adversarial_degradation"
+    INSUFFICIENT_CAUSAL_EVIDENCE = "insufficient_causal_evidence"
+    HORIZON_COMPETENCE_DECAY = "horizon_competence_decay"
+
+
+class AbstentionResolutionAction(StrEnum):
+    """Operational resolution action when the world model reaches its validity limits."""
+
+    PROCEED_WITH_MONITORING = "proceed_with_monitoring"
+    FALLBACK_SAFE_POLICY = "fallback_safe_policy"
+    HUMAN_REVIEW_REQUIRED = "human_review_required"
+    BLOCK_ACTUATION_FAIL_CLOSED = "block_actuation_fail_closed"
+
+
+class UncertaintyTriggerDetail(BaseModel):
+    """Specific uncertainty source from the 6-part taxonomy that triggered abstention."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    source: UncertaintySourceType
+    observed_value: float
+    threshold: float
+    rationale: str
+
+
+class ValidityLimitAbstentionDecision(BaseModel):
+    """Structured 'do not use me here' abstention decision tied to the uncertainty taxonomy."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    do_not_use_me_here: bool = Field(
+        description="Explicit flag indicating the model must not be used for automated actuation here."
+    )
+    abstain: bool = Field(
+        description="True when the model abstains due to uncertainty or validity-limit breaches."
+    )
+    status_banner: str = Field(
+        description="'DO_NOT_USE_ME_HERE' when abstaining, else 'WITHIN_DECLARED_VALIDITY_LIMITS'."
+    )
+    recommended_resolution: AbstentionResolutionAction
+    requires_human_review: bool = False
+    human_review_brief: str | None = None
+    fallback_policy_id: str | None = None
+    fallback_actions: tuple[Action, ...] = Field(default_factory=tuple)
+    triggered_uncertainty_sources: tuple[UncertaintySourceType, ...] = Field(
+        default_factory=tuple,
+        description="Exact subset of the 6-part UncertaintySourceType taxonomy that triggered abstention.",
+    )
+    uncertainty_trigger_details: tuple[UncertaintyTriggerDetail, ...] = Field(
+        default_factory=tuple,
+        description="Quantitative details per triggered uncertainty source.",
+    )
+    triggered_validity_limits: tuple[AbstentionTriggerKind, ...] = Field(
+        default_factory=tuple,
+        description="Validity-limit categories that fired.",
+    )
+    triggered_drift_kinds: tuple[DriftKind, ...] = Field(
+        default_factory=tuple,
+        description="DriftKind signals (exogenous or model-induced) that contributed to abstention.",
+    )
+    validity_domain_violations: tuple[str, ...] = Field(default_factory=tuple)
+    competence_score: float = Field(default=1.0, ge=0.0, le=1.0)
+    reasons: tuple[str, ...] = Field(default_factory=tuple)
+
+
+class ValidityLimitAbstentionGate:
+    """Evaluates uncertainty sources, validity domain, performativity, and evidence to decide abstention.
+
+    Operationalizes Uncertainty-Typed Abstention:
+    - Reports *which* specific uncertainty source(s) from the 6-part taxonomy
+      (`ALEATORIC`, `PARAMETER`, `STRUCTURAL_MODEL`, `RUNTIME_CONTEXT`,
+      `MONTE_CARLO_ERROR`, `MODEL_DISCREPANCY_VS_REALITY`) triggered abstention.
+    - Detects when observed conditions leave `ValidityDomain` (OOD state or unsupported
+      regime in `ContextSnapshot`), or when `PlanInvalidationAudit` / `DriftSignal` flags
+      performative invalidation, endogenous confounding, or adversarial adaptation.
+    - Routes to human review (`HUMAN_REVIEW_REQUIRED`) and/or supplies a pre-defined
+      operational fallback policy (`FALLBACK_SAFE_POLICY`).
+    """
+
+    def __init__(
+        self,
+        *,
+        max_aleatoric_std: float | None = None,
+        max_parameter_std: float | None = None,
+        max_structural_model_std: float | None = None,
+        max_runtime_context_std: float | None = None,
+        max_monte_carlo_se: float | None = None,
+        max_model_discrepancy: float | None = None,
+        validity_domain: ValidityDomain | None = None,
+        competence_estimator: CompetenceEstimator | None = None,
+        fallback_policy_id: str = "conservative_fallback_policy",
+        fallback_actions: Sequence[Action] = (),
+        require_human_review_on_ood_or_performative: bool = True,
+    ) -> None:
+        self.max_aleatoric_std = max_aleatoric_std
+        self.max_parameter_std = max_parameter_std
+        self.max_structural_model_std = max_structural_model_std
+        self.max_runtime_context_std = max_runtime_context_std
+        self.max_monte_carlo_se = max_monte_carlo_se
+        self.max_model_discrepancy = max_model_discrepancy
+        self.validity_domain = validity_domain
+        self.competence_estimator = competence_estimator
+        self.fallback_policy_id = fallback_policy_id
+        self.fallback_actions = tuple(fallback_actions)
+        self.require_human_review_on_ood_or_performative = (
+            require_human_review_on_ood_or_performative
+        )
+
+    def evaluate(
+        self,
+        *,
+        state: WorldState | None = None,
+        runtime_context: ContextSnapshot | None = None,
+        uncertainty_breakdown: UncertaintyTaxonomyBreakdown | None = None,
+        drift_signals: Sequence[DriftSignal] = (),
+        plan_invalidation: PlanInvalidationAudit | None = None,
+        evidence_gate_decision: EvidenceGateDecision | None = None,
+        step: int = 0,
+    ) -> ValidityLimitAbstentionDecision:
+        """Evaluate all uncertainty and validity-limit criteria and return an abstention decision."""
+        trig_unc_sources: list[UncertaintySourceType] = []
+        unc_details: list[UncertaintyTriggerDetail] = []
+        trig_limits: list[AbstentionTriggerKind] = []
+        trig_drifts: list[DriftKind] = []
+        domain_violations: list[str] = []
+        reasons: list[str] = []
+        comp_score = 1.0
+
+        def _add_limit(kind: AbstentionTriggerKind) -> None:
+            if kind not in trig_limits:
+                trig_limits.append(kind)
+
+        def _add_unc(src: UncertaintySourceType, obs: float, thresh: float, label: str) -> None:
+            if src not in trig_unc_sources:
+                trig_unc_sources.append(src)
+            rationale = (
+                f"Uncertainty source '{src.value}' ({label}) = {obs:.4f} "
+                f"exceeds threshold {thresh:.4f}."
+            )
+            unc_details.append(
+                UncertaintyTriggerDetail(
+                    source=src,
+                    observed_value=obs,
+                    threshold=thresh,
+                    rationale=rationale,
+                )
+            )
+            reasons.append(rationale)
+            _add_limit(AbstentionTriggerKind.HIGH_UNCERTAINTY)
+
+        # 1. Evaluate 6-part UncertaintyTaxonomyBreakdown
+        if uncertainty_breakdown is not None:
+            checks: list[tuple[UncertaintySourceType, float | None, float | None, str]] = [
+                (
+                    UncertaintySourceType.ALEATORIC,
+                    uncertainty_breakdown.aleatoric_std,
+                    self.max_aleatoric_std,
+                    "irreducible stochastic dispersion",
+                ),
+                (
+                    UncertaintySourceType.PARAMETER,
+                    uncertainty_breakdown.parameter_std,
+                    self.max_parameter_std,
+                    "parameter posterior dispersion",
+                ),
+                (
+                    UncertaintySourceType.STRUCTURAL_MODEL,
+                    uncertainty_breakdown.structural_model_std,
+                    self.max_structural_model_std,
+                    "competing structural mechanism dispersion",
+                ),
+                (
+                    UncertaintySourceType.RUNTIME_CONTEXT,
+                    uncertainty_breakdown.runtime_context_std,
+                    self.max_runtime_context_std,
+                    "runtime operational context dispersion",
+                ),
+                (
+                    UncertaintySourceType.MONTE_CARLO_ERROR,
+                    uncertainty_breakdown.monte_carlo_standard_error,
+                    self.max_monte_carlo_se,
+                    "finite-sample Monte Carlo standard error",
+                ),
+                (
+                    UncertaintySourceType.MODEL_DISCREPANCY_VS_REALITY,
+                    uncertainty_breakdown.model_discrepancy_vs_reality,
+                    self.max_model_discrepancy,
+                    "Kennedy-O'Hagan structural discrepancy vs reality",
+                ),
+            ]
+            for src_type, obs_val, max_thresh, desc in checks:
+                if (
+                    obs_val is not None
+                    and max_thresh is not None
+                    and float(obs_val) > float(max_thresh)
+                ):
+                    _add_unc(src_type, float(obs_val), float(max_thresh), desc)
+
+        # 2. Evaluate declared ValidityDomain (state OOD + context regime)
+        if self.validity_domain is not None and state is not None:
+            is_valid, dom_reasons = self.validity_domain.check_validity(
+                state, runtime_context=runtime_context
+            )
+            if not is_valid:
+                for dr in dom_reasons:
+                    domain_violations.append(dr)
+                    reasons.append(f"ValidityDomain violation: {dr}")
+                    if "Context regime" in dr:
+                        _add_limit(AbstentionTriggerKind.UNSUPPORTED_REGIME_CONTEXT)
+                        if UncertaintySourceType.RUNTIME_CONTEXT not in trig_unc_sources:
+                            trig_unc_sources.append(UncertaintySourceType.RUNTIME_CONTEXT)
+                    else:
+                        _add_limit(AbstentionTriggerKind.OUT_OF_DOMAIN_STATE)
+                        if UncertaintySourceType.STRUCTURAL_MODEL not in trig_unc_sources:
+                            trig_unc_sources.append(UncertaintySourceType.STRUCTURAL_MODEL)
+
+        # 3. Evaluate CompetenceEstimator (horizon decay / support envelope)
+        if self.competence_estimator is not None and state is not None:
+            c_score, c_reasons = self.competence_estimator.evaluate_state(state, step=step)
+            comp_score = c_score
+            if c_score < self.competence_estimator.abstention_threshold:
+                _add_limit(AbstentionTriggerKind.HORIZON_COMPETENCE_DECAY)
+                for cr in c_reasons:
+                    reasons.append(f"Competence envelope breach: {cr}")
+                if UncertaintySourceType.MODEL_DISCREPANCY_VS_REALITY not in trig_unc_sources:
+                    trig_unc_sources.append(UncertaintySourceType.MODEL_DISCREPANCY_VS_REALITY)
+
+        # 4. Evaluate DriftSignals (exogenous + model-induced)
+        for sig in drift_signals:
+            if not sig.is_drifted:
+                continue
+            if sig.kind not in trig_drifts:
+                trig_drifts.append(sig.kind)
+            if sig.kind == DriftKind.POLICY_INDUCED_SHIFT:
+                _add_limit(AbstentionTriggerKind.PERFORMATIVE_INVALIDATION)
+                if UncertaintySourceType.STRUCTURAL_MODEL not in trig_unc_sources:
+                    trig_unc_sources.append(UncertaintySourceType.STRUCTURAL_MODEL)
+                reasons.append(
+                    f"Performative drift detected ({sig.kind.value}, mag={sig.magnitude:.4f}): {sig.details}"
+                )
+            elif sig.kind == DriftKind.ENDOGENOUS_FEEDBACK_SHIFT:
+                _add_limit(AbstentionTriggerKind.ENDOGENOUS_CONFOUNDING)
+                if UncertaintySourceType.STRUCTURAL_MODEL not in trig_unc_sources:
+                    trig_unc_sources.append(UncertaintySourceType.STRUCTURAL_MODEL)
+                reasons.append(
+                    f"Endogenous feedback shift detected ({sig.kind.value}, mag={sig.magnitude:.4f}): {sig.details}"
+                )
+            elif sig.kind == DriftKind.ADVERSARIAL_ADAPTATION_SHIFT:
+                _add_limit(AbstentionTriggerKind.ADVERSARIAL_DEGRADATION)
+                if UncertaintySourceType.MODEL_DISCREPANCY_VS_REALITY not in trig_unc_sources:
+                    trig_unc_sources.append(UncertaintySourceType.MODEL_DISCREPANCY_VS_REALITY)
+                reasons.append(
+                    f"Adversarial adaptation shift detected ({sig.kind.value}, mag={sig.magnitude:.4f}): {sig.details}"
+                )
+            elif sig.kind in (
+                DriftKind.RULE_CONSTRAINT_CHANGE,
+                DriftKind.STRUCTURAL_MECHANISM_CHANGE,
+                DriftKind.TOPOLOGY_CHANGE,
+            ):
+                _add_limit(AbstentionTriggerKind.UNSUPPORTED_REGIME_CONTEXT)
+                if UncertaintySourceType.RUNTIME_CONTEXT not in trig_unc_sources:
+                    trig_unc_sources.append(UncertaintySourceType.RUNTIME_CONTEXT)
+                reasons.append(
+                    f"Regime/context drift detected ({sig.kind.value}, mag={sig.magnitude:.4f}): {sig.details}"
+                )
+            elif sig.kind == DriftKind.PARAMETER_DRIFT:
+                _add_limit(AbstentionTriggerKind.OUT_OF_DOMAIN_STATE)
+                if UncertaintySourceType.PARAMETER not in trig_unc_sources:
+                    trig_unc_sources.append(UncertaintySourceType.PARAMETER)
+                reasons.append(
+                    f"Parameter drift detected ({sig.kind.value}, mag={sig.magnitude:.4f}): {sig.details}"
+                )
+            elif sig.kind == DriftKind.COVARIATE_SHIFT:
+                _add_limit(AbstentionTriggerKind.OUT_OF_DOMAIN_STATE)
+                if UncertaintySourceType.ALEATORIC not in trig_unc_sources:
+                    trig_unc_sources.append(UncertaintySourceType.ALEATORIC)
+                reasons.append(
+                    f"Covariate shift detected ({sig.kind.value}, mag={sig.magnitude:.4f}): {sig.details}"
+                )
+
+        # 5. Evaluate PlanInvalidationAudit (self-invalidating plans)
+        if plan_invalidation is not None and plan_invalidation.is_self_invalidating:
+            if plan_invalidation.performative_shift_magnitude > 0.0:
+                _add_limit(AbstentionTriggerKind.PERFORMATIVE_INVALIDATION)
+            if plan_invalidation.endogenous_confounding_detected:
+                _add_limit(AbstentionTriggerKind.ENDOGENOUS_CONFOUNDING)
+            if plan_invalidation.adversarial_shift_detected:
+                _add_limit(AbstentionTriggerKind.ADVERSARIAL_DEGRADATION)
+            if UncertaintySourceType.STRUCTURAL_MODEL not in trig_unc_sources:
+                trig_unc_sources.append(UncertaintySourceType.STRUCTURAL_MODEL)
+            for inv_a in plan_invalidation.invalidated_assumptions:
+                if inv_a not in reasons:
+                    reasons.append(f"Plan self-invalidation: {inv_a}")
+            for d_sig in plan_invalidation.drift_signals:
+                if d_sig.kind not in trig_drifts:
+                    trig_drifts.append(d_sig.kind)
+
+        # 6. Evaluate EvidenceGateDecision (refused causal queries)
+        if evidence_gate_decision is not None and not evidence_gate_decision.permitted:
+            _add_limit(AbstentionTriggerKind.INSUFFICIENT_CAUSAL_EVIDENCE)
+            if UncertaintySourceType.STRUCTURAL_MODEL not in trig_unc_sources:
+                trig_unc_sources.append(UncertaintySourceType.STRUCTURAL_MODEL)
+            for r_reason in evidence_gate_decision.refusal_reasons:
+                reasons.append(f"Causal gate refusal: {r_reason}")
+
+        abstain = len(trig_limits) > 0 or len(trig_unc_sources) > 0
+        if not abstain:
+            return ValidityLimitAbstentionDecision(
+                do_not_use_me_here=False,
+                abstain=False,
+                status_banner="WITHIN_DECLARED_VALIDITY_LIMITS",
+                recommended_resolution=AbstentionResolutionAction.PROCEED_WITH_MONITORING,
+                requires_human_review=False,
+                human_review_brief=None,
+                fallback_policy_id=None,
+                fallback_actions=(),
+                triggered_uncertainty_sources=(),
+                uncertainty_trigger_details=(),
+                triggered_validity_limits=(),
+                triggered_drift_kinds=(),
+                validity_domain_violations=(),
+                competence_score=comp_score,
+                reasons=(),
+            )
+
+        severe_limits = {
+            AbstentionTriggerKind.PERFORMATIVE_INVALIDATION,
+            AbstentionTriggerKind.ENDOGENOUS_CONFOUNDING,
+            AbstentionTriggerKind.ADVERSARIAL_DEGRADATION,
+            AbstentionTriggerKind.OUT_OF_DOMAIN_STATE,
+            AbstentionTriggerKind.UNSUPPORTED_REGIME_CONTEXT,
+            AbstentionTriggerKind.INSUFFICIENT_CAUSAL_EVIDENCE,
+        }
+        needs_human = self.require_human_review_on_ood_or_performative and any(
+            lim in severe_limits for lim in trig_limits
+        )
+        resolution = (
+            AbstentionResolutionAction.HUMAN_REVIEW_REQUIRED
+            if needs_human
+            else AbstentionResolutionAction.FALLBACK_SAFE_POLICY
+        )
+        src_list = [s.value for s in trig_unc_sources]
+        lim_list = [lim.value for lim in trig_limits]
+        brief = (
+            f"DO NOT USE MODEL FOR AUTOMATED ACTUATION: triggered uncertainty sources={src_list}, "
+            f"validity limits={lim_list}. Route to human operator review and execute fallback "
+            f"policy '{self.fallback_policy_id}'."
+        )
+
+        return ValidityLimitAbstentionDecision(
+            do_not_use_me_here=True,
+            abstain=True,
+            status_banner="DO_NOT_USE_ME_HERE",
+            recommended_resolution=resolution,
+            requires_human_review=needs_human,
+            human_review_brief=brief,
+            fallback_policy_id=self.fallback_policy_id,
+            fallback_actions=self.fallback_actions,
+            triggered_uncertainty_sources=tuple(trig_unc_sources),
+            uncertainty_trigger_details=tuple(unc_details),
+            triggered_validity_limits=tuple(trig_limits),
+            triggered_drift_kinds=tuple(trig_drifts),
+            validity_domain_violations=tuple(domain_violations),
+            competence_score=comp_score,
+            reasons=tuple(reasons),
+        )

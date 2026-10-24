@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 from ewm_engine.evaluation.abstention import (
+    AbstentionResolutionAction,
+    AbstentionTriggerKind,
     CompetenceEstimator,
     EpistemicCompetence,
     PhysicsIQGuardrail,
+    UncertaintyTriggerDetail,
+    ValidityLimitAbstentionDecision,
+    ValidityLimitAbstentionGate,
 )
 from ewm_engine.evaluation.causal import (
     CausalCorrectnessGate,
@@ -100,6 +105,8 @@ __all__ = [
     "MR_SCALING",
     "STANDARD_MR_CARDS",
     "ACIState",
+    "AbstentionResolutionAction",
+    "AbstentionTriggerKind",
     "AdaptiveCalibrationResult",
     "AdaptiveConformalInference",
     "BootstrapConfidenceInterval",
@@ -143,6 +150,9 @@ __all__ = [
     "UncertaintyDistribution",
     "UncertaintySourceType",
     "UncertaintyTaxonomyBreakdown",
+    "UncertaintyTriggerDetail",
+    "ValidityLimitAbstentionDecision",
+    "ValidityLimitAbstentionGate",
     "WorldModelReliabilityReport",
     "compare_scenarios",
     "compute_adaptive_calibration_error",

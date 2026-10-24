@@ -17,6 +17,9 @@ Implements the scientific evaluation scenarios specified in ADR-054:
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
+from typing import cast
+
 import numpy as np
 
 from benchmarks.baselines import (
@@ -28,6 +31,7 @@ from benchmarks.baselines import (
     measure_TimedStep,
 )
 from benchmarks.protocol import (
+    BaselineEvaluationRecord,
     BaselineParadigm,
     BenchmarkTaskType,
     EnterpriseBenchmark,
@@ -72,14 +76,216 @@ def _make_single_resource_state(
     step: int,
     timestamp: float,
     max_val: float = 1000.0,
+    min_val: float = 0.0,
 ) -> WorldState:
     return WorldState(
         resources={
-            res_id: Resource(id=res_id, current=float(val), min_value=0.0, max_value=max_val)
+            res_id: Resource(id=res_id, current=float(val), min_value=min_val, max_value=max_val)
         },
         step=step,
         timestamp=timestamp,
     )
+
+
+def _compute_trace_completeness(
+    emitted_or_records: set[str] | Sequence[Mapping[str, object]],
+    oracle_edges: set[str] | None = None,
+) -> float:
+    """Compute P_trace = |E_trace intersect E_oracle| / |E_oracle| from actual trace sets or records."""
+    if isinstance(emitted_or_records, set):
+        if not oracle_edges:
+            return 1.0
+        return float(len(emitted_or_records & oracle_edges)) / float(len(oracle_edges))
+    if not emitted_or_records:
+        return 0.0
+    required_keys = (
+        "actor_id",
+        "handler_id",
+        "rule_id",
+        "constraint_id",
+        "context_fingerprint",
+    )
+    scores: list[float] = []
+    for rec in emitted_or_records:
+        present = sum(1 for k in required_keys if bool(rec.get(k)))
+        scores.append(float(present) / float(len(required_keys)))
+    return float(np.mean(scores))
+
+
+def _compute_empirical_calibration(
+    abs_errors: Sequence[float],
+    half_widths: Sequence[float],
+    nominal: float = 0.90,
+) -> tuple[float, float, float]:
+    """Compute empirical interval coverage, calibration quality Q_cal, and mean half-width."""
+    n = len(abs_errors)
+    if n == 0:
+        return 0.0, 0.0, 0.0
+    errs = np.asarray(abs_errors, dtype=float)
+    hws = np.asarray(half_widths, dtype=float)
+    covered = errs <= hws
+    emp_cov = float(np.mean(covered))
+    # Two-bin Adaptive Calibration Error (ACE) across lower/upper half-width quantiles
+    mid = max(1, n // 2)
+    order = np.argsort(hws)
+    cov_low = float(np.mean(covered[order[:mid]]))
+    cov_high = float(np.mean(covered[order[mid:]])) if n > 1 else cov_low
+    ace = 0.5 * (abs(cov_low - nominal) + abs(cov_high - nominal))
+    q_cal = max(0.0, 1.0 - abs(emp_cov - nominal) - 0.25 * ace)
+    return emp_cov, float(q_cal), float(np.mean(hws))
+
+
+def _compute_error_growth_slope(step_errors: Sequence[float]) -> float:
+    """Compute autoregressive error growth slope gamma_H = max(0, (MAE_end - MAE_start) / (H - 1))."""
+    n = len(step_errors)
+    if n <= 1:
+        return 0.0
+    q = max(1, n // 4)
+    early_mae = float(np.mean(step_errors[:q]))
+    late_mae = float(np.mean(step_errors[-q:]))
+    return max(0.0, (late_mae - early_mae) / float(n - 1))
+
+
+def _compute_abstention_f1(
+    in_dist_or_errors: Sequence[WorldState] | Sequence[float],
+    ood_or_half_widths: Sequence[WorldState] | Sequence[float],
+    estimator: CompetenceEstimator | None = None,
+    *,
+    err_threshold: float = 5.0,
+    hw_threshold: float = 1.0,
+) -> float:
+    """Compute F1 score of epistemic abstention across states or uncertainty thresholds."""
+    if in_dist_or_errors and isinstance(in_dist_or_errors[0], WorldState):
+        in_states = cast(Sequence[WorldState], in_dist_or_errors)
+        ood_states = cast(Sequence[WorldState], ood_or_half_widths)
+        tp, fp, fn = 0, 0, 0
+        for st in in_states:
+            if estimator is None:
+                abstained = False
+            else:
+                score, _ = estimator.evaluate_state(st, step=1)
+                abstained = score < estimator.abstention_threshold
+            if abstained:
+                fp += 1
+        for st in ood_states:
+            if estimator is None:
+                abstained = False
+            else:
+                score, _ = estimator.evaluate_state(st, step=1)
+                abstained = score < estimator.abstention_threshold
+            if abstained:
+                tp += 1
+            else:
+                fn += 1
+        denom = float(2 * tp + fp + fn)
+        return float(2 * tp) / denom if denom > 0.0 else 0.0
+
+    errs = [float(x) for x in cast(Sequence[float], in_dist_or_errors)]
+    hws = [float(x) for x in cast(Sequence[float], ood_or_half_widths)]
+    tp, fp, fn = 0, 0, 0
+    for e_val, hw_val in zip(errs, hws, strict=True):
+        should_abstain = e_val > err_threshold
+        did_abstain = hw_val >= hw_threshold
+        if should_abstain and did_abstain:
+            tp += 1
+        elif not should_abstain and did_abstain:
+            fp += 1
+        elif should_abstain and not did_abstain:
+            fn += 1
+    if (tp + fn) == 0:
+        return 1.0 if fp == 0 else max(0.0, 1.0 - float(fp) / float(max(1, len(errs))))
+    denom = float(2 * tp + fp + fn)
+    return float(2 * tp) / denom if denom > 0.0 else 0.0
+
+
+def _compute_causal_correctness(
+    cf_errors_or_mae: Sequence[float] | float,
+    non_descendant_deltas: Sequence[float] = (0.0,),
+    claim_is_gated: bool = True,
+    scale_z: float = 15.0,
+    *,
+    scale: float | None = None,
+    enforces_invariants: bool | None = None,
+) -> tuple[float, float, float] | float:
+    """Compute C_causal = (Pass_desc + 1/(1 + MAE_CF/Z) + Acc_refusal) / 3 at runtime."""
+    eff_scale = scale if scale is not None else scale_z
+    if isinstance(cf_errors_or_mae, (int, float)):
+        cf_mae = float(cf_errors_or_mae)
+        gated = enforces_invariants if enforces_invariants is not None else claim_is_gated
+        pass_desc = 1.0 if gated else 0.0
+        cf_acc = 1.0 / (1.0 + cf_mae / eff_scale)
+        refusal_acc = 1.0 if gated else 0.0
+        return (pass_desc + cf_acc + refusal_acc) / 3.0
+
+    pass_desc = float(sum(1 for d in non_descendant_deltas if abs(d) <= 1e-6)) / float(
+        max(1, len(non_descendant_deltas))
+    )
+    cf_mae = float(np.mean(cf_errors_or_mae)) if cf_errors_or_mae else 0.0
+    cf_acc = 1.0 / (1.0 + cf_mae / eff_scale)
+    if not claim_is_gated:
+        refusal_acc = 0.0
+    else:
+        try:
+            validate_causal_claim(
+                claimed_level=EvidenceLevel.COUNTERFACTUAL,
+                is_identifiable=False,
+                overlap_satisfied=False,
+                strict=True,
+            )
+            refusal_acc = 0.0
+        except UnqualifiedCausalClaimError:
+            refusal_acc = 1.0
+    return (pass_desc + cf_acc + refusal_acc) / 3.0, pass_desc, refusal_acc
+
+
+def _compute_policy_regret_from_predictions(
+    candidate_actions_or_true: Sequence[float],
+    oracle_outcomes_or_pred: Mapping[float, float] | Sequence[float],
+    predicted_outcomes: Mapping[float, float] | None = None,
+    target_outcome: float = 0.0,
+    *,
+    target_offset: float | None = None,
+) -> float:
+    """Compute true decision regret U*(a*) - U*(a_hat) from oracle vs predicted outcomes."""
+    if isinstance(oracle_outcomes_or_pred, Mapping) and predicted_outcomes is not None:
+        oracle_utilities = {
+            a: -abs(oracle_outcomes_or_pred[a] - target_outcome) for a in candidate_actions_or_true
+        }
+        pred_utilities = {
+            a: -abs(predicted_outcomes[a] - target_outcome) for a in candidate_actions_or_true
+        }
+        best_oracle_u = max(oracle_utilities.values())
+        selected_a = max(candidate_actions_or_true, key=lambda a: pred_utilities[a])
+        return max(0.0, float(best_oracle_u - oracle_utilities[selected_a]))
+
+    true_seq = [float(x) for x in candidate_actions_or_true]
+    pred_seq = [float(x) for x in cast(Sequence[float], oracle_outcomes_or_pred)]
+    if not true_seq:
+        return 0.0
+    eff_target = target_offset if target_offset is not None else target_outcome
+    regrets = [
+        abs(t_val - p_val) * (1.0 / (1.0 + abs(eff_target) / 100.0))
+        for t_val, p_val in zip(true_seq, pred_seq, strict=True)
+    ]
+    return float(np.mean(regrets))
+
+
+def _dim_mean(
+    records: Sequence[BaselineEvaluationRecord],
+    paradigm: BaselineParadigm,
+    dim: MetricDimension,
+) -> float:
+    rec = next(r for r in records if r.paradigm == paradigm)
+    return float(rec.dimension_summaries[dim].mean)
+
+
+def _raw_val(
+    records: Sequence[BaselineEvaluationRecord],
+    paradigm: BaselineParadigm,
+    key: str,
+) -> float:
+    rec = next(r for r in records if r.paradigm == paradigm)
+    return float(rec.raw_metrics.get(key, 0.0))
 
 
 # ===========================================================================
@@ -187,67 +393,149 @@ class DirectDynamicsBenchmark(EnterpriseBenchmark):
         )
         accumulators = [PerSeedBaselineMetrics(p, m_name) for p, m_name in FOUR_PARADIGMS]
 
+        oracle_edges_a = {"structural_transfer_rule", "quadratic_valve_residual"}
+        comp_a = CompetenceEstimator(
+            max_verified_horizon=10,
+            support_bounds={"inventory": (20.0, 180.0)},
+            abstention_threshold=0.45,
+        )
+        in_states_a = [
+            _make_single_resource_state("inventory", inv, step=idx, timestamp=float(idx))
+            for idx, (inv, _u, _td) in enumerate(eval_cases[:6])
+        ]
+        ood_states_a = [
+            _make_single_resource_state(
+                "inventory", 420.0 + idx * 10.0, step=idx, timestamp=float(idx)
+            )
+            for idx in range(4)
+        ]
+        candidate_u_a = (8.0, 14.0, 20.0, 26.0)
+        oracle_u_map_a = {u_c: _oracle_delta(u_c) for u_c in candidate_u_a}
+
         for acc in accumulators:
             paradigm = acc.paradigm
 
-            def _eval_step_batch(p: BaselineParadigm = paradigm) -> tuple[float, float, int, float]:
+            def _eval_step_batch(
+                p: BaselineParadigm = paradigm,
+            ) -> tuple[float, float, int, float, float, float, float, float, float]:
                 errors: list[float] = []
+                half_widths: list[float] = []
+                non_desc_deltas: list[float] = []
+                emitted_edges: set[str] = set()
                 violations = 0
-                trace_hits = 0
                 for inv, u, true_d in eval_cases:
                     feat = np.array([inv, u, max(0.0, u - 10.0)], dtype=float)
                     if p == BaselineParadigm.RULES_ONLY:
                         pred_d = u
-                        trace_hits += 1  # Structural mechanism recorded, missing residual
+                        emitted_edges = {"structural_transfer_rule"}
+                        hw = 0.0
+                        non_desc_deltas.append(0.0)
                     elif p == BaselineParadigm.LEARNED_ONLY:
                         pred_d = float(learned_full.predict(feat)[0])
+                        emitted_edges = set()
+                        hw = 1.64485 * float(learned_full.residual_std[0])
+                        # Measure spurious sensitivity to non-causal inventory level in delta prediction
+                        feat_pert = np.array([inv + 25.0, u, max(0.0, u - 10.0)], dtype=float)
+                        non_desc_deltas.append(
+                            abs(float(learned_full.predict(feat_pert)[0]) - pred_d)
+                        )
                     elif p == BaselineParadigm.STATIC_HYBRID:
                         res_d = float(learned_res.predict(feat)[0])
                         pred_d = max(-inv, min(1000.0 - inv, u + res_d))
-                        trace_hits += 2
+                        emitted_edges = {"structural_transfer_rule", "quadratic_valve_residual"}
+                        hw = 1.64485 * float(learned_res.residual_std[0])
+                        non_desc_deltas.append(0.0)
                     else:
-                        # Contextual hybrid inspects K_0 and applies exact structural + residual
                         _ = k0.domain_fingerprint(("feature_flags",))
                         res_d = float(learned_res.predict(feat)[0])
                         pred_d = max(-inv, min(1000.0 - inv, u + res_d))
-                        trace_hits += 2
+                        emitted_edges = {"structural_transfer_rule", "quadratic_valve_residual"}
+                        hw = 1.64485 * float(learned_res.residual_std[0])
+                        non_desc_deltas.append(0.0)
 
                     next_inv = inv + pred_d
                     if next_inv < -1e-12 or next_inv > 1000.0 + 1e-12:
                         violations += 1
                     errors.append(abs(true_d - pred_d))
+                    half_widths.append(hw)
 
                 mae = float(np.mean(errors))
-                trace_comp = float(trace_hits / (2 * len(eval_cases)))
-                return mae, float(np.max(errors)), violations, trace_comp
+                trace_comp = _compute_trace_completeness(emitted_edges, oracle_edges_a)
+                _cov, cal_score, _mean_hw = _compute_empirical_calibration(errors, half_widths)
+                causal_score, _, _ = _compute_causal_correctness(
+                    errors,
+                    non_desc_deltas,
+                    claim_is_gated=(p != BaselineParadigm.LEARNED_ONLY),
+                    scale_z=10.0,
+                )
+                growth_slope = _compute_error_growth_slope(errors)
+                pred_u_map: dict[float, float] = {}
+                for u_c in candidate_u_a:
+                    f_c = np.array([100.0, u_c, max(0.0, u_c - 10.0)], dtype=float)
+                    if p == BaselineParadigm.RULES_ONLY:
+                        pred_u_map[u_c] = u_c
+                    elif p == BaselineParadigm.LEARNED_ONLY:
+                        pred_u_map[u_c] = float(learned_full.predict(f_c)[0])
+                    else:
+                        pred_u_map[u_c] = u_c + float(learned_res.predict(f_c)[0])
+                regret = _compute_policy_regret_from_predictions(
+                    candidate_u_a, oracle_u_map_a, pred_u_map, target_outcome=22.0
+                )
+                abst_f1 = _compute_abstention_f1(
+                    in_states_a,
+                    ood_states_a,
+                    comp_a if p != BaselineParadigm.LEARNED_ONLY else None,
+                )
+                return (
+                    mae,
+                    float(np.max(errors)),
+                    violations,
+                    trace_comp,
+                    cal_score,
+                    causal_score,
+                    growth_slope,
+                    regret,
+                    abst_f1,
+                )
 
-            (mae, max_err, viols, trace_comp), lat_ms, mem_kb, tput = measure_TimedStep(
-                _eval_step_batch, len(eval_cases)
-            )
+            (
+                (
+                    mae,
+                    max_err,
+                    viols,
+                    trace_comp,
+                    cal_score,
+                    causal_score,
+                    growth_slope,
+                    regret,
+                    abst_f1,
+                ),
+                lat_ms,
+                mem_kb,
+                tput,
+            ) = measure_TimedStep(_eval_step_batch, len(eval_cases))
             fidelity = 1.0 / (1.0 + mae / 10.0)
             c_pres = 1.0 - float(viols) / float(len(eval_cases))
 
             if paradigm == BaselineParadigm.RULES_ONLY:
                 acc.failure_modes.append(
-                    "Misses empirical quadratic valve-friction above flow threshold (MAE > 0)."
+                    f"Misses empirical quadratic valve-friction above flow threshold (measured MAE={mae:.3f})."
                 )
             elif paradigm == BaselineParadigm.LEARNED_ONLY:
                 acc.failure_modes.append(
-                    "Lacks explicit structural conservation/provenance trace (trace completeness = 0.0)."
+                    f"Lacks explicit structural conservation/provenance trace (measured trace completeness={trace_comp:.2f})."
                 )
 
             dims = {
                 MetricDimension.TRANSITION_FIDELITY: fidelity,
                 MetricDimension.CONSTRAINT_PRESERVATION: c_pres,
-                MetricDimension.CAUSAL_CORRECTNESS: 1.0
-                if paradigm != BaselineParadigm.LEARNED_ONLY
-                else 0.65,
-                MetricDimension.CALIBRATION: 1.0 if mae < 1e-3 else 0.75,
-                MetricDimension.LONG_HORIZON_ERROR_GROWTH: mae * 0.1,
+                MetricDimension.CAUSAL_CORRECTNESS: causal_score,
+                MetricDimension.CALIBRATION: cal_score,
+                MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                 MetricDimension.SHIFT_ROBUSTNESS: fidelity,
                 MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: 0.0,
-                MetricDimension.DECISION_REGRET: mae * 0.5,
-                MetricDimension.ABSTENTION_QUALITY: 1.0,
+                MetricDimension.DECISION_REGRET: regret,
+                MetricDimension.ABSTENTION_QUALITY: abst_f1,
                 MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_comp,
                 MetricDimension.LATENCY: lat_ms,
                 MetricDimension.MEMORY: mem_kb,
@@ -256,7 +544,7 @@ class DirectDynamicsBenchmark(EnterpriseBenchmark):
             acc.record_seed(
                 seed=eval_seed,
                 dimensions=dims,
-                raw={"mae": mae, "max_abs_error": max_err},
+                raw={"mae": mae, "max_abs_error": max_err, "decision_regret": regret},
                 tasks={
                     BenchmarkTaskType.NEXT_STATE_PREDICTION: fidelity,
                     BenchmarkTaskType.ACTION_EFFECT_PREDICTION: fidelity,
@@ -286,6 +574,15 @@ class DirectDynamicsBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload=out_payload,
         )
+        rules_mae_a = _raw_val(records, BaselineParadigm.RULES_ONLY, "mae")
+        hyb_fid_a = _dim_mean(
+            records, BaselineParadigm.CONTEXTUAL_HYBRID, MetricDimension.TRANSITION_FIDELITY
+        )
+        hyb_trace_a = _dim_mean(
+            records,
+            BaselineParadigm.CONTEXTUAL_HYBRID,
+            MetricDimension.TRACE_PROVENANCE_COMPLETENESS,
+        )
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -303,8 +600,8 @@ class DirectDynamicsBenchmark(EnterpriseBenchmark):
                 "nonlinear friction residuals under a deterministic oracle?"
             ),
             phenomenon_surfaced=(
-                "Rules-only misses nonlinear congestion friction (MAE > 2.0), while static and "
-                "contextual hybrid models recover exact residual dynamics alongside full structural provenance."
+                f"Rules-only misses nonlinear congestion friction (measured MAE={rules_mae_a:.3f}), while static and "
+                f"contextual hybrid models recover exact residual dynamics (fidelity={hyb_fid_a:.4f}, trace={hyb_trace_a:.2f})."
             ),
             parameters=params,
             baselines=records,
@@ -448,89 +745,166 @@ class HiddenWorkflowCascadesBenchmark(EnterpriseBenchmark):
                 true_d_cash = 2.0 * min(qty, 25.0) - sla_penalty - 0.05 * qty + noise
                 seq_cases.append((backlog, cash, qty, true_d_backlog, true_d_cash))
 
+            oracle_edges_b = {
+                "compliance_hold_trigger",
+                "dispatch_throttle_rule",
+                "sla_penalty_settlement",
+                "handling_fee_residual",
+                "workflow_context_binding",
+            }
+            comp_b = CompetenceEstimator(
+                max_verified_horizon=25,
+                support_bounds={"backlog": (0.0, 50.0)},
+                abstention_threshold=0.45,
+            )
+            in_states_b = [
+                _make_single_resource_state("backlog", b_val, step=idx, timestamp=float(idx))
+                for idx, (b_val, _c, _q, _db, _dc) in enumerate(seq_cases[:4])
+            ]
+            ood_states_b = [
+                _make_single_resource_state(
+                    "backlog", 120.0 + idx * 15.0, step=idx, timestamp=float(idx)
+                )
+                for idx in range(3)
+            ]
+            cand_qty_b = (18.0, 24.0, 32.0, 42.0)
+            oracle_qty_map_b = {
+                q_c: 2.0 * min(q_c, 25.0) - 4.0 * (0.8 * max(0.0, q_c - 25.0)) - 0.05 * q_c
+                for q_c in cand_qty_b
+            }
+
             for acc in accumulators:
                 p = acc.paradigm
 
                 def _run_seed(
                     paradigm: BaselineParadigm = p,
                     local_cases: list[tuple[float, float, float, float, float]] = seq_cases,
-                ) -> tuple[float, float, float]:
+                    _oracle_edges: set[str] = oracle_edges_b,
+                    _comp: CompetenceEstimator = comp_b,
+                    _in_states: list[WorldState] = in_states_b,
+                    _ood_states: list[WorldState] = ood_states_b,
+                    _cand_qty: tuple[float, ...] = cand_qty_b,
+                    _oracle_qty_map: dict[float, float] = oracle_qty_map_b,
+                ) -> tuple[float, float, float, float, float, float, float, float]:
                     errs: list[float] = []
                     side_effect_errs: list[float] = []
-                    trace_recall = 0.0
+                    half_widths: list[float] = []
+                    emitted_edges: set[str] = set()
                     wf = wf_ctx.workflow_definitions["order_fulfillment"]
                     trigger_q = float(wf.parameters["compliance_trigger_qty"])
                     pen_rate = float(wf.parameters["sla_penalty_per_unit"])
+                    res_std_b = float(np.sum(learned_res.residual_std))
+                    full_std_b = float(np.sum(learned_full.residual_std))
 
                     for backlog, cash, qty, true_db, true_dc in local_cases:
                         feat = np.array([backlog, cash, qty], dtype=float)
                         if paradigm == BaselineParadigm.LEARNED_ONLY:
                             pred = learned_full.predict(feat)
                             pred_db, pred_dc = float(pred[0]), float(pred[1])
-                            t_rec = 0.0
+                            emitted_edges = set()
+                            hw = 1.64485 * full_std_b
                         elif paradigm == BaselineParadigm.RULES_ONLY:
-                            # Rules-only models the direct compliance trigger & SLA penalty,
-                            # but misses the secondary 0.05*qty handling fee residual
                             exc = max(0.0, qty - trigger_q)
                             pred_db = 0.8 * exc
                             pred_dc = 2.0 * min(qty, trigger_q) - pen_rate * pred_db
-                            t_rec = 0.85
+                            emitted_edges = {
+                                "compliance_hold_trigger",
+                                "dispatch_throttle_rule",
+                                "sla_penalty_settlement",
+                            }
+                            hw = 2.5
                         elif paradigm == BaselineParadigm.STATIC_HYBRID:
                             exc = max(0.0, qty - trigger_q)
                             pred_db = 0.8 * exc
                             res_dc = float(learned_res.predict(feat)[1])
                             pred_dc = 2.0 * min(qty, trigger_q) - pen_rate * pred_db + res_dc
-                            t_rec = 0.95
+                            emitted_edges = {
+                                "compliance_hold_trigger",
+                                "dispatch_throttle_rule",
+                                "sla_penalty_settlement",
+                                "handling_fee_residual",
+                            }
+                            hw = 1.64485 * max(0.5, res_std_b)
                         else:
-                            # Contextual hybrid binds workflow config + residual + full 3-hop trace
                             _ = wf_ctx.domain_fingerprint(("workflow_definitions",))
                             exc = max(0.0, qty - trigger_q)
                             pred_db = 0.8 * exc
                             res_dc = float(learned_res.predict(feat)[1])
                             pred_dc = 2.0 * min(qty, trigger_q) - pen_rate * pred_db + res_dc
-                            t_rec = 1.0
+                            emitted_edges = set(_oracle_edges)
+                            hw = 1.64485 * max(0.5, res_std_b)
 
                         se_err = abs(true_db - pred_db) + abs(true_dc - pred_dc)
                         errs.append(se_err)
                         side_effect_errs.append(abs(true_db - pred_db))
-                        trace_recall += t_rec
+                        half_widths.append(hw)
 
+                    trace_rec = _compute_trace_completeness(emitted_edges, _oracle_edges)
+                    _cov_emp, cal_score, mean_hw = _compute_empirical_calibration(errs, half_widths)
+                    growth_slope = _compute_error_growth_slope(errs)
+                    pred_qty_map: dict[float, float] = {}
+                    for q_c in _cand_qty:
+                        f_c = np.array([10.0, 600.0, q_c], dtype=float)
+                        if paradigm == BaselineParadigm.LEARNED_ONLY:
+                            pred_qty_map[q_c] = float(learned_full.predict(f_c)[1])
+                        elif paradigm == BaselineParadigm.RULES_ONLY:
+                            pred_qty_map[q_c] = 2.0 * min(q_c, trigger_q) - pen_rate * (
+                                0.8 * max(0.0, q_c - trigger_q)
+                            )
+                        else:
+                            pred_qty_map[q_c] = (
+                                2.0 * min(q_c, trigger_q)
+                                - pen_rate * (0.8 * max(0.0, q_c - trigger_q))
+                                + float(learned_res.predict(f_c)[1])
+                            )
+                    regret = _compute_policy_regret_from_predictions(
+                        _cand_qty, _oracle_qty_map, pred_qty_map, target_outcome=48.8
+                    )
+                    abst_f1 = _compute_abstention_f1(
+                        _in_states,
+                        _ood_states,
+                        _comp if paradigm != BaselineParadigm.LEARNED_ONLY else None,
+                    )
                     return (
                         float(np.mean(errs)),
                         float(np.mean(side_effect_errs)),
-                        float(trace_recall / len(local_cases)),
+                        trace_rec,
+                        cal_score,
+                        mean_hw,
+                        growth_slope,
+                        regret,
+                        abst_f1,
                     )
 
-                (mae, se_mae, trace_rec), lat_ms, mem_kb, tput = measure_TimedStep(
-                    _run_seed, len(seq_cases)
-                )
+                (
+                    (mae, se_mae, trace_rec, cal_score, mean_hw, growth_slope, regret, abst_f1),
+                    lat_ms,
+                    mem_kb,
+                    tput,
+                ) = measure_TimedStep(_run_seed, len(seq_cases))
                 fidelity = 1.0 / (1.0 + mae / 25.0)
                 se_score = 1.0 / (1.0 + se_mae / 10.0)
 
                 if seed_idx == 0:
                     if p == BaselineParadigm.LEARNED_ONLY:
                         acc.failure_modes.append(
-                            "Blind to latent compliance-hold and SLA penalty cascade never excited in observational training logs."
+                            f"Blind to latent compliance-hold and SLA penalty cascade never excited in training logs (cascade MAE={mae:.2f})."
                         )
                     elif p == BaselineParadigm.RULES_ONLY:
                         acc.failure_modes.append(
-                            "Captures workflow cascade trigger but misses empirical per-unit handling friction."
+                            f"Captures workflow cascade trigger (backlog MAE={se_mae:.2f}) but misses empirical handling friction (total MAE={mae:.2f})."
                         )
 
                 dims = {
                     MetricDimension.TRANSITION_FIDELITY: fidelity,
                     MetricDimension.CONSTRAINT_PRESERVATION: 1.0,
                     MetricDimension.CAUSAL_CORRECTNESS: se_score,
-                    MetricDimension.CALIBRATION: 0.88
-                    if p != BaselineParadigm.LEARNED_ONLY
-                    else 0.35,
-                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: mae * 0.15,
+                    MetricDimension.CALIBRATION: cal_score,
+                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                     MetricDimension.SHIFT_ROBUSTNESS: fidelity,
                     MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: 0.0,
-                    MetricDimension.DECISION_REGRET: mae * 0.4,
-                    MetricDimension.ABSTENTION_QUALITY: 0.90
-                    if p != BaselineParadigm.LEARNED_ONLY
-                    else 0.20,
+                    MetricDimension.DECISION_REGRET: regret,
+                    MetricDimension.ABSTENTION_QUALITY: abst_f1,
                     MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_rec,
                     MetricDimension.LATENCY: lat_ms,
                     MetricDimension.MEMORY: mem_kb,
@@ -539,8 +913,12 @@ class HiddenWorkflowCascadesBenchmark(EnterpriseBenchmark):
                 acc.record_seed(
                     seed=e_seed,
                     dimensions=dims,
-                    spreads={MetricDimension.TRANSITION_FIDELITY: 0.02},
-                    raw={"cascade_mae": mae, "backlog_side_effect_mae": se_mae},
+                    spreads={MetricDimension.TRANSITION_FIDELITY: mean_hw / 25.0},
+                    raw={
+                        "cascade_mae": mae,
+                        "backlog_side_effect_mae": se_mae,
+                        "decision_regret": regret,
+                    },
                     tasks={
                         BenchmarkTaskType.WORKFLOW_SIDE_EFFECT_PREDICTION: se_score,
                         BenchmarkTaskType.ACTION_EFFECT_PREDICTION: fidelity,
@@ -574,6 +952,8 @@ class HiddenWorkflowCascadesBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload={r.paradigm.value: r.raw_metrics for r in records},
         )
+        learned_mae_b = _raw_val(records, BaselineParadigm.LEARNED_ONLY, "cascade_mae")
+        ctx_mae_b = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "cascade_mae")
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -591,8 +971,8 @@ class HiddenWorkflowCascadesBenchmark(EnterpriseBenchmark):
                 "absent from routine training logs, can the world model predict the cascade?"
             ),
             phenomenon_surfaced=(
-                "Learned-only models extrapolate linear revenue and completely miss indirect compliance "
-                "holds and SLA penalties, whereas structural and hybrid models propagate the 3-hop workflow DAG."
+                f"Learned-only models extrapolate linear revenue and miss indirect compliance holds "
+                f"and SLA penalties (measured MAE={learned_mae_b:.2f}), whereas hybrid models propagate the 3-hop workflow DAG (MAE={ctx_mae_b:.2f})."
             ),
             parameters=params,
             baselines=records,
@@ -725,19 +1105,54 @@ class RuntimeConfigurationBenchmark(EnterpriseBenchmark):
                 true_d = invoice * (1.0 - 0.22) - 15.0 - 0.015 * invoice + noise
                 cases.append((cash, invoice, true_d))
 
+            oracle_edges_c = {
+                "settlement_workflow_rule",
+                "fx_clearing_residual",
+                "tenant_context_discovery",
+                "dual_control_fee_gate",
+            }
+            comp_c = CompetenceEstimator(
+                max_verified_horizon=25,
+                support_bounds={"cash": (200.0, 750.0)},
+                abstention_threshold=0.45,
+            )
+            in_states_c = [
+                _make_single_resource_state(
+                    "cash", c_val, step=idx, timestamp=float(idx), max_val=5000.0
+                )
+                for idx, (c_val, _inv, _td) in enumerate(cases[:4])
+            ]
+            ood_states_c = [
+                _make_single_resource_state(
+                    "cash", 1800.0 + idx * 100.0, step=idx, timestamp=float(idx), max_val=5000.0
+                )
+                for idx in range(3)
+            ]
+            cand_inv_c = (50.0, 80.0, 110.0, 140.0)
+            oracle_inv_map_c = {
+                inv_c: inv_c * (1.0 - 0.22) - (15.0 if inv_c > 60.0 else 0.0) - 0.015 * inv_c
+                for inv_c in cand_inv_c
+            }
+
             for acc in accumulators:
                 p = acc.paradigm
 
                 def _run_tenant_eval(
                     paradigm: BaselineParadigm = p,
                     local_cases: list[tuple[float, float, float]] = cases,
-                ) -> tuple[float, float, float]:
+                    _oracle_edges: set[str] = oracle_edges_c,
+                    _comp: CompetenceEstimator = comp_c,
+                    _in_states: list[WorldState] = in_states_c,
+                    _ood_states: list[WorldState] = ood_states_c,
+                    _cand_inv: tuple[float, ...] = cand_inv_c,
+                    _oracle_inv_map: dict[float, float] = oracle_inv_map_c,
+                ) -> tuple[float, float, float, float, float, float, float, float, float]:
                     errs: list[float] = []
-                    ctx_infer_acc = 0.0
-                    trace_comp = 0.0
+                    us_pre_errs: list[float] = []
+                    half_widths: list[float] = []
+                    emitted_edges: set[str] = set()
 
                     if paradigm == BaselineParadigm.CONTEXTUAL_HYBRID:
-                        # Runtime context discovery inspects tenant audit payload
                         discovered_ctx = discovery.discover_context(
                             {
                                 "context_id": "ctx_tenant_eu",
@@ -758,11 +1173,18 @@ class RuntimeConfigurationBenchmark(EnterpriseBenchmark):
                         )
                         active_ctx = discovered_ctx
                         ctx_infer_acc = 1.0 if active_ctx.version == "2.0.0-eu" else 0.0
-                        trace_comp = 1.0
+                        emitted_edges = set(_oracle_edges)
                     else:
                         active_ctx = ctx_us
                         ctx_infer_acc = 0.0
-                        trace_comp = 0.5 if paradigm != BaselineParadigm.LEARNED_ONLY else 0.0
+                        if paradigm == BaselineParadigm.RULES_ONLY:
+                            emitted_edges = {"settlement_workflow_rule", "dual_control_fee_gate"}
+                        elif paradigm == BaselineParadigm.STATIC_HYBRID:
+                            emitted_edges = {
+                                "settlement_workflow_rule",
+                                "dual_control_fee_gate",
+                                "fx_clearing_residual",
+                            }
 
                     wf_thresh = active_ctx.workflow_definitions["settlement"].parameters
                     w_rate = float(wf_thresh["withholding_rate"])
@@ -771,33 +1193,91 @@ class RuntimeConfigurationBenchmark(EnterpriseBenchmark):
 
                     for cash, invoice, true_d in local_cases:
                         feat = np.array([cash, invoice], dtype=float)
+                        true_us_d = invoice - 0.015 * invoice
                         if paradigm == BaselineParadigm.LEARNED_ONLY:
                             pred_d = float(learned_full.predict(feat)[0])
+                            pred_us = pred_d
+                            hw = 1.64485 * float(learned_full.residual_std[0])
                         elif paradigm == BaselineParadigm.RULES_ONLY:
                             applied_fee = fee if invoice > dc_limit else 0.0
                             pred_d = invoice * (1.0 - w_rate) - applied_fee
+                            pred_us = invoice
+                            hw = 1.5
                         else:
                             applied_fee = fee if invoice > dc_limit else 0.0
                             res_d = float(learned_res.predict(feat)[0])
                             pred_d = invoice * (1.0 - w_rate) - applied_fee + res_d
+                            pred_us = invoice + res_d
+                            hw = 1.64485 * max(0.35, float(learned_res.residual_std[0]))
 
                         errs.append(abs(true_d - pred_d))
+                        us_pre_errs.append(abs(true_us_d - pred_us))
+                        half_widths.append(hw)
 
-                    return float(np.mean(errs)), ctx_infer_acc, trace_comp
+                    trace_comp = _compute_trace_completeness(emitted_edges, _oracle_edges)
+                    _cov_emp, cal_score, mean_hw = _compute_empirical_calibration(errs, half_widths)
+                    growth_slope = _compute_error_growth_slope(errs)
+                    pred_inv_map: dict[float, float] = {}
+                    for inv_c in _cand_inv:
+                        f_c = np.array([400.0, inv_c], dtype=float)
+                        if paradigm == BaselineParadigm.LEARNED_ONLY:
+                            pred_inv_map[inv_c] = float(learned_full.predict(f_c)[0])
+                        elif paradigm == BaselineParadigm.RULES_ONLY:
+                            pred_inv_map[inv_c] = inv_c * (1.0 - w_rate) - (
+                                fee if inv_c > dc_limit else 0.0
+                            )
+                        else:
+                            pred_inv_map[inv_c] = (
+                                inv_c * (1.0 - w_rate)
+                                - (fee if inv_c > dc_limit else 0.0)
+                                + float(learned_res.predict(f_c)[0])
+                            )
+                    regret = _compute_policy_regret_from_predictions(
+                        _cand_inv, _oracle_inv_map, pred_inv_map, target_outcome=69.15
+                    )
+                    abst_f1 = _compute_abstention_f1(
+                        _in_states,
+                        _ood_states,
+                        _comp if paradigm == BaselineParadigm.CONTEXTUAL_HYBRID else None,
+                    )
+                    return (
+                        float(np.mean(errs)),
+                        float(np.mean(us_pre_errs)),
+                        ctx_infer_acc,
+                        trace_comp,
+                        cal_score,
+                        mean_hw,
+                        growth_slope,
+                        regret,
+                        abst_f1,
+                    )
 
-                (mae, ctx_acc, trace_comp), lat_ms, mem_kb, tput = measure_TimedStep(
-                    _run_tenant_eval, len(cases)
-                )
+                (
+                    (
+                        mae,
+                        pre_us_mae,
+                        ctx_acc,
+                        trace_comp,
+                        cal_score,
+                        mean_hw,
+                        growth_slope,
+                        regret,
+                        abst_f1,
+                    ),
+                    lat_ms,
+                    mem_kb,
+                    tput,
+                ) = measure_TimedStep(_run_tenant_eval, len(cases))
                 fidelity = 1.0 / (1.0 + mae / 25.0)
 
                 if seed_idx == 0:
                     if p in (BaselineParadigm.RULES_ONLY, BaselineParadigm.STATIC_HYBRID):
                         acc.failure_modes.append(
-                            "Applies compile-time US tenant rules (0% withholding) to EU strict tenant deployment."
+                            f"Applies compile-time US tenant rules (0% withholding) to EU strict tenant deployment (measured MAE={mae:.2f})."
                         )
                     elif p == BaselineParadigm.LEARNED_ONLY:
                         acc.failure_modes.append(
-                            "Conditioned only on ontic state/action; blind to cross-tenant configuration K_t."
+                            f"Conditioned only on ontic state/action; blind to cross-tenant configuration K_t (measured MAE={mae:.2f})."
                         )
                     acc.shift_protocol = ShiftProtocolRecord(
                         training_context_version=ctx_us.version,
@@ -821,7 +1301,7 @@ class RuntimeConfigurationBenchmark(EnterpriseBenchmark):
                         recovery_error_threshold=2.0,
                         steps_until_recovery=0 if mae <= 2.0 else None,
                         recovered_within_budget=(mae <= 2.0),
-                        pre_shift_mae=0.25 if p != BaselineParadigm.RULES_ONLY else 1.35,
+                        pre_shift_mae=pre_us_mae,
                         peak_post_shift_mae=mae,
                         steady_state_post_shift_mae=mae,
                     )
@@ -830,18 +1310,14 @@ class RuntimeConfigurationBenchmark(EnterpriseBenchmark):
                     MetricDimension.TRANSITION_FIDELITY: fidelity,
                     MetricDimension.CONSTRAINT_PRESERVATION: 1.0,
                     MetricDimension.CAUSAL_CORRECTNESS: fidelity,
-                    MetricDimension.CALIBRATION: 0.90
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else 0.40,
-                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: mae * 0.2,
+                    MetricDimension.CALIBRATION: cal_score,
+                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                     MetricDimension.SHIFT_ROBUSTNESS: fidelity,
                     MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: 0.0
                     if mae <= 2.0
                     else float(self.n_steps),
-                    MetricDimension.DECISION_REGRET: mae * 0.5,
-                    MetricDimension.ABSTENTION_QUALITY: 0.95
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else 0.45,
+                    MetricDimension.DECISION_REGRET: regret,
+                    MetricDimension.ABSTENTION_QUALITY: abst_f1,
                     MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_comp,
                     MetricDimension.LATENCY: lat_ms,
                     MetricDimension.MEMORY: mem_kb,
@@ -850,8 +1326,12 @@ class RuntimeConfigurationBenchmark(EnterpriseBenchmark):
                 acc.record_seed(
                     seed=e_seed,
                     dimensions=dims,
-                    spreads={MetricDimension.SHIFT_ROBUSTNESS: 0.015},
-                    raw={"eu_tenant_mae": mae, "context_inference_accuracy": ctx_acc},
+                    spreads={MetricDimension.SHIFT_ROBUSTNESS: mean_hw / 25.0},
+                    raw={
+                        "eu_tenant_mae": mae,
+                        "us_pre_shift_mae": pre_us_mae,
+                        "context_inference_accuracy": ctx_acc,
+                    },
                     tasks={
                         BenchmarkTaskType.CONFIGURATION_CONTEXT_INFERENCE: ctx_acc,
                         BenchmarkTaskType.NEXT_STATE_PREDICTION: fidelity,
@@ -889,6 +1369,8 @@ class RuntimeConfigurationBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload={r.paradigm.value: r.raw_metrics for r in records},
         )
+        static_mae_c = _raw_val(records, BaselineParadigm.STATIC_HYBRID, "eu_tenant_mae")
+        ctx_mae_c = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "eu_tenant_mae")
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -906,8 +1388,8 @@ class RuntimeConfigurationBenchmark(EnterpriseBenchmark):
                 "in tenant workflow/tax configuration K_t, how do static vs. context-discovering models behave?"
             ),
             phenomenon_surfaced=(
-                "Static hybrid, rules-only, and learned-only baselines all fail on the unseen tenant "
-                "configuration (MAE > 38), whereas runtime context discovery infers K_t from audit metadata."
+                f"Static hybrid, rules-only, and learned-only baselines fail on the unseen EU tenant "
+                f"configuration (measured static MAE={static_mae_c:.2f}), whereas runtime context discovery infers K_t from audit metadata (MAE={ctx_mae_c:.2f})."
             ),
             parameters=params,
             baselines=records,
@@ -1038,17 +1520,56 @@ class DeploymentShiftBenchmark(EnterpriseBenchmark):
                 true_d = disburse * (1.0 - r_ratio) - e_fee - 0.02 * disburse + noise
                 rollout_steps.append((t, liq, disburse, true_d))
 
+            oracle_edges_d = {
+                "reserve_gate_rule",
+                "expedite_fee_rule",
+                "disbursement_residual",
+                "audit_context_discovery_v2",
+            }
+            comp_d = CompetenceEstimator(
+                max_verified_horizon=30,
+                support_bounds={"liquidity": (300.0, 900.0)},
+                abstention_threshold=0.45,
+            )
+            in_states_d = [
+                _make_single_resource_state(
+                    "liquidity", l_val, step=t_i, timestamp=float(t_i), max_val=5000.0
+                )
+                for t_i, l_val, _d, _td in rollout_steps[:4]
+            ]
+            ood_states_d = [
+                _make_single_resource_state(
+                    "liquidity",
+                    2200.0 + idx * 100.0,
+                    step=idx,
+                    timestamp=float(idx),
+                    max_val=5000.0,
+                )
+                for idx in range(3)
+            ]
+            cand_disb_d = (50.0, 75.0, 95.0, 115.0)
+            oracle_disb_map_d = {d_c: d_c * (1.0 - 0.35) - 14.0 - 0.02 * d_c for d_c in cand_disb_d}
+
             for acc in accumulators:
                 p = acc.paradigm
 
                 def _run_shift_rollout(
                     paradigm: BaselineParadigm = p,
                     local_steps: list[tuple[int, float, float, float]] = rollout_steps,
-                ) -> tuple[float, float, float, float, int | None]:
+                    _oracle_edges: set[str] = oracle_edges_d,
+                    _comp: CompetenceEstimator = comp_d,
+                    _in_states: list[WorldState] = in_states_d,
+                    _ood_states: list[WorldState] = ood_states_d,
+                    _cand_disb: tuple[float, ...] = cand_disb_d,
+                    _oracle_disb_map: dict[float, float] = oracle_disb_map_d,
+                ) -> tuple[
+                    float, float, float, float, int | None, float, float, float, float, float, float
+                ]:
                     step_errors: list[float] = []
+                    half_widths: list[float] = []
+                    emitted_edges: set[str] = set()
                     active_ctx = ctx_v1
                     for t, liq, disburse, true_d in local_steps:
-                        # Audit telemetry arrives at shift_step + audit_delay
                         if (
                             paradigm == BaselineParadigm.CONTEXTUAL_HYBRID
                             and t >= self.shift_step + self.audit_delay
@@ -1079,47 +1600,110 @@ class DeploymentShiftBenchmark(EnterpriseBenchmark):
 
                         if paradigm == BaselineParadigm.LEARNED_ONLY:
                             pred_d = float(learned_full.predict(feat)[0])
+                            hw = 1.64485 * float(learned_full.residual_std[0])
                         elif paradigm == BaselineParadigm.RULES_ONLY:
                             pred_d = disburse * (1.0 - r_rat) - fee
+                            emitted_edges = {"reserve_gate_rule", "expedite_fee_rule"}
+                            hw = 2.0
+                        elif paradigm == BaselineParadigm.STATIC_HYBRID:
+                            res_d = float(learned_res.predict(feat)[0])
+                            pred_d = disburse * (1.0 - r_rat) - fee + res_d
+                            emitted_edges = {
+                                "reserve_gate_rule",
+                                "expedite_fee_rule",
+                                "disbursement_residual",
+                            }
+                            hw = 1.64485 * max(0.35, float(learned_res.residual_std[0]))
                         else:
                             res_d = float(learned_res.predict(feat)[0])
                             pred_d = disburse * (1.0 - r_rat) - fee + res_d
+                            emitted_edges = set(_oracle_edges)
+                            hw = 1.64485 * max(0.35, float(learned_res.residual_std[0]))
 
                         step_errors.append(abs(true_d - pred_d))
+                        half_widths.append(hw)
 
                     pre_mae = float(np.mean(step_errors[: self.shift_step]))
                     post_errors = step_errors[self.shift_step :]
                     peak_post = float(np.max(post_errors))
                     steady_post = float(np.mean(post_errors[self.adaptation_budget :]))
+                    steady_hws = half_widths[self.shift_step + self.adaptation_budget :]
 
-                    # Compute steps until recovery after shift_step
                     rec_steps: int | None = None
                     for k_idx in range(len(post_errors)):
-                        # Recovered once error stays <= rec_threshold for remaining steps
                         if all(e <= rec_threshold for e in post_errors[k_idx:]):
                             rec_steps = k_idx
                             break
 
-                    return pre_mae, peak_post, steady_post, float(np.mean(post_errors)), rec_steps
+                    trace_comp = _compute_trace_completeness(emitted_edges, _oracle_edges)
+                    _cov_emp, cal_score, mean_hw = _compute_empirical_calibration(
+                        post_errors[self.adaptation_budget :], steady_hws
+                    )
+                    growth_slope = _compute_error_growth_slope(step_errors)
+                    end_cfg = active_ctx.enabled_automations["reserve_gate"].parameters
+                    end_r = float(end_cfg["reserve_ratio"])
+                    end_f = float(end_cfg["expedite_fee"])
+                    pred_disb_map: dict[float, float] = {}
+                    for d_c in _cand_disb:
+                        f_c = np.array([500.0, d_c], dtype=float)
+                        if paradigm == BaselineParadigm.LEARNED_ONLY:
+                            pred_disb_map[d_c] = float(learned_full.predict(f_c)[0])
+                        elif paradigm == BaselineParadigm.RULES_ONLY:
+                            pred_disb_map[d_c] = d_c * (1.0 - end_r) - end_f
+                        else:
+                            pred_disb_map[d_c] = (
+                                d_c * (1.0 - end_r) - end_f + float(learned_res.predict(f_c)[0])
+                            )
+                    regret = _compute_policy_regret_from_predictions(
+                        _cand_disb, _oracle_disb_map, pred_disb_map, target_outcome=45.85
+                    )
+                    abst_f1 = _compute_abstention_f1(
+                        _in_states,
+                        _ood_states,
+                        _comp if paradigm == BaselineParadigm.CONTEXTUAL_HYBRID else None,
+                    )
+                    return (
+                        pre_mae,
+                        peak_post,
+                        steady_post,
+                        float(np.mean(post_errors)),
+                        rec_steps,
+                        trace_comp,
+                        cal_score,
+                        mean_hw,
+                        growth_slope,
+                        regret,
+                        abst_f1,
+                    )
 
-                (pre_mae, peak_post, steady_post, post_mae, rec_steps), lat_ms, mem_kb, tput = (
-                    measure_TimedStep(_run_shift_rollout, self.horizon)
-                )
+                (
+                    (
+                        pre_mae,
+                        peak_post,
+                        steady_post,
+                        post_mae,
+                        rec_steps,
+                        trace_comp,
+                        cal_score,
+                        mean_hw,
+                        growth_slope,
+                        regret,
+                        abst_f1,
+                    ),
+                    lat_ms,
+                    mem_kb,
+                    tput,
+                ) = measure_TimedStep(_run_shift_rollout, self.horizon)
 
                 post_horizon = self.horizon - self.shift_step
                 numeric_rec = float(rec_steps) if rec_steps is not None else float(post_horizon)
                 shift_rob = 1.0 / (1.0 + steady_post / 15.0)
                 fidelity = 1.0 / (1.0 + post_mae / 15.0)
-                trace_comp = (
-                    1.0
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else (0.5 if p != BaselineParadigm.LEARNED_ONLY else 0.0)
-                )
 
                 if seed_idx == 0:
                     if p != BaselineParadigm.CONTEXTUAL_HYBRID:
                         acc.failure_modes.append(
-                            "Never recovers after mid-rollout deployment shift (permanent post-shift bias)."
+                            f"Never recovers after mid-rollout deployment shift (steady post-shift MAE={steady_post:.2f})."
                         )
                     else:
                         acc.failure_modes.append(
@@ -1158,16 +1742,12 @@ class DeploymentShiftBenchmark(EnterpriseBenchmark):
                     MetricDimension.TRANSITION_FIDELITY: fidelity,
                     MetricDimension.CONSTRAINT_PRESERVATION: 1.0,
                     MetricDimension.CAUSAL_CORRECTNESS: shift_rob,
-                    MetricDimension.CALIBRATION: 0.85
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else 0.35,
-                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: steady_post * 0.25,
+                    MetricDimension.CALIBRATION: cal_score,
+                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                     MetricDimension.SHIFT_ROBUSTNESS: shift_rob,
                     MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: numeric_rec,
-                    MetricDimension.DECISION_REGRET: steady_post * 0.6,
-                    MetricDimension.ABSTENTION_QUALITY: 0.90
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else 0.30,
+                    MetricDimension.DECISION_REGRET: regret,
+                    MetricDimension.ABSTENTION_QUALITY: abst_f1,
                     MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_comp,
                     MetricDimension.LATENCY: lat_ms,
                     MetricDimension.MEMORY: mem_kb,
@@ -1176,7 +1756,7 @@ class DeploymentShiftBenchmark(EnterpriseBenchmark):
                 acc.record_seed(
                     seed=e_seed,
                     dimensions=dims,
-                    spreads={MetricDimension.SHIFT_ROBUSTNESS: 0.01},
+                    spreads={MetricDimension.SHIFT_ROBUSTNESS: mean_hw / 15.0},
                     raw={
                         "pre_shift_mae": pre_mae,
                         "peak_post_shift_mae": peak_post,
@@ -1223,6 +1803,14 @@ class DeploymentShiftBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload={r.paradigm.value: r.raw_metrics for r in records},
         )
+        static_steady_d = _raw_val(
+            records, BaselineParadigm.STATIC_HYBRID, "steady_state_post_shift_mae"
+        )
+        ctx_peak_d = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "peak_post_shift_mae")
+        ctx_steady_d = _raw_val(
+            records, BaselineParadigm.CONTEXTUAL_HYBRID, "steady_state_post_shift_mae"
+        )
+        ctx_rec_d = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "steps_until_recovery")
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -1240,9 +1828,9 @@ class DeploymentShiftBenchmark(EnterpriseBenchmark):
                 "policy/mechanism shift when runtime audit telemetry is delayed?"
             ),
             phenomenon_surfaced=(
-                "Static models suffer permanent post-shift bias (unrecovered), whereas runtime "
-                "context discovery experiences a 2-step transient error spike during the telemetry lag "
-                "before discovering K_2 and recovering at step +2."
+                f"Static models suffer permanent post-shift bias (steady MAE={static_steady_d:.2f}, unrecovered), "
+                f"whereas runtime context discovery experiences a {self.audit_delay}-step transient spike (peak MAE={ctx_peak_d:.2f}) "
+                f"before discovering K_2 and recovering at step +{ctx_rec_d:.0f} (steady MAE={ctx_steady_d:.3f})."
             ),
             parameters=params,
             baselines=records,
@@ -1384,13 +1972,17 @@ class PartialObservabilityBenchmark(EnterpriseBenchmark):
                 def _run_pomdp_eval(
                     paradigm: BaselineParadigm = p,
                     local_traj: list[tuple[WorldState, float, float]] = traj_data,
-                ) -> tuple[float, float, float]:
+                ) -> tuple[float, float, float, float, float, float, float, float, float]:
                     errs: list[float] = []
-                    covered = 0
+                    half_ws: list[float] = []
+                    true_ds: list[float] = []
+                    pred_ds: list[float] = []
+                    trace_records: list[dict[str, object]] = []
                     belief: BeliefState | None = None
                     est_shortfall = 5.0
+                    rec_step: float = float(len(local_traj))
 
-                    for true_st, order, true_d in local_traj:
+                    for step_i, (true_st, order, true_d) in enumerate(local_traj):
                         obs_st = obs_filter.observe(true_st)
                         # Verify zero hidden-state leakage
                         if (
@@ -1406,14 +1998,33 @@ class PartialObservabilityBenchmark(EnterpriseBenchmark):
                             # Assumes zero hidden congestion
                             pred_d = order
                             half_w = 0.0
+                            trace_records.append(
+                                {
+                                    "actor_id": "warehouse_observer",
+                                    "handler_id": "pomdp_rule",
+                                    "rule_id": "nominal_fill",
+                                    "constraint_id": "stock_bounds",
+                                    "context_fingerprint": "",
+                                }
+                            )
                         elif paradigm == BaselineParadigm.LEARNED_ONLY:
                             # Assumes training average congestion (~6 units shortfall)
                             pred_d = float(learned_full.predict(feat)[0])
                             half_w = 1.645 * float(learned_full.residual_std[0])
+                            trace_records.append({})
                         elif paradigm == BaselineParadigm.STATIC_HYBRID:
                             # Uses static nominal shortfall estimate (6.0) without runtime audit belief update
                             pred_d = order - 6.0
                             half_w = 4.0
+                            trace_records.append(
+                                {
+                                    "actor_id": "warehouse_observer",
+                                    "handler_id": "static_hybrid_pomdp",
+                                    "rule_id": "nominal_fill",
+                                    "constraint_id": "stock_bounds",
+                                    "context_fingerprint": "",
+                                }
+                            )
                         else:
                             # Contextual hybrid updates belief state B_t from observable audit hint
                             audit_hint = float(
@@ -1427,35 +2038,76 @@ class PartialObservabilityBenchmark(EnterpriseBenchmark):
                             est_shortfall = 0.65 * audit_hint + 0.35 * est_shortfall
                             pred_d = order - est_shortfall
                             half_w = max(2.5, 0.25 * est_shortfall)
+                            trace_records.append(
+                                {
+                                    "actor_id": belief.actor_id,
+                                    "handler_id": "belief_updater",
+                                    "rule_id": "audit_shortfall_filter",
+                                    "constraint_id": "stock_bounds",
+                                    "context_fingerprint": obs_st.ontic_fingerprint,
+                                }
+                            )
 
                         err = abs(true_d - pred_d)
                         errs.append(err)
-                        if err <= half_w:
-                            covered += 1
+                        half_ws.append(half_w)
+                        true_ds.append(true_d)
+                        pred_ds.append(pred_d)
+                        if step_i >= 1 and err <= 4.0 and rec_step == float(len(local_traj)):
+                            rec_step = float(step_i)
 
                     mae = float(np.mean(errs))
-                    cov_rate = float(covered / len(local_traj))
-                    cal_score = max(0.0, 1.0 - abs(cov_rate - 0.90))
-                    return mae, cal_score, cov_rate
+                    _cov_emp, cal_score, mean_hw = _compute_empirical_calibration(errs, half_ws)
+                    cov_rate = float(
+                        sum(1 for e, hw in zip(errs, half_ws, strict=True) if e <= hw)
+                        / len(local_traj)
+                    )
+                    growth_slope = _compute_error_growth_slope(errs)
+                    regret = _compute_policy_regret_from_predictions(
+                        true_ds, pred_ds, target_offset=10.0
+                    )
+                    abst_f1 = _compute_abstention_f1(
+                        errs, half_ws, err_threshold=8.0, hw_threshold=2.2
+                    )
+                    trace_comp = _compute_trace_completeness(trace_records)
+                    return (
+                        mae,
+                        cal_score,
+                        cov_rate,
+                        mean_hw,
+                        growth_slope,
+                        regret,
+                        abst_f1,
+                        trace_comp,
+                        rec_step,
+                    )
 
-                (mae, cal_score, cov_rate), lat_ms, mem_kb, tput = measure_TimedStep(
-                    _run_pomdp_eval, len(traj_data)
-                )
+                (
+                    (
+                        mae,
+                        cal_score,
+                        cov_rate,
+                        mean_hw,
+                        growth_slope,
+                        regret,
+                        abst_f1,
+                        trace_comp,
+                        rec_step,
+                    ),
+                    lat_ms,
+                    mem_kb,
+                    tput,
+                ) = measure_TimedStep(_run_pomdp_eval, len(traj_data))
                 fidelity = 1.0 / (1.0 + mae / 15.0)
-                trace_comp = (
-                    0.95
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else (0.45 if p != BaselineParadigm.LEARNED_ONLY else 0.0)
-                )
 
                 if seed_idx == 0:
                     if p != BaselineParadigm.CONTEXTUAL_HYBRID:
                         acc.failure_modes.append(
-                            "Cannot infer latent supplier congestion from visible stock alone; systematically overpredicts deliveries."
+                            f"Cannot infer latent supplier congestion from visible stock alone (POMDP MAE={mae:.2f}); systematically overpredicts deliveries."
                         )
                     else:
                         acc.failure_modes.append(
-                            "Tracks latent congestion via audit belief filtering, but retains bounded filtering lag error (MAE > 1.0) vs. an omniscient oracle."
+                            f"Tracks latent congestion via audit belief filtering, but retains bounded filtering lag error (MAE={mae:.2f}) vs. an omniscient oracle."
                         )
 
                 dims = {
@@ -1463,15 +2115,11 @@ class PartialObservabilityBenchmark(EnterpriseBenchmark):
                     MetricDimension.CONSTRAINT_PRESERVATION: 1.0,
                     MetricDimension.CAUSAL_CORRECTNESS: fidelity,
                     MetricDimension.CALIBRATION: cal_score,
-                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: mae * 0.18,
+                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                     MetricDimension.SHIFT_ROBUSTNESS: fidelity,
-                    MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: 1.0
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else float(self.horizon),
-                    MetricDimension.DECISION_REGRET: mae * 0.45,
-                    MetricDimension.ABSTENTION_QUALITY: 0.85
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else 0.35,
+                    MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: rec_step,
+                    MetricDimension.DECISION_REGRET: regret,
+                    MetricDimension.ABSTENTION_QUALITY: abst_f1,
                     MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_comp,
                     MetricDimension.LATENCY: lat_ms,
                     MetricDimension.MEMORY: mem_kb,
@@ -1480,7 +2128,7 @@ class PartialObservabilityBenchmark(EnterpriseBenchmark):
                 acc.record_seed(
                     seed=e_seed,
                     dimensions=dims,
-                    spreads={MetricDimension.TRANSITION_FIDELITY: 0.025},
+                    spreads={MetricDimension.TRANSITION_FIDELITY: mean_hw / 15.0},
                     raw={"pomdp_mae": mae, "coverage_90": cov_rate},
                     tasks={
                         BenchmarkTaskType.NEXT_STATE_PREDICTION: fidelity,
@@ -1515,6 +2163,9 @@ class PartialObservabilityBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload={r.paradigm.value: r.raw_metrics for r in records},
         )
+        static_mae_e = _raw_val(records, BaselineParadigm.STATIC_HYBRID, "pomdp_mae")
+        ctx_mae_e = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "pomdp_mae")
+        rel_red_e = (1.0 - ctx_mae_e / max(1e-9, static_mae_e)) * 100.0
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -1532,9 +2183,9 @@ class PartialObservabilityBenchmark(EnterpriseBenchmark):
                 "world model reconstruct belief state from controlled audit hints without state leakage?"
             ),
             phenomenon_surfaced=(
-                "ObservationFilter prevents hidden state leakage across all models; belief updating "
-                "from audit shortfall telemetry reduces POMDP error by >75% over static/memoryless baselines, "
-                "while still exhibiting non-zero filtering lag relative to an omniscient oracle."
+                f"ObservationFilter prevents hidden state leakage across all models; belief updating "
+                f"from audit shortfall telemetry reduces POMDP error by {rel_red_e:.1f}% over static baselines "
+                f"(MAE={ctx_mae_e:.2f} vs {static_mae_e:.2f}), while still exhibiting non-zero filtering lag relative to an omniscient oracle."
             ),
             parameters=params,
             baselines=records,
@@ -1580,7 +2231,8 @@ class LongHorizonBusinessOperationBenchmark(EnterpriseBenchmark):
         rng_train = np.random.default_rng(train_seed)
 
         # Fit empirical models on 1-step pre-shift business transitions
-        train_X: list[list[float]] = []
+        train_X_full: list[list[float]] = []
+        train_X_res: list[list[float]] = []
         train_Y_full: list[list[float]] = []
         train_Y_res: list[list[float]] = []
         train_fps: list[str] = []
@@ -1593,7 +2245,7 @@ class LongHorizonBusinessOperationBenchmark(EnterpriseBenchmark):
 
         for i in range(50):
             inv = float(rng_train.uniform(40.0, 160.0))
-            cash = float(rng_train.uniform(500.0, 1500.0))
+            cash = float(rng_train.uniform(500.0, 1200.0))
             order = float(rng_train.uniform(5.0, 25.0))
             demand = float(rng_train.uniform(8.0, 22.0))
             ts = float(i + 1)
@@ -1618,16 +2270,18 @@ class LongHorizonBusinessOperationBenchmark(EnterpriseBenchmark):
             rule_d_inv = order - sold
             rule_d_cash = sold * unit_price - order * unit_cost_v1
 
-            train_X.append([inv, cash, order, demand])
+            train_X_full.append([inv, cash / 100.0, order, demand])
+            train_X_res.append([inv, order, demand])
             train_Y_full.append([d_inv, d_cash])
             train_Y_res.append([d_inv - rule_d_inv, d_cash - rule_d_cash])
 
-        X_tr = np.asarray(train_X, dtype=float)
-        learned_full = PolynomialRidgeRegressor(l2_penalty=1e-2, include_quadratic=False)
-        learned_full.fit(X_tr, np.asarray(train_Y_full, dtype=float))
+        X_tr_full = np.asarray(train_X_full, dtype=float)
+        learned_full = PolynomialRidgeRegressor(l2_penalty=1e-4, include_quadratic=True)
+        learned_full.fit(X_tr_full, np.asarray(train_Y_full, dtype=float))
 
+        X_tr_res = np.asarray(train_X_res, dtype=float)
         learned_res = PolynomialRidgeRegressor(l2_penalty=1e-2, include_quadratic=False)
-        learned_res.fit(X_tr, np.asarray(train_Y_res, dtype=float))
+        learned_res.fit(X_tr_res, np.asarray(train_Y_res, dtype=float))
 
         task_types = (
             BenchmarkTaskType.NEXT_STATE_PREDICTION,
@@ -1681,30 +2335,53 @@ class LongHorizonBusinessOperationBenchmark(EnterpriseBenchmark):
                 def _run_business_rollout(
                     paradigm: BaselineParadigm = p,
                     local_schedule: list[tuple[float, float, float, float]] = schedule,
-                ) -> tuple[float, float, int]:
+                ) -> tuple[float, float, int, float, float, float, float, float, float]:
                     pred_inv = 120.0
                     pred_cash = 1000.0
                     step_errs: list[float] = []
+                    half_ws: list[float] = []
+                    gt_cashes: list[float] = []
+                    pred_cashes: list[float] = []
+                    trace_records: list[dict[str, object]] = []
                     viols = 0
+                    rec_after_shift: float = float(self.horizon - shift_t)
 
                     for t_idx, (order, demand, gt_inv, gt_cash) in enumerate(local_schedule):
-                        feat = np.array([pred_inv, pred_cash, order, demand], dtype=float)
+                        feat_full = np.array(
+                            [pred_inv, pred_cash / 100.0, order, demand], dtype=float
+                        )
+                        feat_res = np.array([pred_inv, order, demand], dtype=float)
                         if paradigm == BaselineParadigm.LEARNED_ONLY:
-                            delta = learned_full.predict(feat)
-                            # Small autoregressive bias in unconstrained learned model compounds over horizon
-                            pred_inv = pred_inv + float(delta[0]) - 0.35
-                            pred_cash = pred_cash + float(delta[1]) + 2.5
-                            if pred_inv < 0.0 or pred_inv > 500.0:
+                            delta = learned_full.predict(feat_full)
+                            pred_inv = pred_inv + float(delta[0])
+                            pred_cash = pred_cash + float(delta[1])
+                            if pred_inv < 0.0 or pred_inv > 500.0 or pred_cash < 0.0:
                                 viols += 1
+                            half_ws.append(
+                                1.645
+                                * float(np.mean(learned_full.residual_std))
+                                * (1.0 + 0.05 * t_idx)
+                            )
+                            trace_records.append({})
                         elif paradigm == BaselineParadigm.RULES_ONLY:
                             sold = min(pred_inv, demand)
                             pred_inv = max(0.0, min(500.0, pred_inv + order - sold))
                             pred_cash = max(
                                 0.0, pred_cash + sold * unit_price - order * unit_cost_v1
                             )
+                            half_ws.append(0.0)
+                            trace_records.append(
+                                {
+                                    "actor_id": "vending_operator",
+                                    "handler_id": "supply_cash_rule",
+                                    "rule_id": "unit_cost_v1",
+                                    "constraint_id": "inventory_bounds",
+                                    "context_fingerprint": "",
+                                }
+                            )
                         elif paradigm == BaselineParadigm.STATIC_HYBRID:
                             sold = min(pred_inv, demand)
-                            res = learned_res.predict(feat)
+                            res = learned_res.predict(feat_res)
                             pred_inv = max(0.0, min(500.0, pred_inv + order - sold + float(res[0])))
                             pred_cash = max(
                                 0.0,
@@ -1713,62 +2390,128 @@ class LongHorizonBusinessOperationBenchmark(EnterpriseBenchmark):
                                 - order * unit_cost_v1
                                 + float(res[1]),
                             )
+                            half_ws.append(
+                                1.645
+                                * float(np.mean(learned_res.residual_std))
+                                * (1.0 + 0.1 * t_idx)
+                            )
+                            trace_records.append(
+                                {
+                                    "actor_id": "vending_operator",
+                                    "handler_id": "static_hybrid_rollout",
+                                    "rule_id": "unit_cost_v1",
+                                    "constraint_id": "inventory_bounds",
+                                    "context_fingerprint": "",
+                                }
+                            )
                         else:
                             # Contextual hybrid discovers supplier cost contract shift at shift_t + 1
                             sold = min(pred_inv, demand)
-                            res = learned_res.predict(feat)
+                            res = learned_res.predict(feat_res)
                             active_cost = unit_cost_v2 if t_idx >= shift_t + 1 else unit_cost_v1
                             pred_inv = max(0.0, min(500.0, pred_inv + order - sold + float(res[0])))
                             pred_cash = max(
                                 0.0,
                                 pred_cash + sold * unit_price - order * active_cost + float(res[1]),
                             )
+                            half_ws.append(
+                                max(
+                                    2.5,
+                                    1.645
+                                    * float(np.mean(learned_res.residual_std))
+                                    * np.sqrt(t_idx + 1),
+                                )
+                            )
+                            trace_records.append(
+                                {
+                                    "actor_id": "vending_operator",
+                                    "handler_id": "contextual_hybrid_rollout",
+                                    "rule_id": "unit_cost_v2"
+                                    if t_idx >= shift_t + 1
+                                    else "unit_cost_v1",
+                                    "constraint_id": "inventory_bounds",
+                                    "context_fingerprint": f"ctx_step_{t_idx}",
+                                }
+                            )
 
                         err_t = 0.5 * (abs(gt_inv - pred_inv) + abs(gt_cash - pred_cash) / 10.0)
                         step_errs.append(err_t)
+                        gt_cashes.append(gt_cash / 10.0)
+                        pred_cashes.append(pred_cash / 10.0)
+                        if (
+                            t_idx > shift_t
+                            and err_t <= 2.5
+                            and rec_after_shift == float(self.horizon - shift_t)
+                        ):
+                            rec_after_shift = float(t_idx - shift_t)
 
-                    growth_slope = (step_errs[-1] - step_errs[0]) / max(1, len(step_errs) - 1)
-                    return float(np.mean(step_errs)), max(0.0, float(growth_slope)), viols
+                    growth_slope = _compute_error_growth_slope(step_errs)
+                    _cov_emp, cal_score, mean_hw = _compute_empirical_calibration(
+                        step_errs, half_ws
+                    )
+                    regret = _compute_policy_regret_from_predictions(
+                        gt_cashes, pred_cashes, target_offset=120.0
+                    )
+                    abst_f1 = _compute_abstention_f1(
+                        step_errs, half_ws, err_threshold=15.0, hw_threshold=2.0
+                    )
+                    trace_comp = _compute_trace_completeness(trace_records)
+                    return (
+                        float(np.mean(step_errs)),
+                        growth_slope,
+                        viols,
+                        cal_score,
+                        mean_hw,
+                        regret,
+                        abst_f1,
+                        trace_comp,
+                        rec_after_shift,
+                    )
 
-                (mean_err, growth_slope, viols), lat_ms, mem_kb, tput = measure_TimedStep(
-                    _run_business_rollout, self.horizon
-                )
+                (
+                    (
+                        mean_err,
+                        growth_slope,
+                        viols,
+                        cal_score,
+                        mean_hw,
+                        regret,
+                        abst_f1,
+                        trace_comp,
+                        rec_after_shift,
+                    ),
+                    lat_ms,
+                    mem_kb,
+                    tput,
+                ) = measure_TimedStep(_run_business_rollout, self.horizon)
                 fidelity = 1.0 / (1.0 + mean_err / 15.0)
                 c_pres = 1.0 - float(viols) / float(self.horizon)
 
                 if seed_idx == 0:
                     if p == BaselineParadigm.LEARNED_ONLY:
                         acc.failure_modes.append(
-                            "Autoregressive compounding drift causes severe long-horizon cash/inventory divergence."
+                            f"Autoregressive compounding drift (growth slope={growth_slope:.2f}/step) causes severe long-horizon cash/inventory divergence."
                         )
                     elif p == BaselineParadigm.RULES_ONLY:
                         acc.failure_modes.append(
-                            "Ignores 3% per-step perishability spoilage and mid-horizon supplier contract shift."
+                            f"Ignores 3% per-step perishability spoilage and mid-horizon supplier contract shift (rollout MAE={mean_err:.2f})."
                         )
                     elif p == BaselineParadigm.STATIC_HYBRID:
                         acc.failure_modes.append(
-                            "Captures perishability spoilage in first half, but drifts after step H/2 supplier price change."
+                            f"Captures perishability spoilage in first half, but drifts after step H/2 supplier price change (growth slope={growth_slope:.3f}/step)."
                         )
 
                 dims = {
                     MetricDimension.TRANSITION_FIDELITY: fidelity,
                     MetricDimension.CONSTRAINT_PRESERVATION: c_pres,
                     MetricDimension.CAUSAL_CORRECTNESS: fidelity,
-                    MetricDimension.CALIBRATION: 0.86
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else 0.50,
+                    MetricDimension.CALIBRATION: cal_score,
                     MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                     MetricDimension.SHIFT_ROBUSTNESS: fidelity,
-                    MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: 1.0
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else float(shift_t),
-                    MetricDimension.DECISION_REGRET: mean_err * 0.5,
-                    MetricDimension.ABSTENTION_QUALITY: 0.88
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else 0.45,
-                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: 1.0
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else (0.7 if p != BaselineParadigm.LEARNED_ONLY else 0.0),
+                    MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: rec_after_shift,
+                    MetricDimension.DECISION_REGRET: regret,
+                    MetricDimension.ABSTENTION_QUALITY: abst_f1,
+                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_comp,
                     MetricDimension.LATENCY: lat_ms,
                     MetricDimension.MEMORY: mem_kb,
                     MetricDimension.THROUGHPUT: tput,
@@ -1776,7 +2519,7 @@ class LongHorizonBusinessOperationBenchmark(EnterpriseBenchmark):
                 acc.record_seed(
                     seed=e_seed,
                     dimensions=dims,
-                    spreads={MetricDimension.LONG_HORIZON_ERROR_GROWTH: 0.02},
+                    spreads={MetricDimension.LONG_HORIZON_ERROR_GROWTH: mean_hw / 25.0},
                     raw={"rollout_mae": mean_err, "error_growth_slope": growth_slope},
                     tasks={
                         BenchmarkTaskType.NEXT_STATE_PREDICTION: fidelity,
@@ -1812,6 +2555,10 @@ class LongHorizonBusinessOperationBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload={r.paradigm.value: r.raw_metrics for r in records},
         )
+        learned_slope_f = _raw_val(records, BaselineParadigm.LEARNED_ONLY, "error_growth_slope")
+        rules_slope_f = _raw_val(records, BaselineParadigm.RULES_ONLY, "error_growth_slope")
+        static_slope_f = _raw_val(records, BaselineParadigm.STATIC_HYBRID, "error_growth_slope")
+        ctx_slope_f = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "error_growth_slope")
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -1829,9 +2576,10 @@ class LongHorizonBusinessOperationBenchmark(EnterpriseBenchmark):
                 "contract changes, how rapidly do autoregressive rollout errors compound?"
             ),
             phenomenon_surfaced=(
-                "Learned-only models accumulate severe compounding drift; rules-only drifts from "
-                "unmodeled spoilage; static hybrid drifts after the mid-horizon supplier contract change; "
-                "contextual hybrid minimizes long-horizon error growth."
+                f"Learned-only models accumulate severe compounding drift (slope={learned_slope_f:.2f}/step); "
+                f"rules-only drifts from unmodeled spoilage (slope={rules_slope_f:.3f}/step); static hybrid drifts after "
+                f"the mid-horizon supplier contract change (slope={static_slope_f:.3f}/step); contextual hybrid minimizes "
+                f"long-horizon error growth (slope={ctx_slope_f:.3f}/step)."
             ),
             parameters=params,
             baselines=records,
@@ -1876,7 +2624,12 @@ class MultiAgentEconomyBenchmark(EnterpriseBenchmark):
         rng_train = np.random.default_rng(train_seed)
 
         train_X: list[list[float]] = []
-        train_Y_full: list[list[float]] = []
+        train_X_s: list[list[float]] = []
+        train_X_b: list[list[float]] = []
+        train_X_a: list[list[float]] = []
+        train_Y_s: list[float] = []
+        train_Y_b: list[float] = []
+        train_Y_a: list[float] = []
         train_Y_res: list[list[float]] = []
         train_fps: list[str] = []
         train_ts: list[float] = []
@@ -1916,13 +2669,23 @@ class MultiAgentEconomyBenchmark(EnterpriseBenchmark):
             rule_s = -rule_b
 
             train_X.append([s_pool, b_stock, bid_qty])
-            train_Y_full.append([d_s, cleared_to_buyer, cleared_to_arb])
+            train_X_s.append([s_pool, bid_qty])
+            train_X_b.append([b_stock, bid_qty])
+            train_X_a.append([s_pool, b_stock])
+            train_Y_s.append(d_s)
+            train_Y_b.append(cleared_to_buyer)
+            train_Y_a.append(cleared_to_arb)
             train_Y_res.append([d_s - rule_s, cleared_to_buyer - rule_b, cleared_to_arb - rule_a])
 
-        X_tr = np.asarray(train_X, dtype=float)
-        learned_full = PolynomialRidgeRegressor(l2_penalty=1e-2, include_quadratic=True)
-        learned_full.fit(X_tr, np.asarray(train_Y_full, dtype=float))
+        # Independent local per-actor regressors (without global clearing coordination)
+        learned_actor_s = PolynomialRidgeRegressor(l2_penalty=1e-2, include_quadratic=True)
+        learned_actor_s.fit(np.asarray(train_X_s, dtype=float), np.asarray(train_Y_s, dtype=float))
+        learned_actor_b = PolynomialRidgeRegressor(l2_penalty=1e-2, include_quadratic=True)
+        learned_actor_b.fit(np.asarray(train_X_b, dtype=float), np.asarray(train_Y_b, dtype=float))
+        learned_actor_a = PolynomialRidgeRegressor(l2_penalty=1e-2, include_quadratic=True)
+        learned_actor_a.fit(np.asarray(train_X_a, dtype=float), np.asarray(train_Y_a, dtype=float))
 
+        X_tr = np.asarray(train_X, dtype=float)
         learned_res = PolynomialRidgeRegressor(l2_penalty=1e-2, include_quadratic=True)
         learned_res.fit(X_tr, np.asarray(train_Y_res, dtype=float))
 
@@ -1967,22 +2730,64 @@ class MultiAgentEconomyBenchmark(EnterpriseBenchmark):
                 def _run_economy(
                     paradigm: BaselineParadigm = p,
                     local_rounds: list[tuple[float, float, float, np.ndarray]] = rounds,
-                ) -> tuple[float, int, float]:
+                ) -> tuple[float, int, float, float, float, float, float, float, float, float]:
                     errs: list[float] = []
+                    half_ws: list[float] = []
+                    true_b_allocs: list[float] = []
+                    pred_b_allocs: list[float] = []
+                    trace_records: list[dict[str, object]] = []
                     viols = 0
-                    for s_pool, b_stock, bid_qty, true_vec in local_rounds:
+                    rec_steps: float = float(len(local_rounds))
+
+                    for r_i, (s_pool, b_stock, bid_qty, true_vec) in enumerate(local_rounds):
                         feat = np.array([s_pool, b_stock, bid_qty], dtype=float)
                         rule_vec = np.array([-min(s_pool, bid_qty), min(s_pool, bid_qty), 0.0])
 
                         if paradigm == BaselineParadigm.LEARNED_ONLY:
-                            # Unprojected empirical prediction + slight non-conserving noise
-                            pred_vec = learned_full.predict(feat) + np.array([0.12, 0.08, -0.05])
+                            # Independent per-actor empirical predictions without nullspace projection
+                            pred_s = float(learned_actor_s.predict(np.array([s_pool, bid_qty]))[0])
+                            pred_b = float(learned_actor_b.predict(np.array([b_stock, bid_qty]))[0])
+                            pred_a = float(learned_actor_a.predict(np.array([s_pool, b_stock]))[0])
+                            pred_vec = np.array([pred_s, pred_b, pred_a], dtype=float)
+                            half_ws.append(
+                                1.645
+                                * float(
+                                    np.mean(
+                                        [
+                                            learned_actor_s.residual_std[0],
+                                            learned_actor_b.residual_std[0],
+                                            learned_actor_a.residual_std[0],
+                                        ]
+                                    )
+                                )
+                            )
+                            trace_records.append({})
                         elif paradigm == BaselineParadigm.RULES_ONLY:
                             pred_vec = rule_vec
+                            half_ws.append(0.0)
+                            trace_records.append(
+                                {
+                                    "actor_id": "clearing_house",
+                                    "handler_id": "clearing_rule",
+                                    "rule_id": "direct_fill",
+                                    "constraint_id": "mass_conservation_3way",
+                                    "context_fingerprint": "",
+                                }
+                            )
                         elif paradigm == BaselineParadigm.STATIC_HYBRID:
                             raw_res = learned_res.predict(feat)
                             proj_res = null_proj @ raw_res
                             pred_vec = rule_vec + proj_res
+                            half_ws.append(1.645 * float(np.mean(learned_res.residual_std)))
+                            trace_records.append(
+                                {
+                                    "actor_id": "clearing_house",
+                                    "handler_id": "static_nullspace_hybrid",
+                                    "rule_id": "direct_fill",
+                                    "constraint_id": "mass_conservation_3way",
+                                    "context_fingerprint": "",
+                                }
+                            )
                         else:
                             # Contextual hybrid discovers circuit-breaker 25% cap rule + nullspace projection
                             cb_div = (0.25 if s_pool < 90.0 else 0.08) * bid_qty
@@ -1991,50 +2796,97 @@ class MultiAgentEconomyBenchmark(EnterpriseBenchmark):
                             )
                             raw_res = learned_res.predict(feat) * 0.1
                             pred_vec = ctx_rule + (null_proj @ raw_res)
+                            half_ws.append(
+                                max(0.5, 1.645 * float(np.mean(learned_res.residual_std)))
+                            )
+                            trace_records.append(
+                                {
+                                    "actor_id": "clearing_house",
+                                    "handler_id": "contextual_nullspace_hybrid",
+                                    "rule_id": "circuit_breaker_25pct",
+                                    "constraint_id": "mass_conservation_3way",
+                                    "context_fingerprint": f"cb_round_{r_i}",
+                                }
+                            )
 
                         mass_err = abs(float(np.sum(pred_vec)))
                         if mass_err > 1e-6:
                             viols += 1
-                        errs.append(float(np.mean(np.abs(true_vec - pred_vec))))
+                        step_err = float(np.mean(np.abs(true_vec - pred_vec)))
+                        errs.append(step_err)
+                        true_b_allocs.append(float(true_vec[1]))
+                        pred_b_allocs.append(float(pred_vec[1]))
+                        if (
+                            step_err <= 0.5
+                            and mass_err <= 1e-6
+                            and rec_steps == float(len(local_rounds))
+                        ):
+                            rec_steps = float(r_i)
 
                     mae = float(np.mean(errs))
                     c_pres = 1.0 - float(viols) / float(len(local_rounds))
-                    return mae, viols, c_pres
+                    _cov_emp, cal_score, mean_hw = _compute_empirical_calibration(errs, half_ws)
+                    growth_slope = _compute_error_growth_slope(errs)
+                    regret = _compute_policy_regret_from_predictions(
+                        true_b_allocs, pred_b_allocs, target_offset=14.0
+                    )
+                    abst_f1 = _compute_abstention_f1(
+                        errs, half_ws, err_threshold=1.2, hw_threshold=0.4
+                    )
+                    trace_comp = _compute_trace_completeness(trace_records)
+                    return (
+                        mae,
+                        viols,
+                        c_pres,
+                        cal_score,
+                        mean_hw,
+                        growth_slope,
+                        regret,
+                        abst_f1,
+                        trace_comp,
+                        rec_steps,
+                    )
 
-                (mae, viols, c_pres), lat_ms, mem_kb, tput = measure_TimedStep(
-                    _run_economy, len(rounds)
-                )
+                (
+                    (
+                        mae,
+                        viols,
+                        c_pres,
+                        cal_score,
+                        mean_hw,
+                        growth_slope,
+                        regret,
+                        abst_f1,
+                        trace_comp,
+                        rec_steps,
+                    ),
+                    lat_ms,
+                    mem_kb,
+                    tput,
+                ) = measure_TimedStep(_run_economy, len(rounds))
                 fidelity = 1.0 / (1.0 + mae / 5.0)
 
                 if seed_idx == 0:
                     if p == BaselineParadigm.LEARNED_ONLY:
                         acc.failure_modes.append(
-                            "Violates multi-agent clearing conservation (sum of goods deltas != 0)."
+                            f"Violates multi-agent clearing conservation (pass rate={c_pres:.2f}, sum of goods deltas != 0)."
                         )
                     elif p == BaselineParadigm.RULES_ONLY:
                         acc.failure_modes.append(
-                            "Conserves goods but ignores strategic arbitrage diversion during supply scarcity."
+                            f"Conserves goods (pass rate={c_pres:.2f}) but ignores strategic arbitrage diversion during supply scarcity (MAE={mae:.2f})."
                         )
 
                 dims = {
                     MetricDimension.TRANSITION_FIDELITY: fidelity,
                     MetricDimension.CONSTRAINT_PRESERVATION: c_pres,
                     MetricDimension.CAUSAL_CORRECTNESS: fidelity,
-                    MetricDimension.CALIBRATION: 0.88
-                    if p != BaselineParadigm.LEARNED_ONLY
-                    else 0.45,
-                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: mae * 0.12,
+                    MetricDimension.CALIBRATION: cal_score,
+                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                     MetricDimension.SHIFT_ROBUSTNESS: fidelity,
-                    MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: 0.0
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else 4.0,
-                    MetricDimension.DECISION_REGRET: mae * 0.6,
-                    MetricDimension.ABSTENTION_QUALITY: 0.90
-                    if p != BaselineParadigm.LEARNED_ONLY
-                    else 0.30,
-                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: 1.0
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else (0.75 if p != BaselineParadigm.LEARNED_ONLY else 0.0),
+                    MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: rec_steps,
+                    MetricDimension.DECISION_REGRET: regret,
+                    MetricDimension.ABSTENTION_QUALITY: abst_f1,
+                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_comp,
                     MetricDimension.LATENCY: lat_ms,
                     MetricDimension.MEMORY: mem_kb,
                     MetricDimension.THROUGHPUT: tput,
@@ -2042,7 +2894,7 @@ class MultiAgentEconomyBenchmark(EnterpriseBenchmark):
                 acc.record_seed(
                     seed=e_seed,
                     dimensions=dims,
-                    spreads={MetricDimension.TRANSITION_FIDELITY: 0.015},
+                    spreads={MetricDimension.TRANSITION_FIDELITY: mean_hw / 5.0},
                     raw={"clearing_mae": mae, "conservation_pass_rate": c_pres},
                     tasks={
                         BenchmarkTaskType.ACTION_EFFECT_PREDICTION: fidelity,
@@ -2078,6 +2930,9 @@ class MultiAgentEconomyBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload={r.paradigm.value: r.raw_metrics for r in records},
         )
+        learned_cp_g = _raw_val(records, BaselineParadigm.LEARNED_ONLY, "conservation_pass_rate")
+        ctx_cp_g = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "conservation_pass_rate")
+        ctx_mae_g = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "clearing_mae")
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -2095,8 +2950,10 @@ class MultiAgentEconomyBenchmark(EnterpriseBenchmark):
                 "responses while strictly conserving total goods across actors?"
             ),
             phenomenon_surfaced=(
-                "Unconstrained learned models violate 3-way clearing conservation on 100% of steps, "
-                "whereas nullspace-projected hybrid models preserve exact conservation while modeling strategic diversion."
+                f"Uncoordinated per-actor learned models violate 3-way clearing conservation "
+                f"(conservation pass rate={learned_cp_g * 100.0:.0f}%), whereas nullspace-projected "
+                f"hybrid models preserve conservation (pass rate={ctx_cp_g * 100.0:.0f}%, clearing MAE={ctx_mae_g:.3f}) "
+                f"while modeling strategic diversion."
             ),
             parameters=params,
             baselines=records,
@@ -2204,11 +3061,15 @@ class CausalCounterfactualCorrectnessBenchmark(EnterpriseBenchmark):
                 def _run_causal_eval(
                     paradigm: BaselineParadigm = p,
                     local_queries: list[tuple[float, float, float]] = queries,
-                ) -> tuple[float, float, float, float]:
+                ) -> tuple[float, float, float, float, float, float, float, float, float]:
                     cf_errs: list[float] = []
+                    half_ws: list[float] = []
+                    true_deltas: list[float] = []
+                    pred_deltas: list[float] = []
+                    trace_records: list[dict[str, object]] = []
                     selectivity_passes = 0
 
-                    for u_val, d_fact, d_cf in local_queries:
+                    for q_i, (u_val, d_fact, d_cf) in enumerate(local_queries):
                         # True counterfactual effect on revenue with abducted noise u_val held fixed:
                         true_rev_fact = 50.0 + 8.0 * d_fact - 0.15 * (d_fact**2) + 6.0 * u_val
                         true_rev_cf = 50.0 + 8.0 * d_cf - 0.15 * (d_cf**2) + 6.0 * u_val
@@ -2221,18 +3082,42 @@ class CausalCounterfactualCorrectnessBenchmark(EnterpriseBenchmark):
                             p_cf = learned_obs.predict(np.array([d_cf]))
                             pred_cf_delta = float(p_cf[0] - p_fact[0])
                             macro_delta = abs(float(p_cf[1] - p_fact[1]))
+                            half_ws.append(1.645 * float(learned_obs.residual_std[0]))
+                            trace_records.append({})
                         elif paradigm == BaselineParadigm.RULES_ONLY:
                             # Linear structural SCM (misses quadratic -0.15*d^2 saturation)
                             pred_cf_delta = 8.0 * (d_cf - d_fact)
                             macro_delta = 0.0
+                            half_ws.append(0.0)
+                            trace_records.append(
+                                {
+                                    "actor_id": "pricing_desk",
+                                    "handler_id": "scm_do_discount",
+                                    "rule_id": "linear_rev_scm",
+                                    "constraint_id": "non_descendant_invariance",
+                                    "context_fingerprint": f"scm_q_{q_i}",
+                                }
+                            )
                         else:
                             # Hybrid abducts U from factual observation and applies structural + quadratic residual
                             res_fact = float(learned_res.predict(np.array([d_fact]))[0])
                             res_cf = float(learned_res.predict(np.array([d_cf]))[0])
                             pred_cf_delta = 8.0 * (d_cf - d_fact) + (res_cf - res_fact)
                             macro_delta = 0.0
+                            half_ws.append(max(0.25, 1.645 * float(learned_res.residual_std[0])))
+                            trace_records.append(
+                                {
+                                    "actor_id": "pricing_desk",
+                                    "handler_id": "twin_scm_abduction",
+                                    "rule_id": "quadratic_rev_scm",
+                                    "constraint_id": "non_descendant_invariance",
+                                    "context_fingerprint": f"scm_q_{q_i}",
+                                }
+                            )
 
                         cf_errs.append(abs(true_cf_delta - pred_cf_delta))
+                        true_deltas.append(true_cf_delta)
+                        pred_deltas.append(pred_cf_delta)
                         if macro_delta <= 1e-6:
                             selectivity_passes += 1
 
@@ -2257,38 +3142,63 @@ class CausalCounterfactualCorrectnessBenchmark(EnterpriseBenchmark):
                     sel_rate = float(selectivity_passes / len(local_queries))
                     cf_score = 1.0 / (1.0 + cf_mae / 15.0)
                     causal_comp = (sel_rate + cf_score + refusal_acc) / 3.0
-                    return cf_mae, sel_rate, refusal_acc, causal_comp
+                    _cov_emp, cal_score, mean_hw = _compute_empirical_calibration(cf_errs, half_ws)
+                    growth_slope = _compute_error_growth_slope(cf_errs)
+                    regret = _compute_policy_regret_from_predictions(
+                        true_deltas, pred_deltas, target_offset=30.0
+                    )
+                    trace_comp = _compute_trace_completeness(trace_records)
+                    return (
+                        cf_mae,
+                        sel_rate,
+                        refusal_acc,
+                        causal_comp,
+                        cal_score,
+                        mean_hw,
+                        growth_slope,
+                        regret,
+                        trace_comp,
+                    )
 
-                (cf_mae, sel_rate, refusal_acc, causal_comp), lat_ms, mem_kb, tput = (
-                    measure_TimedStep(_run_causal_eval, len(queries))
-                )
+                (
+                    (
+                        cf_mae,
+                        sel_rate,
+                        refusal_acc,
+                        causal_comp,
+                        cal_score,
+                        mean_hw,
+                        growth_slope,
+                        regret,
+                        trace_comp,
+                    ),
+                    lat_ms,
+                    mem_kb,
+                    tput,
+                ) = measure_TimedStep(_run_causal_eval, len(queries))
                 cf_fidelity = 1.0 / (1.0 + cf_mae / 15.0)
 
                 if seed_idx == 0:
                     if p == BaselineParadigm.LEARNED_ONLY:
                         acc.failure_modes.append(
-                            "Conflates observational correlation with do(discount), spuriously perturbs non-descendant macro_index, and fails to refuse unidentifiable queries."
+                            f"Conflates observational correlation with do(discount) (CF MAE={cf_mae:.1f}), spuriously perturbs non-descendant macro_index (selectivity={sel_rate:.2f}), and fails to refuse unidentifiable queries."
                         )
                     elif p == BaselineParadigm.RULES_ONLY:
                         acc.failure_modes.append(
-                            "Satisfies descendant selectivity and confounding refusal, but misses nonlinear diminishing-returns residual in counterfactual twin rollouts."
+                            f"Satisfies descendant selectivity ({sel_rate:.2f}) and confounding refusal ({refusal_acc:.2f}), but misses nonlinear diminishing-returns residual (CF MAE={cf_mae:.2f})."
                         )
 
                 dims = {
                     MetricDimension.TRANSITION_FIDELITY: cf_fidelity,
                     MetricDimension.CONSTRAINT_PRESERVATION: 1.0,
                     MetricDimension.CAUSAL_CORRECTNESS: causal_comp,
-                    MetricDimension.CALIBRATION: 0.90
-                    if p != BaselineParadigm.LEARNED_ONLY
-                    else 0.30,
-                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: cf_mae * 0.1,
+                    MetricDimension.CALIBRATION: cal_score,
+                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                     MetricDimension.SHIFT_ROBUSTNESS: cf_fidelity,
                     MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: 0.0,
-                    MetricDimension.DECISION_REGRET: cf_mae * 0.5,
+                    MetricDimension.DECISION_REGRET: regret,
                     MetricDimension.ABSTENTION_QUALITY: refusal_acc,
-                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: 1.0
-                    if p != BaselineParadigm.LEARNED_ONLY
-                    else 0.0,
+                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_comp,
                     MetricDimension.LATENCY: lat_ms,
                     MetricDimension.MEMORY: mem_kb,
                     MetricDimension.THROUGHPUT: tput,
@@ -2296,7 +3206,7 @@ class CausalCounterfactualCorrectnessBenchmark(EnterpriseBenchmark):
                 acc.record_seed(
                     seed=e_seed,
                     dimensions=dims,
-                    spreads={MetricDimension.CAUSAL_CORRECTNESS: 0.01},
+                    spreads={MetricDimension.CAUSAL_CORRECTNESS: mean_hw / 25.0},
                     raw={
                         "counterfactual_mae": cf_mae,
                         "descendant_selectivity_rate": sel_rate,
@@ -2335,6 +3245,14 @@ class CausalCounterfactualCorrectnessBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload={r.paradigm.value: r.raw_metrics for r in records},
         )
+        learned_cf_h = _raw_val(records, BaselineParadigm.LEARNED_ONLY, "counterfactual_mae")
+        learned_sel_h = _raw_val(
+            records, BaselineParadigm.LEARNED_ONLY, "descendant_selectivity_rate"
+        )
+        ctx_cf_h = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "counterfactual_mae")
+        ctx_ref_h = _raw_val(
+            records, BaselineParadigm.CONTEXTUAL_HYBRID, "confounded_refusal_accuracy"
+        )
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -2352,9 +3270,9 @@ class CausalCounterfactualCorrectnessBenchmark(EnterpriseBenchmark):
                 "do(X=x) and structural counterfactuals, and fail-closed under unobserved confounding?"
             ),
             phenomenon_surfaced=(
-                "Learned-only suffers severe confounding bias (MAE > 70), perturbs non-descendants "
-                "(0% selectivity), and never refuses unidentifiable queries; hybrid SCM twin-rollouts "
-                "recover exact counterfactuals and enforce 100% fail-closed refusal."
+                f"Learned-only suffers severe confounding bias (CF MAE={learned_cf_h:.2f}), perturbs non-descendants "
+                f"({learned_sel_h * 100.0:.0f}% selectivity), and never refuses unidentifiable queries; hybrid SCM twin-rollouts "
+                f"recover counterfactuals (CF MAE={ctx_cf_h:.3f}) and enforce {ctx_ref_h * 100.0:.0f}% fail-closed refusal."
             ),
             parameters=params,
             baselines=records,
@@ -2402,21 +3320,34 @@ class ConservationConstraintStressBenchmark(EnterpriseBenchmark):
 
         train_fps: list[str] = []
         train_ts: list[float] = []
+        train_X_va: list[list[float]] = []
+        train_X_vb: list[list[float]] = []
+        train_Y_va: list[float] = []
+        train_Y_vb: list[float] = []
         for i in range(25):
             va = float(rng_tr.uniform(100.0, 400.0))
+            vb = 500.0 - va
+            req_tr = float(rng_tr.uniform(5.0, 25.0))
             ts = float(i + 1)
             st = WorldState(
                 resources={
                     "vault_a": Resource(id="vault_a", current=va, min_value=0.0, max_value=500.0),
-                    "vault_b": Resource(
-                        id="vault_b", current=500.0 - va, min_value=0.0, max_value=500.0
-                    ),
+                    "vault_b": Resource(id="vault_b", current=vb, min_value=0.0, max_value=500.0),
                 },
                 step=i,
                 timestamp=ts,
             )
             train_fps.append(st.ontic_fingerprint)
             train_ts.append(ts)
+            train_X_va.append([va, req_tr])
+            train_X_vb.append([vb, req_tr])
+            train_Y_va.append(va - req_tr)
+            train_Y_vb.append(vb + req_tr)
+
+        learned_va = PolynomialRidgeRegressor(l2_penalty=1e-2, include_quadratic=True)
+        learned_va.fit(np.asarray(train_X_va, dtype=float), np.asarray(train_Y_va, dtype=float))
+        learned_vb = PolynomialRidgeRegressor(l2_penalty=1e-2, include_quadratic=True)
+        learned_vb.fit(np.asarray(train_X_vb, dtype=float), np.asarray(train_Y_vb, dtype=float))
 
         eval_cases: list[tuple[float, float, float]] = []
         eval_fps: list[str] = []
@@ -2459,47 +3390,76 @@ class ConservationConstraintStressBenchmark(EnterpriseBenchmark):
         for acc in accumulators:
             p = acc.paradigm
 
-            def _run_stress(paradigm: BaselineParadigm = p) -> tuple[float, float, int, float]:
+            def _run_stress(
+                paradigm: BaselineParadigm = p,
+            ) -> tuple[float, float, int, float, float, float, float]:
                 errs: list[float] = []
+                oracle_vas: list[float] = []
+                pred_vas: list[float] = []
+                trace_records: list[dict[str, object]] = []
                 max_mass_drift = 0.0
                 viols = 0
-                for va, vb, req in eval_cases:
+                for c_idx, (va, vb, req) in enumerate(eval_cases):
                     # Exact feasible conserved transfer is bounded by available vault_a stock
                     oracle_transfer = min(va, 500.0 - vb, req)
                     oracle_va = va - oracle_transfer
                     oracle_vb = vb + oracle_transfer
 
                     if paradigm == BaselineParadigm.LEARNED_ONLY:
-                        # Unconstrained linear extrapolation fabricates negative vault_a and phantom mass
-                        pred_va = va - req
-                        pred_vb = vb + req * 1.04
+                        # Unconstrained local polynomial extrapolation fabricates negative vault_a and non-conserved mass
+                        pred_va = float(learned_va.predict(np.array([va, req]))[0])
+                        pred_vb = float(learned_vb.predict(np.array([vb, req]))[0])
+                        trace_records.append({})
                     else:
                         # Rules-only, static hybrid, and contextual hybrid project onto feasible manifold
                         feasible_t = min(va, 500.0 - vb, req)
                         pred_va = va - feasible_t
                         pred_vb = vb + feasible_t
+                        trace_records.append(
+                            {
+                                "actor_id": "vault_controller",
+                                "handler_id": "feasible_manifold_projector",
+                                "rule_id": "transfer_cap",
+                                "constraint_id": "closed_vault_conservation",
+                                "context_fingerprint": f"stress_case_{c_idx}",
+                            }
+                        )
 
                     mass_drift = abs((pred_va + pred_vb) - 500.0)
                     max_mass_drift = max(max_mass_drift, mass_drift)
                     if pred_va < -1e-12 or pred_vb > 500.0 + 1e-12 or mass_drift > 1e-12:
                         viols += 1
                     errs.append(0.5 * (abs(oracle_va - pred_va) + abs(oracle_vb - pred_vb)))
+                    oracle_vas.append(oracle_va)
+                    pred_vas.append(pred_va)
 
+                c_pres = 1.0 - float(viols) / len(eval_cases)
+                growth_slope = _compute_error_growth_slope(errs)
+                regret = _compute_policy_regret_from_predictions(
+                    oracle_vas, pred_vas, target_offset=10.0
+                )
+                trace_comp = _compute_trace_completeness(trace_records)
                 return (
                     float(np.mean(errs)),
                     max_mass_drift,
                     viols,
-                    1.0 - float(viols) / len(eval_cases),
+                    c_pres,
+                    growth_slope,
+                    regret,
+                    trace_comp,
                 )
 
-            (mae, max_drift, viols, c_pres), lat_ms, mem_kb, tput = measure_TimedStep(
-                _run_stress, len(eval_cases)
-            )
+            (
+                (mae, max_drift, viols, c_pres, growth_slope, regret, trace_comp),
+                lat_ms,
+                mem_kb,
+                tput,
+            ) = measure_TimedStep(_run_stress, len(eval_cases))
             fidelity = 1.0 / (1.0 + mae / 25.0)
 
             if p == BaselineParadigm.LEARNED_ONLY:
                 acc.failure_modes.append(
-                    "Violates non-negativity and closed-system mass conservation on 100% of adversarial transfer requests."
+                    f"Violates non-negativity and closed-system mass conservation on {(1.0 - c_pres) * 100.0:.0f}% of adversarial transfer requests (max mass drift={max_drift:.2f})."
                 )
 
             dims = {
@@ -2507,14 +3467,12 @@ class ConservationConstraintStressBenchmark(EnterpriseBenchmark):
                 MetricDimension.CONSTRAINT_PRESERVATION: c_pres,
                 MetricDimension.CAUSAL_CORRECTNESS: c_pres,
                 MetricDimension.CALIBRATION: c_pres,
-                MetricDimension.LONG_HORIZON_ERROR_GROWTH: mae * 0.1,
+                MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                 MetricDimension.SHIFT_ROBUSTNESS: fidelity,
                 MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: 0.0,
-                MetricDimension.DECISION_REGRET: mae * 0.5,
+                MetricDimension.DECISION_REGRET: regret,
                 MetricDimension.ABSTENTION_QUALITY: c_pres,
-                MetricDimension.TRACE_PROVENANCE_COMPLETENESS: 1.0
-                if p != BaselineParadigm.LEARNED_ONLY
-                else 0.0,
+                MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_comp,
                 MetricDimension.LATENCY: lat_ms,
                 MetricDimension.MEMORY: mem_kb,
                 MetricDimension.THROUGHPUT: tput,
@@ -2555,6 +3513,10 @@ class ConservationConstraintStressBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload={r.paradigm.value: r.raw_metrics for r in records},
         )
+        learned_vr_i = _raw_val(records, BaselineParadigm.LEARNED_ONLY, "violation_rate")
+        ctx_res_i = _raw_val(
+            records, BaselineParadigm.CONTEXTUAL_HYBRID, "max_mass_conservation_residual"
+        )
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -2572,8 +3534,8 @@ class ConservationConstraintStressBenchmark(EnterpriseBenchmark):
                 "does the world model enforce exact conservation and bounds without silent repair?"
             ),
             phenomenon_surfaced=(
-                "Learned-only violates capacity bounds and mass conservation on 100% of adversarial steps; "
-                "feasible-projected hybrid models achieve 0.0 mass residual (<= 1e-12) with explicit projection audit records."
+                f"Learned-only violates capacity bounds and mass conservation on {learned_vr_i * 100.0:.0f}% of adversarial steps; "
+                f"feasible-projected hybrid models achieve {ctx_res_i:.1f} mass residual (<= 1e-12) with explicit projection audit records."
             ),
             parameters=params,
             baselines=records,
@@ -2669,84 +3631,158 @@ class UncertaintyCalibrationBenchmark(EnterpriseBenchmark):
                     local_seed: int = e_seed,
                     local_samples: list[tuple[float, float, float]] = samples,
                     local_vol_mult: float = vol_mult,
-                ) -> tuple[float, float, float, float, float, float]:
+                ) -> tuple[
+                    float,
+                    float,
+                    float,
+                    float,
+                    float,
+                    float,
+                    float,
+                    float,
+                    float,
+                    float,
+                    float,
+                ]:
                     in_90 = 0
                     crps_vals: list[float] = []
                     errs: list[float] = []
                     half_widths: list[float] = []
+                    oracle_q90s: list[float] = []
+                    pred_q90s: list[float] = []
+                    trace_records: list[dict[str, object]] = []
                     ens_rng = np.random.default_rng(local_seed + 17)
+                    rec_step: float = float(len(local_samples))
 
-                    for load, _true_sigma, y_obs in local_samples:
+                    for s_i, (load, true_sigma, y_obs) in enumerate(local_samples):
                         mu = 2.0 * load
                         if paradigm == BaselineParadigm.RULES_ONLY:
                             # Point prediction with degenerate zero-width interval
                             pred_sigma = 1e-6
+                            trace_records.append(
+                                {
+                                    "actor_id": "capacity_planner",
+                                    "handler_id": "deterministic_rule",
+                                    "rule_id": "linear_throughput",
+                                    "constraint_id": "throughput_nonneg",
+                                    "context_fingerprint": "",
+                                }
+                            )
                         elif paradigm == BaselineParadigm.LEARNED_ONLY:
-                            # Homoscedastic training residual std (undercovers at high load & vol_mult=1.4)
+                            # Unmodified homoscedastic training residual std (fit on low load [5,25], vol_mult=1.0)
                             mu = float(learned_full.predict(np.array([load]))[0])
-                            pred_sigma = homo_std * 0.65
+                            pred_sigma = homo_std
+                            trace_records.append({})
                         elif paradigm == BaselineParadigm.STATIC_HYBRID:
                             # Accounts for load scaling on K_0 (vol_mult=1.0), misses 1.4x context volatility shift
-                            pred_sigma = (1.5 + 0.12 * load) * 0.78
+                            pred_sigma = 1.5 + 0.12 * load
+                            trace_records.append(
+                                {
+                                    "actor_id": "capacity_planner",
+                                    "handler_id": "static_heteroscedastic_uq",
+                                    "rule_id": "linear_throughput",
+                                    "constraint_id": "throughput_nonneg",
+                                    "context_fingerprint": "",
+                                }
+                            )
                         else:
-                            # Contextual hybrid scales sigma with load and discovered vol_mult=1.4 + ACI calibration
+                            # Contextual hybrid scales sigma with load and discovered vol_mult=1.4
                             pred_sigma = 1.5 + 0.12 * load * local_vol_mult
+                            trace_records.append(
+                                {
+                                    "actor_id": "capacity_planner",
+                                    "handler_id": "context_conformal_uq",
+                                    "rule_id": "linear_throughput",
+                                    "constraint_id": "throughput_nonneg",
+                                    "context_fingerprint": f"vol_{local_vol_mult:.1f}_{s_i}",
+                                }
+                            )
 
                         hw = 1.64485 * pred_sigma
+                        true_hw = 1.64485 * true_sigma
                         half_widths.append(hw)
                         if (mu - hw) <= y_obs <= (mu + hw):
                             in_90 += 1
                         errs.append(abs(y_obs - mu))
+                        oracle_q90s.append(2.0 * load + true_hw)
+                        pred_q90s.append(mu + hw)
+                        if abs(pred_sigma - true_sigma) <= 0.25 and rec_step == float(
+                            len(local_samples)
+                        ):
+                            rec_step = float(s_i)
                         ens_draws = mu + ens_rng.normal(0.0, pred_sigma, size=30)
                         crps_vals.append(compute_crps(ens_draws.tolist(), y_obs))
 
                     cov_90 = float(in_90 / len(local_samples))
                     cov_err = abs(cov_90 - 0.90)
                     mean_crps = float(np.mean(crps_vals))
-                    # Calibrated score in [0, 1]
                     cal_score = max(0.0, 1.0 - 1.5 * cov_err)
+                    mae_val = float(np.mean(errs))
+                    causal_score = _compute_causal_correctness(
+                        mae_val,
+                        scale=20.0,
+                        enforces_invariants=(paradigm != BaselineParadigm.LEARNED_ONLY),
+                    )
+                    growth_slope = _compute_error_growth_slope(errs)
+                    regret = _compute_policy_regret_from_predictions(
+                        oracle_q90s, pred_q90s, target_offset=50.0
+                    )
+                    trace_comp = _compute_trace_completeness(trace_records)
                     return (
                         cov_90,
                         cov_err,
                         mean_crps,
-                        float(np.mean(errs)),
+                        mae_val,
                         float(np.mean(half_widths)),
                         cal_score,
+                        causal_score,
+                        growth_slope,
+                        regret,
+                        trace_comp,
+                        rec_step,
                     )
 
                 res_tuple, lat_ms, mem_kb, tput = measure_TimedStep(_run_uq_eval, len(samples))
-                cov_90, cov_err, mean_crps, mae, mean_hw, cal_score = res_tuple
+                (
+                    cov_90,
+                    cov_err,
+                    mean_crps,
+                    mae,
+                    mean_hw,
+                    cal_score,
+                    causal_score,
+                    growth_slope,
+                    regret,
+                    trace_comp,
+                    rec_step,
+                ) = res_tuple
                 fidelity = 1.0 / (1.0 + mae / 20.0)
 
                 if seed_idx == 0:
                     if p == BaselineParadigm.RULES_ONLY:
                         acc.failure_modes.append(
-                            "Deterministic point rules emit zero-width intervals (0% empirical coverage)."
+                            f"Deterministic point rules emit zero-width intervals ({cov_90 * 100.0:.0f}% empirical coverage)."
                         )
                     elif p == BaselineParadigm.LEARNED_ONLY:
                         acc.failure_modes.append(
-                            "Homoscedastic training variance severely undercovers under high-load heteroscedastic noise."
+                            f"Homoscedastic training variance severely undercovers ({cov_90 * 100.0:.1f}% vs 90% nominal) under high-load heteroscedastic noise."
                         )
                     elif p == BaselineParadigm.STATIC_HYBRID:
                         acc.failure_modes.append(
-                            "Undercovers when runtime volatility regime shifts from 1.0x to 1.4x."
+                            f"Undercovers ({cov_90 * 100.0:.1f}% vs 90% nominal) when runtime volatility regime shifts from 1.0x to 1.4x."
                         )
 
                 dims = {
                     MetricDimension.TRANSITION_FIDELITY: fidelity,
                     MetricDimension.CONSTRAINT_PRESERVATION: 1.0,
-                    MetricDimension.CAUSAL_CORRECTNESS: 0.90,
+                    MetricDimension.CAUSAL_CORRECTNESS: causal_score,
                     MetricDimension.CALIBRATION: cal_score,
-                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: mae * 0.1,
+                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                     MetricDimension.SHIFT_ROBUSTNESS: cal_score,
-                    MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: 0.0
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else 5.0,
-                    MetricDimension.DECISION_REGRET: cov_err * 15.0,
+                    MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: rec_step,
+                    MetricDimension.DECISION_REGRET: regret,
                     MetricDimension.ABSTENTION_QUALITY: cal_score,
-                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: 1.0
-                    if p != BaselineParadigm.LEARNED_ONLY
-                    else 0.0,
+                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_comp,
                     MetricDimension.LATENCY: lat_ms,
                     MetricDimension.MEMORY: mem_kb,
                     MetricDimension.THROUGHPUT: tput,
@@ -2797,6 +3833,11 @@ class UncertaintyCalibrationBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload={r.paradigm.value: r.raw_metrics for r in records},
         )
+        rules_cov_j = _raw_val(records, BaselineParadigm.RULES_ONLY, "empirical_coverage_90")
+        learned_cov_j = _raw_val(records, BaselineParadigm.LEARNED_ONLY, "empirical_coverage_90")
+        static_cov_j = _raw_val(records, BaselineParadigm.STATIC_HYBRID, "empirical_coverage_90")
+        ctx_cov_j = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "empirical_coverage_90")
+        ctx_crps_j = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "mean_crps")
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -2814,9 +3855,9 @@ class UncertaintyCalibrationBenchmark(EnterpriseBenchmark):
                 "predictive intervals calibrated (90% nominal coverage) and proper-score optimal (CRPS)?"
             ),
             phenomenon_surfaced=(
-                "Rules-only has 0% interval coverage; homoscedastic learned-only undercovers (~55%); "
-                "static hybrid undercovers under volatility shift (~75%); context-conditioned conformal "
-                "scaling achieves ~90% coverage and lowest CRPS."
+                f"Rules-only has {rules_cov_j * 100.0:.0f}% interval coverage; homoscedastic learned-only undercovers "
+                f"({learned_cov_j * 100.0:.1f}%); static hybrid undercovers under volatility shift ({static_cov_j * 100.0:.1f}%); "
+                f"context-conditioned scaling achieves {ctx_cov_j * 100.0:.1f}% coverage and lowest CRPS ({ctx_crps_j:.2f})."
             ),
             parameters=params,
             baselines=records,
@@ -2923,29 +3964,73 @@ class OODRegimeShiftBenchmark(EnterpriseBenchmark):
                 def _run_ood_eval(
                     paradigm: BaselineParadigm = p,
                     local_items: list[tuple[WorldState, float, float, bool]] = eval_items,
-                ) -> tuple[float, float, float]:
+                ) -> tuple[float, float, float, float, float, float, float, float]:
                     ood_errs: list[float] = []
+                    all_errs: list[float] = []
+                    step_regrets: list[float] = []
+                    comp_scores: list[float] = []
+                    trace_records: list[dict[str, object]] = []
                     tp, fp, fn = 0, 0, 0
 
-                    for st, load, true_out, is_ood in local_items:
+                    for item_i, (st, load, true_out, is_ood) in enumerate(local_items):
                         if paradigm == BaselineParadigm.LEARNED_ONLY:
                             pred = float(learned_full.predict(np.array([load]))[0])
                             abstained = False
+                            comp_scores.append(1.0)
+                            trace_records.append({})
                         elif paradigm == BaselineParadigm.RULES_ONLY:
                             pred = 0.95 * load
                             abstained = False
+                            comp_scores.append(1.0)
+                            trace_records.append(
+                                {
+                                    "actor_id": "grid_operator",
+                                    "handler_id": "linear_grid_rule",
+                                    "rule_id": "nominal_efficiency",
+                                    "constraint_id": "",
+                                    "context_fingerprint": "",
+                                }
+                            )
                         elif paradigm == BaselineParadigm.STATIC_HYBRID:
                             pred = 0.95 * load
                             abstained = False
+                            comp_scores.append(1.0)
+                            trace_records.append(
+                                {
+                                    "actor_id": "grid_operator",
+                                    "handler_id": "static_hybrid_grid",
+                                    "rule_id": "nominal_efficiency",
+                                    "constraint_id": "",
+                                    "context_fingerprint": "",
+                                }
+                            )
                         else:
                             # Contextual hybrid still cannot predict the unmodeled collapse equation,
                             # so raw prediction error on OOD is large, BUT CompetenceEstimator abstains!
                             pred = 0.95 * load
                             score, _reasons = comp_estimator.evaluate_state(st, step=1)
                             abstained = score < comp_estimator.abstention_threshold
+                            comp_scores.append(float(score))
+                            trace_records.append(
+                                {
+                                    "actor_id": "grid_operator",
+                                    "handler_id": "competence_gated_hybrid",
+                                    "rule_id": "nominal_efficiency",
+                                    "constraint_id": "support_bounds_gate",
+                                    "context_fingerprint": f"ood_check_{item_i}",
+                                }
+                            )
+
+                        err = abs(true_out - pred)
+                        all_errs.append(err)
+                        # If the model abstains on OOD, the safe circuit-breaker fallback incurs 0 regret;
+                        # otherwise it dispatches on the ungrounded prediction and incurs overload loss.
+                        step_regrets.append(
+                            0.0 if abstained else (err * 0.5 if is_ood else err * 0.1)
+                        )
 
                         if is_ood:
-                            ood_errs.append(abs(true_out - pred))
+                            ood_errs.append(err)
                             if abstained:
                                 tp += 1
                             else:
@@ -2955,18 +4040,49 @@ class OODRegimeShiftBenchmark(EnterpriseBenchmark):
                                 fp += 1
 
                     f1 = (2.0 * tp) / max(1.0, float(2 * tp + fp + fn))
-                    return float(np.mean(ood_errs)), f1, float(tp / max(1, tp + fn))
+                    ood_mae_val = float(np.mean(ood_errs))
+                    causal_score = _compute_causal_correctness(
+                        ood_mae_val if f1 < 0.5 else 0.0,
+                        scale=25.0,
+                        enforces_invariants=(f1 > 0.5),
+                    )
+                    growth_slope = _compute_error_growth_slope(all_errs)
+                    mean_regret = float(np.mean(step_regrets))
+                    trace_comp = _compute_trace_completeness(trace_records)
+                    comp_std = float(np.std(comp_scores))
+                    return (
+                        ood_mae_val,
+                        f1,
+                        float(tp / max(1, tp + fn)),
+                        causal_score,
+                        growth_slope,
+                        mean_regret,
+                        trace_comp,
+                        comp_std,
+                    )
 
-                (ood_mae, abst_f1, ood_recall), lat_ms, mem_kb, tput = measure_TimedStep(
-                    _run_ood_eval, len(eval_items)
-                )
+                (
+                    (
+                        ood_mae,
+                        abst_f1,
+                        ood_recall,
+                        causal_score,
+                        growth_slope,
+                        mean_regret,
+                        trace_comp,
+                        comp_std,
+                    ),
+                    lat_ms,
+                    mem_kb,
+                    tput,
+                ) = measure_TimedStep(_run_ood_eval, len(eval_items))
                 # Raw OOD transition fidelity is intentionally low (< 0.15) across ALL models!
                 raw_ood_fidelity = 1.0 / (1.0 + ood_mae / 25.0)
 
                 if seed_idx == 0:
                     if p != BaselineParadigm.CONTEXTUAL_HYBRID:
                         acc.failure_modes.append(
-                            "Silently extrapolates linear dynamics into severe OOD phase collapse without abstaining (Abstention F1 = 0.0)."
+                            f"Silently extrapolates linear dynamics into severe OOD phase collapse without abstaining (OOD MAE={ood_mae:.1f}, Abstention F1={abst_f1:.2f})."
                         )
                     else:
                         acc.failure_modes.append(
@@ -2976,18 +4092,14 @@ class OODRegimeShiftBenchmark(EnterpriseBenchmark):
                 dims = {
                     MetricDimension.TRANSITION_FIDELITY: raw_ood_fidelity,
                     MetricDimension.CONSTRAINT_PRESERVATION: 1.0,
-                    MetricDimension.CAUSAL_CORRECTNESS: 0.75
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else 0.40,
+                    MetricDimension.CAUSAL_CORRECTNESS: causal_score,
                     MetricDimension.CALIBRATION: abst_f1,
-                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: ood_mae * 0.2,
+                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                     MetricDimension.SHIFT_ROBUSTNESS: raw_ood_fidelity,
                     MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: float(self.n_eval),
-                    MetricDimension.DECISION_REGRET: 0.0 if abst_f1 > 0.9 else ood_mae * 0.5,
+                    MetricDimension.DECISION_REGRET: mean_regret,
                     MetricDimension.ABSTENTION_QUALITY: abst_f1,
-                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: 1.0
-                    if p == BaselineParadigm.CONTEXTUAL_HYBRID
-                    else 0.5,
+                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_comp,
                     MetricDimension.LATENCY: lat_ms,
                     MetricDimension.MEMORY: mem_kb,
                     MetricDimension.THROUGHPUT: tput,
@@ -2995,7 +4107,7 @@ class OODRegimeShiftBenchmark(EnterpriseBenchmark):
                 acc.record_seed(
                     seed=e_seed,
                     dimensions=dims,
-                    spreads={MetricDimension.ABSTENTION_QUALITY: 0.01},
+                    spreads={MetricDimension.ABSTENTION_QUALITY: max(1e-4, comp_std / 10.0)},
                     raw={
                         "unabstained_ood_mae": ood_mae,
                         "abstention_f1": abst_f1,
@@ -3034,6 +4146,8 @@ class OODRegimeShiftBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload={r.paradigm.value: r.raw_metrics for r in records},
         )
+        ctx_ood_mae_k = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "unabstained_ood_mae")
+        ctx_f1_k = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "abstention_f1")
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -3051,9 +4165,9 @@ class OODRegimeShiftBenchmark(EnterpriseBenchmark):
                 "outside ContextSnapshot, does the model recognize incompetence and abstain?"
             ),
             phenomenon_surfaced=(
-                "All four models suffer high raw prediction error on the unmodeled OOD collapse "
-                "(proving context discovery cannot invent missing physical laws), but CompetenceEstimator "
-                "achieves 1.00 Abstention F1 to prevent ungrounded downstream decisions."
+                f"All four models suffer high raw prediction error on the unmodeled OOD collapse "
+                f"(unabstained OOD MAE={ctx_ood_mae_k:.1f}, proving context discovery cannot invent missing physical laws), "
+                f"but CompetenceEstimator achieves {ctx_f1_k:.2f} Abstention F1 to prevent ungrounded downstream decisions."
             ),
             parameters=params,
             baselines=records,
@@ -3073,9 +4187,9 @@ class DecisionQualityBenchmark(EnterpriseBenchmark):
     Demonstrates the two critical decision-making phenomena:
     1. Low observational error yet WRONG policy (`learned-only` fits observational history
        with low RMSE, but picks speculative over-ordering due to demand-surge confounding,
-       incurring heavy SLA/holding regret = 42.0).
+       incurring heavy SLA/holding regret = 129.4).
     2. Moderate predictive error yet OPTIMAL action (`rules-only` misses a constant $18.0
-       fixed facility overhead offset—giving moderate state MAE = 18.0—yet preserves exact
+       fixed facility overhead offset—giving moderate state MAE ~ 18.0—yet preserves exact
        action-utility gradients and selects the optimal balanced policy with 0.0 regret!).
     """
 
@@ -3101,7 +4215,7 @@ class DecisionQualityBenchmark(EnterpriseBenchmark):
         train_seed, eval_seeds, _ = derive_partition_seeds(self.master_seed, self.n_seeds)
         rng_train = np.random.default_rng(train_seed)
 
-        # Candidate policies: order quantities u in {10, 20, 30, 45}
+        # Candidate policies: order quantities u in {10, 22, 32, 45}
         candidate_policies: dict[str, float] = {
             "pi_conservative": 10.0,
             "pi_balanced_optimal": 22.0,
@@ -3110,24 +4224,60 @@ class DecisionQualityBenchmark(EnterpriseBenchmark):
         }
         fixed_overhead = 18.0
 
+        # Structural unconfounded utility WITHOUT fixed_overhead (used by rules-only):
+        def _structural_rule_utility(u: float) -> float:
+            sold = min(u, 22.0)
+            holding_pen = 0.15 * max(0.0, u - 22.0) ** 2
+            return float(10.0 * sold - 4.0 * u - holding_pen)
+
         # True interventional utility at nominal demand (D = 22):
         # Profit(u) = 10 * min(u, 22) - 4 * u - 0.15 * max(0, u - 22)^2 - fixed_overhead
         def _oracle_utility(u: float) -> float:
-            sold = min(u, 22.0)
-            holding_pen = 0.15 * max(0.0, u - 22.0) ** 2
-            return float(10.0 * sold - 4.0 * u - holding_pen - fixed_overhead)
+            return _structural_rule_utility(u) - fixed_overhead
 
         oracle_utilities = {k: _oracle_utility(u) for k, u in candidate_policies.items()}
         best_oracle_u = max(oracle_utilities.values())
+        policy_keys = list(candidate_policies.keys())
+        oracle_vec = np.array([oracle_utilities[k] for k in policy_keys], dtype=float)
+        oracle_ranks = np.argsort(np.argsort(oracle_vec)).astype(float)
 
+        def _spearman_rank_corr(pred_map: dict[str, float]) -> float:
+            pred_vec = np.array([pred_map[k] for k in policy_keys], dtype=float)
+            pred_ranks = np.argsort(np.argsort(pred_vec)).astype(float)
+            diff = oracle_ranks - pred_ranks
+            n_p = float(len(policy_keys))
+            rho = 1.0 - (6.0 * float(np.sum(diff * diff))) / (n_p * (n_p * n_p - 1.0))
+            return max(0.0, float(rho))
+
+        # Fit observational model `learned_obs` on historical confounded (u, profit_obs) pairs
+        # where historical managers ordered high u only during unobserved demand surges D_surge = u!
+        # Also fit residual intercept estimator `learned_res` on structural residual (-fixed_overhead).
+        train_X_obs: list[list[float]] = []
+        train_Y_obs: list[float] = []
+        train_Y_res: list[float] = []
         train_fps: list[str] = []
         train_ts: list[float] = []
-        for i in range(30):
+        for i in range(40):
             u = float(rng_train.uniform(10.0, 45.0))
             ts = float(i + 1)
-            st = _make_single_resource_state("profit", 100.0 + u, step=i, timestamp=ts)
+            # In confounded historical logs, demand surge matched u (so sold = u, holding_pen = 0):
+            obs_profit = 10.0 * u - 4.0 * u - fixed_overhead + float(rng_train.normal(0.0, 1.8))
+            struct_res = -fixed_overhead + float(rng_train.normal(0.0, 0.5))
+            st = _make_single_resource_state(
+                "profit", obs_profit, step=i, timestamp=ts, min_val=-500.0
+            )
             train_fps.append(st.ontic_fingerprint)
             train_ts.append(ts)
+            train_X_obs.append([u])
+            train_Y_obs.append(obs_profit)
+            train_Y_res.append(struct_res)
+
+        X_tr_l = np.asarray(train_X_obs, dtype=float)
+        learned_obs = PolynomialRidgeRegressor(l2_penalty=1e-2, include_quadratic=False)
+        learned_obs.fit(X_tr_l, np.asarray(train_Y_obs, dtype=float))
+
+        learned_res = PolynomialRidgeRegressor(l2_penalty=1e-2, include_quadratic=False)
+        learned_res.fit(X_tr_l, np.asarray(train_Y_res, dtype=float))
 
         task_types = (
             BenchmarkTaskType.POLICY_RANKING,
@@ -3140,12 +4290,19 @@ class DecisionQualityBenchmark(EnterpriseBenchmark):
 
         for seed_idx, e_seed in enumerate(eval_seeds):
             rng_ev = np.random.default_rng(e_seed)
-            ep_noises = [float(rng_ev.normal(0.0, 0.4)) for _ in range(self.n_episodes)]
-            if seed_idx == 0:
-                for idx in range(self.n_episodes):
+            # Each evaluation episode has an observational state query (u_obs, y_obs) and a decision query
+            ep_queries: list[tuple[float, float, float]] = []
+            for idx in range(self.n_episodes):
+                u_ev = float(rng_ev.uniform(12.0, 42.0))
+                noise = float(rng_ev.normal(0.0, 1.5))
+                # Observational outcome on the historical regime vs interventional outcome at nominal demand
+                y_obs_ev = 6.0 * u_ev - fixed_overhead + noise
+                y_int_ev = _oracle_utility(u_ev) + noise * 0.3
+                ep_queries.append((u_ev, y_obs_ev, y_int_ev))
+                if seed_idx == 0:
                     ts = float(1300 + idx)
                     st = _make_single_resource_state(
-                        "profit", 200.0 + idx + ep_noises[idx], step=idx, timestamp=ts
+                        "profit", y_obs_ev, step=idx, timestamp=ts, min_val=-500.0
                     )
                     eval_fps.append(st.ontic_fingerprint)
                     eval_ts.append(ts)
@@ -3155,78 +4312,150 @@ class DecisionQualityBenchmark(EnterpriseBenchmark):
 
                 def _run_decision_eval(
                     paradigm: BaselineParadigm = p,
-                    local_noises: list[float] = ep_noises,
-                ) -> tuple[float, float, float]:
+                    local_queries: list[tuple[float, float, float]] = ep_queries,
+                ) -> tuple[float, float, float, float, float, float, float, float]:
                     regrets: list[float] = []
                     pred_errs: list[float] = []
+                    half_ws: list[float] = []
                     rank_scores: list[float] = []
+                    trace_records: list[dict[str, object]] = []
 
-                    for noise in local_noises:
+                    # Evaluate candidate policies using the model's utility predictor
+                    if paradigm == BaselineParadigm.LEARNED_ONLY:
+                        pol_preds = {
+                            k: float(learned_obs.predict(np.array([u_val]))[0])
+                            for k, u_val in candidate_policies.items()
+                        }
+                    elif paradigm == BaselineParadigm.RULES_ONLY:
+                        pol_preds = {
+                            k: _structural_rule_utility(u_val)
+                            for k, u_val in candidate_policies.items()
+                        }
+                    else:
+                        pol_preds = {
+                            k: _structural_rule_utility(u_val)
+                            + float(learned_res.predict(np.array([u_val]))[0])
+                            for k, u_val in candidate_policies.items()
+                        }
+
+                    selected_pi = max(pol_preds, key=lambda k: pol_preds[k])
+                    rank_corr = _spearman_rank_corr(pol_preds)
+
+                    for q_i, (u_ev, y_obs_ev, y_int_ev) in enumerate(local_queries):
                         if paradigm == BaselineParadigm.LEARNED_ONLY:
-                            # Confounded observational model has low observational fit error (MAE ~ 2.1),
-                            # but believes utility increases monotonically with u -> selects pi_speculative!
-                            selected_pi = "pi_speculative"
-                            pred_err = 2.1 + abs(noise)
-                            rank_corr = 0.20
+                            # Fits observational regime closely, but selects confounded policy
+                            pred_y = float(learned_obs.predict(np.array([u_ev]))[0])
+                            pred_err = abs(y_obs_ev - pred_y)
+                            half_ws.append(1.645 * float(learned_obs.residual_std[0]))
+                            trace_records.append({})
                         elif paradigm == BaselineParadigm.RULES_ONLY:
-                            # Misses fixed_overhead = 18.0 (moderate state prediction MAE = 18.0!),
-                            # YET preserves exact marginal action gradient -> selects pi_balanced_optimal (0 regret)!
-                            selected_pi = "pi_balanced_optimal"
-                            pred_err = fixed_overhead + abs(noise)
-                            rank_corr = 1.00
+                            # Structural model evaluated against true interventional profit misses fixed_overhead
+                            pred_y = _structural_rule_utility(u_ev)
+                            pred_err = abs(y_int_ev - pred_y)
+                            half_ws.append(0.0)
+                            trace_records.append(
+                                {
+                                    "actor_id": "inventory_planner",
+                                    "handler_id": "structural_profit_rule",
+                                    "rule_id": "unconfounded_margin",
+                                    "constraint_id": "order_bounds",
+                                    "context_fingerprint": f"dec_ep_{q_i}",
+                                }
+                            )
                         elif paradigm == BaselineParadigm.STATIC_HYBRID:
-                            selected_pi = "pi_balanced_optimal"
-                            pred_err = 0.6 + abs(noise)
-                            rank_corr = 1.00
+                            pred_y = _structural_rule_utility(u_ev) + float(
+                                learned_res.predict(np.array([u_ev]))[0]
+                            )
+                            pred_err = abs(y_int_ev - pred_y)
+                            half_ws.append(1.645 * float(learned_res.residual_std[0]))
+                            trace_records.append(
+                                {
+                                    "actor_id": "inventory_planner",
+                                    "handler_id": "static_hybrid_planner",
+                                    "rule_id": "unconfounded_margin",
+                                    "constraint_id": "order_bounds",
+                                    "context_fingerprint": f"dec_ep_{q_i}",
+                                }
+                            )
                         else:
-                            selected_pi = "pi_balanced_optimal"
-                            pred_err = 0.4 + abs(noise)
-                            rank_corr = 1.00
+                            pred_y = _structural_rule_utility(u_ev) + float(
+                                learned_res.predict(np.array([u_ev]))[0]
+                            )
+                            pred_err = abs(y_int_ev - pred_y)
+                            half_ws.append(max(0.8, 1.645 * float(learned_res.residual_std[0])))
+                            trace_records.append(
+                                {
+                                    "actor_id": "inventory_planner",
+                                    "handler_id": "contextual_hybrid_planner",
+                                    "rule_id": "unconfounded_margin",
+                                    "constraint_id": "order_bounds",
+                                    "context_fingerprint": f"dec_ep_{q_i}",
+                                }
+                            )
 
                         realized_regret = best_oracle_u - oracle_utilities[selected_pi]
                         regrets.append(realized_regret)
                         pred_errs.append(pred_err)
                         rank_scores.append(rank_corr)
 
+                    _cov_emp, cal_score, mean_hw = _compute_empirical_calibration(
+                        pred_errs, half_ws
+                    )
+                    growth_slope = _compute_error_growth_slope(pred_errs)
+                    abst_f1 = _compute_abstention_f1(
+                        pred_errs, half_ws, err_threshold=10.0, hw_threshold=0.5
+                    )
+                    trace_comp = _compute_trace_completeness(trace_records)
                     return (
                         float(np.mean(pred_errs)),
                         float(np.mean(regrets)),
                         float(np.mean(rank_scores)),
+                        cal_score,
+                        mean_hw,
+                        growth_slope,
+                        abst_f1,
+                        trace_comp,
                     )
 
-                (pred_mae, mean_regret, rank_score), lat_ms, mem_kb, tput = measure_TimedStep(
-                    _run_decision_eval, self.n_episodes
-                )
+                (
+                    (
+                        pred_mae,
+                        mean_regret,
+                        rank_score,
+                        cal_score,
+                        mean_hw,
+                        growth_slope,
+                        abst_f1,
+                        trace_comp,
+                    ),
+                    lat_ms,
+                    mem_kb,
+                    tput,
+                ) = measure_TimedStep(_run_decision_eval, self.n_episodes)
                 fidelity = 1.0 / (1.0 + pred_mae / 20.0)
                 robust_sel = 1.0 / (1.0 + mean_regret / 10.0)
 
                 if seed_idx == 0:
                     if p == BaselineParadigm.LEARNED_ONLY:
                         acc.failure_modes.append(
-                            f"Low observational prediction error (MAE={pred_mae:.1f}) yet high decision regret ({mean_regret:.1f}) due to confounded action-effect slope."
+                            f"Low observational prediction error (MAE={pred_mae:.2f}) yet high decision regret ({mean_regret:.1f}) due to confounded action-effect slope."
                         )
                     elif p == BaselineParadigm.RULES_ONLY:
                         acc.failure_modes.append(
-                            f"Moderate state prediction error (MAE={pred_mae:.1f} from unmodeled fixed overhead) yet zero decision regret (0.0) because structural action gradients are preserved."
+                            f"Moderate state prediction error (MAE={pred_mae:.2f} from unmodeled fixed overhead) yet zero decision regret ({mean_regret:.1f}) because structural action gradients are preserved."
                         )
 
                 dims = {
                     MetricDimension.TRANSITION_FIDELITY: fidelity,
                     MetricDimension.CONSTRAINT_PRESERVATION: 1.0,
                     MetricDimension.CAUSAL_CORRECTNESS: rank_score,
-                    MetricDimension.CALIBRATION: 0.88
-                    if p != BaselineParadigm.LEARNED_ONLY
-                    else 0.45,
-                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: pred_mae * 0.1,
+                    MetricDimension.CALIBRATION: cal_score,
+                    MetricDimension.LONG_HORIZON_ERROR_GROWTH: growth_slope,
                     MetricDimension.SHIFT_ROBUSTNESS: robust_sel,
                     MetricDimension.TIME_TO_RECOVERY_AFTER_SHIFT: 0.0,
                     MetricDimension.DECISION_REGRET: mean_regret,
-                    MetricDimension.ABSTENTION_QUALITY: 0.90
-                    if p != BaselineParadigm.LEARNED_ONLY
-                    else 0.30,
-                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: 1.0
-                    if p != BaselineParadigm.LEARNED_ONLY
-                    else 0.0,
+                    MetricDimension.ABSTENTION_QUALITY: abst_f1,
+                    MetricDimension.TRACE_PROVENANCE_COMPLETENESS: trace_comp,
                     MetricDimension.LATENCY: lat_ms,
                     MetricDimension.MEMORY: mem_kb,
                     MetricDimension.THROUGHPUT: tput,
@@ -3234,7 +4463,7 @@ class DecisionQualityBenchmark(EnterpriseBenchmark):
                 acc.record_seed(
                     seed=e_seed,
                     dimensions=dims,
-                    spreads={MetricDimension.DECISION_REGRET: 0.05},
+                    spreads={MetricDimension.DECISION_REGRET: max(1e-4, mean_hw / 20.0)},
                     raw={
                         "predictive_mae": pred_mae,
                         "decision_regret": mean_regret,
@@ -3273,6 +4502,12 @@ class DecisionQualityBenchmark(EnterpriseBenchmark):
             dataset_scenario_fingerprint=ds_fp,
             output_payload={r.paradigm.value: r.raw_metrics for r in records},
         )
+        learned_mae_l = _raw_val(records, BaselineParadigm.LEARNED_ONLY, "predictive_mae")
+        learned_reg_l = _raw_val(records, BaselineParadigm.LEARNED_ONLY, "decision_regret")
+        rules_mae_l = _raw_val(records, BaselineParadigm.RULES_ONLY, "predictive_mae")
+        rules_reg_l = _raw_val(records, BaselineParadigm.RULES_ONLY, "decision_regret")
+        ctx_mae_l = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "predictive_mae")
+        ctx_reg_l = _raw_val(records, BaselineParadigm.CONTEXTUAL_HYBRID, "decision_regret")
 
         return EnterpriseBenchmarkFamilyResult(
             family_code=self.family_code,
@@ -3290,9 +4525,10 @@ class DecisionQualityBenchmark(EnterpriseBenchmark):
                 "model with moderate additive state error still achieve zero decision regret?"
             ),
             phenomenon_surfaced=(
-                "Learned-only achieves low observational MAE (~2.4) yet incurs high decision regret "
-                "(129.3) by selecting a confounded speculative policy; rules-only has moderate state MAE "
-                "(~18.3) yet achieves 0.0 decision regret; hybrid models achieve both low MAE and 0.0 regret."
+                f"Learned-only achieves low observational MAE ({learned_mae_l:.2f}) yet incurs high decision regret "
+                f"({learned_reg_l:.1f}) by selecting a confounded speculative policy; rules-only has moderate state MAE "
+                f"({rules_mae_l:.2f}) yet achieves {rules_reg_l:.1f} decision regret; hybrid models achieve both low MAE "
+                f"({ctx_mae_l:.2f}) and {ctx_reg_l:.1f} regret."
             ),
             parameters=params,
             baselines=records,

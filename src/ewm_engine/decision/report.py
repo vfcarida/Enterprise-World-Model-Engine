@@ -6,6 +6,7 @@ Conforms to Track T7: Reporting & Visualization (Renderer-neutral, pure Python/R
 from __future__ import annotations
 
 import json
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -40,6 +41,10 @@ class DecisionReport(BaseModel):
     efe_scores: dict[str, ExpectedFreeEnergyScore] | None = Field(
         default=None,
         description="Optional active inference Expected Free Energy scores.",
+    )
+    abstention_decision: dict[str, Any] | None = Field(
+        default=None,
+        description="Optional structured ValidityLimitAbstentionDecision ('DO_NOT_USE_ME_HERE' vs 'WITHIN_DECLARED_VALIDITY_LIMITS').",
     )
     fingerprint: str = Field(
         description="Canonical SHA-256 fingerprint of the complete decision report."

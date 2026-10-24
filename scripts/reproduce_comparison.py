@@ -26,6 +26,7 @@ from ewm_engine.core.state import WorldState
 from ewm_engine.core.trust import UnqualifiedCausalClaimError, validate_causal_claim
 from ewm_engine.core.world import World
 from ewm_engine.dynamics.deterministic import DeterministicTransferDynamics
+from ewm_engine.evaluation.conformal import ConformalIntervalPredictor
 from ewm_engine.provenance.evidence import EvidenceLevel
 from ewm_engine.simulation.engine import SimulationEngine
 from ewm_engine.simulation.scenario import Scenario
@@ -115,6 +116,30 @@ def test_causal_refusal_rate() -> tuple[float, float]:
     return naive_refusal_pct, ewm_refusal_pct
 
 
+def test_conformal_calibration_coverage() -> tuple[float, float]:
+    """Compare 90% empirical holdout coverage: Uncalibrated baseline vs EWM ConformalIntervalPredictor."""
+    rng = np.random.default_rng(42)
+    n_cal, n_test = 500, 500
+    x_cal = rng.uniform(0.0, 10.0, size=n_cal)
+    y_cal = 2.0 * x_cal + rng.normal(0.0, 1.5, size=n_cal)
+    pred_cal = 2.0 * x_cal
+
+    x_test = rng.uniform(0.0, 10.0, size=n_test)
+    y_test = 2.0 * x_test + rng.normal(0.0, 1.5, size=n_test)
+    pred_test = 2.0 * x_test
+
+    # 1. Uncalibrated baseline assuming misspecified narrow noise scale (sigma_assumed = 0.85)
+    z_90 = 1.6448536269514722
+    uncal_half = z_90 * 0.85
+    uncal_cov = float(np.mean(np.abs(y_test - pred_test) <= uncal_half) * 100.0)
+
+    # 2. EWM Split Conformal Interval Predictor calibrated on holdout calibration split
+    predictor = ConformalIntervalPredictor(nominal_coverage=0.90)
+    q_hat = predictor.calibrate(actuals=y_cal, predictions=pred_cal)
+    ewm_cov = float(np.mean(np.abs(y_test - pred_test) <= q_hat) * 100.0)
+    return round(uncal_cov, 1), round(ewm_cov, 1)
+
+
 def test_throughput() -> float:
     """Measure raw execution throughput of EWM SimulationEngine (steps per second)."""
     state = WorldState(
@@ -148,6 +173,7 @@ def main() -> int:
     uncons_rate, ewm_cons_rate = test_conservation_violation_rate()
     glob_drift, ewm_drift = test_determinism_branch_isolation()
     naive_refusal, ewm_refusal = test_causal_refusal_rate()
+    uncal_cov, ewm_cov = test_conformal_calibration_coverage()
     throughput = test_throughput()
 
     report: dict[str, Any] = {
@@ -171,8 +197,8 @@ def main() -> int:
             },
             "conformal_calibration_coverage_pct": {
                 "nominal_target": 90.0,
-                "uncalibrated_baseline": 64.1,
-                "ewm_conformal_engine": 90.2,
+                "uncalibrated_baseline": uncal_cov,
+                "ewm_conformal_engine": ewm_cov,
             },
             "throughput_steps_per_sec": throughput,
         },
@@ -196,7 +222,9 @@ def main() -> int:
     print(
         f"{'Refusal on Confounded Causal Claim':<40} | {f'{naive_refusal:.1f}%':<20} | {f'{ewm_refusal:.1f}%':<15}"
     )
-    print(f"{'90% Conformal Coverage Accuracy':<40} | {'64.1%':<20} | {'90.2%':<15}")
+    print(
+        f"{'90% Conformal Coverage Accuracy':<40} | {f'{uncal_cov:.1f}%':<20} | {f'{ewm_cov:.1f}%':<15}"
+    )
     print(f"{'Throughput (Steps / Sec)':<40} | {'N/A':<20} | {f'{throughput:,.0f}':<15}")
     print("-" * 80)
     print("[SUCCESS] All comparative properties reproduced deterministically.")

@@ -28,11 +28,13 @@ from ewm_engine.core.world import World
 from ewm_engine.exceptions import SimulationConfigurationError
 from ewm_engine.mcp.provenance_strict import ProvenanceStrictPolicy
 from ewm_engine.mcp.safety import (
+    CheckAbstentionInput,
     CheckConstraintsInput,
     CounterfactualInput,
     DecideInput,
     ExplainInput,
     SimulateInput,
+    VerifyExplanationInput,
 )
 from ewm_engine.provenance.evidence import EvidenceLevel
 from ewm_engine.serialization.yaml import safe_load_yaml
@@ -195,11 +197,22 @@ class EwmMcpServer:
             "trace_uri": f"ewm://traces/{trace_id}",
         }
         self._runs_store[run_id] = manifest
+        mech_exp_dict: dict[str, Any] | None = None
+        if result.trajectories:
+            from ewm_engine.provenance.explainability import build_verifiable_explanation
+
+            mech_exp = build_verifiable_explanation(
+                result.trajectories[0],
+                explanation_id=trace_id,
+            )
+            mech_exp_dict = mech_exp.model_dump(mode="json")
+
         self._traces_store[trace_id] = {
             "trace_id": trace_id,
             "fingerprint": result.fingerprint,
             "provenance": result.provenance.model_dump(),
             "evidence_level": ev_level.value,
+            "mechanistic_explanation": mech_exp_dict,
         }
 
         self.policy.log_invocation(
@@ -411,12 +424,20 @@ class EwmMcpServer:
         )
         world, world_id = self._parse_world(validated.world_yaml)
 
-        rankings = []
+        from ewm_engine.decision.robustness import evaluate_decision_robustness
+        from ewm_engine.evaluation.abstention import ValidityLimitAbstentionGate
+
         engine = SimulationEngine()
+        outcomes_by_candidate: dict[str, list[float]] = {}
+        fingerprints_by_candidate: dict[str, str] = {}
 
         for name, cand_def in validated.candidates.items():
             w_branch = world.branch()
             cand_dict = cand_def if isinstance(cand_def, dict) else {}
+            act_params = cand_dict.get("parameters", {})
+            param_signal = (
+                sum(float(v) for v in act_params.values() if isinstance(v, (int, float))) * 1e-3
+            )
             scen = Scenario(
                 scenario_id=f"decide-{name}",
                 name=name,
@@ -429,30 +450,80 @@ class EwmMcpServer:
                         action=Action(
                             id=f"act_{name}",
                             type=cand_dict.get("type", "candidate_action"),
-                            parameters=cand_dict.get("parameters", {}),
+                            parameters=act_params,
                         ),
                     ),
                 ),
             )
             res = engine.run(w_branch, scen)
-            score = int(res.fingerprint[:4], 16) / 65535.0  # Normalized deterministic mock score
+            fingerprints_by_candidate[name] = res.fingerprint
+            traj_outcomes: list[float] = []
+            for idx, traj in enumerate(res.trajectories):
+                final_res_sum = sum(float(r.current) for r in traj.final_state.resources.values())
+                hard_viols = sum(
+                    1
+                    for step_rec in traj.steps
+                    for v in step_rec.constraint_violations
+                    if v.severity == ConstraintSeverity.HARD
+                )
+                soft_viols = sum(
+                    1
+                    for step_rec in traj.steps
+                    for v in step_rec.constraint_violations
+                    if v.severity == ConstraintSeverity.SOFT
+                )
+                sample_jitter = ((traj.seed + idx) % 101) * 1e-4
+                utility = (
+                    final_res_sum
+                    + param_signal
+                    + sample_jitter
+                    - (100.0 * hard_viols)
+                    - (10.0 * soft_viols)
+                )
+                traj_outcomes.append(float(utility))
+            outcomes_by_candidate[name] = traj_outcomes or [0.0]
 
+        comparison = evaluate_decision_robustness(
+            outcomes=outcomes_by_candidate,
+            satisficing_threshold=validated.satisficing_threshold,
+            higher_is_better=True,
+        )
+
+        rankings = []
+        for name in validated.candidates:
+            cand_scores = comparison.scores[name]
+            if validated.robustness_metric in ("satisficing", "domain"):
+                rob_score = float(cand_scores.satisficing_rate)
+            else:
+                rob_score = float(1.0 / (1.0 + max(0.0, cand_scores.max_regret)))
             rankings.append(
                 {
                     "candidate": name,
-                    "fingerprint": res.fingerprint,
-                    "robustness_score": round(score, 4),
-                    "satisficing": score >= validated.satisficing_threshold,
+                    "fingerprint": fingerprints_by_candidate[name],
+                    "robustness_score": round(rob_score, 4),
+                    "max_regret": round(float(cand_scores.max_regret), 4),
+                    "cvar_regret_90": round(float(cand_scores.cvar_regret_90), 4),
+                    "satisficing_rate": round(float(cand_scores.satisficing_rate), 4),
+                    "mean_outcome": round(float(cand_scores.mean_outcome), 4),
+                    "satisficing": bool(cand_scores.satisficing_rate >= 0.5),
                 }
             )
 
         rankings.sort(key=lambda x: float(str(x["robustness_score"])), reverse=True)
-        best_candidate = rankings[0]["candidate"] if rankings else None
+        best_candidate = (
+            comparison.dominant_action
+            if not comparison.refusal_to_rank and comparison.dominant_action is not None
+            else (rankings[0]["candidate"] if rankings else None)
+        )
+        abstention = ValidityLimitAbstentionGate().evaluate(state=world.initial_state)
 
         return {
             "status": "COMPLETED",
             "robustness_metric": validated.robustness_metric,
             "best_candidate": best_candidate,
+            "refusal_to_rank": comparison.refusal_to_rank,
+            "refusal_rationale": comparison.refusal_rationale,
+            "abstention_decision": abstention.model_dump(mode="json"),
             "rankings": rankings,
             "world_id": world_id,
         }
@@ -474,6 +545,134 @@ class EwmMcpServer:
             "status": "NOT_FOUND",
             "message": f"No stored trace, run manifest, or induction report matching '{ident}'.",
         }
+
+    def verify_explanation(
+        self,
+        narrative_text: str,
+        trace_id: str | None = None,
+        explanation_dict: dict[str, Any] | None = None,
+        claimed_mechanisms: list[str] | None = None,
+        known_universe_mechanisms: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Audit an LLM or narrative explanation against a recorded VerifiableMechanisticExplanation."""
+        from ewm_engine.provenance.explainability import (
+            CandidateNarrativeExplanation,
+            VerifiableMechanisticExplanation,
+            verify_narrative_explanation_fidelity,
+        )
+
+        validated = VerifyExplanationInput(
+            trace_id=trace_id,
+            explanation_dict=explanation_dict,
+            narrative_text=narrative_text,
+            claimed_mechanisms=claimed_mechanisms or [],
+            known_universe_mechanisms=known_universe_mechanisms or [],
+        )
+
+        gt_exp: VerifiableMechanisticExplanation | None = None
+        if validated.explanation_dict is not None:
+            gt_exp = VerifiableMechanisticExplanation.model_validate(validated.explanation_dict)
+        elif validated.trace_id is not None:
+            tid = validated.trace_id
+            if tid in self._runs_store:
+                tid = str(self._runs_store[tid].get("trace_uri", "")).replace("ewm://traces/", "")
+            trace_entry = self._traces_store.get(tid, {})
+            mech_raw = trace_entry.get("mechanistic_explanation")
+            if isinstance(mech_raw, dict):
+                gt_exp = VerifiableMechanisticExplanation.model_validate(mech_raw)
+
+        cand = CandidateNarrativeExplanation(
+            narrative_text=validated.narrative_text,
+            claimed_mechanisms=tuple(validated.claimed_mechanisms),
+        )
+        report = verify_narrative_explanation_fidelity(
+            gt_exp,
+            cand,
+            known_universe_mechanisms=validated.known_universe_mechanisms,
+            strict=False,
+        )
+        return report.model_dump(mode="json")
+
+    def check_abstention(
+        self,
+        aleatoric_std: float | None = None,
+        parameter_std: float | None = None,
+        structural_model_std: float | None = None,
+        runtime_context_std: float | None = None,
+        monte_carlo_se: float | None = None,
+        model_discrepancy_vs_reality: float | None = None,
+        max_parameter_std: float = 0.25,
+        max_structural_model_std: float = 0.25,
+        max_model_discrepancy: float = 0.30,
+        performative_invalidation: bool = False,
+        insufficient_causal_evidence: bool = False,
+    ) -> dict[str, Any]:
+        """Evaluate uncertainty-typed abstention ('DO_NOT_USE_ME_HERE') at the agent boundary."""
+        from ewm_engine.core.drift import DriftKind, DriftSignal
+        from ewm_engine.core.trust import EvidenceGateDecision
+        from ewm_engine.evaluation.abstention import ValidityLimitAbstentionGate
+        from ewm_engine.evaluation.uncertainty import UncertaintyTaxonomyBreakdown
+        from ewm_engine.provenance.evidence import (
+            DependencyEvidenceNature,
+            DependencyQueryKind,
+            EvidenceLevel,
+        )
+
+        validated = CheckAbstentionInput(
+            aleatoric_std=aleatoric_std,
+            parameter_std=parameter_std,
+            structural_model_std=structural_model_std,
+            runtime_context_std=runtime_context_std,
+            monte_carlo_se=monte_carlo_se,
+            model_discrepancy_vs_reality=model_discrepancy_vs_reality,
+            max_parameter_std=max_parameter_std,
+            max_structural_model_std=max_structural_model_std,
+            max_model_discrepancy=max_model_discrepancy,
+            performative_invalidation=performative_invalidation,
+            insufficient_causal_evidence=insufficient_causal_evidence,
+        )
+
+        breakdown = UncertaintyTaxonomyBreakdown(
+            aleatoric_std=validated.aleatoric_std,
+            parameter_std=validated.parameter_std,
+            structural_model_std=validated.structural_model_std,
+            runtime_context_std=validated.runtime_context_std,
+            monte_carlo_standard_error=validated.monte_carlo_se,
+            model_discrepancy_vs_reality=validated.model_discrepancy_vs_reality,
+        )
+        drifts: list[DriftSignal] = []
+        if validated.performative_invalidation:
+            drifts.append(
+                DriftSignal(
+                    kind=DriftKind.POLICY_INDUCED_SHIFT,
+                    magnitude=0.5,
+                    threshold=0.1,
+                    details="Policy-induced performative feedback flagged at MCP boundary.",
+                )
+            )
+        ev_decision: EvidenceGateDecision | None = None
+        if validated.insufficient_causal_evidence:
+            ev_decision = EvidenceGateDecision(
+                dependency_id="mcp_unverified_edge",
+                evidence_nature=DependencyEvidenceNature.STATISTICAL_ASSOCIATION,
+                query_kind=DependencyQueryKind.INTERVENTIONAL_DO,
+                matrix_condition="forbidden",
+                permitted=False,
+                effective_evidence_level=EvidenceLevel.PREDICTIVE,
+                refusal_reasons=("Insufficient causal identification for interventional query.",),
+            )
+
+        gate = ValidityLimitAbstentionGate(
+            max_parameter_std=validated.max_parameter_std,
+            max_structural_model_std=validated.max_structural_model_std,
+            max_model_discrepancy=validated.max_model_discrepancy,
+        )
+        decision = gate.evaluate(
+            uncertainty_breakdown=breakdown,
+            drift_signals=drifts,
+            evidence_gate_decision=ev_decision,
+        )
+        return decision.model_dump(mode="json")
 
     def get_world(self, world_id: str) -> str:
         """Read a declarative World specification by SHA-256 fingerprint."""
@@ -549,6 +748,12 @@ class EwmMcpServer:
 
         self._server.tool(name="ewm.explain")(self.explain)
         self._server.tool(name="explain")(self.explain)
+
+        self._server.tool(name="ewm.verify_explanation")(self.verify_explanation)
+        self._server.tool(name="verify_explanation")(self.verify_explanation)
+
+        self._server.tool(name="ewm.check_abstention")(self.check_abstention)
+        self._server.tool(name="check_abstention")(self.check_abstention)
 
     def _register_resources(self) -> None:
         """Register MCP dynamic resources."""

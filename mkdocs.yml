@@ -73,6 +73,7 @@ nav:
 
   - Results & Benchmarks:
       - "Results Gallery": results/index.md
+      - "Decision-First Comparative Evaluation": results/decision-first-comparative-evaluation.md
       - "Reproducible Benchmarks": results/benchmarks.md
       - "SEIR Epidemic Outbreak": results/seir-outbreak.md
       - "Beer Game Bullwhip": results/beer-game-bullwhip.md
@@ -84,6 +85,7 @@ nav:
       - "Performance & Scaling Curves": performance.md
       - Scientific Reproduction:
           - "Claim-to-Evidence Registry": scientific/claim-evidence-matrix.md
+          - "Comparative Evaluation Pre-Registration": scientific/pre_registration_comparative_ladder.md
           - "Reproducibility & Citation Guide": reproducibility.md
 
   - Executive & Strategy:
@@ -137,6 +139,7 @@ nav:
       - "Executed Example Gallery": tutorials/gallery.md
       - "Minimal Warehouse Fixture": examples/minimal-warehouse.md
       - "Minimal Supply World": examples/minimal-world.md
+      - "Flagship: Fraud → Declines → Call-Center Cascade": tutorials/fraud-call-center-cascade.md
       - "Flagship: CivicFlow Disaster Response": examples/civicflow.md
       - "Agent Policy Evaluation": examples/agent-evaluation.md
 
@@ -193,6 +196,7 @@ nav:
           - Systemic Traces & Provenance: reference/api/provenance.md
           - Reproducibility Cards: reference/api/cards.md
       - "CLI Command Reference": reference/cli.md
+      - "Flagship Scenario: Fraud Cascade Reference": reference/fraud-cascade-scenario.md
       - "JSON Schemas Reference": reference/schemas.md
       - "Enterprise Data Connectors": reference/connectors.md
       - "Verified Bibliography & References": REFERENCES.md
@@ -279,6 +283,8 @@ nav:
       - "Open-Source Governance (ADR-038)": adr/ADR-038-open-source-governance-community-health-and-rfc-process.md
 
   - Explanation:
+      - "What Is an EWM? (Scientific Demarcation)": explanation/what-is-an-ewm.md
+      - "Research Agenda & Falsifiable Hypotheses": explanation/research-agenda.md
       - "What is a World Model?": concepts/world-models.md
       - "Competitive Landscape & Positioning": positioning/landscape.md
       - "Scientific ML Rigor & Provenance": concepts/ml-scientific-rigor.md
@@ -309,6 +315,7 @@ nav:
       - "Architecture Proposal": architecture/proposal.md
       - "Scientific Benchmark Families": research/benchmarks.md
       - "Enterprise Benchmark Suite (A–L)": research/enterprise-benchmark-suite.md
+      - "Experimental Composition & SWE Domain": research/experimental-composition-and-swe.md
       - Integrations Overview: integrations/overview.md
       - "Agent Evaluation ('Engine != Agent')": integrations/agent-evaluation.md
       - Model & Scenario Cards:

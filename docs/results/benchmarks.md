@@ -29,9 +29,9 @@ The following table summarizes the operational and structural differences betwee
 | **Mass Conservation Violation Rate** | 99.9% (drift accum.) | Variable (manual bookkeeping) | **0.0% (Hard nullspace projection)** | `python scripts/reproduce_comparison.py` |
 | **Branch PRNG Phase Drift** | 100.0% (stochastic tokens) | 100.0% (global seed pollution) | **0.0% (Hierarchical SeedSequence)** | `python scripts/reproduce_comparison.py` |
 | **Unobserved Confounder Refusal** | 0.0% (hallucinated certainty) | N/A (rule-based) | **100.0% (Epistemic causal gate)** | `python scripts/reproduce_comparison.py` |
-| **90% Calibration Coverage (TARP)** | ~64.1% (overconfident) | N/A (uncalibrated priors) | **90.2% (Empirically verified)** | `python scripts/reproduce_results.py --card calibrated_posterior` |
+| **90% Calibration Coverage (Conformal / TARP)** | 63.2% (overconfident) | N/A (uncalibrated priors) | **90.2% Conformal / 0.0283 TARP Error** | `python scripts/reproduce_comparison.py` |
 | **Bit-Exact Re-execution** | None | Limited to single process | **100% Cryptographic Match** | `python scripts/reproduce_results.py --all` |
-| **Mandatory GPU / Cloud Dependency** | Yes (Transformers / Diffusion) | No | **No (Zero GPU / Zero LLM required)** | Standard CPU |
+| **Mandatory GPU / Cloud Dependency** | Yes (Transformers / Diffusion) | No | **No (CPU-only deterministic core; GPUs/LLMs optional at boundary)** | Standard CPU |
 
 ---
 
@@ -58,7 +58,7 @@ The following table summarizes the operational and structural differences betwee
 - **Methodology**: 200 simulation runs are evaluated under simulated Bayesian parameter uncertainty and tested against the coverage property:
   $$P(y^* \in \hat{C}_{1-\alpha}(x^*)) \ge 1 - \alpha$$
   Tested via the Tests of Accuracy with Random Points (TARP) method ([Lemos et al., ICML 2023](https://arxiv.org/abs/2302.03026)).
-- **Result**: EWM Engine's calibrated posterior achieves $90.2\%$ empirical coverage for a nominal $90.0\%$ target (TARP error $< 0.03$), whereas an uncalibrated prior covers only $64.1\%$.
+- **Result**: EWM Engine's split-conformal predictor (`ConformalIntervalPredictor`, $n_{\text{cal}}=500, n_{\text{test}}=500$) achieves $90.2\%$ empirical marginal coverage for a nominal $90.0\%$ target whereas an uncalibrated Gaussian baseline covers only $63.2\%$, and the amortized SBI posterior (`calibrated_posterior_s04`) achieves $87.5\%$ coverage at the $90.0\%$ credible level with mean TARP calibration error $0.0283 \le 0.05$.
 
 ### Multi-Seed Deterministic Scaling
 ![Multi-Seed Stochastic Ensembles and Error Bars](artifacts/multiseed_error_bars.svg)
@@ -69,14 +69,16 @@ The following table summarizes the operational and structural differences betwee
 
 EWM Engine is designed for high-throughput exploration, optimization, and scenario discovery without requiring cluster computing or specialized accelerator hardware.
 
-### Throughput Benchmarks
+### Measured Suite Latency, Memory & Throughput (`enterprise_benchmark_suite.json`, Seed `42`)
 
-| Workload Configuration | State Dimension | Number of Steps | Wall Clock Time | Throughput | Memory Footprint |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Deterministic Transfer Dynamics** | 50 entities | 500 steps | ~0.104 s | **~4,800 steps/sec** | < 25 MB RSS |
-| **Coupled SEIR Epidemic Outbreak** | 4 state variables | 365 steps | ~0.082 s | **~4,450 steps/sec** | < 22 MB RSS |
-| **Beer Game Multi-Echelon Supply Chain** | 16 state variables | 52 steps | ~0.045 s | **~1,150 steps/sec** | < 28 MB RSS |
-| **WORLD3 Standard Resource Model** | 12 state variables | 100 steps | ~0.065 s | **~1,540 steps/sec** | < 24 MB RSS |
+All performance figures below are sourced directly from the committed [`docs/results/artifacts/enterprise_benchmark_suite.json`](artifacts/enterprise_benchmark_suite.json) (`suite_fingerprint = c4362a01ae4624ce912f81535e6acd73d54c01bb22dce0daa697ab7adbe0cbb1`):
+
+| Baseline Paradigm (Across Families A–L) | Mean Latency (`ms / step`) | Mean Throughput (`steps / sec`) | Mean Memory Footprint (`KB`) | Primary Artifact Source |
+| :--- | :---: | :---: | :---: | :--- |
+| **`rules-only` (`RulesOnlyStructuralModel`)** | `0.0727 ms` | **`30373.0519 steps/sec`** | `11.2116 KB` | `docs/results/artifacts/enterprise_benchmark_suite.json` |
+| **`learned-only` (`LearnedPolynomialRidgeModel`)** | `0.1435 ms` | **`10743.8827 steps/sec`** | `10.5332 KB` | `docs/results/artifacts/enterprise_benchmark_suite.json` |
+| **`static hybrid` (`StaticHybridProjectedModel`)** | `0.1121 ms` | **`18565.0203 steps/sec`** | `10.8370 KB` | `docs/results/artifacts/enterprise_benchmark_suite.json` |
+| **`hybrid + runtime context discovery` (`ContextualHybridDiscoveryModel`)** | `0.2304 ms` | **`9814.4781 steps/sec`** | `12.9655 KB` | `docs/results/artifacts/enterprise_benchmark_suite.json` |
 
 *Environment: Intel Core i7 / AMD Ryzen (single thread), Python 3.12, NumPy 2.x, Windows / Linux.*
 

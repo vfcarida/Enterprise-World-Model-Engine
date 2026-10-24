@@ -131,6 +131,7 @@ class InductionReport(BaseModel):
 
     # Induction Honesty and Refusal Gate fields
     validation_passed: bool | None = None
+    gate_outcome: str | None = None
     refused_elements_count: int = 0
     open_questions_count: int = 0
     refused_elements: list[dict[str, Any]] = Field(default_factory=list)

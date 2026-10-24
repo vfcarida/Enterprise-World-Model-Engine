@@ -39,7 +39,11 @@ points = [
 ]
 failures = [bool(val < 85.0) for val in Y]  # SLA failure threshold
 space = ParameterSpace(
-    bounds={"labor_shortage": (0.0, 0.30), "transit_delay": (1.0, 14.0), "tariff_surge": (0.0, 0.25)}
+    bounds={
+        "labor_shortage": (0.0, 0.30),
+        "transit_delay": (1.0, 14.0),
+        "tariff_surge": (0.0, 0.25),
+    }
 )
 
 result = run_prim(points=points, targets=failures, parameter_space=space, alpha=0.05)

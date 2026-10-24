@@ -8,6 +8,17 @@ from ewm_engine.core._canonical import (
     is_native_accel_available,
 )
 from ewm_engine.core.actions import Action, Intervention
+from ewm_engine.core.bitemporal import (
+    GRANULARITY_WINDOW_STEPS,
+    BitemporalLeakageError,
+    BitemporalLedger,
+    BitemporalRecord,
+    DataLeakageCertificate,
+    MetricDefinitionVersion,
+    PointInTimeView,
+    TemporalGranularity,
+    verify_no_data_leakage,
+)
 from ewm_engine.core.context import (
     AuditMetadataContextDiscovery,
     AutomationRuleConfig,
@@ -18,7 +29,19 @@ from ewm_engine.core.context import (
     WorkflowConfig,
 )
 from ewm_engine.core.deprecation import deprecate, deprecated
-from ewm_engine.core.drift import DriftKind, DriftSignal, detect_world_drift
+from ewm_engine.core.drift import (
+    DRIFT_KIND_TO_ORIGIN,
+    EXOGENOUS_DRIFT_KINDS,
+    MODEL_INDUCED_DRIFT_KINDS,
+    DriftKind,
+    DriftOrigin,
+    DriftSignal,
+    EndogenousDecisionFeedbackSpec,
+    PerformativeCouplingSpec,
+    PlanInvalidationAudit,
+    check_plan_performative_validity,
+    detect_world_drift,
+)
 from ewm_engine.core.entities import Entity, Relationship
 from ewm_engine.core.epistemic import (
     EpistemicState,
@@ -36,6 +59,7 @@ from ewm_engine.core.observation import (
 from ewm_engine.core.resources import Resource
 from ewm_engine.core.scm import (
     AbductionResult,
+    CausalGraph,
     ExogenousVariable,
     InvertibilityType,
     NonUniqueAbductionWarning,
@@ -56,9 +80,18 @@ from ewm_engine.core.spec import (
 )
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.trust import (
+    EVIDENCE_LEVEL_TO_NATURE,
+    EVIDENCE_NATURE_TO_DEFAULT_LEVEL,
+    EVIDENCE_QUERY_MATRIX_CONTRACT,
     INDUCTION_EVIDENCE_LADDER,
+    PERMISSIBLE_QUERIES_BY_NATURE,
     BarePointEstimateWarning,
     DecisionBlockedError,
+    DependencyEvidenceNature,
+    DependencyQueryKind,
+    EvidenceGateDecision,
+    EvidenceLevel,
+    EvidenceNature,
     ExtrapolationWarning,
     GateValidationReport,
     InductionRefusalError,
@@ -69,8 +102,13 @@ from ewm_engine.core.trust import (
     UncertaintyRequiredError,
     UnqualifiedCausalClaimError,
     WideUncertaintyWarning,
+    evaluate_dependency_chain_for_query,
+    evaluate_evidence_nature_gate,
+    evidence_level_to_nature,
+    evidence_nature_to_level,
     is_evidence_at_least,
     validate_causal_claim,
+    validate_dependency_for_query,
 )
 from ewm_engine.core.types import (
     ActionId,
@@ -87,7 +125,15 @@ from ewm_engine.core.types import (
 from ewm_engine.core.world import World
 
 __all__ = [
+    "DRIFT_KIND_TO_ORIGIN",
+    "EVIDENCE_LEVEL_TO_NATURE",
+    "EVIDENCE_NATURE_TO_DEFAULT_LEVEL",
+    "EVIDENCE_QUERY_MATRIX_CONTRACT",
+    "EXOGENOUS_DRIFT_KINDS",
+    "GRANULARITY_WINDOW_STEPS",
     "INDUCTION_EVIDENCE_LADDER",
+    "MODEL_INDUCED_DRIFT_KINDS",
+    "PERMISSIBLE_QUERIES_BY_NATURE",
     "AbductionResult",
     "Action",
     "ActionId",
@@ -97,6 +143,10 @@ __all__ = [
     "BarePointEstimateWarning",
     "BeliefState",
     "BeliefUpdater",
+    "BitemporalLeakageError",
+    "BitemporalLedger",
+    "BitemporalRecord",
+    "CausalGraph",
     "ComponentRegistry",
     "ComponentSpec",
     "ConstraintId",
@@ -104,14 +154,22 @@ __all__ = [
     "ContextDiscoveryProvider",
     "ContextSnapshot",
     "ContractTermConfig",
+    "DataLeakageCertificate",
     "DecisionBlockedError",
+    "DependencyEvidenceNature",
+    "DependencyQueryKind",
     "DriftKind",
+    "DriftOrigin",
     "DriftSignal",
+    "EndogenousDecisionFeedbackSpec",
     "Entity",
     "EntityId",
     "EntitySpec",
     "EpistemicState",
     "EventId",
+    "EvidenceGateDecision",
+    "EvidenceLevel",
+    "EvidenceNature",
     "ExogenousEvent",
     "ExogenousEventSource",
     "ExogenousVariable",
@@ -122,9 +180,13 @@ __all__ = [
     "InsufficientCausalEvidenceWarning",
     "Intervention",
     "InvertibilityType",
+    "MetricDefinitionVersion",
     "NonUniqueAbductionWarning",
     "ObservationFilter",
     "ObservationSpec",
+    "PerformativeCouplingSpec",
+    "PlanInvalidationAudit",
+    "PointInTimeView",
     "RandomGenerator",
     "Relationship",
     "RelationshipId",
@@ -139,6 +201,7 @@ __all__ = [
     "ServiceEndpointConfig",
     "StructuralAssignment",
     "StructuralCausalModel",
+    "TemporalGranularity",
     "TrajectoryId",
     "UncertaintyRequiredError",
     "UnqualifiedCausalClaimError",
@@ -151,13 +214,20 @@ __all__ = [
     "WorldSpecification",
     "WorldState",
     "canonical_sha256",
+    "check_plan_performative_validity",
     "deprecate",
     "deprecated",
     "detect_world_drift",
+    "evaluate_dependency_chain_for_query",
+    "evaluate_evidence_nature_gate",
+    "evidence_level_to_nature",
+    "evidence_nature_to_level",
     "fast_canonical_sha256",
     "is_evidence_at_least",
     "is_native_accel_available",
     "resolve_fail_closed_evidence_level",
     "separate_ontic_epistemic",
     "validate_causal_claim",
+    "validate_dependency_for_query",
+    "verify_no_data_leakage",
 ]

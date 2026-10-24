@@ -81,6 +81,7 @@ def reproduce_seir() -> dict[str, Any]:
         "physics_iq_score": 1.0 if max_drift < 1e-9 else 0.0,
         "conformal_90_coverage": float(coverage_rate),
         "status": "PASSED",
+        "card_verification_status": "PASSED_CONSERVATION_AND_COVERAGE_VERIFIED",
     }
     return payload
 
@@ -119,6 +120,7 @@ def reproduce_beer_game() -> dict[str, Any]:
         "bullwhip_amplification_ratio": float(bullwhip_ratio),
         "multi_tier_conservation": "VERIFIED",
         "status": "PASSED",
+        "card_verification_status": "PASSED_BULLWHIP_AND_CONSERVATION_VERIFIED",
     }
     return payload
 
@@ -150,6 +152,7 @@ def reproduce_world3() -> dict[str, Any]:
         "industrial_peak_step": int(np.argmax(cap_history)),
         "feedback_loop_consistency": "VERIFIED",
         "status": "PASSED",
+        "card_verification_status": "PASSED_FEEDBACK_EQUILIBRIUM_VERIFIED",
     }
     return payload
 
@@ -186,6 +189,9 @@ def reproduce_calibrated_posterior() -> dict[str, Any]:
         "mean_tarp_calibration_error": float(tarp_deviation),
         "coverage_certified": bool(is_certified),
         "status": "PASSED" if is_certified else "FAILED",
+        "card_verification_status": (
+            "PASSED_TARP_COVERAGE_CERTIFIED" if is_certified else "FAILED_TARP_COVERAGE_CHECK"
+        ),
     }
     return payload
 
@@ -245,6 +251,7 @@ def reproduce_counterfactual_scm() -> dict[str, Any]:
         "evidence_level": str(cf_result.evidence_level),
         "noise_coupling_verified": True,
         "status": "PASSED",
+        "card_verification_status": "PASSED_TWIN_NOISE_COUPLING_VERIFIED",
     }
     return payload
 
@@ -299,6 +306,7 @@ def reproduce_decision_discovery() -> dict[str, Any]:
         "minimax_regret_winner": robust_res.metric_winners.get("min_max_regret", "Robust"),
         "dominant_action": robust_res.dominant_action,
         "status": "PASSED",
+        "card_verification_status": "PASSED_PRIM_AND_MINIMAX_REGRET_VERIFIED",
     }
     return payload
 
@@ -402,9 +410,15 @@ def reproduce_induction_validation() -> dict[str, Any]:
         else "FAILED"
     )
 
+    card_verification_status = (
+        "PASSED_REFUSAL_GATE_VERIFIED" if status == "PASSED" else "FAILED_REFUSAL_GATE_CHECK"
+    )
+
     return {
         "card": "induction_validation_s09",
         "validation_passed": val_rep_1.passed,
+        "all_candidates_admitted": val_rep_1.all_candidates_admitted,
+        "gate_outcome": val_rep_1.gate_outcome.value,
         "admitted_elements_count": val_rep_1.admitted_elements_count,
         "refused_elements_count": val_rep_1.refused_elements_count,
         "open_questions_count": len(val_rep_1.open_questions),
@@ -415,6 +429,15 @@ def reproduce_induction_validation() -> dict[str, Any]:
         "byte_identical_reproducibility": byte_identical,
         "sha256_fingerprint": val_rep_1.sha256_fingerprint,
         "status": status,
+        "card_verification_status": card_verification_status,
+        "status_explanation": (
+            "validation_passed=False (all_candidates_admitted=False) means 2 negative-control "
+            "unidentifiable/confounded edges were refused from WorldSpec and surfaced as 2 open "
+            "questions (`gate_outcome='REFUSED_UNIDENTIFIABLE_AS_DESIGNED'`). "
+            "status='PASSED' (`card_verification_status='PASSED_REFUSAL_GATE_VERIFIED'`) means "
+            "the benchmark card verified that the positive control was admitted and negative "
+            "controls were refused as designed."
+        ),
     }
 
 

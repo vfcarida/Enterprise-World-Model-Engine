@@ -17,15 +17,15 @@ Enterprise World Model Engine (`ewm-engine`) is not a 2024 generative AI hype ar
             The Ladder of Causation: Association → Intervention → Counterfactual.
                      │
                      ▼
-  2020s ─── Autonomous World Models (Ha & Schmidhuber 2018, MuZero 2019, DreamerV3 2023)
-            Latent simulation kernels enabling forward rollouts, planning, and imagination.
+  2020s ─── Action-Conditioned World Models & Hybrid Enterprise Systems
+            Latent & structural environment models enabling forward rollouts and planning.
                      │
                      ▼
             ★ Enterprise World Model Engine (EWM)
-            Deterministic, auditable, socio-technical simulation with zero mandatory GPU/LLM.
+            Deterministic CPU core with optional LLM/GPU boundary adapters.
 ```
 
-By unifying these disciplines, EWM solves the fundamental limitation of modern generative AI in enterprise planning: **Large language models and neural predictors lack physical, accounting, and legal conservation laws.** EWM supplies the structural simulation kernel where actions can be tested deterministically before capital is committed.
+By synthesizing these traditions, EWM investigates a specific conditional thesis: **under which conditions does explicitly modeling the coupled rules, queues, and causal dependencies of an organization yield better decisions than direct predictive models?** EWM supplies the deterministic structural core where candidate actions can be stress-tested—and where boundary LLM agents (`ewm mcp`) can translate natural-language goals into audited simulations.
 
 ---
 
@@ -70,27 +70,27 @@ Machine learning research transitioned from static pattern recognition to dynami
 * **Bruce et al. (Genie, 2024)[^9]:** Extended world models to interactive generative action-controllable virtual environments.
 * **Zheng et al. (The AI Economist, 2020)[^10]:** Applied reinforcement learning and socio-economic simulation to optimize tax policy and productivity in multi-agent economic worlds.
 
-### How EWM Diverges for the Enterprise
-While deep learning labs focused on video generation, pixel prediction, and Atari games, enterprise decision-makers faced a completely different reality:
-* Enterprises cannot afford hallucinated cash or inventory.
-* Regulatory compliance requires deterministic replay and cryptographic auditability.
-* High-stakes decisions demand certified uncertainty bounds, not confident guesses.
+### How EWM Focuses on Typed Organizational State
+Enterprise operations present specific structural requirements distinct from visual control tasks:
+* Enterprises require double-entry cash, cohort, and inventory conservation within machine precision ($\le 10^{-12}$).
+* Regulatory governance benefits from deterministic replay, explicit `DependencyEvidenceNature` causal gates, and cryptographic state fingerprints.
+* High-stakes operational decisions require calibrated uncertainty bounds and explicit `"DO_NOT_USE_ME_HERE"` abstention when validity limits are breached.
 
-**EWM applies the world-model philosophy — simulating the consequences of an action before executing it — to typed, constrained organizational state.**
+**EWM applies action-conditioned world modeling to typed, constrained organizational state—pairing a deterministic CPU core with optional LLM and GPU boundary adapters.**
 
 ---
 
 ## 5. The Synthesis: Enterprise World Model Engine
 
-| Dimension | System Dynamics (1960s) | Neural World Models (2020s) | Enterprise World Model Engine (EWM) |
+| Dimension | System Dynamics (1960s) | Structural Causal Models (2000s) | Enterprise World Model Engine (EWM) |
 | :--- | :--- | :--- | :--- |
-| **Primary Domain** | Socio-technical systems | Robotics, Atari, Video | Socio-technical & Enterprise systems |
-| **State Representation** | Aggregated differential equations | High-dimensional latent vectors / pixels | Typed, relational graph state (`WorldState`) |
-| **Physics & Rules** | Hand-crafted differential equations | Soft latent approximations (can hallucinate) | **Hard algebraic invariants + explicit conservation laws** |
-| **Causal Rigor** | Implicit structural feedback | Predominantly associative / conditional | **Native Pearl SCM + Twin-Rollout counterfactuals** |
-| **Uncertainty** | Deterministic or ad-hoc noise | Neural variance heads | **Conformal prediction + BCa bootstrap + E-values** |
-| **Hardware Footprint** | CPU (Vensim, Stella) | Multi-GPU / TPU clusters | **Zero mandatory GPU/LLM (pure Python/NumPy core)** |
-| **Auditability** | Visual stock-and-flow diagrams | Black-box neural weights | **Cryptographic SHA-256 state fingerprints & SLSA L2+** |
+| **Primary Domain** | Macro-level socio-technical stocks & flows | Observational & interventional causal graphs | Multi-layer enterprise & socio-technical operations |
+| **State Representation** | Aggregated differential equations | Random variables on a DAG | Typed relational graph state (`WorldState`) + context $K_t$ |
+| **Physics & Rules** | Hand-crafted differential equations | Structural equations $f_i(\text{PA}_i, U_i)$ | **Hard algebraic invariants + nullspace conservation projection** |
+| **Causal Rigor** | Implicit structural feedback | Pearl's Ladder + $do$-calculus | **Native Pearl SCM + `DependencyEvidenceNature` query gating** |
+| **Uncertainty** | Deterministic or ad-hoc noise | Posterior / sensitivity bounds | **Conformal prediction + bootstrap + TARP + abstention gate** |
+| **Hardware & Boundary** | CPU (Vensim, Stella, PySD) | CPU statistical estimators | **CPU-only deterministic core; optional LLM/GPU boundary (`[mcp]`, `[ml]`)** |
+| **Auditability** | Visual stock-and-flow diagrams | Graphical identification proofs | **Cryptographic SHA-256 fingerprints & verifiable trace explanations** |
 
 ---
 

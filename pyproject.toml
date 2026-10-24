@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ewm-engine"
 dynamic = ["version"]
-description = "Deterministic, auditable what-if simulation kernel for socio-technical systems — no GPU/LLM required"
+description = "Deterministic CPU-core simulation and decision-evaluation engine for socio-technical systems with optional LLM/GPU boundary adapters"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"

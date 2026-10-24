@@ -384,3 +384,21 @@ def test_deterministic_byte_identical_fingerprints() -> None:
     assert val_1.compute_fingerprint() == val_2.compute_fingerprint()
     assert report_1.sha256_fingerprint == report_2.sha256_fingerprint
     assert report_1.to_json() == report_2.to_json()
+
+
+def test_induction_validation_dual_status_disambiguation() -> None:
+    """Verify unambiguous status vocabulary separating candidate admission from card verification."""
+    from ewm_engine.induction.validation import InductionGateOutcome
+    from scripts.reproduce_results import reproduce_induction_validation
+
+    card_res = reproduce_induction_validation()
+    assert card_res["validation_passed"] is False
+    assert card_res["all_candidates_admitted"] is False
+    assert card_res["gate_outcome"] == InductionGateOutcome.REFUSED_UNIDENTIFIABLE_AS_DESIGNED.value
+    assert card_res["status"] == "PASSED"
+    assert card_res["card_verification_status"] == "PASSED_REFUSAL_GATE_VERIFIED"
+    assert "negative-control" in card_res["status_explanation"]
+    assert (
+        card_res["sha256_fingerprint"]
+        == "478e28f89ffd0022ebc5d379307da85a85e234ac68a23f03efb249a793111d90"
+    )

@@ -1,0 +1,292 @@
+{
+  "bitemporal_audit": {
+    "blocked_leakage_attempts": 1,
+    "decision_time_inspected": 5.0,
+    "leakage_guard_triggered_on_future_read": true,
+    "sample_blocked_error": "Bitemporal leakage guard triggered at decision_time=5.0: record 'fraud_final_step_5' has event_time=5.0, knowledge_time=9.0.",
+    "visible_records_at_t5": 14,
+    "withheld_future_events_at_t5": 75,
+    "withheld_future_knowledge_at_t5": 11
+  },
+  "disclaimer": "Capability demonstrated in a controlled, synthetic environment with known mechanisms and ground-truth parameters \u2014 NOT proven efficacy in a real operation.",
+  "environment_manifest": {
+    "cascade_layers": [
+      {
+        "description": "Context K_t auth_threshold tau governs p_catch(tau) and p_fp(tau).",
+        "evidence_nature": "business_rule_mechanism",
+        "layer": 1,
+        "name": "Direct Authorization Transition"
+      },
+      {
+        "description": "Step-up SMS rescue (65%) and automated account locks (45% of net FP declines).",
+        "evidence_nature": "business_rule_mechanism",
+        "layer": 2,
+        "name": "Triggered Fraud Workflow"
+      },
+      {
+        "description": "Retries (35%), channel switch (20%), contact-center call surge, and queue congestion.",
+        "evidence_nature": "experimentally_supported",
+        "layer": 3,
+        "name": "Secondary Customer Reactions & Call Queue"
+      },
+      {
+        "description": "Customer pool conservation (N_0=10,000), queue flow conservation, SLA breach penalty, and cash ledger.",
+        "evidence_nature": "known_functional",
+        "layer": 4,
+        "name": "Downstream Constraints, SLA Penalties & Conservation"
+      }
+    ],
+    "hidden_ontic_resources": [
+      "latent_churn_propensity",
+      "instantaneous_fp_declines",
+      "instantaneous_missed_fraud"
+    ],
+    "initial_context_fingerprint": "901429a9e7d8a22ee7fcdbb1c42de5e0da3de238c4cd3a1bcf9339cdc19fa79b",
+    "observable_resources": [
+      "abandoned_calls",
+      "active_customers",
+      "approved_transactions",
+      "avg_wait_seconds",
+      "call_arrival_volume",
+      "call_backlog",
+      "churned_customers",
+      "cumulative_net_cash",
+      "handled_calls",
+      "locked_accounts",
+      "open_dispute_cases",
+      "retry_queue",
+      "staffed_agents",
+      "total_declines"
+    ],
+    "parameters": {
+      "account_lock_trigger_fraction": 0.45,
+      "auth_telemetry_lag_steps": 0.0,
+      "avg_order_value": 80.0,
+      "base_fraud_attempt_volume": 65.0,
+      "base_wait_seconds": 25.0,
+      "baseline_auth_threshold": 0.65,
+      "call_center_telemetry_lag_steps": 1.0,
+      "call_escalation_per_fp_decline": 0.38,
+      "call_escalation_per_locked_account": 0.32,
+      "calls_per_agent_per_step": 8.0,
+      "channel_switch_fee": 1.5,
+      "channel_switch_fraction": 0.2,
+      "churn_audit_lag_steps": 6.0,
+      "churn_ltv_loss_per_customer": 95.0,
+      "cost_per_agent_per_step": 110.0,
+      "cost_per_handled_call": 4.5,
+      "definition_shift_step": 12,
+      "false_positive_base_rate": 0.24,
+      "false_positive_decay": 3.4,
+      "fraud_catch_slope": 0.85,
+      "fraud_chargeback_Cost_multiplier": 1.15,
+      "fraud_settlement_lag_steps": 4.0,
+      "gross_margin_rate": 0.15,
+      "initial_active_customers": 10000.0,
+      "initial_churn_propensity": 0.01,
+      "initial_staffed_agents": 32.0,
+      "max_call_backlog": 5000.0,
+      "max_staffed_agents": 120.0,
+      "min_staffed_agents": 10.0,
+      "queue_abandonment_rate": 0.25,
+      "retry_fraction": 0.35,
+      "routine_call_rate_per_customer": 0.012,
+      "sla_breach_penalty_per_step": 2200.0,
+      "sla_wait_target_seconds": 120.0,
+      "step_up_sms_cost_per_attempt": 0.35,
+      "step_up_sms_rescue_fraction": 0.65,
+      "tx_attempt_rate_per_customer": 0.25,
+      "wait_congestion_coeff": 115.0
+    },
+    "parameters_fingerprint": "abd41502e780d6479f759d408450c95daae0ee999a9b351c9d96cdb7b9c6bf7e"
+  },
+  "epistemic_label": "CONTROLLED_SYNTHETIC_KNOWN_MECHANISMS_NOT_REAL_WORLD_EFFICACY",
+  "four_queries": {
+    "intervention": {
+      "baseline_no_intervention": {
+        "auth_threshold": 0.65,
+        "peak_wait_seconds": 90.05,
+        "sla_breach_steps": 0,
+        "total_churned_customers": 648.99,
+        "total_decision_utility": 296721.22,
+        "total_fraud_loss": 118360.8
+      },
+      "coordinated_cascade_intervention": {
+        "auth_threshold": 0.5,
+        "peak_wait_seconds": 90.05,
+        "sla_breach_steps": 0,
+        "staffed_agents": 42.0,
+        "step_up_sms_enabled": true,
+        "total_churned_customers": 515.25,
+        "total_decision_utility": 340281.49,
+        "total_fraud_loss": 78731.17
+      },
+      "query_kind": "interventional_do",
+      "uncoordinated_rule_tightening_do_tau_0_40": {
+        "auth_threshold": 0.4,
+        "peak_wait_seconds": 204.05,
+        "sla_breach_steps": 10,
+        "total_churned_customers": 1517.58,
+        "total_decision_utility": 215507.44,
+        "total_fraud_loss": 58054.84
+      }
+    },
+    "leakage_certificate": {
+      "config_boundary_verified": true,
+      "eval_partition_seed": 202,
+      "eval_sample_count": 20,
+      "held_out_config_versions": [
+        "2.0.0",
+        "3.0.0"
+      ],
+      "max_train_timestamp": 20.0,
+      "min_eval_timestamp": 21.0,
+      "oracle_isolation_verified": true,
+      "passed": true,
+      "state_fingerprint_overlap_count": 0,
+      "temporal_boundary_verified": true,
+      "train_partition_seed": 101,
+      "train_sample_count": 20
+    },
+    "planning": {
+      "candidates": [
+        {
+          "auth_threshold": 0.65,
+          "decision_regret": 43560.27,
+          "myopic_layer1_score": 18776.89,
+          "policy_name": "status_quo_tau_0.65_agents_32",
+          "realized_total_decision_utility": 296721.22,
+          "sla_breach_steps": 0,
+          "staffed_agents": 32.0,
+          "step_up_sms": false,
+          "total_churned_customers": 648.99
+        },
+        {
+          "auth_threshold": 0.4,
+          "decision_regret": 124774.05,
+          "myopic_layer1_score": 22692.6,
+          "policy_name": "myopic_aggressive_tau_0.40_agents_32",
+          "realized_total_decision_utility": 215507.44,
+          "sla_breach_steps": 10,
+          "staffed_agents": 32.0,
+          "step_up_sms": false,
+          "total_churned_customers": 1517.58
+        },
+        {
+          "auth_threshold": 0.52,
+          "decision_regret": 44362.79,
+          "myopic_layer1_score": 21389.4,
+          "policy_name": "moderate_rule_only_tau_0.52_agents_32",
+          "realized_total_decision_utility": 295918.7,
+          "sla_breach_steps": 0,
+          "staffed_agents": 32.0,
+          "step_up_sms": false,
+          "total_churned_customers": 891.08
+        },
+        {
+          "auth_threshold": 0.5,
+          "decision_regret": 0.0,
+          "myopic_layer1_score": 21685.34,
+          "policy_name": "coordinated_ewm_tau_0.50_agents_42_sms",
+          "realized_total_decision_utility": 340281.49,
+          "sla_breach_steps": 0,
+          "staffed_agents": 42.0,
+          "step_up_sms": true,
+          "total_churned_customers": 515.25
+        },
+        {
+          "auth_threshold": 0.6,
+          "decision_regret": 62681.35,
+          "myopic_layer1_score": 19917.58,
+          "policy_name": "overstaffed_conservative_tau_0.60_agents_70_sms",
+          "realized_total_decision_utility": 277600.14,
+          "sla_breach_steps": 0,
+          "staffed_agents": 70.0,
+          "step_up_sms": true,
+          "total_churned_customers": 460.89
+        }
+      ],
+      "cascade_ewm_decision_regret": 0.0,
+      "cascade_ewm_selected_policy": "coordinated_ewm_tau_0.50_agents_42_sms",
+      "myopic_decision_regret": 124774.05,
+      "myopic_selected_policy": "myopic_aggressive_tau_0.40_agents_32",
+      "query_kind": "decision_planning",
+      "regret_reduction_by_ewm": 124774.05,
+      "thesis_finding": "Myopic Layer-1 optimization selects aggressive fraud tightening (tau=0.40) because it reduces immediate fraud chargebacks, but triggers a Layer-2/3/4 call-center wait-time and churn cascade resulting in high decision regret. Explicitly modeling the coupled cascade selects the coordinated policy (tau=0.50 + step-up SMS + 42 agents) with zero regret."
+    },
+    "prediction": {
+      "actual_call_arrivals": 179.732,
+      "actual_net_cash_delta": 21336.169,
+      "call_prediction_abs_error": 5.927,
+      "decision_time": 14.0,
+      "evidence_nature": "statistical_association",
+      "predicted_call_arrivals": 185.658,
+      "predicted_net_cash_delta": 21640.237,
+      "query_kind": "observational_prediction",
+      "withheld_future_knowledge_records": 12
+    },
+    "simulation": {
+      "cumulative_net_cash_under_incident": 358375.35,
+      "incident_severity_multiplier": 4.5,
+      "incident_window": [
+        6,
+        15
+      ],
+      "peak_missed_fraud_under_baseline": 109.633,
+      "query_kind": "state_evolution",
+      "total_decision_utility_under_incident": 296721.22
+    }
+  },
+  "mechanism_recovery_checks": {
+    "all_passed": true,
+    "checks": {
+      "layer1_fp_decline_rate": {
+        "abs_diff": 0.0,
+        "analytical": 0.051969,
+        "empirical": 0.051969,
+        "passed": true
+      },
+      "layer1_fraud_catch_rate": {
+        "abs_diff": 0.0,
+        "analytical": 0.640875,
+        "empirical": 0.640875,
+        "passed": true
+      },
+      "layer2_account_lock_fraction": {
+        "abs_diff": 0.0,
+        "analytical": 0.45,
+        "empirical": 0.45,
+        "passed": true
+      },
+      "layer3_retry_fraction": {
+        "abs_diff": 0.0,
+        "analytical": 0.35,
+        "empirical": 0.35,
+        "passed": true
+      },
+      "layer4_customer_pool_conservation_max_residual": {
+        "max_residual": 7.275957614183426e-12,
+        "passed": true,
+        "tolerance": 1e-09
+      },
+      "layer4_queue_flow_conservation_max_residual": {
+        "max_residual": 0.0,
+        "passed": true,
+        "tolerance": 1e-09
+      }
+    }
+  },
+  "reproducibility": {
+    "eval_seed": 202,
+    "git_commit": "0a40d050e4bbadd05c801a499b893b7b8ce47b5b",
+    "horizon": 20,
+    "master_seed": 42,
+    "numpy_version": "2.5.3",
+    "output_fingerprint": "946c8c864449ebbfc2ebfe6a9c8c9f656414aa607d81417ee0e46e47703fb60f",
+    "python_version": "3.12.10",
+    "scenario_fingerprint": "abd41502e780d6479f759d408450c95daae0ee999a9b351c9d96cdb7b9c6bf7e",
+    "train_seed": 101,
+    "uv_lock_sha256": "e7f9c755d9cffca66771676793bb6970ecc5d4dddd0a977d5f6387f479e37543"
+  },
+  "scenario_id": "fraud_declines_call_center_cascade_v1"
+}

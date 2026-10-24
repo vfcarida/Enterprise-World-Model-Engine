@@ -2,7 +2,7 @@
 
 !!! info "Scientifically Defensible Failure-Mode Instrument — ADR-054"
     This benchmark suite answers: ***"When is an enterprise world model actually useful, correct, calibrated, robust, and decision-relevant?"***
-    Every table and figure on this page is **automatically generated** from the committed machine-readable artifact [`docs/results/artifacts/enterprise_benchmark_suite.json`](../results/artifacts/enterprise_benchmark_suite.json) (`suite_fingerprint = 7dadf02addfc7a434538cc587c8ce8a4dbc2009a4394c323c19384b3a0349c67`). Numbers are never copied by hand.
+    Every table and figure on this page is **automatically generated** from the committed machine-readable artifact [`docs/results/artifacts/enterprise_benchmark_suite.json`](../results/artifacts/enterprise_benchmark_suite.json) (`suite_fingerprint = c4362a01ae4624ce912f81535e6acd73d54c01bb22dce0daa697ab7adbe0cbb1`). Numbers are never copied by hand.
 
 ---
 
@@ -77,11 +77,11 @@ flowchart TD
 | **C** | `C_RuntimeConfiguration` | Stochastic ($M=5$) | `SHIFT_ROBUSTNESS` | 0.3686 ± 0.0074 | 0.3785 ± 0.0073 | 0.3785 ± 0.0073 | **0.9920 ± 0.0003** |
 | **D** | `D_DeploymentShift` | Stochastic ($M=5$) | `SHIFT_ROBUSTNESS` | 0.2970 ± 0.0060 | 0.3076 ± 0.0059 | 0.3076 ± 0.0059 | **0.9900 ± 0.0012** |
 | **E** | `E_PartialObservability` | Stochastic ($M=5$) | `TRANSITION_FIDELITY` | 0.3925 ± 0.0552 | 0.4652 ± 0.0785 | 0.4681 ± 0.0795 | **0.9250 ± 0.0121** |
-| **F** | `F_LongHorizonBusinessOperation` | Stochastic ($M=5$) | `LONG_HORIZON_ERROR_GROWTH` | 0.9944 ± 0.0270 | 3.5796 ± 0.2932 | 0.7257 ± 0.0059 | **0.0726 ± 0.0059** |
+| **F** | `F_LongHorizonBusinessOperation` | Stochastic ($M=5$) | `LONG_HORIZON_ERROR_GROWTH` | 0.7039 ± 0.0189 | 2.7908 ± 0.2572 | 0.5666 ± 0.0051 | **0.0632 ± 0.0051** |
 | **G** | `G_MultiAgentEconomy` | Stochastic ($M=5$) | `CONSTRAINT_PRESERVATION` | 1.0000 ± 0.0000 | 0.0000 ± 0.0000 | 1.0000 ± 0.0000 | **1.0000 ± 0.0000** |
 | **H** | `H_CausalCounterfactualCorrectness` | Stochastic ($M=5$) | `CAUSAL_CORRECTNESS` | 0.8377 ± 0.0027 | 0.0556 ± 0.0004 | 1.0000 ± 0.0000 | **1.0000 ± 0.0000** |
 | **I** | `I_ConservationConstraintStress` | Exact (`det`) | `CONSTRAINT_PRESERVATION` | 1.0000 (det) | 0.0000 (det) | 1.0000 (det) | **1.0000 (det)** |
-| **J** | `J_UncertaintyCalibration` | Stochastic ($M=5$) | `CALIBRATION` | 0.0000 ± 0.0000 | 0.3362 ± 0.0423 | 0.7112 ± 0.0731 | **0.9738 ± 0.0300** |
+| **J** | `J_UncertaintyCalibration` | Stochastic ($M=5$) | `CALIBRATION` | 0.0000 ± 0.0000 | 0.6137 ± 0.0506 | 0.8725 ± 0.0620 | **0.9738 ± 0.0300** |
 | **K** | `K_OODRegimeShift` | Stochastic ($M=5$) | `ABSTENTION_QUALITY` | 0.0000 ± 0.0000 | 0.0000 ± 0.0000 | 0.0000 ± 0.0000 | **1.0000 ± 0.0000** |
 | **L** | `L_DecisionQuality` | Stochastic ($M=5$) | `DECISION_REGRET` | 0.0000 ± 0.0000 | 171.3500 ± 0.0000 | 0.0000 ± 0.0000 | **0.0000 ± 0.0000** |
 
@@ -95,19 +95,19 @@ The thirteen evaluation dimensions are formally defined in `benchmarks/protocol.
 
 | Metric Dimension | Direction | Unit | `rules-only` | `learned-only` | `static hybrid` | `hybrid + runtime context discovery` |
 |:-----------------|:---------:|:-----|:------------:|:--------------:|:---------------:|:------------------------------------:|
-| `TRANSITION_FIDELITY` | Higher ↑ | score in (0, 1] | 0.5620 | 0.4618 | 0.7061 | 0.8706 |
-| `CONSTRAINT_PRESERVATION` | Higher ↑ | pass rate in [0, 1] | 1.0000 | 0.7823 | 1.0000 | 1.0000 |
-| `CAUSAL_CORRECTNESS` | Higher ↑ | score in [0, 1] | 0.6892 | 0.4111 | 0.7447 | 0.9534 |
-| `CALIBRATION` | Higher ↑ | score in [0, 1] | 0.5533 | 0.3539 | 0.6351 | 0.9236 |
-| `LONG_HORIZON_ERROR_GROWTH` | Lower ↓ | error units / step | 6.9354 | 9.7239 | 6.4305 | 4.7341 |
-| `SHIFT_ROBUSTNESS` | Higher ↑ | score in (0, 1] | 0.5347 | 0.3529 | 0.7019 | 0.9032 |
-| `TIME_TO_RECOVERY_AFTER_SHIFT` | Lower ↓ | steps | 10.5833 | 10.5833 | 10.5833 | 2.8333 |
-| `DECISION_REGRET` | Lower ↓ | utility units | 19.0914 | 46.2545 | 16.3842 | 0.1557 |
-| `ABSTENTION_QUALITY` | Higher ↑ | score in [0, 1] | 0.6042 | 0.3072 | 0.6634 | 0.9378 |
-| `TRACE_PROVENANCE_COMPLETENESS` | Higher ↑ | recall in [0, 1] | 0.7292 | 0.0417 | 0.7792 | 0.9958 |
-| `LATENCY` | Lower ↓ | ms / step | 0.0455 | 0.0864 | 0.0751 | 0.1460 |
-| `MEMORY` | Lower ↓ | KB | 4.5495 | 4.7637 | 4.6752 | 6.4461 |
-| `THROUGHPUT` | Higher ↑ | steps / sec | 138759.8462 | 53365.1584 | 97179.0337 | 45322.9386 |
+| `TRANSITION_FIDELITY` | Higher ↑ | score in (0, 1] | 0.5624 | 0.4662 | 0.7083 | 0.8720 |
+| `CONSTRAINT_PRESERVATION` | Higher ↑ | pass rate in [0, 1] | 1.0000 | 0.7847 | 1.0000 | 1.0000 |
+| `CAUSAL_CORRECTNESS` | Higher ↑ | score in [0, 1] | 0.6543 | 0.3116 | 0.7166 | 0.9772 |
+| `CALIBRATION` | Higher ↑ | score in [0, 1] | 0.1755 | 0.2677 | 0.5012 | 0.9084 |
+| `LONG_HORIZON_ERROR_GROWTH` | Lower ↓ | error units / step | 1.0225 | 1.2192 | 1.0071 | 0.8208 |
+| `SHIFT_ROBUSTNESS` | Higher ↑ | score in (0, 1] | 0.5347 | 0.3762 | 0.7153 | 0.9033 |
+| `TIME_TO_RECOVERY_AFTER_SHIFT` | Lower ↓ | steps | 18.1667 | 12.2000 | 15.9667 | 2.8333 |
+| `DECISION_REGRET` | Lower ↓ | utility units | 15.0719 | 46.6619 | 12.3680 | 0.2105 |
+| `ABSTENTION_QUALITY` | Higher ↑ | score in [0, 1] | 0.3333 | 0.1727 | 0.5113 | 0.6645 |
+| `TRACE_PROVENANCE_COMPLETENESS` | Higher ↑ | recall in [0, 1] | 0.7417 | 0.0000 | 0.8417 | 1.0000 |
+| `LATENCY` | Lower ↓ | ms / step | 0.0727 | 0.1435 | 0.1121 | 0.2304 |
+| `MEMORY` | Lower ↓ | KB | 11.2116 | 10.5332 | 10.8370 | 12.9655 |
+| `THROUGHPUT` | Higher ↑ | steps / sec | 30373.0519 | 10743.8827 | 18565.0203 | 9814.4781 |
 
 ---
 
@@ -117,10 +117,10 @@ The thirteen evaluation dimensions are formally defined in `benchmarks/protocol.
 
 | Family | Baseline Paradigm | Train Context | Eval Context | Audit Delay | Pre-Shift MAE | Peak Shift MAE | Steady Post-Shift MAE | Steps to Recovery | Recovered in Budget |
 |:-------|:------------------|:-------------:|:------------:|:-----------:|:-------------:|:--------------:|:---------------------:|:-----------------:|:-------------------:|
-| **C** (`C_RuntimeConfiguration`) | `rules-only` | `1.0.0-us` | `2.0.0-eu` | 0 steps | 1.350 | 44.561 | 44.561 | Unrecovered (∞) | FAIL |
-| **C** (`C_RuntimeConfiguration`) | `learned-only` | `1.0.0-us` | `2.0.0-eu` | 0 steps | 0.250 | 42.673 | 42.673 | Unrecovered (∞) | FAIL |
-| **C** (`C_RuntimeConfiguration`) | `static hybrid` | `1.0.0-us` | `2.0.0-eu` | 0 steps | 0.250 | 42.674 | 42.674 | Unrecovered (∞) | FAIL |
-| **C** (`C_RuntimeConfiguration`) | `hybrid + runtime context discovery` | `1.0.0-us` | `2.0.0-eu` | 0 steps | 0.250 | 0.195 | 0.195 | 0 | PASS |
+| **C** (`C_RuntimeConfiguration`) | `rules-only` | `1.0.0-us` | `2.0.0-eu` | 0 steps | 1.887 | 44.561 | 44.561 | Unrecovered (∞) | FAIL |
+| **C** (`C_RuntimeConfiguration`) | `learned-only` | `1.0.0-us` | `2.0.0-eu` | 0 steps | 0.001 | 42.673 | 42.673 | Unrecovered (∞) | FAIL |
+| **C** (`C_RuntimeConfiguration`) | `static hybrid` | `1.0.0-us` | `2.0.0-eu` | 0 steps | 0.000 | 42.674 | 42.674 | Unrecovered (∞) | FAIL |
+| **C** (`C_RuntimeConfiguration`) | `hybrid + runtime context discovery` | `1.0.0-us` | `2.0.0-eu` | 0 steps | 0.000 | 0.195 | 0.195 | 0 | PASS |
 | **D** (`D_DeploymentShift`) | `rules-only` | `1.0.0` | `2.0.0` | 2 steps | 1.940 | 41.570 | 36.447 | Unrecovered (∞) | FAIL |
 | **D** (`D_DeploymentShift`) | `learned-only` | `1.0.0` | `2.0.0` | 2 steps | 0.153 | 39.394 | 34.632 | Unrecovered (∞) | FAIL |
 | **D** (`D_DeploymentShift`) | `static hybrid` | `1.0.0` | `2.0.0` | 2 steps | 0.154 | 39.395 | 34.632 | Unrecovered (∞) | FAIL |
@@ -132,18 +132,18 @@ The thirteen evaluation dimensions are formally defined in `benchmarks/protocol.
 
 | Family | `rules-only` Failure Mode | `learned-only` Failure Mode | `static hybrid` Failure Mode | `hybrid + runtime context discovery` Limitation / Behavior |
 |:------:|:--------------------------|:----------------------------|:-----------------------------|:-----------------------------------------------------------|
-| **A** | Misses empirical quadratic valve-friction above flow threshold (MAE > 0). | Lacks explicit structural conservation/provenance trace (trace completeness = 0.0). | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
-| **B** | Captures workflow cascade trigger but misses empirical per-unit handling friction. | Blind to latent compliance-hold and SLA penalty cascade never excited in observational training logs. | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
-| **C** | Applies compile-time US tenant rules (0% withholding) to EU strict tenant deployment. | Conditioned only on ontic state/action; blind to cross-tenant configuration K_t. | Applies compile-time US tenant rules (0% withholding) to EU strict tenant deployment. | Optimal in-regime behavior (0 violations). |
-| **D** | Never recovers after mid-rollout deployment shift (permanent post-shift bias). | Never recovers after mid-rollout deployment shift (permanent post-shift bias). | Never recovers after mid-rollout deployment shift (permanent post-shift bias). | Experiences transient error spike (MAE=37.33) during the 2-step audit telemetry lag before recovering. |
-| **E** | Cannot infer latent supplier congestion from visible stock alone; systematically overpredicts deliveries. | Cannot infer latent supplier congestion from visible stock alone; systematically overpredicts deliveries. | Cannot infer latent supplier congestion from visible stock alone; systematically overpredicts deliveries. | Tracks latent congestion via audit belief filtering, but retains bounded filtering lag error (MAE > 1.0) vs. an omniscient oracle. |
-| **F** | Ignores 3% per-step perishability spoilage and mid-horizon supplier contract shift. | Autoregressive compounding drift causes severe long-horizon cash/inventory divergence. | Captures perishability spoilage in first half, but drifts after step H/2 supplier price change. | Optimal in-regime behavior (0 violations). |
-| **G** | Conserves goods but ignores strategic arbitrage diversion during supply scarcity. | Violates multi-agent clearing conservation (sum of goods deltas != 0). | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
-| **H** | Satisfies descendant selectivity and confounding refusal, but misses nonlinear diminishing-returns residual in counterfactual twin rollouts. | Conflates observational correlation with do(discount), spuriously perturbs non-descendant macro_index, and fails to refuse unidentifiable queries. | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
-| **I** | Optimal in-regime behavior (0 violations). | Violates non-negativity and closed-system mass conservation on 100% of adversarial transfer requests. | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
-| **J** | Deterministic point rules emit zero-width intervals (0% empirical coverage). | Homoscedastic training variance severely undercovers under high-load heteroscedastic noise. | Undercovers when runtime volatility regime shifts from 1.0x to 1.4x. | Optimal in-regime behavior (0 violations). |
-| **K** | Silently extrapolates linear dynamics into severe OOD phase collapse without abstaining (Abstention F1 = 0.0). | Silently extrapolates linear dynamics into severe OOD phase collapse without abstaining (Abstention F1 = 0.0). | Silently extrapolates linear dynamics into severe OOD phase collapse without abstaining (Abstention F1 = 0.0). | Honest limitation: raw OOD state prediction fails on unmodeled quadratic phase collapse (OOD MAE=288.8), requiring CompetenceEstimator abstention (F1=1.00). |
-| **L** | Moderate state prediction error (MAE=18.3 from unmodeled fixed overhead) yet zero decision regret (0.0) because structural action gradients are preserved. | Low observational prediction error (MAE=2.4) yet high decision regret (171.3) due to confounded action-effect slope. | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
+| **A** | Misses empirical quadratic valve-friction above flow threshold (measured MAE=3.255). | Lacks explicit structural conservation/provenance trace (measured trace completeness=0.00). | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
+| **B** | Captures workflow cascade trigger (backlog MAE=0.00) but misses empirical handling friction (total MAE=1.85). | Blind to latent compliance-hold and SLA penalty cascade never excited in training logs (cascade MAE=74.00). | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
+| **C** | Applies compile-time US tenant rules (0% withholding) to EU strict tenant deployment (measured MAE=44.56). | Conditioned only on ontic state/action; blind to cross-tenant configuration K_t (measured MAE=42.67). | Applies compile-time US tenant rules (0% withholding) to EU strict tenant deployment (measured MAE=42.67). | Optimal in-regime behavior (0 violations). |
+| **D** | Never recovers after mid-rollout deployment shift (steady post-shift MAE=36.45). | Never recovers after mid-rollout deployment shift (steady post-shift MAE=34.63). | Never recovers after mid-rollout deployment shift (steady post-shift MAE=34.63). | Experiences transient error spike (MAE=37.33) during the 2-step audit telemetry lag before recovering. |
+| **E** | Cannot infer latent supplier congestion from visible stock alone (POMDP MAE=25.72); systematically overpredicts deliveries. | Cannot infer latent supplier congestion from visible stock alone (POMDP MAE=19.91); systematically overpredicts deliveries. | Cannot infer latent supplier congestion from visible stock alone (POMDP MAE=19.72); systematically overpredicts deliveries. | Tracks latent congestion via audit belief filtering, but retains bounded filtering lag error (MAE=1.01) vs. an omniscient oracle. |
+| **F** | Ignores 3% per-step perishability spoilage and mid-horizon supplier contract shift (rollout MAE=21.55). | Autoregressive compounding drift (growth slope=2.80/step) causes severe long-horizon cash/inventory divergence. | Captures perishability spoilage in first half, but drifts after step H/2 supplier price change (growth slope=0.567/step). | Optimal in-regime behavior (0 violations). |
+| **G** | Conserves goods (pass rate=1.00) but ignores strategic arbitrage diversion during supply scarcity (MAE=2.88). | Violates multi-agent clearing conservation (pass rate=0.00, sum of goods deltas != 0). | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
+| **H** | Satisfies descendant selectivity (1.00) and confounding refusal (1.00), but misses nonlinear diminishing-returns residual (CF MAE=14.27). | Conflates observational correlation with do(discount) (CF MAE=74.9), spuriously perturbs non-descendant macro_index (selectivity=0.00), and fails to refuse unidentifiable queries. | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
+| **I** | Optimal in-regime behavior (0 violations). | Violates non-negativity and closed-system mass conservation on 100% of adversarial transfer requests (max mass drift=0.00). | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
+| **J** | Deterministic point rules emit zero-width intervals (0% empirical coverage). | Homoscedastic training variance severely undercovers (70.0% vs 90% nominal) under high-load heteroscedastic noise. | Undercovers (86.2% vs 90% nominal) when runtime volatility regime shifts from 1.0x to 1.4x. | Optimal in-regime behavior (0 violations). |
+| **K** | Silently extrapolates linear dynamics into severe OOD phase collapse without abstaining (OOD MAE=288.8, Abstention F1=0.00). | Silently extrapolates linear dynamics into severe OOD phase collapse without abstaining (OOD MAE=288.7, Abstention F1=0.00). | Silently extrapolates linear dynamics into severe OOD phase collapse without abstaining (OOD MAE=288.8, Abstention F1=0.00). | Honest limitation: raw OOD state prediction fails on unmodeled quadratic phase collapse (OOD MAE=288.8), requiring CompetenceEstimator abstention (F1=1.00). |
+| **L** | Moderate state prediction error (MAE=18.07 from unmodeled fixed overhead) yet zero decision regret (0.0) because structural action gradients are preserved. | Low observational prediction error (MAE=1.03) yet high decision regret (171.3) due to confounded action-effect slope. | Optimal in-regime behavior (0 violations). | Optimal in-regime behavior (0 violations). |
 
 ---
 
@@ -151,18 +151,18 @@ The thirteen evaluation dimensions are formally defined in `benchmarks/protocol.
 
 | Code | Family | Train Seed | Eval Seeds | State Overlap | Temporal Gate | Config Gate | Dataset SHA-256 (prefix) | Output SHA-256 (prefix) |
 |:----:|:-------|:----------:|:----------:|:-------------:|:-------------:|:-----------:|:------------------------:|:-----------------------:|
-| **A** | `A_DirectDynamics` | `4026233938` | `388545` | 0 | PASS | PASS | `e36274109853` | `a315538b33fe` |
-| **B** | `B_HiddenWorkflowCascades` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `ddb0ee9b418c` | `90fec09e0cd0` |
-| **C** | `C_RuntimeConfiguration` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `c83e6b01716e` | `18934a2f3541` |
+| **A** | `A_DirectDynamics` | `4026233938` | `388545` | 0 | PASS | PASS | `e36274109853` | `74f443f286e1` |
+| **B** | `B_HiddenWorkflowCascades` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `ddb0ee9b418c` | `9ad0918000bd` |
+| **C** | `C_RuntimeConfiguration` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `c83e6b01716e` | `8d6f0ff775aa` |
 | **D** | `D_DeploymentShift` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `df8564ab5334` | `5925b6882244` |
 | **E** | `E_PartialObservability` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `2e19ba979f40` | `c4373903e7dd` |
-| **F** | `F_LongHorizonBusinessOperation` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `c5e86ee722f9` | `d185ea5c4e3b` |
-| **G** | `G_MultiAgentEconomy` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `860a03f15221` | `244da9a7b5bd` |
+| **F** | `F_LongHorizonBusinessOperation` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `49120fc48d3d` | `16d155fd58ef` |
+| **G** | `G_MultiAgentEconomy` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `860a03f15221` | `5c05464ad0f3` |
 | **H** | `H_CausalCounterfactualCorrectness` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `cdc025d16e1e` | `973e88649cbd` |
-| **I** | `I_ConservationConstraintStress` | `4026233938` | `388545` | 0 | PASS | PASS | `bb3f93543bee` | `60fa2accb381` |
-| **J** | `J_UncertaintyCalibration` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `d8f9f6316c3c` | `6eea0913d693` |
+| **I** | `I_ConservationConstraintStress` | `4026233938` | `388545` | 0 | PASS | PASS | `c8a4a9693609` | `92185816d5e4` |
+| **J** | `J_UncertaintyCalibration` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `d8f9f6316c3c` | `68d3f28190ad` |
 | **K** | `K_OODRegimeShift` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `424d8ee0c90e` | `796a2970285f` |
-| **L** | `L_DecisionQuality` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `163479bfde61` | `10183d9ce51a` |
+| **L** | `L_DecisionQuality` | `4026233938` | `388545,358187,+3` | 0 | PASS | PASS | `7a13f5882c7a` | `6bcf30c1a763` |
 
 ---
 

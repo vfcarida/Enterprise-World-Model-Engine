@@ -1,0 +1,228 @@
+{
+  "schema_version": "1.0.0",
+  "experiment_suite_id": "EXP-COMPOSITION-SWE-v1",
+  "namespace": "ewm_engine.experimental",
+  "evidence_tier": "PROPERTY_VERIFIED",
+  "runtime_environment": {
+    "python_version": "3.12.10",
+    "numpy_version": "2.5.3",
+    "platform": "Windows",
+    "git_commit": "0a40d050e4bb"
+  },
+  "line1_domain_composition": {
+    "epistemic_status": "EXPERIMENTAL_COMPOSITION_HYPOTHESIS_NOT_GUARANTEED_CAPABILITY",
+    "seed": 42,
+    "n_seeds": 5,
+    "monolithic_spec_components": 11,
+    "composed_spec_components": 16,
+    "boundary_contract_spec_elements": 5,
+    "specification_overhead_pct": 45.4545,
+    "monolithic_wall_time_ms": 111.7136,
+    "composed_wall_time_ms": 24.9605,
+    "runtime_overhead_pct": -77.6567,
+    "synchronous_trajectory_max_abs_diff": 0.0,
+    "error_propagation_audit": {
+      "upstream_call_rate_relative_bias": 0.053216,
+      "downstream_wait_time_relative_error": 0.104449,
+      "nonlinear_boundary_amplification_ratio": 1.962712,
+      "downstream_post_shift_net_cash_mae": 28206.021551
+    },
+    "assumption_incompatibility_audit": {
+      "correlational_upstream_blocked_for_intervention": true,
+      "correlational_rejection_diagnostic": "Boundary 'fraud_to_call_center_v1' epistemic incompatibility for query 'interventional_do': Unqualified causal query on dependency: Dependency 'fraud_to_call_center_v1:fraud_and_customer_reactions_domain' has evidence_nature=STATISTICAL_ASSOCIATION (observational P(Y|X)) and cannot be treated as causal or used for 'interventional_do' queries.",
+      "cohort_unit_mismatch_blocked": true,
+      "cohort_unit_rejection_diagnostic": "Boundary 'fraud_to_call_center_v1' unit/cohort mismatch on 'call_center_arrivals': upstream exported 'calls_from_all_declines_including_fraud_per_step', contract requires 'calls_from_legit_false_declines_per_step'.",
+      "ungated_cohort_mismatch_silent_corruption_cost_usd": 1399.63
+    },
+    "temporal_desync_audit": {
+      "synchronous_cadence_steps": 1.0,
+      "desynchronized_cadence_steps": 3.0,
+      "synchronous_decision_regret_usd": 0.0,
+      "desynchronized_utility_loss_usd": 4435.3401,
+      "desynchronized_extra_sla_breach_steps": 1.0,
+      "finding": "Batch boundary synchronization (cadence=3 steps) delays shift detection across the fraud->call-center boundary, causing extra SLA breaches and utility loss."
+    },
+    "uncertainty_accumulation_audit": {
+      "coupled_90pct_wait_interval_width_sec": 17.267996,
+      "naive_boundary_sum_interval_width_sec": 23.17365,
+      "naive_interval_width_inflation_pct": 34.2,
+      "nominal_target_coverage": 0.9
+    },
+    "negative_findings": [
+      {
+        "finding_id": "C-N1",
+        "title": "Asynchronous Boundary Cadence Degrades Shift Response",
+        "confirmed": true,
+        "summary": "Coupling the Fraud and Call-Center models across a 3-step batch boundary incurs $4,435.34 in post-shift utility loss and 1.00 additional SLA breach steps compared to synchronous 1-step integration."
+      },
+      {
+        "finding_id": "C-N2",
+        "title": "Composition Adds Specification & Runtime Overhead With Zero Regret Gain When Co-Located",
+        "confirmed": true,
+        "summary": "Decomposing the 2-department cascade into separate submodels increases specification elements by +45.5% (16 vs 11) and achieves $0.00 decision-regret improvement over the monolithic model."
+      },
+      {
+        "finding_id": "C-N3",
+        "title": "Small Upstream Calibration Bias Amplifies Nonlinearly Across Queue Boundaries",
+        "confirmed": true,
+        "summary": "A 5.3% upstream call-rate bias amplifies by 1.96x into a 10.4% downstream wait-time error ($28,206.02 cash MAE) when the downstream call-center operates near saturation."
+      }
+    ]
+  },
+  "line2_swe_ecosystem": {
+    "epistemic_status": "EXPERIMENTAL_SWE_DOMAIN_HYPOTHESIS_CONTROLLED_SYNTHETIC_NOT_PRODUCTION_PROOF",
+    "hypothesis_statement": "Under burst concurrency and runtime configuration shifts (K_t), an integrated dynamic model of structural dependencies + shared resource contention + bitemporal telemetry improves cross-service change-impact prediction and deployment planning over static graphs, while static graphs and historical ML remain superior for compile-time breaks and routine stationary test selection.",
+    "seed": 42,
+    "n_seeds": 5,
+    "bitemporal_withheld_records_at_t5": 2,
+    "static_dependents_of_auth_lib": [
+      "api_gateway",
+      "auth_lib",
+      "checkout_service"
+    ],
+    "true_dynamic_impacted_under_burst_rollout": [
+      "api_gateway",
+      "checkout_service",
+      "inventory_cache",
+      "orders_db",
+      "payment_worker"
+    ],
+    "ladder_results": [
+      {
+        "rung_id": "rung1_static_dependency_graph",
+        "rung_name": "Rung 1: Static Call/Import Dependency Graph",
+        "spec_components": 1,
+        "wall_time_ms": 0.0519,
+        "change_impact_f1": 0.5714,
+        "change_impact_latency_mae_ms": 90.8526,
+        "detected_payment_worker_contention": false,
+        "test_selection_fault_recall": 0.5,
+        "selected_concurrency_config_stress_test": false,
+        "root_cause_precision_at_1": 0.0,
+        "causal_gate_refused_spurious_correlation": false,
+        "selected_plan_id": "plan_static_graph_scoped_canary",
+        "deployment_decision_regret_usd": 60900.0
+      },
+      {
+        "rung_id": "rung2_historical_cochange_ml",
+        "rung_name": "Rung 2: Historical CI Co-Change ML (GBT)",
+        "spec_components": 2,
+        "wall_time_ms": 0.1027,
+        "change_impact_f1": 0.3333,
+        "change_impact_latency_mae_ms": 89.5276,
+        "detected_payment_worker_contention": false,
+        "test_selection_fault_recall": 0.5,
+        "selected_concurrency_config_stress_test": false,
+        "root_cause_precision_at_1": 0.0,
+        "causal_gate_refused_spurious_correlation": false,
+        "selected_plan_id": "plan_naive_full_rollout_3x_retries",
+        "deployment_decision_regret_usd": 59700.0
+      },
+      {
+        "rung_id": "rung3_ml_plus_static_graph_features",
+        "rung_name": "Rung 3: ML + Static Graph Centrality Features",
+        "spec_components": 3,
+        "wall_time_ms": 0.1522,
+        "change_impact_f1": 0.5714,
+        "change_impact_latency_mae_ms": 88.6443,
+        "detected_payment_worker_contention": false,
+        "test_selection_fault_recall": 0.75,
+        "selected_concurrency_config_stress_test": false,
+        "root_cause_precision_at_1": 0.0,
+        "causal_gate_refused_spurious_correlation": false,
+        "selected_plan_id": "plan_static_graph_scoped_canary",
+        "deployment_decision_regret_usd": 60900.0
+      },
+      {
+        "rung_id": "rung4_dynamic_sim_no_context_or_gate",
+        "rung_name": "Rung 4: Dynamic Simulator Without Config K_t or Causal Gate",
+        "spec_components": 7,
+        "wall_time_ms": 0.4193,
+        "change_impact_f1": 0.0,
+        "change_impact_latency_mae_ms": 81.5508,
+        "detected_payment_worker_contention": false,
+        "test_selection_fault_recall": 0.75,
+        "selected_concurrency_config_stress_test": true,
+        "root_cause_precision_at_1": 0.0,
+        "causal_gate_refused_spurious_correlation": false,
+        "selected_plan_id": "plan_naive_full_rollout_3x_retries",
+        "deployment_decision_regret_usd": 59700.0
+      },
+      {
+        "rung_id": "rung5_experimental_swe_world_model",
+        "rung_name": "Rung 5: Experimental SWE World Model (State + Config K_t + Evidence Gate)",
+        "spec_components": 10,
+        "wall_time_ms": 0.5776,
+        "change_impact_f1": 1.0,
+        "change_impact_latency_mae_ms": 0.5583,
+        "detected_payment_worker_contention": true,
+        "test_selection_fault_recall": 1.0,
+        "selected_concurrency_config_stress_test": true,
+        "root_cause_precision_at_1": 1.0,
+        "causal_gate_refused_spurious_correlation": true,
+        "selected_plan_id": "plan_dynamic_pool_isolated_bounded_retries",
+        "deployment_decision_regret_usd": 0.0
+      }
+    ],
+    "ablation_results": [
+      {
+        "ablation_id": "swe_ablation_1_no_concurrency_pool_state",
+        "removed_component": "Stateful DB connection-pool & retry-storm contention dynamics",
+        "change_impact_f1": 0.3333,
+        "detected_payment_worker_contention": false,
+        "deployment_decision_regret_usd": 60900.0,
+        "finding": "Without stateful connection-pool contention, the model reverts to static-graph reachability, missing the cross-service `payment_worker` outage."
+      },
+      {
+        "ablation_id": "swe_ablation_2_no_runtime_config_context",
+        "removed_component": "Runtime configuration context K_t (`strict_jwt_flag`, `retry_multiplier`)",
+        "change_impact_f1": 0.0,
+        "detected_payment_worker_contention": false,
+        "deployment_decision_regret_usd": 59700.0,
+        "finding": "Without runtime context K_t, the simulator assumes baseline flag/retry settings and fails to predict the flag-triggered retry storm."
+      },
+      {
+        "ablation_id": "swe_ablation_3_no_evidence_nature_gate",
+        "removed_component": "DependencyEvidenceNature query gate on telemetry correlations",
+        "change_impact_f1": 1.0,
+        "root_cause_precision_at_1": 0.0,
+        "deployment_decision_regret_usd": 60900.0,
+        "finding": "Without evidence-nature gating, high correlation between `payment_worker` DLQ alerts and `orders_db` latency is misdiagnosed as a `payment_worker` bug."
+      },
+      {
+        "ablation_id": "swe_ablation_4_bitemporal_leakage_control",
+        "removed_component": "Bitemporal `as_of(t)` filter on delayed postmortem & DLQ records",
+        "withheld_records_leaked": 2,
+        "optimistic_root_cause_bias": 1.0,
+        "finding": "Disabling `BitemporalLedger.as_of(5.0)` leaks 2 future records (postmortem root-cause confirmation at t=10.0), creating illusory offline accuracy."
+      }
+    ],
+    "negative_findings_and_transfer_limits": [
+      {
+        "finding_id": "SWE-N1",
+        "title": "Static Dependency Graph Wins Pure Compile/Schema API-Break Detection",
+        "confirmed": true,
+        "static_graph_f1": 1.0,
+        "static_graph_spec_components": 1,
+        "ewm_spec_components": 10,
+        "summary": "For deterministic compile-time signature or protobuf schema breaks with no concurrency or runtime config interaction, Rung 1 (Static Dependency Graph) achieves F1 = 1.000 with 1 specification component vs. 10 for Rung 5. An EWM is unnecessary and not cost-justified for static dependency analysis."
+      },
+      {
+        "finding_id": "SWE-N2",
+        "title": "Historical ML Matches or Beats EWM on Routine Unit-Test Selection Under Stationary Config",
+        "confirmed": true,
+        "ml_routine_unit_recall": 0.95,
+        "ewm_routine_unit_recall": 0.92,
+        "summary": "When runtime feature flags and concurrency load are stationary, Rung 3 (GBT on historical co-change + static graph centrality) achieves 0.950 recall on routine unit-test regressions vs. 0.920 for Rung 5 at 3.3x lower specification cost."
+      },
+      {
+        "finding_id": "SWE-N3",
+        "title": "Enterprise Stock-and-Flow Conservation Laws Do NOT Transfer to Discrete Logic Bugs",
+        "confirmed": true,
+        "conservation_projection_applicable_to_logic_bugs": false,
+        "summary": "Unlike financial ledgers or physical inventory where linear conservation (A * dx = 0) holds, discrete software logic bugs (off-by-one errors, null dereferences, race conditions) do not obey stoichiometric conservation. The EWM architecture transfers ONLY to bounded operational resources (connection pools, thread queues, rate limits, progressive delivery), NOT to semantic program verification."
+      }
+    ],
+    "output_fingerprint": "26d46ed2780874f550d9c5e4ebbee58857cda0da0d6ffa29967f4b2697e3691b"
+  }
+}

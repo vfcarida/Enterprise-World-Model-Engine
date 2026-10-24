@@ -1,0 +1,116 @@
+{
+  "pre_registration_id": "EWME-PREREG-20261023-LADDER",
+  "analysis_plan_id": "EWM-PREREG-2026-10-23-LADDER",
+  "author": "Vinicius Carida",
+  "created_at": "2026-10-23T15:32:15-03:00",
+  "capabilities": [
+    "prediction",
+    "simulation",
+    "intervention",
+    "planning_decision"
+  ],
+  "comparative_ladder": [
+    "rung1_simple_statistical",
+    "rung2_standard_ml_gbt",
+    "rung3_ml_engineered_features",
+    "rung4_explicit_dynamics_predict_only",
+    "rung5_full_ewm"
+  ],
+  "negative_result_hypotheses": [
+    "N1_ML_WITH_FEATURES_MATCHES_OR_BEATS_ON_PREDICTION",
+    "N2_CONVENTIONAL_SIMULATOR_SUFFICES_FOR_PASSIVE_ROLLOUT",
+    "N3_PREDICTION_VS_DECISION_GAP",
+    "N4_MAINTENANCE_AND_COMPUTE_COST_IN_STATIONARY_REGIME"
+  ],
+  "governing_principles": [
+    "Decision-first: Prediction, simulation, intervention, and planning are measured distinctly with their own evidence standards and never collapsed into a single score.",
+    "Anti-tuning mandate: No model hyperparameters, thresholds, or structural equations may be tuned to make EWM win.",
+    "Negative results are first-class deliverables: Conditions where traditional ML or simple rules match or beat EWM on accuracy, regret, or cost-efficiency must be reported prominently."
+  ],
+  "hypotheses": [
+    {
+      "direction": "conditional_positive",
+      "hypothesis_id": "H1_CASCADE_INTERVENTION_PLANNING",
+      "null_hypothesis": "Explicit 4-layer cascade dynamics + causal intervention (Rung 5) achieves no lower decision regret than observational ML (Rungs 2-3) or myopic rules when selecting joint (auth_threshold, staffed_agents, step_up_sms) policies under a fraud wave.",
+      "prediction": "Rung 5 achieves significantly lower decision regret than Rungs 1-3 and myopic baselines when the policy intervention excites cross-departmental feedback (Fraud Gateway -> Contact Center -> Churn)."
+    },
+    {
+      "direction": "expected_negative_for_ewm",
+      "hypothesis_id": "N1_ML_WITH_FEATURES_MATCHES_OR_BEATS_ON_PREDICTION",
+      "null_hypothesis": "Full EWM (Rung 5) strictly dominates Gradient Boosted Trees with engineered lag/utilization features (Rung 3) on 1-step observational prediction MAE.",
+      "prediction": "NEGATIVE RESULT FOR EWM: Standard ML with engineered features (Rung 3) matches or beats Rung 5 on 1-step observational prediction error at lower specification and compute cost."
+    },
+    {
+      "direction": "expected_negative_for_ewm",
+      "hypothesis_id": "N2_CONVENTIONAL_SIMULATOR_SUFFICES_FOR_PASSIVE_ROLLOUT",
+      "null_hypothesis": "Full EWM with causal do() surgery (Rung 5) outperforms an explicit-dynamics simulator without intervention machinery (Rung 4) on passive state simulation under a fixed policy.",
+      "prediction": "NEGATIVE RESULT FOR EWM: Rung 4 (predict-only dynamics / conventional DES) achieves identical passive trajectory fidelity to Rung 5."
+    },
+    {
+      "direction": "decoupling_finding",
+      "hypothesis_id": "N3_PREDICTION_VS_DECISION_GAP",
+      "null_hypothesis": "Improvements in 1-step observational prediction MAE monotonically reduce policy decision regret.",
+      "prediction": "PREDICTION-VS-DECISION GAP: Moving from Rung 1 to Rung 3 reduces 1-step prediction MAE by >50% while yielding zero reduction in decision regret under confounded policy shifts; conversely, a structural model with an unmodeled constant cost offset exhibits worse state prediction MAE yet achieves zero decision regret."
+    },
+    {
+      "direction": "expected_negative_for_ewm",
+      "hypothesis_id": "N4_MAINTENANCE_AND_COMPUTE_COST_IN_STATIONARY_REGIME",
+      "null_hypothesis": "Full EWM (Rung 5) is cost-justified in stationary single-department regimes without policy-induced cascades.",
+      "prediction": "NEGATIVE RESULT FOR EWM: In stationary regimes without mid-rollout shifts or multi-hop cascades, Rung 5 incurs >3x higher latency and >4x higher specification complexity for zero net decision benefit."
+    },
+    {
+      "direction": "construct_validity_cautionary",
+      "hypothesis_id": "F1_PERFECT_WORLD_MODEL_WRONG_OBJECTIVE",
+      "null_hypothesis": "An exact world model (Rung 5) guarantees low enterprise regret regardless of whether the planner's objective omits downstream SLA or churn LTV costs.",
+      "prediction": "CONSTRUCT-VALIDITY FAILURE: Optimizing a narrow fraud-only KPI or short-horizon cash KPI inside the exact ground-truth world model produces high true enterprise regret (>$40,000)."
+    }
+  ],
+  "ladder_rungs": [
+    "rung1_simple_statistical",
+    "rung2_standard_ml_gbt",
+    "rung3_ml_engineered_features",
+    "rung4_explicit_dynamics_predict_only",
+    "rung5_full_ewm"
+  ],
+  "planned_ablations": [
+    "ablate_dynamics_model",
+    "ablate_intervention_layer",
+    "ablate_context_discovery",
+    "ablate_uncertainty_quantification",
+    "ablate_feasible_projection",
+    "ablate_engineered_lag_features"
+  ],
+  "primary_capabilities_and_metrics": {
+    "intervention": [
+      "intervention_effect_mae",
+      "intervention_effect_bias",
+      "causal_refusal_gate_enforced"
+    ],
+    "planning": [
+      "decision_regret_usd",
+      "policy_rank_spearman_rho",
+      "sla_constraint_violation_steps"
+    ],
+    "prediction": [
+      "call_volume_mae",
+      "net_cash_mae",
+      "empirical_coverage_90",
+      "calibration_score",
+      "crps"
+    ],
+    "simulation": [
+      "trajectory_nmae",
+      "long_horizon_error_slope",
+      "internal_coherence_score",
+      "reality_fidelity_score"
+    ]
+  },
+  "statistical_protocol": {
+    "bootstrap_confidence_level": 0.95,
+    "bootstrap_resamples": 500,
+    "evaluation_seeds_full": 10,
+    "evaluation_seeds_smoke": 5,
+    "master_seed": 42,
+    "multiplicity_correction": "Holm-Bonferroni step-down across ladder comparisons per capability metric"
+  }
+}

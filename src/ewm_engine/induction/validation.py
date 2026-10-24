@@ -141,12 +141,20 @@ class OpenQuestion(BaseModel):
     recommended_action: str
 
 
+class InductionGateOutcome(StrEnum):
+    """Explicit outcome vocabulary for the fail-closed induction validation gate."""
+
+    ALL_CANDIDATES_ADMITTED = "ALL_CANDIDATES_ADMITTED"
+    REFUSED_UNIDENTIFIABLE_AS_DESIGNED = "REFUSED_UNIDENTIFIABLE_AS_DESIGNED"
+
+
 class InductionValidationReport(BaseModel):
     """Comprehensive, deterministic audit of induction validation and refusal decisions."""
 
     model_config = ConfigDict(extra="forbid")
 
     passed: bool
+    gate_outcome: InductionGateOutcome = InductionGateOutcome.ALL_CANDIDATES_ADMITTED
     admitted_elements_count: int
     refused_elements_count: int
     admitted_elements: list[dict[str, Any]] = Field(default_factory=list)
@@ -158,8 +166,18 @@ class InductionValidationReport(BaseModel):
     conformance_evaluations: list[ProcessConformanceResult] = Field(default_factory=list)
     sha256_fingerprint: str = ""
 
+    @property
+    def all_candidates_admitted(self) -> bool:
+        """True only when every candidate element cleared ASSERTED with zero refusals."""
+        return self.passed
+
     def model_post_init(self, __context: Any) -> None:
-        """Compute SHA-256 fingerprint if not present."""
+        """Synchronize gate_outcome and compute SHA-256 fingerprint if not present."""
+        self.gate_outcome = (
+            InductionGateOutcome.ALL_CANDIDATES_ADMITTED
+            if self.passed
+            else InductionGateOutcome.REFUSED_UNIDENTIFIABLE_AS_DESIGNED
+        )
         if not self.sha256_fingerprint:
             self.sha256_fingerprint = self.compute_fingerprint()
 
@@ -1227,6 +1245,7 @@ class InductionValidationGate:
 
         # Attach validation metadata back to the InductionReport
         report.validation_passed = overall_passed
+        report.gate_outcome = validation_report.gate_outcome.value
         report.refused_elements_count = len(all_refused)
         report.open_questions_count = len(all_open_questions)
         report.refused_elements = [r.model_dump(mode="json") for r in all_refused]

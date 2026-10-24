@@ -46,6 +46,25 @@ def _run_example(name: str) -> int:
         sys.stdout.flush()
         run_civicflow_simulation()
         return 0
+    elif name in ("fraud_cascade", "flagship"):
+        from ewm_engine.core._canonical import canonical_sha256
+        from ewm_engine.flagship.fraud_cascade import (
+            FraudCascadeParameters,
+            run_four_capability_queries,
+        )
+
+        sys.stdout.write("Running Flagship Fraud -> Declines -> Call-Center Cascade...\n\n")
+        sys.stdout.flush()
+        params = FraudCascadeParameters()
+        scen_fp = canonical_sha256(params.model_dump(mode="json"))
+        summary = run_four_capability_queries(params, train_seed=101, eval_seed=202, horizon=20)
+        plan_q = summary["planning"]
+        sys.stdout.write(
+            f"  [OK] Scenario Fingerprint: {scen_fp[:16]}...\n"
+            f"  [OK] Myopic Layer-1 Regret: ${plan_q['myopic_decision_regret']:,.2f}\n"
+            f"  [OK] Full EWM Regret:       ${plan_q['cascade_ewm_decision_regret']:,.2f}\n"
+        )
+        return 0
     else:
         sys.stderr.write(f"Unknown example: {name}\n")
         return 1
@@ -383,7 +402,7 @@ def _run_decide(
             if not param_defs:
                 param_defs.append(
                     ParameterDef(
-                        name="dummy_uncertainty",
+                        name="baseline_context_uncertainty",
                         type="continuous",
                         bounds=(0.0, 1.0),
                         default=0.5,
@@ -599,7 +618,7 @@ def _run_calibrate(
             if not auto_priors:
                 auto_priors.append(
                     CalibrationPrior(
-                        name="dummy_param",
+                        name="baseline_resource_prior",
                         target="resource",
                         target_id=spec.resources[0].id if spec.resources else "res1",
                         distribution="uniform",
@@ -1073,12 +1092,19 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 
-    # 1. `ewm example [minimal|civicflow]`
+    # 1. `ewm example [minimal|civicflow|fraud_cascade]`
     example_parser = subparsers.add_parser("example", help="Run a reference simulation example")
     example_parser.add_argument(
         "name",
-        choices=["minimal", "minimal_warehouse", "minimal_world", "civicflow"],
-        help="Name of example to run ('minimal', 'minimal_warehouse', 'civicflow')",
+        choices=[
+            "minimal",
+            "minimal_warehouse",
+            "minimal_world",
+            "civicflow",
+            "fraud_cascade",
+            "flagship",
+        ],
+        help="Name of example to run ('minimal', 'minimal_warehouse', 'civicflow', 'fraud_cascade')",
     )
 
     # 2. `ewm validate <spec_file>`

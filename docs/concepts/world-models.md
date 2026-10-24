@@ -1,129 +1,125 @@
-# What is an Enterprise World Model?
+# World Models & Hybrid Enterprise Architecture
 
-## The Evolution of Models in Artificial Intelligence
+!!! info "Scientific Demarcation & Comparison to Mature Neighbors"
+    For the complete working definition of an Enterprise World Model, the two guiding research questions, a neutral comparison against nine neighboring disciplines (SCMs, System Dynamics, DES, ABM, Digital Twins, Process Mining, State-Space Models, Operations Research, and Neural World Models), and a guide on **when you do NOT need an EWM**, see **[What Is an Enterprise World Model? (Scientific Demarcation)](../explanation/what-is-an-ewm.md)**.
 
-To understand where **Enterprise World Models (EWM)** sit within artificial intelligence and computational modeling, consider how the field has evolved across distinct paradigms:
+## Complementary Modeling Paradigms (Hybrid Pluralism)
+
+Rather than viewing modeling paradigms as a linear ladder where one replaces another, `ewm-engine` treats rules, statistical estimators, specialized ML, foundation models, discrete-event simulation, and mathematical optimization as **coexisting, plural mechanisms** that serve different operational regimes:
 
 ```mermaid
 flowchart TD
-    accTitle: Evolution of Artificial Intelligence Modeling Paradigms
-    accDescr: Taxonomy tracing the evolution from specialized supervised ML to foundation models, simulators, and Enterprise World Models.
+    accTitle: Plural Mechanisms Inside an Enterprise World Model Core
+    accDescr: Diagram showing how rules, statistical estimators, learned/neural models, foundation models, and optimizers plug into a shared typed state and decision-evaluation contract.
 
-    SPEC["1. Specialized Predictive Models<br/>(Supervised ML: X -> Y)"] --> FOUND["2. Foundation Models<br/>(Large LLMs / Multimodal Pre-training)"]
-    FOUND --> SIM["3. Discrete Simulators & Digital Twins<br/>(Physics/Asset Mirroring)"]
-    SIM --> AGENT["4. Agent Frameworks<br/>(LLM Tool Calling & Reasoning)"]
-    AGENT --> WM["5. World Models<br/>(Action-Conditioned Forward Dynamics)"]
-    WM --> EWM["6. Enterprise World Models<br/>(Socio-Technical State + Explicit Constraints)"]
+    RULES["Accounting Identities & Business Rules<br/>(KNOWN_FUNCTIONAL / BUSINESS_RULE_MECHANISM)"] --> CORE["Shared Structural Core<br/>(Typed State S_t, Context K_t, Belief B_t, Epistemic P_t)"]
+    STAT["Statistical & Econometric Models<br/>(STATISTICAL_ASSOCIATION / EXPERIMENTALLY_SUPPORTED)"] --> CORE
+    ML["Specialized ML & Neural Residuals<br/>(LearnedDynamics / GNN / RSSM)"] --> CORE
+    FOUND["Foundation & LLM Components<br/>(Policy Proposals / Semantic Priors)"] --> CORE
+    OPT["Simulators & OR Solvers<br/>(DES Queues / LP / MILP / MPC)"] --> CORE
+    CORE --> GATE["Feasibility Projection (Pi_C) & Causal Refusal Gate"]
+    GATE --> DEC["Decision Evaluation Under Uncertainty"]
 ```
 
-### 1. Specialized Machine Learning
-Classic statistical and supervised machine learning fits isolated function approximators:
-$$\hat{y} = f_\theta(x)$$
-While effective for stationary point predictions (such as credit scoring or demand forecasting), they cannot simulate how an environment will respond when an organization enacts a novel structural intervention that breaks historical correlations.
+### 1. Specialized Statistical & Machine Learning Models
+Statistical and supervised ML models estimate conditional distributions $\hat{y} = f_\theta(x)$ or $P(Y \mid X)$. For stationary forecasting and single-step classification, a calibrated supervised predictor is often sufficient on its own. Inside an EWM, learned models serve as first-class transition or demand components (`STATISTICAL_ASSOCIATION` or `EXPERIMENTALLY_SUPPORTED`), while the causal refusal gate prevents observational fits from being silently used for unidentifiable policy interventions.
 
-### 2. Foundation Models
-Large language models (LLMs) and foundation models capture broad world knowledge and linguistic patterns. However, standard LLMs lack an explicit, conservation-preserving representation of enterprise state. They frequently hallucinate numbers, violate basic physical and accounting bounds, and cannot reliably step discrete operational systems forward through time.
+### 2. Foundation Models & LLMs
+Foundation models and LLMs excel at unstructured extraction, semantic synthesis, hypothesis generation, and policy proposal. When coupled to an EWM, they operate alongside explicit conservation and feasibility gates ($\Pi_{\mathcal{C}}$) so that proposed actions and state transitions satisfy domain accounting and capacity invariants.
 
-### 3. Digital Twins vs. World Models
-Industrial digital twins typically mirror the sensory telemetry of specific mechanical or physical assets (e.g., jet engines, wind turbines, manufacturing assembly lines). An Enterprise World Model extends this to **socio-technical systems**: modeling organizational policies, multi-actor behavioral responses, resource allocations, inventory flows, and external disruptions under candidate interventions.
+### 3. Engineering Digital Twins vs. Enterprise World Models
+Industrial digital twins mirror physical assets (turbines, reactors, assembly lines) governed by stationary physical laws. An Enterprise World Model addresses **socio-technical domains** where physical capacities interact with mutable contracts, SLAs, financial ledgers, and policy context $K_t$.
 
 ### 4. Agent Frameworks vs. World Models
-Modern agent frameworks (such as LangGraph, CrewAI, or AutoGen) focus on **how agents reason, plan, and invoke tools**.  
-An Enterprise World Model focuses on **the environment within which agents act**.  
-Without an executable world model, autonomous agents are forced to test experimental policies directly on live production systems—a dangerous operational hazard. An EWM serves as a safe computational "flight simulator" for both automated agents and human leadership.
+Agent frameworks (LangGraph, CrewAI, AutoGen) govern **how an agent reasons and invokes tools**. An Enterprise World Model models **the environment and decision contract** against which candidate policies—whether proposed by a human manager, an OR solver, or an LLM agent—are evaluated before production deployment.
 
 ---
 
 ## Academic Lineage of World Models
 
-The concept of a *World Model* in AI originates from reinforcement learning, cognitive science, and computational neuroscience:
+The concept of a *World Model* spans control theory, causal inference, operations research, and reinforcement learning:
 
-1. **Ha & Schmidhuber (2018)**: *World Models* ([arXiv:1803.10122](https://arxiv.org/abs/1803.10122)) demonstrated that an agent can learn a compact latent representation of its environment (Vision model), a recurrent predictive model of dynamics over time (Memory RNN), and train a policy entirely inside its own simulated dreams.
-2. **Hafner et al. (2020–2023)**: *Dreamer* and *DreamerV3* ([arXiv:2301.04104](https://arxiv.org/abs/2301.04104)) showed that action-conditioned Recurrent State-Space Models (RSSMs) can master diverse robotic, visual, and discrete domains by learning behaviors entirely within latent world models.
-3. **LeCun (2022–2024)**: *A Path Towards Autonomous Machine Intelligence* and Joint Embedding Predictive Architectures (*I-JEPA*, *V-JEPA 2*) argue that intelligent systems must predict future abstract states rather than pixel-level or token-level details, focusing on action-conditioned hierarchical world models.
-4. **Peters, Janzing, & Schölkopf (2017)**: *Elements of Causal Inference* established the mathematical foundations for distinguishing observational predictions from interventional mechanics, inspiring modern research in *Causal World Models*.
-5. **Ding et al. (2024)**: *Diffusion World Models* explore generative diffusion processes as action-conditioned trajectory simulators for visual and complex interactive dynamics.
+1. **Forrester (1961) & Sterman (2000)**: *System Dynamics* established stock-and-flow conservation and feedback-loop analysis for industrial and corporate systems.
+2. **Pearl (2009) & Peters, Janzing, & Schölkopf (2017)**: *Structural Causal Models (SCMs)* formalized the distinction between observational conditioning $P(Y \mid X)$, interventional surgery $P(Y \mid do(X))$, and counterfactuals.
+3. **Ha & Schmidhuber (2018)**: *World Models* ([arXiv:1803.10122](https://arxiv.org/abs/1803.10122)) demonstrated that an agent can learn a compact latent representation and recurrent transition dynamics to train policies inside simulated rollouts.
+4. **Schrittwieser et al. (2020) & Hafner et al. (2023)**: *MuZero* and *DreamerV3* ([arXiv:2301.04104](https://arxiv.org/abs/2301.04104)) showed that action-conditioned latent world models can master games and continuous control when given online environment interaction.
+5. **LeCun (2022) & Assran et al. (2025)**: Joint Embedding Predictive Architectures (*JEPA*, *V-JEPA 2*, [arXiv:2506.09985](https://arxiv.org/abs/2506.09985)) predict abstract representations from sensory streams for visual understanding and robotic planning.
 
 ---
 
-## Formal Definition: Enterprise World Model
+## Structural Core + Plural Components, Judged on Decisions
 
-> An **Enterprise World Model** is an action-conditioned, uncertainty-aware executable representation of an organization's or socio-technical ecosystem's evolving state, integrating explicit operational constraints, pluggable dynamics, external shocks, and decision policies to evaluate the downstream consequences of candidate interventions before real-world deployment.
+> An **Enterprise World Model (EWM)** is a computational, domain-scoped representation that models the relevant states of an environment, their evidence-graded dependencies, their temporal evolution, and—when supported by identification evidence—the effects of interventions, in order to support prediction, simulation, planning, and decision evaluation under uncertainty.
 
-### The Hybrid Architecture: Known Structure + Learned Dynamics
+### Rejecting the Myth of a Universal Determinism Hierarchy
 
-Enterprise systems differ fundamentally from video games or physical robots: organizations operate under rigid, non-negotiable legal, physical, and accounting boundaries alongside highly stochastic human and market behaviors.
+`ewm-engine` explicitly rejects the notion that symbolic rules are "inherently trustworthy," classical ML is "intermediate," and neural/LLM components are "second-class":
 
-EWM Engine enforces an explicit architectural separation:
+- **Execution determinism $\neq$ epistemic certainty:** A hand-coded business rule executes deterministically, but if it reflects an unvalidated heuristic, its epistemic standing is merely `CAUSAL_HYPOTHESIS`. Conversely, a trained neural network evaluated with fixed weights is a deterministic function at inference time, and an experimentally validated ML uplift model carries `EXPERIMENTALLY_SUPPORTED` (`INTERVENTIONAL`) standing.
+- **Plural mechanisms under one contract:** Accounting identities (`KNOWN_FUNCTIONAL`), institutional policies (`BUSINESS_RULE_MECHANISM`), experimentally identified effects (`EXPERIMENTALLY_SUPPORTED`), causal hypotheses (`CAUSAL_HYPOTHESIS`), and observational predictors (`STATISTICAL_ASSOCIATION`) coexist within the same simulation loop:
 
 $$\begin{aligned}
-\textbf{Known Structural Knowledge} &\quad\longleftrightarrow\quad \text{Hard capacity limits, conservation laws, legal rules, invariants} \\
-\textbf{Learned \& Stochastic Dynamics} &\quad\longleftrightarrow\quad \text{Customer behavior, demand swings, transit delays, weather shocks}
+\textbf{Known Functional & Policy Mechanisms} &\quad\longleftrightarrow\quad \text{Accounting conservation, capacity bounds, contractual rules } (K_t) \\
+\textbf{Statistical, Learned & Stochastic Mechanisms} &\quad\longleftrightarrow\quad \text{Demand elasticity, transit delays, learned residual dynamics, exogenous shocks}
 \end{aligned}$$
-
-Forcing known physical and accounting equations into opaque neural network weights produces hallucinated states and physically impossible transitions. EWM Engine keeps structural rules explicit, verifiable, and audited.
 
 ---
 
-## Positioning: Enterprise World Models vs. World Foundation Models (2024–2026)
+## Positioning: Enterprise World Models vs. Sensory/Visual World Models
 
-The explosion of interest in **world models** across 2024–2026 encompasses two fundamentally distinct technological paradigms:
+The term **world model** is used across two distinct application domains with different data regimes and constraints:
 
-1. **World Foundation Models (WFMs)** (NVIDIA Cosmos, Google Genie 2/3, Meta V-JEPA 2, Navigation World Models, World Labs):
-   Large-scale generative models operating on sensorimotor, pixel, or 3D latent spaces. They simulate photorealistic interactive video, 3D spatial scenes, or physical robot environments.
-2. **Enterprise World Models (EWMs)** (EWM Engine):
-   Domain-independent computational kernels operating on organizational, socio-technical, and relational state. They simulate business consequence distributions, physical/accounting conservation laws, multi-actor contracts, and operational interventions under uncertainty.
+1. **Sensory & Physical World Models** (Ha & Schmidhuber, MuZero, DreamerV3, V-JEPA 2, NVIDIA Cosmos, Genie):
+   Models operating on pixels, video frames, or continuous proprioceptive states where physical laws are stationary and high-volume simulator or sensory data is available.
+2. **Enterprise World Models** (`ewm-engine`):
+   Models operating on typed socio-technical state (entities, resources, queues, contracts) where historical logs are observationally confounded, institutional rules $K_t$ shift discontinuously, and hard accounting/feasibility invariants must be audited.
 
-!!! warning "Clear Architectural Stance: Not a Video Model"
-    **EWM Engine is not a video generation model, an interactive 3D graphics simulator, or a pixel diffusion pipeline.**  
-    While EWM Engine **can host** a learned latent dynamics adapter (such as a DreamerV3-style RSSM, an MLP residual, or a relational GNN module via its pluggable `DynamicsModel` and `LearnedDynamics` protocols), the engine itself represents state as explicit typed entities, bounded resources, operational rules, and auditable causal traces.
+### Domain & Contract Comparison
 
-### Architectural Contrast Table
-
-| Dimension | Enterprise World Model Engine (EWM) | World Foundation Models (Cosmos, Genie 2/3, World Labs) | Latent / Predictive Models (V-JEPA 2, DreamerV3) |
+| Dimension | Enterprise World Model Engine (`ewm-engine`) | Sensory / Visual World Models (Cosmos, Genie, V-JEPA 2) | Latent RL World Models (MuZero, DreamerV3) |
 | :--- | :--- | :--- | :--- |
-| **Target Domain** | Socio-technical systems (enterprises, supply chains, healthcare, public logistics, financial networks). | Sensorimotor physical worlds, interactive video games, robotics manipulation. | Abstract visual/robotic representation, continuous motor control. |
-| **State Representation** | Symbolic + Hybrid: Heterogeneous relational graph ($G_t$), bounded continuous resources ($R_t$), memory ($M_t$), active rules ($\Gamma_t$). | High-dimensional visual tokens, pixel lattices, or 3D Gaussian splats ($V_t$). | Abstract continuous latent vector ($z_t$) without pixel reconstruction. |
-| **Physical & Business Laws** | **Strict Invariants**: Hard conservation laws, capacity limits, and legal constraints enforced by pre/post validation gates ($\mathcal{V}_{\text{pre}}$, $\mathcal{V}_{\text{post}}$). | **Statistical Illusion**: Invariants are learned implicitly from video; prone to physical hallucinations, object vanishing, and balance breaches. | **Loss Penalties**: Invariants approximated via latent regularization; no hard guarantees. |
-| **Dynamics Mechanism** | **Pluggable Hybrid**: Structural mechanical rules + OR solvers + optional learned neural/GNN residuals. | Autoregressive diffusion, video spatio-temporal transformers. | Recurrent State-Space Models (RSSM) or Joint-Embedding Predictors. |
-| **Epistemics & Causality** | **Honest Diagnostics**: Backdoor identifiability checks, positivity overlap, Twin Rollout noise coupling, Rosenbaum bounds, OOD regime detection. | **Pure Observational / Action-Conditioned**: Incurs unavoidable interventional bias when backdoor paths are open (Bareinboim & Pearl, 2016; Richens & Everitt, arXiv:2402.10877). | Latent planning without structural identification guarantees. |
-| **Execution Core** | **Zero-LLM, Zero-GPU Required**: Lightweight, deterministically seeded, reproducible PRNG kernel. | Multi-billion-parameter neural networks requiring GPU/TPU clusters for inference. | Neural inference requiring PyTorch/JAX runtimes. |
-| **Primary Output** | Decision-grade consequence distributions, Pareto trade-offs, and systemic dependency traces. | Rendered video frames or simulated sensory streams. | Latent value estimates and continuous control policies. |
+| **Target Domain** | Socio-technical operational systems (supply chains, inventory, workflows, capacity planning). | Video generation, 3D spatial scenes, visual representation learning, physical robotics. | Games (Atari, Go) and continuous/discrete control with online interaction. |
+| **State Representation** | Typed relational state ($S_t$), institutional context ($K_t$), belief state ($B_t$), and epistemic state ($P_t$). | Visual tokens, pixel frames, or self-supervised video embeddings. | Compact latent vector ($z_t$) optimized for reward/value prediction or reconstruction. |
+| **Constraint Handling** | Explicit pre/post constraint gates ($\mathcal{V}_{\text{pre}}, \mathcal{V}_{\text{post}}$) and feasibility projection ($\Pi_{\mathcal{C}}$) with logged residuals. | Implicitly learned from training sequences; physical conservation is approximated statistically. | Soft reward penalties or environment termination signals. |
+| **Dynamics Mechanisms** | **Plural Hybrid**: Functional identities, business rules, OR solvers, statistical models, and learned residuals (`DynamicsModel`, `LearnedDynamics`). | Spatio-temporal transformers, diffusion models, or joint-embedding predictors. | Recurrent State-Space Models (RSSM) or latent dynamics networks. |
+| **Epistemics & Causality** | Explicit `DependencyEvidenceNature` & `EvidenceLevel` grading, backdoor/refuter checks, and causal refusal gates. | Observational / action-conditioned sequence modeling over sensory streams. | Action-conditioned latent rollouts trained via online exploration or replay buffers. |
+| **Core Runtime Footprint** | CPU-first deterministic kernel; optional PyTorch/SciPy/OR-Tools adapters. | GPU/TPU accelerators for large-scale neural training and inference. | GPU/TPU accelerators for neural rollout and policy optimization. |
+| **Primary Evaluation Target** | Calibrated decision regret, constraint violation rate, and epistemic honesty against strong baselines. | Frame fidelity, representation transfer, or robotic task completion. | Cumulative episode return in the target environment. |
 
 ---
 
 ## Subsystem Architecture & Execution Lifecycle
 
-The relationship between the symbolic state, pluggable dynamics, constraint engines, and the planning layer is illustrated below:
+The relationship between typed state, plural dynamics mechanisms, constraint engines, and the planning layer is illustrated below:
 
 ```mermaid
 flowchart TD
     accTitle: Subsystem Architecture and Execution Lifecycle
     accDescr: Six-stage pipeline connecting symbolic world state, planning, pre-action constraints, pluggable dynamics, post-transition invariants, and epistemics diagnostics.
 
-    subgraph StateLayer["1. World State Representation (Symbolic + Relational)"]
+    subgraph StateLayer["1. World State Representation (Typed + Relational)"]
         ENT["Typed Entities & Attributes"]
-        REL["Relational Topology / Graph G_t"]
+        REL["Evidence-Graded Relationships G_t"]
         RES["Bounded Continuous Resources R_t"]
-        RULES["Active Operational Rules & Invariants"]
+        RULES["Active Operational Context K_t & Invariants"]
     end
 
     subgraph DecisionLayer["2. Interventions & Planning Layer"]
-        PLANNER["Planning Controller (MPC / OR / RL)"]
+        PLANNER["Planning Controller (MPC / OR / RL / LLM)"]
         ACT["Proposed Candidate Action A_t"]
         PLANNER --> ACT
     end
 
     subgraph VerificationPre["3. Pre-Action Constraint Gate"]
-        PRE["V_pre(S_t, A_t) Filter"]
+        PRE["V_pre(S_t, A_t) & Pi_C Filter"]
         ACT --> PRE
         RULES -.-> PRE
     end
 
-    subgraph DynamicsLayer["4. Pluggable Dynamics Engine"]
-        DET["Structural Deterministic Rules"]
+    subgraph DynamicsLayer["4. Plural Pluggable Dynamics Engine"]
+        DET["Functional & Business-Rule Mechanisms"]
         OR_OPT["OR-Tools / SciPy Solvers"]
-        LEARNED["Optional Learned Residuals (MLP / GNN)"]
+        LEARNED["Statistical & Learned Dynamics (MLP / GNN)"]
         EXOG["Exogenous Shocks E_t ~ D_exog"]
     end
 
@@ -142,7 +138,6 @@ flowchart TD
     end
 
     POST --> EpistemicsLayer
-    POST -- "Valid S_t+1" --> EVAL["Consequence Distributions & Pareto Evaluation"]
+    POST -- "Valid S_t+1" --> EVAL["Consequence Distributions & Regret Evaluation"]
     EVAL -. Feedback .-> PLANNER
 ```
-

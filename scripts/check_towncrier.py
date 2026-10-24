@@ -31,14 +31,27 @@ def check_newsfragments(base_ref: str | None = None) -> int:
         base_ref = os.environ.get("BASE_REF") or os.environ.get("GITHUB_BASE_REF")
 
     if not base_ref:
-        # Not a pull request execution; assert valid directory setup
+        # Not a pull request execution; assert valid directory setup and fragment presence
+        fragments = [
+            p.name
+            for p in sorted(newsfragments_dir.iterdir())
+            if p.is_file()
+            and p.name.endswith((".feature.md", ".bugfix.md", ".doc.md", ".removal.md", ".misc.md"))
+        ]
+        if not fragments:
+            print(f"[ERROR] No valid newsfragments found in {newsfragments_dir}")
+            return 1
         print(
-            "[INFO] No base ref provided (non-PR run). Validating newsfragments directory structure."
+            f"[INFO] No base ref provided (non-PR run). Verified {len(fragments)} newsfragments in directory."
         )
         return 0
 
     # Execute git diff to detect new or modified fragments in newsfragments/
-    target_ref = f"origin/{base_ref}" if not base_ref.startswith("origin/") else base_ref
+    target_ref = (
+        f"origin/{base_ref}"
+        if not base_ref.startswith(("origin/", "HEAD")) and base_ref != "main"
+        else base_ref
+    )
     try:
         res = subprocess.run(
             ["git", "diff", "--name-only", f"{target_ref}...HEAD", "--", "newsfragments/"],
@@ -48,6 +61,21 @@ def check_newsfragments(base_ref: str | None = None) -> int:
             check=True,
         )
         changed_files = [f.strip() for f in res.stdout.splitlines() if f.strip()]
+
+        # Also include uncommitted / untracked working-tree fragments for pre-commit validation
+        status_res = subprocess.run(
+            ["git", "status", "--porcelain", "--", "newsfragments/"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        for line in status_res.stdout.splitlines():
+            if len(line) > 3:
+                rel_path = line[3:].strip()
+                if rel_path and rel_path not in changed_files:
+                    changed_files.append(rel_path)
+
         valid_fragments = [
             f
             for f in changed_files

@@ -208,6 +208,19 @@ class DecisionEngine:
             )
 
         # 6. Report Fingerprint & Synthesis
+        from ewm_engine.evaluation.abstention import (
+            CompetenceEstimator,
+            ValidityLimitAbstentionGate,
+        )
+
+        abstention_gate = ValidityLimitAbstentionGate(
+            competence_estimator=CompetenceEstimator(max_verified_horizon=horizon)
+        )
+        abstention_dec = abstention_gate.evaluate(
+            state=world.initial_state,
+            step=horizon,
+        )
+
         report_meta = {
             "world": getattr(world, "name", "EnterpriseWorld"),
             "uncertainty_space": uncertainty_space.space_hash,
@@ -227,5 +240,6 @@ class DecisionEngine:
             robustness=robustness_result,
             vulnerabilities=vulnerabilities,
             efe_scores=efe_scores,
+            abstention_decision=abstention_dec.model_dump(mode="json"),
             fingerprint=report_fp,
         )

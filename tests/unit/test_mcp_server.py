@@ -231,8 +231,88 @@ def test_tool_decide() -> None:
     assert res["status"] == "COMPLETED"
     assert res["robustness_metric"] == "regret"
     assert len(res["rankings"]) == 2
-    assert res["best_candidate"] in ("strategy_a", "strategy_b")
-    assert all("robustness_score" in r for r in res["rankings"])
+    assert res["best_candidate"] == "strategy_a"
+    assert "abstention_decision" in res
+    assert res["abstention_decision"]["status_banner"] == "WITHIN_DECLARED_VALIDITY_LIMITS"
+    for r in res["rankings"]:
+        assert "robustness_score" in r
+        assert "max_regret" in r
+        assert "cvar_regret_90" in r
+        assert "satisficing_rate" in r
+        assert "mean_outcome" in r
+
+
+def test_tool_verify_explanation_and_check_abstention() -> None:
+    """Verify ewm.verify_explanation and ewm.check_abstention boundary tools."""
+    server = create_mcp_server()
+    sim_res = server.simulate(world_yaml=SAMPLE_WORLD_YAML, horizon=2, samples=1, seed=42)
+    run_id = sim_res["run_id"]
+    trace_info = server.explain(identifier=run_id)
+    assert trace_info["run_id"] == run_id
+
+    # Verify check_abstention within limits vs triggered
+    ok_abs = server.check_abstention(parameter_std=0.05, max_parameter_std=0.25)
+    assert ok_abs["abstain"] is False
+    assert ok_abs["status_banner"] == "WITHIN_DECLARED_VALIDITY_LIMITS"
+
+    trig_abs = server.check_abstention(
+        parameter_std=0.45,
+        max_parameter_std=0.25,
+        performative_invalidation=True,
+        insufficient_causal_evidence=True,
+    )
+    assert trig_abs["abstain"] is True
+    assert trig_abs["do_not_use_me_here"] is True
+    assert trig_abs["status_banner"] == "DO_NOT_USE_ME_HERE"
+    assert "parameter" in trig_abs["triggered_uncertainty_sources"]
+
+    # Verify verify_explanation against a recorded VerifiableMechanisticExplanation
+    from ewm_engine.provenance.evidence import DependencyEvidenceNature
+    from ewm_engine.provenance.explainability import (
+        MechanismAttributionRecord,
+        VerifiableMechanisticExplanation,
+    )
+
+    gt = VerifiableMechanisticExplanation(
+        explanation_id="exp_mcp_test",
+        source_epistemic_fingerprint="a" * 64,
+        effective_evidence_level=EvidenceLevel.STRUCTURAL,
+        effective_evidence_nature=DependencyEvidenceNature.KNOWN_FUNCTIONAL,
+        participating_mechanisms=(
+            MechanismAttributionRecord(
+                mechanism_id="inventory_transfer_rule",
+                mechanism_version="1.0.0",
+            ),
+        ),
+        modified_resources=("inventory_widgets",),
+        explanation_fingerprint="b" * 64,
+    )
+    faithful_res = server.verify_explanation(
+        narrative_text="Transition governed by mech:inventory_transfer_rule modifying res:inventory_widgets.",
+        explanation_dict=gt.model_dump(mode="json"),
+        known_universe_mechanisms=["inventory_transfer_rule", "unexecuted_pricing_model"],
+    )
+    assert faithful_res["is_faithful"] is True
+    assert faithful_res["fabricated_mechanisms"] == []
+
+    fabricated_res = server.verify_explanation(
+        narrative_text="Transition governed by mech:unexecuted_pricing_model.",
+        explanation_dict=gt.model_dump(mode="json"),
+        known_universe_mechanisms=["inventory_transfer_rule", "unexecuted_pricing_model"],
+    )
+    assert fabricated_res["is_faithful"] is False
+    assert "unexecuted_pricing_model" in fabricated_res["fabricated_mechanisms"]
+
+
+def test_cli_example_fraud_cascade(capsys: pytest.CaptureFixture[str]) -> None:
+    """Verify `ewm example fraud_cascade` executes the flagship scenario cleanly."""
+    from ewm_engine.cli.main import main
+
+    rc = main(["example", "fraud_cascade"])
+    assert rc == 0
+    captured = capsys.readouterr()
+    assert "Scenario Fingerprint:" in captured.out
+    assert "Full EWM Regret:" in captured.out
 
 
 def test_tool_explain_not_found() -> None:

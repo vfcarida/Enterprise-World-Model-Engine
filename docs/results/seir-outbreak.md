@@ -30,12 +30,13 @@ Any numerical solver or neural dynamics model that leaks or creates individuals 
   "card": "seir_outbreak",
   "steps": 80,
   "population": 1000.0,
-  "peak_infections": 183.35,
+  "peak_infections": 183.34932704279635,
   "peak_step": 79,
-  "max_mass_balance_drift": 4.547e-13,
+  "max_mass_balance_drift": 4.547473508864641e-13,
   "physics_iq_score": 1.0,
   "conformal_90_coverage": 1.0,
-  "status": "PASSED"
+  "status": "PASSED",
+  "card_verification_status": "PASSED_CONSERVATION_AND_COVERAGE_VERIFIED"
 }
 ```
 

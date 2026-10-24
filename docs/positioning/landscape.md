@@ -1,6 +1,9 @@
 # Competitive Landscape & Positioning
 
-> *"Enterprise World Model Engine (`ewm-engine`) is a deterministic, auditable structural simulation kernel for organizational and socio-technical systems. It evaluates the operational consequences of candidate interventions under explicit resource constraints and calibrated uncertainty—without requiring a GPU or LLM in the core simulation loop."*
+> *"Enterprise World Model Engine (`ewm-engine`) pairs a typed structural core with plural pluggable components—rules, statistical estimators, learned/neural dynamics, foundation-model policies, discrete-event queues, and mathematical optimizers—evaluated on downstream decision quality under explicit constraints and calibrated uncertainty."*
+
+!!! info "Scientific Demarcation"
+    For the formal working definition of an Enterprise World Model, the two guiding research questions, a primary-source comparison against nine adjacent scientific disciplines, and a blunt guide on **when you do NOT need an EWM**, see **[What Is an Enterprise World Model? (Scientific Demarcation)](../explanation/what-is-an-ewm.md)**.
 
 ---
 
@@ -45,27 +48,32 @@ The table below compares `ewm-engine` against representative peer systems across
 | **DoWhy** (`0.11+`, 2020–2026) | Observational Causal Inference ([Sharma & Kiciman, 2020](https://arxiv.org/abs/2011.04216)) | Four-step causal effect estimation (model, identify, estimate, refute) over static datasets | Estimating average or conditional treatment effects ($\text{ATE}/\text{CATE}$) from historical tabular data | DoWhy is an econometric/statistical effect estimator for static observational logs, not a forward multi-step state-transition simulator with phase-aware operational constraints. `ewm-engine` adopts DoWhy-style refutation gates (`ewm_engine.induction.validation`) for induced causal graphs. |
 | **PyMC** (`5.x`, 2023–2026) | Probabilistic Programming ([Abril-Pla et al., 2023](https://doi.org/10.7717/peerj-cs.1516)) | Declarative Bayesian graphical models with NUTS/HMC and variational inference | Full Bayesian posterior inference over explicit likelihood models | PyMC is a statistical inference engine rather than a stateful multi-actor operational simulator. `ewm-engine` complements Bayesian workflows via simulation-based inference (`ewm calibrate`) when closed-form likelihoods are intractable. |
 | **Google OR-Tools** (`9.8+`, 2023–2026) | Combinatorial & Mathematical Optimization ([Perron & Furnon, 2023](https://developers.google.com/optimization)) | CP-SAT constraint programming, MILP, and vehicle routing solvers | Solving static or single-horizon resource allocation and scheduling problems to optimality | OR-Tools solves mathematical programs for a given objective and constraint set; `ewm-engine` simulates how chosen allocations evolve forward over multi-step stochastic horizons and hosts OR-Tools (`ewm_engine.integrations.ortools`) as a policy planner. |
-| **Concordia** (`2023–2026`) | Generative Social Simulation ([Vezhnevets et al., 2023](https://arxiv.org/abs/2312.03664)) | LLM-mediated associative memory agents arbitrated by a natural-language Game Master | Open-ended qualitative social, negotiation, and narrative interaction studies | Concordia grounds state transitions through LLM text mediation. `ewm-engine` enforces a zero-LLM deterministic numerical core so resource conservation holds within IEEE-754 tolerance ($\le 10^{-12}$), while providing `EWMWorldArbiter` (`ewm_engine.integrations.concordia`) to validate LLM agent intents against hard rules. |
-| **DreamerV3 / V-JEPA 2 / Cosmos** (`2023–2026`) | Neural & Video World Models ([Hafner et al., 2023](https://arxiv.org/abs/2301.04104); [Assran et al., 2025](https://arxiv.org/abs/2506.09985)) | Recurrent latent state-space models (RSSM) or joint-embedding video transformers | Sensorimotor control, visual dynamics prediction, and robotics planning from pixels | Neural world models operate on visual tokens or dense latent vectors without explicit symbolic accounting invariants or backdoor causal refusal gates. `ewm-engine` adopts DreamerV3's symlog scaling inside optional residual modules (`TorchNeuralResidualDynamics`) while keeping conservation laws structural. |
+| **Concordia** (`2023–2026`) | Generative Social Simulation ([Vezhnevets et al., 2023](https://arxiv.org/abs/2312.03664)) | LLM-mediated associative memory agents arbitrated by a natural-language Game Master | Open-ended qualitative social, negotiation, and narrative interaction studies | Concordia mediates state transitions through natural-language LLM arbitration. `ewm-engine` runs a deterministic CPU numerical core for resource conservation ($\le 10^{-12}$) while supporting complementary LLM agents at the boundary via `EWMWorldArbiter` (`ewm_engine.integrations.concordia`) and `ewm mcp`. |
 
 ---
 
-## 3. Explicit Non-Goals (What EWM Engine Is NOT)
+## 3. Scope & Architectural Composition (What EWM Engine Is NOT)
 
-To maintain clear scope boundaries, `ewm-engine` explicitly excludes the following use cases:
+To maintain clear scope boundaries, `ewm-engine` explicitly clarifies its role and composition:
 
-1. **Not a Video, Pixel, or 3D Physics World Model:**  
-   `ewm-engine` does not generate video frames, point clouds, or 3D meshes. For visual or robotic simulation, use NVIDIA Isaac Sim, MuJoCo, DreamerV3, or V-JEPA 2. `ewm-engine` models typed organizational state, inventories, ledgers, and operational constraints.
-2. **Not an Autonomous LLM Agent Orchestration Framework:**  
-   `ewm-engine` is not a prompt-routing or multi-agent chat framework (such as LangGraph, AutoGen, or CrewAI). External agents interact with `ewm-engine` as an environment simulator (via Python or the `ewm mcp` server) to test candidate actions before execution.
-3. **Not an Observational Time-Series Forecaster:**  
-   Univariate or multivariate time-series libraries (ARIMA, Prophet, Chronos) extrapolate conditional correlations $P(Y_{t+1:t+H} \mid Y_{1:t})$. `ewm-engine` simulates action-conditioned transitions $P(S_{t+1:t+H} \mid S_t, \text{do}(A_t), K_t)$ under explicit structural rules.
-4. **Not a Real-Time Event Streaming Bus:**  
-   `ewm-engine` is not a substitute for Apache Kafka, Flink, or transactional OLTP databases. It ingests historical event logs (`OCEL 2.0`, Parquet, DuckDB) offline to induce and calibrate simulation models, and emits audited trajectory artifacts.
+1. **Not an LLM Agent Orchestrator / Prompt-Workflow Runner — A Deterministic Engine That LLM Agents Call:**
+   The deterministic core runs fully on CPU with no required GPU or LLM dependency. GPUs and LLMs are optional and complementary: LLM agents operate at the boundary (natural-language goal interpretation, tool invocation, and result explanation via `ewm mcp` and `ewm_engine.integrations.concordia`), while the dynamics core stays deterministic and auditable (following the hybrid agentic-symbolic boundary pattern of *Business World Model*, 2026, and *World of Workflows*, 2026).
+2. **Scoped to Typed Socio-Technical State (Distinct Problem Domain from Pixel or 3D Physics Simulation):**
+   `ewm-engine` models typed organizational state, financial ledgers, operational queues, and regulatory rules rather than camera frames, point clouds, or 3D rigid-body physics meshes.
+3. **Not an Observational Time-Series Forecaster (and Often Unnecessary When Forecasting Suffices):**
+   Univariate or multivariate time-series models (`AR(1)`, GBT, Prophet) extrapolate conditional correlations $P(Y_{t+1:t+H} \mid Y_{1:t})$. When decisions do not alter structural rules or cross-department queues, those simpler predictors beat `ewm-engine` on 1-step forecasting accuracy (documented as Negative Result `N1` in [Decision-First Comparative Evaluation](../results/decision-first-comparative-evaluation.md)).
+4. **Not a Real-Time Event Streaming Bus:**
+   `ewm-engine` is not a substitute for Apache Kafka, Flink, or transactional OLTP databases. It ingests historical bitemporal event logs (`OCEL 2.0`, Parquet, DuckDB) to calibrate simulation models and emits audited trajectory artifacts.
 
 ---
 
-## 4. Core Architectural Commitments
+## 4. Positioning in the Broader AI-Systems Context
+
+Following Sculley et al. (2015, *"Hidden Technical Debt in Machine Learning Systems"*), an Enterprise World Model is **one optional, modular capability inside a larger AI systems architecture**—surrounded by data ingestion, bitemporal feature/state stores, schema validation, operational monitoring, human-in-the-loop governance, and boundary interfaces—rather than a standalone end-to-end replacement. See **[Research Agenda & Falsifiable Hypotheses](../explanation/research-agenda.md#7-positioning-in-the-broader-ai-systems-context)** for the full system boundary diagram.
+
+---
+
+## 5. Core Architectural Commitments
 
 Rather than claiming universal superiority across all simulation tasks, `ewm-engine` makes four verifiable engineering commitments backed by the [Claim-to-Evidence Registry](../scientific/claim-evidence-matrix.md):
 

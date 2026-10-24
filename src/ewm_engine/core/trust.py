@@ -10,17 +10,36 @@ This module enforces epistemic humility at the API boundary:
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ewm_engine.provenance.evidence import EvidenceLevel
+from ewm_engine.provenance.evidence import (
+    EVIDENCE_LEVEL_TO_NATURE,
+    EVIDENCE_NATURE_TO_DEFAULT_LEVEL,
+    PERMISSIBLE_QUERIES_BY_NATURE,
+    DependencyEvidenceNature,
+    DependencyQueryKind,
+    EvidenceLevel,
+    EvidenceNature,
+    evidence_level_to_nature,
+    evidence_nature_to_level,
+)
 
 __all__ = [
+    "EVIDENCE_LEVEL_TO_NATURE",
+    "EVIDENCE_NATURE_TO_DEFAULT_LEVEL",
+    "EVIDENCE_QUERY_MATRIX_CONTRACT",
     "INDUCTION_EVIDENCE_LADDER",
+    "PERMISSIBLE_QUERIES_BY_NATURE",
     "BarePointEstimateWarning",
     "DecisionBlockedError",
+    "DependencyEvidenceNature",
+    "DependencyQueryKind",
+    "EvidenceGateDecision",
     "EvidenceLevel",
+    "EvidenceNature",
     "ExtrapolationWarning",
     "GateValidationReport",
     "InductionRefusalError",
@@ -31,8 +50,13 @@ __all__ = [
     "UncertaintyRequiredError",
     "UnqualifiedCausalClaimError",
     "WideUncertaintyWarning",
+    "evaluate_dependency_chain_for_query",
+    "evaluate_evidence_nature_gate",
+    "evidence_level_to_nature",
+    "evidence_nature_to_level",
     "is_evidence_at_least",
     "validate_causal_claim",
+    "validate_dependency_for_query",
 ]
 
 if TYPE_CHECKING:
@@ -110,11 +134,407 @@ def is_evidence_at_least(level: EvidenceLevel, min_level: EvidenceLevel) -> bool
     return _INDUCTION_LADDER_RANKS.get(level, 0) >= _INDUCTION_LADDER_RANKS.get(min_level, 0)
 
 
+MatrixCellCondition = Literal[
+    "always_permitted",
+    "requires_overlap",
+    "requires_full_identification",
+    "requires_overlap_and_functional_identification",
+    "forbidden",
+]
+
+# Full 5 x 4 (DependencyEvidenceNature x DependencyQueryKind) contract matrix
+EVIDENCE_QUERY_MATRIX_CONTRACT: dict[
+    tuple[DependencyEvidenceNature, DependencyQueryKind], MatrixCellCondition
+] = {
+    # 1. STATISTICAL_ASSOCIATION: observational prediction/evolution only; causal queries FORBIDDEN
+    (
+        DependencyEvidenceNature.STATISTICAL_ASSOCIATION,
+        DependencyQueryKind.OBSERVATIONAL_PREDICTION,
+    ): "always_permitted",
+    (
+        DependencyEvidenceNature.STATISTICAL_ASSOCIATION,
+        DependencyQueryKind.STATE_EVOLUTION,
+    ): "always_permitted",
+    (
+        DependencyEvidenceNature.STATISTICAL_ASSOCIATION,
+        DependencyQueryKind.INTERVENTIONAL_DO,
+    ): "forbidden",
+    (
+        DependencyEvidenceNature.STATISTICAL_ASSOCIATION,
+        DependencyQueryKind.COUNTERFACTUAL_TWIN,
+    ): "forbidden",
+    # 2. CAUSAL_HYPOTHESIS: requires full identification for do(), forbidden for twin counterfactual
+    (
+        DependencyEvidenceNature.CAUSAL_HYPOTHESIS,
+        DependencyQueryKind.OBSERVATIONAL_PREDICTION,
+    ): "always_permitted",
+    (
+        DependencyEvidenceNature.CAUSAL_HYPOTHESIS,
+        DependencyQueryKind.STATE_EVOLUTION,
+    ): "always_permitted",
+    (
+        DependencyEvidenceNature.CAUSAL_HYPOTHESIS,
+        DependencyQueryKind.INTERVENTIONAL_DO,
+    ): "requires_full_identification",
+    (
+        DependencyEvidenceNature.CAUSAL_HYPOTHESIS,
+        DependencyQueryKind.COUNTERFACTUAL_TWIN,
+    ): "forbidden",
+    # 3. EXPERIMENTALLY_SUPPORTED: requires overlap for do(), plus functional id + provenance for twin
+    (
+        DependencyEvidenceNature.EXPERIMENTALLY_SUPPORTED,
+        DependencyQueryKind.OBSERVATIONAL_PREDICTION,
+    ): "always_permitted",
+    (
+        DependencyEvidenceNature.EXPERIMENTALLY_SUPPORTED,
+        DependencyQueryKind.STATE_EVOLUTION,
+    ): "always_permitted",
+    (
+        DependencyEvidenceNature.EXPERIMENTALLY_SUPPORTED,
+        DependencyQueryKind.INTERVENTIONAL_DO,
+    ): "requires_overlap",
+    (
+        DependencyEvidenceNature.EXPERIMENTALLY_SUPPORTED,
+        DependencyQueryKind.COUNTERFACTUAL_TWIN,
+    ): "requires_overlap_and_functional_identification",
+    # 4. BUSINESS_RULE_MECHANISM: permitted across all query types within domain overlap
+    (
+        DependencyEvidenceNature.BUSINESS_RULE_MECHANISM,
+        DependencyQueryKind.OBSERVATIONAL_PREDICTION,
+    ): "always_permitted",
+    (
+        DependencyEvidenceNature.BUSINESS_RULE_MECHANISM,
+        DependencyQueryKind.STATE_EVOLUTION,
+    ): "always_permitted",
+    (
+        DependencyEvidenceNature.BUSINESS_RULE_MECHANISM,
+        DependencyQueryKind.INTERVENTIONAL_DO,
+    ): "requires_overlap",
+    (
+        DependencyEvidenceNature.BUSINESS_RULE_MECHANISM,
+        DependencyQueryKind.COUNTERFACTUAL_TWIN,
+    ): "requires_overlap",
+    # 5. KNOWN_FUNCTIONAL: permitted across all query types within domain overlap
+    (
+        DependencyEvidenceNature.KNOWN_FUNCTIONAL,
+        DependencyQueryKind.OBSERVATIONAL_PREDICTION,
+    ): "always_permitted",
+    (
+        DependencyEvidenceNature.KNOWN_FUNCTIONAL,
+        DependencyQueryKind.STATE_EVOLUTION,
+    ): "always_permitted",
+    (
+        DependencyEvidenceNature.KNOWN_FUNCTIONAL,
+        DependencyQueryKind.INTERVENTIONAL_DO,
+    ): "requires_overlap",
+    (
+        DependencyEvidenceNature.KNOWN_FUNCTIONAL,
+        DependencyQueryKind.COUNTERFACTUAL_TWIN,
+    ): "requires_overlap",
+}
+
+
+class EvidenceGateDecision(BaseModel):
+    """Structured fail-closed decision record for an (evidence_nature x query_kind) evaluation."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    dependency_id: str
+    evidence_nature: DependencyEvidenceNature
+    query_kind: DependencyQueryKind
+    matrix_condition: MatrixCellCondition
+    permitted: bool
+    effective_evidence_level: EvidenceLevel
+    downgraded: bool = False
+    is_identifiable: bool = False
+    overlap_satisfied: bool = True
+    identification_provenance: str | None = None
+    refusal_reasons: tuple[str, ...] = Field(default_factory=tuple)
+
+
+def evaluate_evidence_nature_gate(
+    evidence_nature: DependencyEvidenceNature,
+    query_kind: DependencyQueryKind,
+    *,
+    is_identifiable: bool = False,
+    overlap_satisfied: bool = True,
+    identification_provenance: str | None = None,
+    dependency_id: str = "<unnamed>",
+    strict: bool = False,
+) -> EvidenceGateDecision:
+    """Evaluate the fail-closed (evidence_nature x query_kind) refusal gate and return a structured decision."""
+    cell_cond = EVIDENCE_QUERY_MATRIX_CONTRACT[(evidence_nature, query_kind)]
+    has_provenance = identification_provenance is not None and bool(
+        identification_provenance.strip()
+    )
+    has_id_evidence = is_identifiable and overlap_satisfied and has_provenance
+
+    if query_kind in (
+        DependencyQueryKind.OBSERVATIONAL_PREDICTION,
+        DependencyQueryKind.STATE_EVOLUTION,
+    ):
+        lvl = evidence_nature_to_level(evidence_nature, has_identification_evidence=has_id_evidence)
+        return EvidenceGateDecision(
+            dependency_id=dependency_id,
+            evidence_nature=evidence_nature,
+            query_kind=query_kind,
+            matrix_condition=cell_cond,
+            permitted=True,
+            effective_evidence_level=lvl,
+            downgraded=False,
+            is_identifiable=is_identifiable,
+            overlap_satisfied=overlap_satisfied,
+            identification_provenance=identification_provenance,
+            refusal_reasons=(),
+        )
+
+    try:
+        lvl = validate_dependency_for_query(
+            evidence_nature=evidence_nature,
+            query_kind=query_kind,
+            is_identifiable=is_identifiable,
+            overlap_satisfied=overlap_satisfied,
+            identification_provenance=identification_provenance,
+            dependency_id=dependency_id,
+            strict=True,
+        )
+        return EvidenceGateDecision(
+            dependency_id=dependency_id,
+            evidence_nature=evidence_nature,
+            query_kind=query_kind,
+            matrix_condition=cell_cond,
+            permitted=True,
+            effective_evidence_level=lvl,
+            downgraded=False,
+            is_identifiable=is_identifiable,
+            overlap_satisfied=overlap_satisfied,
+            identification_provenance=identification_provenance,
+            refusal_reasons=(),
+        )
+    except UnqualifiedCausalClaimError as exc:
+        if strict:
+            raise
+        warnings.warn(
+            f"{exc} Automatically downgrading to PREDICTIVE.",
+            category=InsufficientCausalEvidenceWarning,
+            stacklevel=2,
+        )
+        return EvidenceGateDecision(
+            dependency_id=dependency_id,
+            evidence_nature=evidence_nature,
+            query_kind=query_kind,
+            matrix_condition=cell_cond,
+            permitted=False,
+            effective_evidence_level=EvidenceLevel.PREDICTIVE,
+            downgraded=True,
+            is_identifiable=is_identifiable,
+            overlap_satisfied=overlap_satisfied,
+            identification_provenance=identification_provenance,
+            refusal_reasons=(str(exc),),
+        )
+
+
+def evaluate_dependency_chain_for_query(
+    chain: Sequence[Any],
+    query_kind: DependencyQueryKind,
+    *,
+    strict: bool = True,
+) -> EvidenceGateDecision:
+    """Evaluate a multi-link dependency chain fail-closed (bounded by the weakest link).
+
+    Accepts a sequence of ``Relationship``, ``StructuralAssignment``, or ``EvidenceGateDecision``
+    objects. If any link in the chain violates the query requirement for ``query_kind``, the
+    entire chain is refused (when ``strict=True``) or downgraded to ``EvidenceLevel.PREDICTIVE``
+    (when ``strict=False``).
+    """
+    from ewm_engine.core.epistemic import resolve_fail_closed_evidence_level
+
+    if not chain:
+        raise ValueError("Cannot evaluate an empty dependency chain.")
+
+    link_decisions: list[EvidenceGateDecision] = []
+    all_reasons: list[str] = []
+    levels: list[EvidenceLevel] = []
+
+    for idx, item in enumerate(chain):
+        if isinstance(item, EvidenceGateDecision):
+            dec = item
+            if not dec.permitted and strict:
+                raise UnqualifiedCausalClaimError(
+                    " | ".join(dec.refusal_reasons)
+                    or f"Chain link {idx} ({dec.dependency_id}) refused {query_kind.value}."
+                )
+        else:
+            ev_nat = getattr(
+                item, "evidence_nature", DependencyEvidenceNature.STATISTICAL_ASSOCIATION
+            )
+            raw_attrs = getattr(item, "attributes", {}) or {}
+            is_id = bool(getattr(item, "is_identifiable", raw_attrs.get("is_identifiable", False)))
+            ovl = bool(getattr(item, "overlap_satisfied", raw_attrs.get("overlap_satisfied", True)))
+            prov = getattr(
+                item,
+                "identification_provenance",
+                raw_attrs.get("identification_provenance", None),
+            )
+            dep_id = getattr(item, "mechanism_id", None) or getattr(item, "type", f"link_{idx}")
+            dec = evaluate_evidence_nature_gate(
+                evidence_nature=ev_nat,
+                query_kind=query_kind,
+                is_identifiable=is_id,
+                overlap_satisfied=ovl,
+                identification_provenance=prov,
+                dependency_id=str(dep_id),
+                strict=strict,
+            )
+        link_decisions.append(dec)
+        levels.append(dec.effective_evidence_level)
+        if not dec.permitted:
+            all_reasons.extend(dec.refusal_reasons)
+
+    all_permitted = all(d.permitted for d in link_decisions)
+    eff_level = (
+        resolve_fail_closed_evidence_level(levels) if all_permitted else EvidenceLevel.PREDICTIVE
+    )
+    weakest_nature = evidence_level_to_nature(eff_level)
+    chain_id = "->".join(d.dependency_id for d in link_decisions)
+
+    return EvidenceGateDecision(
+        dependency_id=chain_id,
+        evidence_nature=weakest_nature,
+        query_kind=query_kind,
+        matrix_condition=EVIDENCE_QUERY_MATRIX_CONTRACT[(weakest_nature, query_kind)],
+        permitted=all_permitted,
+        effective_evidence_level=eff_level,
+        downgraded=not all_permitted,
+        is_identifiable=all(d.is_identifiable for d in link_decisions),
+        overlap_satisfied=all(d.overlap_satisfied for d in link_decisions),
+        identification_provenance=(
+            "; ".join(
+                d.identification_provenance for d in link_decisions if d.identification_provenance
+            )
+            or None
+        ),
+        refusal_reasons=tuple(all_reasons),
+    )
+
+
+def validate_dependency_for_query(
+    evidence_nature: DependencyEvidenceNature,
+    query_kind: DependencyQueryKind,
+    *,
+    is_identifiable: bool = False,
+    overlap_satisfied: bool = True,
+    identification_provenance: str | None = None,
+    dependency_id: str = "<unnamed>",
+    strict: bool = True,
+) -> EvidenceLevel:
+    """Validate whether a dependency's ``DependencyEvidenceNature`` permits ``query_kind``.
+
+    Epistemic Invariants:
+    1. ``STATISTICAL_ASSOCIATION`` is strictly observational ($P(Y \\mid X)$). It may
+       be used for ``OBSERVATIONAL_PREDICTION`` and ``STATE_EVOLUTION``, but is
+       **never** permitted for ``INTERVENTIONAL_DO`` or ``COUNTERFACTUAL_TWIN``,
+       regardless of flags.
+    2. ``CAUSAL_HYPOTHESIS`` cannot be used for ``INTERVENTIONAL_DO`` unless
+       explicitly backed by identification evidence (``is_identifiable=True``,
+       ``overlap_satisfied=True``, and non-empty ``identification_provenance``),
+       and cannot be used for ``COUNTERFACTUAL_TWIN`` without a verified functional
+       mechanism.
+    3. ``EXPERIMENTALLY_SUPPORTED`` permits ``INTERVENTIONAL_DO`` when overlap holds;
+       ``COUNTERFACTUAL_TWIN`` additionally requires structural functional
+       identifiability and provenance.
+    4. ``BUSINESS_RULE_MECHANISM`` and ``KNOWN_FUNCTIONAL`` permit all query classes
+       within their active policy/physical regime provided overlap holds.
+    """
+    has_provenance = identification_provenance is not None and bool(
+        identification_provenance.strip()
+    )
+    has_id_evidence = is_identifiable and overlap_satisfied and has_provenance
+
+    if query_kind in (
+        DependencyQueryKind.OBSERVATIONAL_PREDICTION,
+        DependencyQueryKind.STATE_EVOLUTION,
+    ):
+        return evidence_nature_to_level(
+            evidence_nature, has_identification_evidence=has_id_evidence
+        )
+
+    reasons: list[str] = []
+
+    if evidence_nature == DependencyEvidenceNature.STATISTICAL_ASSOCIATION:
+        reasons.append(
+            f"Dependency '{dependency_id}' has evidence_nature=STATISTICAL_ASSOCIATION "
+            f"(observational P(Y|X)) and cannot be treated as causal or used for "
+            f"'{query_kind.value}' queries."
+        )
+    elif evidence_nature == DependencyEvidenceNature.CAUSAL_HYPOTHESIS:
+        if query_kind == DependencyQueryKind.COUNTERFACTUAL_TWIN:
+            reasons.append(
+                f"Dependency '{dependency_id}' has evidence_nature=CAUSAL_HYPOTHESIS "
+                "and lacks a verified structural functional assignment required for "
+                "counterfactual twin queries."
+            )
+        else:
+            if not is_identifiable:
+                reasons.append(
+                    f"Dependency '{dependency_id}' (CAUSAL_HYPOTHESIS) is not mathematically "
+                    "identifiable (open backdoor paths or unobserved confounding)."
+                )
+            if not overlap_satisfied:
+                reasons.append(
+                    f"Dependency '{dependency_id}' (CAUSAL_HYPOTHESIS) violates positivity / "
+                    "common support overlap."
+                )
+            if not has_provenance:
+                reasons.append(
+                    f"Dependency '{dependency_id}' (CAUSAL_HYPOTHESIS) lacks explicit "
+                    "identification_provenance (adjustment set, IV, or refuter pass)."
+                )
+    elif evidence_nature == DependencyEvidenceNature.EXPERIMENTALLY_SUPPORTED:
+        if not overlap_satisfied:
+            reasons.append(
+                f"Dependency '{dependency_id}' (EXPERIMENTALLY_SUPPORTED) violates "
+                "positivity / common support overlap in target regime."
+            )
+        if query_kind == DependencyQueryKind.COUNTERFACTUAL_TWIN and not (
+            is_identifiable and has_provenance
+        ):
+            reasons.append(
+                f"Dependency '{dependency_id}' (EXPERIMENTALLY_SUPPORTED) requires "
+                "structural functional identifiability and provenance for unit-level "
+                "counterfactual twin queries."
+            )
+    elif evidence_nature in (
+        DependencyEvidenceNature.BUSINESS_RULE_MECHANISM,
+        DependencyEvidenceNature.KNOWN_FUNCTIONAL,
+    ):
+        if not overlap_satisfied:
+            reasons.append(
+                f"Dependency '{dependency_id}' ({evidence_nature.value}) violates "
+                "domain support / overlap constraints."
+            )
+
+    if reasons:
+        msg = "Unqualified causal query on dependency: " + " ".join(reasons)
+        if strict:
+            raise UnqualifiedCausalClaimError(msg)
+        warnings.warn(
+            f"{msg} Automatically downgrading to PREDICTIVE.",
+            category=InsufficientCausalEvidenceWarning,
+            stacklevel=2,
+        )
+        return EvidenceLevel.PREDICTIVE
+
+    return evidence_nature_to_level(evidence_nature, has_identification_evidence=has_id_evidence)
+
+
 def validate_causal_claim(
     claimed_level: EvidenceLevel,
     is_identifiable: bool,
     overlap_satisfied: bool = True,
     *,
+    evidence_nature: DependencyEvidenceNature | None = None,
+    query_kind: DependencyQueryKind = DependencyQueryKind.INTERVENTIONAL_DO,
     identification_provenance: str | None = None,
     require_provenance: bool = False,
     strict: bool = True,
@@ -124,13 +544,18 @@ def validate_causal_claim(
     Epistemic Guarantee:
         Under NO circumstances can an observational association P(Y | X) be promoted
         to INTERVENTIONAL or STRUCTURAL without passing mathematical identifiability
-        and positivity overlap criteria. When require_provenance=True, causal claims
-        also require explicit identification provenance.
+        and positivity overlap criteria. When ``evidence_nature`` is supplied:
+        - ``STATISTICAL_ASSOCIATION`` is refused for interventional/counterfactual claims.
+        - ``CAUSAL_HYPOTHESIS`` is refused for interventional claims unless backed by
+          identification evidence (``is_identifiable=True``, ``overlap_satisfied=True``,
+          and ``identification_provenance``).
 
     Args:
         claimed_level: The target EvidenceLevel being asserted.
         is_identifiable: Whether Backdoor Criterion or do-calculus identifiability passed.
         overlap_satisfied: Whether common support / positivity overlap is satisfied.
+        evidence_nature: Optional explicit DependencyEvidenceNature classification.
+        query_kind: Query class being validated (defaults to INTERVENTIONAL_DO).
         identification_provenance: Optional provenance string documenting the source of
             causal identification assumptions (e.g., declared DAG + backdoor adjustment set).
         require_provenance: If True, refuses causal standing when identification_provenance
@@ -141,6 +566,21 @@ def validate_causal_claim(
     Returns:
         The validated or downgraded EvidenceLevel.
     """
+    if evidence_nature is not None:
+        nature_level = validate_dependency_for_query(
+            evidence_nature=evidence_nature,
+            query_kind=query_kind,
+            is_identifiable=is_identifiable,
+            overlap_satisfied=overlap_satisfied,
+            identification_provenance=identification_provenance,
+            strict=strict,
+        )
+        if nature_level == EvidenceLevel.PREDICTIVE and query_kind in (
+            DependencyQueryKind.INTERVENTIONAL_DO,
+            DependencyQueryKind.COUNTERFACTUAL_TWIN,
+        ):
+            return EvidenceLevel.PREDICTIVE
+
     if claimed_level in (
         EvidenceLevel.COUNTERFACTUAL,
         EvidenceLevel.INTERVENTIONAL,
@@ -176,6 +616,13 @@ def validate_causal_claim(
                     stacklevel=2,
                 )
                 return EvidenceLevel.PREDICTIVE
+
+    if (
+        evidence_nature == DependencyEvidenceNature.CAUSAL_HYPOTHESIS
+        and claimed_level == EvidenceLevel.ASSUMED
+        and query_kind == DependencyQueryKind.INTERVENTIONAL_DO
+    ):
+        return EvidenceLevel.QUASI_CAUSAL
 
     return claimed_level
 

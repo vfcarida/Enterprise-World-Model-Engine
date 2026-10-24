@@ -176,6 +176,9 @@ class CalibrationWorkflow:
                 ]
 
         # Step 8: Build reproducible run manifest
+        from ewm_engine.evaluation.abstention import ValidityLimitAbstentionGate
+        from ewm_engine.evaluation.uncertainty import UncertaintyTaxonomyBreakdown
+
         run_manifest = {
             "calibration_id": calib_id,
             "seed": seed,
@@ -183,11 +186,27 @@ class CalibrationWorkflow:
             "n_posterior_samples": n_posterior_samples,
             "tracked_resources": list(self.tracked_resources),
             "execution_duration_seconds": float(time.time() - t_start),
-            "software_version": "1.8.0",
+            "software_version": "1.5.0",
         }
 
-        # Step 9: Assemble final report
+        # Step 9: Assemble final report and out-of-competence abstention gate
         priors_dump = [p.model_dump(mode="json") for p in self.prior_set.priors]
+        param_stds = list(posterior.std.values())
+        mean_param_std = float(np.mean(param_stds)) if param_stds else 0.0
+        discrepancy_val = (
+            float(certificate.misspecification_score)
+            if (certificate.is_misspecified or not certificate.is_certified)
+            else 0.0
+        )
+        abstention_gate = ValidityLimitAbstentionGate(max_model_discrepancy=3.5)
+        abstention_dec = abstention_gate.evaluate(
+            uncertainty_breakdown=UncertaintyTaxonomyBreakdown(
+                parameter_std=mean_param_std,
+                model_discrepancy_vs_reality=(
+                    max(discrepancy_val, 4.0) if not certificate.is_certified else discrepancy_val
+                ),
+            ),
+        )
 
         return CalibrationReport(
             calibration_id=calib_id,
@@ -204,5 +223,6 @@ class CalibrationWorkflow:
                 "is_misspecified": certificate.is_misspecified,
                 "threshold_std": 3.5,
             },
+            abstention_decision=abstention_dec.model_dump(mode="json"),
             run_manifest=run_manifest,
         )

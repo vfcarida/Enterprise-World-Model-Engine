@@ -11,6 +11,7 @@ from ewm_engine.cards.models import (
     DatasetCard,
     ModelCard,
     ScenarioCard,
+    validate_result_card_dict,
 )
 from ewm_engine.cards.render import (
     render_card_json,
@@ -28,4 +29,5 @@ __all__ = [
     "render_card_yaml",
     "to_croissant_dataset",
     "to_croissant_json",
+    "validate_result_card_dict",
 ]

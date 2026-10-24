@@ -3,7 +3,7 @@
   <desc id="desc-hm">Comparative matrix across 12 independent benchmark families and 4 baseline paradigms generated directly from enterprise_benchmark_suite.json.</desc>
   <rect width="100%" height="100%" fill="#0f172a" rx="8"/>
   <text x="24" y="34" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="16" font-weight="bold">Enterprise World-Model Evaluation Suite (A-L): Primary Metric Profile</text>
-  <text x="24" y="54" fill="#94a3b8" font-family="monospace" font-size="11">Spec v2.0.0 | Seed=42 | Suite SHA-256=7dadf02addfc7a43...</text>
+  <text x="24" y="54" fill="#94a3b8" font-family="monospace" font-size="11">Spec v2.0.0 | Seed=42 | Suite SHA-256=c4362a01ae4624ce...</text>
   <text x="370" y="80" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">rules-only</text>
   <text x="505" y="80" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">learned-only</text>
   <text x="640" y="80" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">static hybrid</text>
@@ -55,13 +55,13 @@
   <text x="777" y="247" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.925</text>
   <text x="24" y="281" fill="#e2e8f0" font-family="monospace" font-size="11">[F] F_LongHorizonBusinessOpera</text>
   <rect x="310" y="264" width="124" height="28" fill="#065f46" rx="4"/>
-  <text x="372" y="281" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.994</text>
+  <text x="372" y="281" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.704</text>
   <rect x="445" y="264" width="124" height="28" fill="#1e3a8a" rx="4"/>
-  <text x="507" y="281" fill="#eff6ff" font-family="monospace" font-size="11" text-anchor="middle">3.580</text>
+  <text x="507" y="281" fill="#eff6ff" font-family="monospace" font-size="11" text-anchor="middle">2.791</text>
   <rect x="580" y="264" width="124" height="28" fill="#065f46" rx="4"/>
-  <text x="642" y="281" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.726</text>
+  <text x="642" y="281" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.567</text>
   <rect x="715" y="264" width="124" height="28" fill="#065f46" rx="4"/>
-  <text x="777" y="281" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.073</text>
+  <text x="777" y="281" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.063</text>
   <text x="24" y="315" fill="#e2e8f0" font-family="monospace" font-size="11">[G] G_MultiAgentEconomy</text>
   <rect x="310" y="298" width="124" height="28" fill="#065f46" rx="4"/>
   <text x="372" y="315" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">1.000</text>
@@ -92,10 +92,10 @@
   <text x="24" y="417" fill="#e2e8f0" font-family="monospace" font-size="11">[J] J_UncertaintyCalibration</text>
   <rect x="310" y="400" width="124" height="28" fill="#7f1d1d" rx="4"/>
   <text x="372" y="417" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.000</text>
-  <rect x="445" y="400" width="124" height="28" fill="#7f1d1d" rx="4"/>
-  <text x="507" y="417" fill="#fef2f2" font-family="monospace" font-size="11" text-anchor="middle">0.336</text>
-  <rect x="580" y="400" width="124" height="28" fill="#1e3a8a" rx="4"/>
-  <text x="642" y="417" fill="#eff6ff" font-family="monospace" font-size="11" text-anchor="middle">0.711</text>
+  <rect x="445" y="400" width="124" height="28" fill="#1e3a8a" rx="4"/>
+  <text x="507" y="417" fill="#eff6ff" font-family="monospace" font-size="11" text-anchor="middle">0.614</text>
+  <rect x="580" y="400" width="124" height="28" fill="#065f46" rx="4"/>
+  <text x="642" y="417" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.872</text>
   <rect x="715" y="400" width="124" height="28" fill="#065f46" rx="4"/>
   <text x="777" y="417" fill="#ecfdf5" font-family="monospace" font-size="11" text-anchor="middle">0.974</text>
   <text x="24" y="451" fill="#e2e8f0" font-family="monospace" font-size="11">[K] K_OODRegimeShift</text>

@@ -124,14 +124,14 @@ Enterprise technology analysts have identified a structural shift from passive h
 > [!NOTE]
 > **Market Data Discipline**: While various market research reports project the Decision Intelligence and Digital Twin markets to grow significantly through 2030, **specific compound annual growth rates (CAGRs) and market valuation estimates vary widely across research publishers (e.g., Gartner, IDC, MarketsandMarkets)**. In alignment with EWM's anti-overclaiming principles, we deliberately omit unverified dollar estimates.
 >
-> What is empirically verifiable is that Fortune 500 enterprises are actively seeking **explainable, non-hallucinating alternatives to unconstrained generative AI** for operational and capital planning.
+> What is empirically verifiable is that enterprises benefit from **composing boundary LLM agents with deterministic, conservation-enforcing simulation kernels** when operational decisions traverse coupled departmental queues and hard regulatory constraints.
 
-### Why Existing Solutions Fall Short
-1. **Traditional BI (Tableau, PowerBI):** Exceptional at answering *"what happened?"*, but mathematically incapable of answering *"what would happen if we intervene?"*.
-2. **Proprietary DTO Suites (Palantir, AnyLogic):** Powerful but closed-source, vendor-locked, and costly, restricting customization and transparency.
-3. **Pure LLM Copilots:** Suffer from catastrophic confabulation and physical law violations when tasked with quantitative balance sheet or inventory planning.
+### Complementary Roles in the Enterprise Stack
+1. **Traditional BI & Observational ML (Tableau, PowerBI, GBT):** Excel at historical reporting and 1-step stationary forecasting, and suffice whenever policy rules and downstream capacities remain stationary.
+2. **Proprietary DTO Suites (Palantir, AnyLogic):** Provide integrated enterprise modeling but operate as closed-source runtimes.
+3. **Boundary LLM Copilots (`ewm mcp`):** Excel at translating natural-language executive questions into structured scenario parameters and explaining trace outputs, while delegating numerical balance-sheet and queue transitions to a deterministic CPU engine.
 
-**EWM Engine fills the missing foundation:** an open-source, deterministic, auditable simulation kernel that provides the mathematical ground truth required by Decision Intelligence and DTO initiatives.
+**EWM Engine supplies the modular dynamics core:** an open-source, deterministic, auditable simulation and decision-evaluation engine that composes cleanly with BI, mathematical solvers, and boundary LLM agents.
 
 ---
 

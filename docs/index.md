@@ -1,8 +1,8 @@
 # Enterprise World Model Engine (EWM Engine)
 
-**Simulate consequences before acting.**
+**A research program and executable framework investigating when explicitly modeling organizational dynamics improves decisions over predicting outcomes.**
 
-An open-source framework for building executable, action-conditioned models of complex organizational and socio-technical systems.
+An open-source framework for building, stress-testing, and comparatively evaluating executable, action-conditioned models of organizational and socio-technical systems.
 
 <p align="center">
   <a href="https://pypi.org/project/ewm-engine/"><img src="https://img.shields.io/pypi/v/ewm-engine?color=blue&label=PyPI" alt="PyPI Version"></a>
@@ -12,15 +12,16 @@ An open-source framework for building executable, action-conditioned models of c
 </p>
 
 !!! tip "Reproduce All Published Results in One Command"
-    EWM Engine's results gallery and SHA-256 state fingerprints are 100% reproducible:
+    EWM Engine's results gallery, comparative evaluation ladder, and SHA-256 state fingerprints are reproducible:
     - **In-Browser Jupyter**: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb) [Launch Binder](https://mybinder.org/v2/gh/vfcarida/Enterprise-World-Model-Engine/HEAD?filepath=notebooks%2Freproduce.ipynb)
     - **Cloud Codespaces**: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/vfcarida/Enterprise-World-Model-Engine) [Open Codespaces](https://codespaces.new/vfcarida/Enterprise-World-Model-Engine)
     - **Local Terminal**: `make reproduce` or `python scripts/reproduce.py`
+    - **Decision-First Ladder**: `python scripts/run_comparative_evaluation.py --seed 42 --smoke`
     - **Manifest**: Every run verifies against [`reproduction_manifest.json`](results/index.md#run-manifest-provenance).
 
 ---
 
-## The Core Thesis
+## The Conditional Research Thesis
 
 Traditional machine learning optimizes specialized predictive mappings:
 $$\text{input} \longrightarrow \text{prediction}$$
@@ -31,12 +32,12 @@ Examples include:
 - `sensor stream` $\to$ `failure probability`
 - `demand time-series` $\to$ `demand forecast`
 
-Foundation models unified representations across tasks, but **observational prediction is not an executable model of how a system evolves under intervention**.
+Observational prediction is often sufficient—and **not every enterprise application needs an Enterprise World Model**. When decisions are single-shot, operational constraints are slack, or no action-conditioned policy change is under evaluation, a well-calibrated tabular predictor or static optimizer is simpler and superior (see **[What Is an EWM? (Scientific Demarcation)](explanation/what-is-an-ewm.md)** and **[Research Agenda & Falsifiable Hypotheses](explanation/research-agenda.md)**).
 
-An **Enterprise World Model** formalizes an executable representation of organizational dynamics:
+When decisions traverse delayed multi-department cascades, hard accounting invariants, and shifting runtime context ($K_t$), an **Enterprise World Model** formalizes an executable representation of organizational dynamics:
 
 $$\begin{aligned}
-&\text{Current World State } (S_t) \\
+&\text{Current World State } (S_t) + \text{Runtime Context } (K_t) \\
 +\; &\text{Intervention / Proposed Action } (A_t) \\
 +\; &\text{Exogenous Environmental Shocks } (E_t) \\
 +\; &\text{Systemic Dynamics } (\mathcal{T}) \\
@@ -48,7 +49,7 @@ $$\begin{aligned}
 flowchart LR
     accTitle: Enterprise World Model Engine Dataflow Pipeline
     accDescr: End-to-end dataflow showing state observations and rules initializing the world state, feeding through the dynamics engine with actions and exogenous events to project future state distributions.
-    OBS[/"Observations"/] --> STATE["World State S_t"]
+    OBS[/"Observations & Context K_t"/] --> STATE["World State S_t"]
     RULES{{"Rules & Constraints"}} --> STATE
     EVENTS>Exogenous Events] --> ENGINE[["Dynamics Engine"]]
     STATE --> ENGINE
@@ -63,40 +64,34 @@ flowchart LR
 
 ---
 
-## The Four Fundamental Questions
+## The Four Fundamental Capabilities
 
-EWM Engine strictly differentiates four distinct inquiries:
+EWM Engine separates and measures four distinct capabilities rather than collapsing them into a single score:
 
-| Question | Mathematical Form | System Goal |
+| Capability | Mathematical Form | System Goal |
 |---|---|---|
-| **Prediction** | $P(Y \mid X)$ | What is likely to happen next based on historical correlations? |
-| **Simulation** | $P(S_{1:T} \mid S_0, \theta)$ | How could this system evolve forward in time? |
-| **Intervention** | $P(Y \mid \text{do}(X))$ | What could happen if we deliberately alter policy or action $X$? |
-| **Decision Evaluation** | $\mathbb{E}[U(S) \mid \text{do}(X)] \text{ vs } \mathbb{E}[U(S) \mid \text{do}(Y)]$ | How do the systemic consequences of alternative actions compare? |
-
-EWM Engine is primarily architected around **Simulation, Intervention, and Decision Evaluation**. It never conflates observational predictive associations with interventional causal identification.
+| **Prediction** | $P(Y \mid X)$ | Forecast accuracy and marginal calibration under stationary correlations. |
+| **Simulation** | $P(S_{1:T} \mid S_0, K_{0:T}, \theta)$ | Multi-step trajectory fidelity and conservation coherence (distinguishing internal coherence from external reality fidelity). |
+| **Intervention** | $P(Y \mid \text{do}(A_t), K_t)$ | Counterfactual effect estimation gated by `DependencyEvidenceNature`. |
+| **Decision / Planning** | $\arg\min_{\pi \in \Pi_{\text{feasible}}} \text{Regret}(\pi)$ | Downstream policy regret and SLA safety under operational constraints. |
 
 ---
 
 ## Architectural North Star
 
-> *"EWM Engine is not another agent framework. It is the environment model agents can use to ask 'what happens if I do this?' before they act."*
+> *"The deterministic core runs fully on CPU with no required GPU or LLM dependency. GPUs and LLMs are optional and complementary: LLM agents operate at the boundary (natural-language goal interpretation and result explanation via `mcp`/`agents`), while the dynamics core stays deterministic and auditable."*
 
-> *"Prediction estimates what may happen. A world model lets us explore what may happen if the system is changed."*
+> *"Prediction estimates what may happen. A world model tests whether explicitly modeling system dynamics improves downstream decisions when the system is changed."*
 
-> *"Learn what is uncertain. Encode what is known. Simulate the interaction between both."*
+> *"Learn what is uncertain. Encode what is known. Simulate the interaction between both—and emit `"DO_NOT_USE_ME_HERE"` when validity limits are breached."*
 
 ---
 
-## What EWM Engine Is NOT
+## Scope & Architectural Composition (What EWM Engine Is NOT)
 
 To preserve intellectual honesty and architectural focus, EWM Engine is **not**:
-- Another chatbot, RAG, or agent orchestration framework (not LangChain, AutoGen, CrewAI, or LangGraph).
-- An RL-only discrete environment gym (though it supports policy rollouts).
-- A digital-twin 3D visualization platform.
-- A univariate statistical time-series forecasting library.
-- A replacement for low-level discrete-event simulators (DES).
-- A JEPA neural network implementation alone.
-- A financial high-frequency trading simulator.
-
-It is a **general-purpose integration architecture for executable socio-technical dynamics**.
+- **Not an LLM agent orchestrator / prompt-workflow runner — a deterministic engine that LLM agents call** (via Python or `ewm mcp`).
+- **Not a replacement for simpler predictive or optimization tools** when single-step forecasting or static MILP suffices.
+- **Scoped to typed socio-technical state** (entities, ledgers, queues, and policy context $K_t$), occupying a distinct problem domain from pixel, video, or 3D rigid-body physics simulators.
+- **Not an assumption-free causal discovery oracle** (`ewm induce causal` emits Markov Equivalence Classes and fails closed under unmeasured confounding).
+- **One optional, modular capability inside a larger AI-systems architecture** (cf. Sculley et al., 2015)—not a standalone end-to-end data platform.

@@ -1,21 +1,72 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "title": "EWM Engine Universal Scientific Reproduction Manifest",
-  "timestamp_start": "2026-10-22T03:27:56.891699+00:00",
-  "timestamp_end": "2026-10-22T03:27:58.015428+00:00",
+  "timestamp_start": "2026-10-23T23:10:58.809709+00:00",
+  "timestamp_end": "2026-10-23T23:11:00.399606+00:00",
   "verification_checks_passed": true,
-  "certification_status": "CERTIFIED_RELEASE",
-  "certification_reason": "All verification checks passed on a clean working tree at an immutable Git commit.",
-  "overall_status": "CERTIFIED_RELEASE",
+  "certification_status": "REPRODUCIBLE_DIRTY_WORKTREE",
+  "certification_reason": "All functional, numerical, and fingerprint checks passed, but working tree has uncommitted changes. Refusing CERTIFIED_RELEASE status until committed to a clean tree.",
+  "overall_status": "REPRODUCIBLE_DIRTY_WORKTREE",
   "provenance": {
     "git": {
-      "commit": "ed81c53e7837777123519258eb317ff6373f8629",
+      "commit": "0a40d050e4bbadd05c801a499b893b7b8ce47b5b",
       "branch": "main",
-      "dirty": false,
-      "dirty_files_count": 0,
-      "modified_or_untracked": [],
-      "source_tree_sha256": "014aab5e787143f0103f38f1aa8626e11e057f7c4688c54973fb256042ecaeab",
-      "files_hashed_count": 220
+      "dirty": true,
+      "dirty_files_count": 92,
+      "modified_or_untracked": [
+        "M CITATION.cff",
+        "M README.md",
+        "M ROADMAP.md",
+        "M benchmarks/families/enterprise_families.py",
+        "M docs/concepts/world-models.md",
+        "M docs/cookbook/recipe-stress-test.md",
+        "M docs/executive/index.md",
+        "M docs/executive/lineage.md",
+        "M docs/executive/reference-architectures.md",
+        "M docs/guides/scenario-discovery-prim.md",
+        "M docs/index.md",
+        "M docs/positioning/landscape.md",
+        "M docs/research/enterprise-benchmark-suite.md",
+        "M docs/results/artifacts/enterprise_benchmark_heatmap.svg",
+        "M docs/results/artifacts/enterprise_benchmark_suite.json",
+        "M docs/results/beer-game-bullwhip.md",
+        "M docs/results/benchmarks.md",
+        "M docs/results/calibrated-posterior-s04.md",
+        "M docs/results/counterfactual-scm-s01.md",
+        "M docs/results/decision-discovery-s02.md",
+        "M docs/results/index.md",
+        "M docs/results/induction-validation-s09.md",
+        "M docs/results/reproduction_manifest.json",
+        "M docs/results/seir-outbreak.md",
+        "M docs/results/world3-resource-depletion.md",
+        "M docs/scientific/claim-evidence-matrix.md",
+        "M mkdocs.yml",
+        "M newsfragments/204.feature.md",
+        "M newsfragments/205.feature.md",
+        "M newsfragments/207.doc.md",
+        "M newsfragments/209.doc.md",
+        "M newsfragments/217.feature.md",
+        "M pyproject.toml",
+        "M reproduction_manifest.json",
+        "M scripts/check_release_truth.py",
+        "M scripts/check_towncrier.py",
+        "M scripts/reproduce.py",
+        "M scripts/reproduce_comparison.py",
+        "M scripts/reproduce_results.py",
+        "M src/ewm_engine/calibration/report.py",
+        "M src/ewm_engine/calibration/workflow.py",
+        "M src/ewm_engine/cards/__init__.py",
+        "M src/ewm_engine/cards/models.py",
+        "M src/ewm_engine/cli/main.py",
+        "M src/ewm_engine/core/__init__.py",
+        "M src/ewm_engine/core/drift.py",
+        "M src/ewm_engine/core/entities.py",
+        "M src/ewm_engine/core/scm.py",
+        "M src/ewm_engine/core/trust.py",
+        "M src/ewm_engine/decision/engine.py"
+      ],
+      "source_tree_sha256": "31696a649385d57c9e34dad51dd93ca3600188390089f8bd465aaa34e2b2dcab",
+      "files_hashed_count": 244
     },
     "environment": {
       "platform": "Windows-11-10.0.26300-SP0",
@@ -26,6 +77,16 @@
       "python_version": "3.12.10",
       "python_implementation": "CPython",
       "numpy_version": "2.5.3",
+      "backend_versions": {
+        "ewm_engine": "1.5.1.dev28",
+        "numpy": "2.5.3",
+        "pydantic": "2.13.5",
+        "pyyaml": "6.0.3",
+        "scipy": "not_installed",
+        "jax": "not_installed",
+        "torch": "not_installed",
+        "cupy": "not_installed"
+      },
       "uv_lock_sha256": "e7f9c755d9cffca66771676793bb6970ecc5d4dddd0a977d5f6387f479e37543",
       "blas_config_summary": "{\"Compilers\": {\"c\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}, \"cython\": {\"name\": \"cython\", \"linker\": \"cython\", \"version\": \"3.3.0\", \"commands\": \"cython\"}, \"c++\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}}, \"Machine Information"
     },
@@ -38,7 +99,11 @@
         "induction_validation": 42,
         "ref_seed_trivial": 42,
         "ref_closed_form_stochastic": 1337,
-        "ref_constraint_stress": 999
+        "ref_constraint_stress": 999,
+        "enterprise_benchmark_suite": 42,
+        "fraud_cascade_flagship": 42,
+        "comparative_evaluation_ladder": 42,
+        "validity_limits_evaluation": 42
       },
       "numerical_tolerances": {
         "seir_mass_balance_tolerance": 1e-12,
@@ -46,7 +111,12 @@
         "tarp_mean_calibration_error_max": 0.05,
         "prim_density_min": 0.9,
         "prim_coverage_min": 0.8,
-        "soa_state_fingerprint": "bit_exact_sha256"
+        "soa_state_fingerprint": "bit_exact_sha256",
+        "enterprise_suite_conservation_tolerance": 1e-12,
+        "fraud_cascade_cohort_conservation_tolerance": 1e-09,
+        "comparative_ladder_leakage_overlap_max": 0,
+        "performativity_forecast_invalidation_call_mae_threshold": 12.0,
+        "adversarial_degradation_relative_drop_threshold": 0.15
       }
     }
   },
@@ -61,7 +131,8 @@
         "max_mass_balance_drift": 4.547473508864641e-13,
         "physics_iq_score": 1.0,
         "conformal_90_coverage": 1.0,
-        "status": "PASSED"
+        "status": "PASSED",
+        "card_verification_status": "PASSED_CONSERVATION_AND_COVERAGE_VERIFIED"
       },
       "beer_game": {
         "card": "beer_game_bullwhip",
@@ -70,7 +141,8 @@
         "factory_peak_order": 16.309799999999967,
         "bullwhip_amplification_ratio": 3.8024999999999998,
         "multi_tier_conservation": "VERIFIED",
-        "status": "PASSED"
+        "status": "PASSED",
+        "card_verification_status": "PASSED_BULLWHIP_AND_CONSERVATION_VERIFIED"
       },
       "world3": {
         "card": "world3_resource_depletion",
@@ -80,7 +152,8 @@
         "depletion_rate_pct": 100.0,
         "industrial_peak_step": 99,
         "feedback_loop_consistency": "VERIFIED",
-        "status": "PASSED"
+        "status": "PASSED",
+        "card_verification_status": "PASSED_FEEDBACK_EQUILIBRIUM_VERIFIED"
       },
       "calibrated_posterior": {
         "card": "calibrated_posterior_s04",
@@ -98,7 +171,8 @@
         },
         "mean_tarp_calibration_error": 0.028333333333333353,
         "coverage_certified": true,
-        "status": "PASSED"
+        "status": "PASSED",
+        "card_verification_status": "PASSED_TARP_COVERAGE_CERTIFIED"
       },
       "counterfactual_scm": {
         "card": "counterfactual_scm_s01",
@@ -107,7 +181,8 @@
         "net_treatment_effect": 35.0,
         "evidence_level": "counterfactual",
         "noise_coupling_verified": true,
-        "status": "PASSED"
+        "status": "PASSED",
+        "card_verification_status": "PASSED_TWIN_NOISE_COUPLING_VERIFIED"
       },
       "decision_discovery": {
         "card": "decision_discovery_s02",
@@ -115,11 +190,14 @@
         "prim_box_coverage": 0.8,
         "minimax_regret_winner": "Robust",
         "dominant_action": "Robust",
-        "status": "PASSED"
+        "status": "PASSED",
+        "card_verification_status": "PASSED_PRIM_AND_MINIMAX_REGRET_VERIFIED"
       },
       "induction_validation": {
         "card": "induction_validation_s09",
         "validation_passed": false,
+        "all_candidates_admitted": false,
+        "gate_outcome": "REFUSED_UNIDENTIFIABLE_AS_DESIGNED",
         "admitted_elements_count": 7,
         "refused_elements_count": 2,
         "open_questions_count": 2,
@@ -129,7 +207,9 @@
         "causes_string_emitted": 0,
         "byte_identical_reproducibility": true,
         "sha256_fingerprint": "478e28f89ffd0022ebc5d379307da85a85e234ac68a23f03efb249a793111d90",
-        "status": "PASSED"
+        "status": "PASSED",
+        "card_verification_status": "PASSED_REFUSAL_GATE_VERIFIED",
+        "status_explanation": "validation_passed=False (all_candidates_admitted=False) means 2 negative-control unidentifiable/confounded edges were refused from WorldSpec and surfaced as 2 open questions (`gate_outcome='REFUSED_UNIDENTIFIABLE_AS_DESIGNED'`). status='PASSED' (`card_verification_status='PASSED_REFUSAL_GATE_VERIFIED'`) means the benchmark card verified that the positive control was admitted and negative controls were refused as designed."
       }
     },
     "conformance_reference_worlds": {
@@ -188,12 +268,136 @@
     "batched_scale_bit_identity": {
       "tensor_roundtrip_bit_identical": true,
       "verified_state_fingerprint": "89534de1e5536adc882f9422eaa42e1d4124fad3d6dfd7bab60b9e4a3e14ce7c"
+    },
+    "adr_053_054_evidence_layer": {
+      "enterprise_benchmark_suite": {
+        "suite_name": "EWM_Enterprise_World_Model_Benchmark_Suite",
+        "benchmark_spec_version": "2.0.0",
+        "master_seed": 42,
+        "families_evaluated": 12,
+        "family_codes": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G",
+          "H",
+          "I",
+          "J",
+          "K",
+          "L"
+        ],
+        "all_leakage_certificates_passed": true,
+        "deployment_shift_family_d": {
+          "audit_discovery_delay_steps": 2,
+          "pre_shift_mae": 0.15355448486523926,
+          "peak_post_shift_mae": 37.32584768424632,
+          "steady_state_post_shift_mae": 0.15793028268014733,
+          "steps_until_recovery": 2,
+          "recovered_within_budget": true
+        },
+        "suite_fingerprint": "c4362a01ae4624ce912f81535e6acd73d54c01bb22dce0daa697ab7adbe0cbb1",
+        "artifact_sha256": "99397118f689c5643539bcd8405ad41d0b9d0047741aefdd14be0aec26beafb3",
+        "status": "PASSED"
+      },
+      "fraud_cascade_flagship": {
+        "scenario_id": "fraud_declines_call_center_cascade_v1",
+        "epistemic_label": "CONTROLLED_SYNTHETIC_KNOWN_MECHANISMS_NOT_REAL_WORLD_EFFICACY",
+        "master_seed": 42,
+        "train_seed": 101,
+        "eval_seed": 202,
+        "mechanism_recovery_all_passed": true,
+        "bitemporal_leakage_blocked": true,
+        "leakage_certificate_passed": true,
+        "myopic_decision_regret_usd": 124774.05,
+        "cascade_ewm_decision_regret_usd": 0.0,
+        "scenario_fingerprint": "abd41502e780d6479f759d408450c95daae0ee999a9b351c9d96cdb7b9c6bf7e",
+        "output_fingerprint": "946c8c864449ebbfc2ebfe6a9c8c9f656414aa607d81417ee0e46e47703fb60f",
+        "artifact_sha256": "bc92f37de5d44bd2ed35c2eb1df6f099d24eb49ca24847b5f81d10a44fa2376c",
+        "status": "PASSED"
+      },
+      "comparative_evaluation_ladder": {
+        "pre_registration_id": "EWME-PREREG-20261023-LADDER",
+        "epistemic_label": "CONTROLLED_SYNTHETIC_KNOWN_MECHANISMS_NOT_REAL_WORLD_EFFICACY",
+        "master_seed": 42,
+        "evaluated_seeds": [
+          3885454580,
+          3581871814,
+          3100435380,
+          1970475875,
+          2832263878,
+          545717655,
+          616287349,
+          2828675968,
+          2503035058,
+          3353190387
+        ],
+        "rungs_evaluated": 5,
+        "architectural_baselines_evaluated": 4,
+        "ablations_evaluated": 6,
+        "negative_results_confirmed": 4,
+        "leakage_certificate_passed": true,
+        "rung1_to_rung3_mae_reduction_pct": 91.49,
+        "rung1_to_rung3_regret_reduction_usd": 0.0,
+        "rung5_decision_regret_usd": 0.0,
+        "report_fingerprint": "0553d5286516e8cc565a9aecde654c46ac0ca3c72f1adf53bbe46527b453428b",
+        "artifact_sha256": "acf19b0d2328bfd6371687edd84e3eca0fc80f9b44fc2ebec44522bd2ff105cc",
+        "pre_registration_sha256": "20b5fabfb82da41a626fc27977c8ff92c22537dc24d1980b5cb901367be77590",
+        "status": "PASSED"
+      },
+      "validity_limits_evaluation": {
+        "performativity_epistemic_label": "CONTROLLED_SYNTHETIC_VALIDITY_LIMITS_NOT_REAL_WORLD_EFFICACY",
+        "adversarial_epistemic_label": "STYLIZED_SYNTHETIC_ADVERSARY_NOT_REAL_FRAUD_RING_CLAIM",
+        "seed": 42,
+        "plan_self_invalidating_detected": true,
+        "time_to_forecast_invalidation_steps": 2,
+        "time_to_sla_breach_steps": 11,
+        "performative_utility_erosion_usd": 107539.6,
+        "performative_regret_usd": 48793.29,
+        "performativity_report_fingerprint": "44c8481ec74b65d2137b84c9ca7d8974e736b920c5fe9bab8898a7c303bd6c65",
+        "adversarial_report_fingerprint": "ac8d57bf024c28df0a9a09d326e36d4331f3ef834a1bf8cccbe1e93312837571",
+        "status": "PASSED"
+      }
+    }
+  },
+  "canonical_artifacts": {
+    "docs/results/artifacts/enterprise_benchmark_suite.json": {
+      "file_sha256": "99397118f689c5643539bcd8405ad41d0b9d0047741aefdd14be0aec26beafb3",
+      "semantic_fingerprint": "c4362a01ae4624ce912f81535e6acd73d54c01bb22dce0daa697ab7adbe0cbb1"
+    },
+    "docs/results/artifacts/enterprise_benchmark_heatmap.svg": {
+      "file_sha256": "29390b53f960fc312aa18bf2988aeca6f2bc8fab66fabafed5e745b976fac37d",
+      "semantic_fingerprint": "c4362a01ae4624ce912f81535e6acd73d54c01bb22dce0daa697ab7adbe0cbb1"
+    },
+    "docs/results/artifacts/enterprise_shift_recovery.svg": {
+      "file_sha256": "a5412085aa8a7cba590b7d747d87aec757b09a49bce3d1cd4a9fd3d9f37344a1",
+      "semantic_fingerprint": "c4362a01ae4624ce912f81535e6acd73d54c01bb22dce0daa697ab7adbe0cbb1"
+    },
+    "docs/results/artifacts/fraud_cascade_flagship.json": {
+      "file_sha256": "bc92f37de5d44bd2ed35c2eb1df6f099d24eb49ca24847b5f81d10a44fa2376c",
+      "semantic_fingerprint": "946c8c864449ebbfc2ebfe6a9c8c9f656414aa607d81417ee0e46e47703fb60f"
+    },
+    "docs/results/artifacts/comparative_evaluation_ladder.json": {
+      "file_sha256": "acf19b0d2328bfd6371687edd84e3eca0fc80f9b44fc2ebec44522bd2ff105cc",
+      "semantic_fingerprint": "0553d5286516e8cc565a9aecde654c46ac0ca3c72f1adf53bbe46527b453428b"
+    },
+    "docs/results/artifacts/pre_registration_comparative_ladder.json": {
+      "file_sha256": "20b5fabfb82da41a626fc27977c8ff92c22537dc24d1980b5cb901367be77590",
+      "semantic_fingerprint": "EWME-PREREG-20261023-LADDER"
+    },
+    "benchmarks/mutation_baseline.json": {
+      "file_sha256": "d83ba8891f78d8868f8161ac8541b4b381e572c8c26d1d78ca9fff204c22f3a0",
+      "semantic_fingerprint": "d83ba8891f78d8868f8161ac8541b4b381e572c8c26d1d78ca9fff204c22f3a0"
     }
   },
   "visual_artifacts": {
     "ground_truth_overlay": "359ae92702bdc9c646fda3759f452a917e9afbc47605f7a2c0a3eac628e7ecdb",
     "calibration_pit": "52e24b1fa60eaea42049489869409727498147b99d4d0573e9b045241d379188",
-    "multiseed_error_bars": "fb6405e7c437ea548d1c62731c6e2ce962253a54ce3c1f17a4a4a7e26a5c3d62"
+    "multiseed_error_bars": "fb6405e7c437ea548d1c62731c6e2ce962253a54ce3c1f17a4a4a7e26a5c3d62",
+    "enterprise_benchmark_heatmap": "29390b53f960fc312aa18bf2988aeca6f2bc8fab66fabafed5e745b976fac37d",
+    "enterprise_shift_recovery": "a5412085aa8a7cba590b7d747d87aec757b09a49bce3d1cd4a9fd3d9f37344a1"
   },
-  "reproduction_fingerprint": "e40502f42067ddacae79588725d4f355f6967d4ed983e604ab059e308bdd829c"
+  "reproduction_fingerprint": "384e4d60a6429e443e18de848e2ef1f9b9a26f66bd82a4531088a56aa983a761"
 }

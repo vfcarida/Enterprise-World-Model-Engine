@@ -54,6 +54,21 @@ class BaseCard(BaseModel):
 
         return render_card_markdown(self)
 
+    def validate_card_coherence(self, *, strict: bool = True) -> list[str]:
+        """Validate internal structural and status coherence of a reproducibility card."""
+        errors: list[str] = []
+        if not self.artifact_fingerprint or not self.artifact_fingerprint.strip():
+            errors.append("artifact_fingerprint must be non-empty.")
+        if self.maturity not in {"production", "beta", "experimental"}:
+            errors.append(
+                f"Invalid maturity tier {self.maturity!r}; expected 'production', 'beta', or 'experimental'."
+            )
+        if errors and strict:
+            raise ValueError(
+                f"{self.__class__.__name__} failed card coherence validation: {'; '.join(errors)}"
+            )
+        return errors
+
 
 class ModelCard(BaseCard):
     """Native Model Card documenting a DynamicsModel or Policy Actor.
@@ -227,6 +242,27 @@ class ModelCard(BaseCard):
 
         return render_model_annex_iv(self)
 
+    def validate_card_coherence(self, *, strict: bool = True) -> list[str]:
+        """Validate Mitchell completeness, calibration bounds, and status coherence."""
+        errors = super().validate_card_coherence(strict=False)
+        missing = self.validate_mitchell_completeness(strict=False)
+        if missing:
+            errors.append(f"Missing Mitchell sections: {', '.join(missing)}")
+        if self.calibration_score is not None and not (0.0 <= self.calibration_score <= 1.0):
+            errors.append(
+                f"calibration_score ({self.calibration_score}) must be within [0.0, 1.0]."
+            )
+        status_val = str(self.metrics.get("status", "PASSED"))
+        if self.maturity == "production" and status_val == "FAILED":
+            errors.append(
+                "ModelCard with maturity='production' cannot have metrics['status']=='FAILED'."
+            )
+        if errors and strict:
+            raise ValueError(
+                f"ModelCard '{self.model_id}' failed card coherence validation: {'; '.join(errors)}"
+            )
+        return errors
+
 
 class ScenarioCard(BaseCard):
     """Native Scenario Card documenting an experiment setup, stress scenario, or policy sweep."""
@@ -332,6 +368,23 @@ class ScenarioCard(BaseCard):
 
         return render_scenario_annex_iv(self)
 
+    def validate_card_coherence(self, *, strict: bool = True) -> list[str]:
+        """Validate scenario assumptions, scope, and status coherence."""
+        errors = super().validate_card_coherence(strict=False)
+        missing = self.validate_assumptions_and_scope(strict=False)
+        if missing:
+            errors.append(f"Missing required ScenarioCard fields: {', '.join(missing)}")
+        status_val = str(self.metrics.get("status", "PASSED"))
+        if self.maturity == "production" and status_val == "FAILED":
+            errors.append(
+                "ScenarioCard with maturity='production' cannot have metrics['status']=='FAILED'."
+            )
+        if errors and strict:
+            raise ValueError(
+                f"ScenarioCard '{self.scenario_id}' failed card coherence validation: {'; '.join(errors)}"
+            )
+        return errors
+
 
 class DatasetCard(BaseCard):
     """Native Dataset Card documenting a simulation trace or synthetic training dataset.
@@ -394,3 +447,122 @@ class DatasetCard(BaseCard):
         from ewm_engine.cards.croissant import to_croissant_dataset
 
         return to_croissant_dataset(self)
+
+    def validate_card_coherence(self, *, strict: bool = True) -> list[str]:
+        """Validate dataset features, intended use, and trajectory/step count coherence."""
+        errors = super().validate_card_coherence(strict=False)
+        if not self.features:
+            errors.append("DatasetCard.features must not be empty.")
+        if not self.intended_use:
+            errors.append("DatasetCard.intended_use must not be empty.")
+        if self.num_trajectories > 0 and self.num_steps < self.num_trajectories:
+            errors.append(
+                f"DatasetCard.num_steps ({self.num_steps}) must be >= num_trajectories ({self.num_trajectories})."
+            )
+        if errors and strict:
+            raise ValueError(
+                f"DatasetCard '{self.dataset_id}' failed card coherence validation: {'; '.join(errors)}"
+            )
+        return errors
+
+
+def validate_result_card_dict(
+    card_payload: dict[str, Any],
+    *,
+    strict: bool = True,
+) -> list[str]:
+    """Validate internal status coherence of a scientific benchmark result card payload.
+
+    Enforces:
+    1. Every result card must carry non-empty ``card``, ``status`` in ``{'PASSED', 'FAILED'}``,
+       and ``card_verification_status``.
+    2. ``status == 'PASSED'`` requires ``card_verification_status`` to start with ``'PASSED_'``
+       (and ``'FAILED'`` requires ``'FAILED_'``).
+    3. Dual-status disambiguation on ``induction_validation_s09``: if ``validation_passed`` is
+       present, ``all_candidates_admitted``, ``gate_outcome``, ``card_verification_status``, and
+       ``status_explanation`` must all be present and mutually coherent.
+    4. Domain-specific honesty invariants (e.g., ``physics_iq_score == 1.0`` and
+       ``max_mass_balance_drift <= 1e-12`` for ``seir_outbreak``; ``coverage_certified is True``
+       and ``mean_tarp_calibration_error <= 0.05`` for ``calibrated_posterior_s04``;
+       ``noise_coupling_verified is True`` for ``counterfactual_scm_s01``).
+    """
+    errors: list[str] = []
+    card_id = str(card_payload.get("card", "")).strip()
+    if not card_id:
+        errors.append("Result card payload missing non-empty 'card' identifier.")
+
+    status = str(card_payload.get("status", "")).strip()
+    if status not in {"PASSED", "FAILED"}:
+        errors.append(
+            f"Card '{card_id}': invalid status {status!r}; expected 'PASSED' or 'FAILED'."
+        )
+
+    ver_status = str(card_payload.get("card_verification_status", "")).strip()
+    if not ver_status:
+        errors.append(
+            f"Card '{card_id}': missing machine-checkable 'card_verification_status' field."
+        )
+    elif status == "PASSED" and not ver_status.startswith("PASSED_"):
+        errors.append(
+            f"Card '{card_id}': status='PASSED' contradicts card_verification_status={ver_status!r}."
+        )
+    elif status == "FAILED" and not ver_status.startswith("FAILED_"):
+        errors.append(
+            f"Card '{card_id}': status='FAILED' contradicts card_verification_status={ver_status!r}."
+        )
+
+    if "validation_passed" in card_payload:
+        for req_field in (
+            "all_candidates_admitted",
+            "gate_outcome",
+            "card_verification_status",
+            "status_explanation",
+        ):
+            if req_field not in card_payload:
+                errors.append(
+                    f"Card '{card_id}': dual-status card missing required field {req_field!r}."
+                )
+        val_passed = card_payload.get("validation_passed")
+        all_adm = card_payload.get("all_candidates_admitted")
+        if val_passed != all_adm:
+            errors.append(
+                f"Card '{card_id}': validation_passed ({val_passed}) != all_candidates_admitted ({all_adm})."
+            )
+        if val_passed is False and status == "PASSED":
+            if card_payload.get("gate_outcome") != "REFUSED_UNIDENTIFIABLE_AS_DESIGNED":
+                errors.append(
+                    f"Card '{card_id}': validation_passed=False with status='PASSED' requires "
+                    "gate_outcome='REFUSED_UNIDENTIFIABLE_AS_DESIGNED'."
+                )
+            if int(card_payload.get("refused_elements_count", 0)) <= 0:
+                errors.append(
+                    f"Card '{card_id}': validation_passed=False requires refused_elements_count > 0."
+                )
+
+    if "physics_iq_score" in card_payload and status == "PASSED":
+        if float(card_payload.get("physics_iq_score", 0.0)) < 1.0:
+            errors.append(f"Card '{card_id}': status='PASSED' requires physics_iq_score == 1.0.")
+        if float(card_payload.get("max_mass_balance_drift", 1.0)) > 1e-12:
+            errors.append(
+                f"Card '{card_id}': status='PASSED' requires max_mass_balance_drift <= 1e-12."
+            )
+
+    if "coverage_certified" in card_payload and status == "PASSED":
+        if card_payload.get("coverage_certified") is not True:
+            errors.append(f"Card '{card_id}': status='PASSED' requires coverage_certified is True.")
+        if float(card_payload.get("mean_tarp_calibration_error", 1.0)) > 0.05:
+            errors.append(
+                f"Card '{card_id}': status='PASSED' requires mean_tarp_calibration_error <= 0.05."
+            )
+
+    if "noise_coupling_verified" in card_payload and status == "PASSED":
+        if card_payload.get("noise_coupling_verified") is not True:
+            errors.append(
+                f"Card '{card_id}': status='PASSED' requires noise_coupling_verified is True."
+            )
+
+    if errors and strict:
+        raise ValueError(
+            f"Result card '{card_id}' failed coherence validation: {'; '.join(errors)}"
+        )
+    return errors

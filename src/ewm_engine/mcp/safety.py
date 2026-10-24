@@ -119,3 +119,49 @@ class ExplainInput(BaseModel):
     identifier: str = Field(
         description="Execution run_id, state fingerprint, or trace_id to inspect."
     )
+
+
+class VerifyExplanationInput(BaseModel):
+    """Input payload for ewm.verify_explanation tool."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    trace_id: str | None = Field(
+        default=None,
+        description="Stored trace_id or run_id to verify against (optional if explanation_dict is provided).",
+    )
+    explanation_dict: dict[str, Any] | None = Field(
+        default=None,
+        description="Serialized VerifiableMechanisticExplanation dictionary when not looking up by trace_id.",
+    )
+    narrative_text: str = Field(
+        min_length=1,
+        max_length=10000,
+        description="Candidate natural-language explanation text produced by an agent or reporting layer.",
+    )
+    claimed_mechanisms: list[str] = Field(
+        default_factory=list,
+        description="Optional explicit list of mechanism IDs claimed by the narrative.",
+    )
+    known_universe_mechanisms: list[str] = Field(
+        default_factory=list,
+        description="Optional universe of known domain mechanism IDs to audit for ungrounded mentions.",
+    )
+
+
+class CheckAbstentionInput(BaseModel):
+    """Input payload for ewm.check_abstention tool."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    aleatoric_std: float | None = Field(default=None, ge=0.0)
+    parameter_std: float | None = Field(default=None, ge=0.0)
+    structural_model_std: float | None = Field(default=None, ge=0.0)
+    runtime_context_std: float | None = Field(default=None, ge=0.0)
+    monte_carlo_se: float | None = Field(default=None, ge=0.0)
+    model_discrepancy_vs_reality: float | None = Field(default=None, ge=0.0)
+    max_parameter_std: float = Field(default=0.25, gt=0.0)
+    max_structural_model_std: float = Field(default=0.25, gt=0.0)
+    max_model_discrepancy: float = Field(default=0.30, gt=0.0)
+    performative_invalidation: bool = Field(default=False)
+    insufficient_causal_evidence: bool = Field(default=False)

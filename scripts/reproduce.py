@@ -48,6 +48,7 @@ def compute_source_tree_fingerprint(repo_root: Path = REPO_ROOT) -> dict[str, An
         "pyproject.toml",
         "uv.lock",
         "src/ewm_engine/**/*.py",
+        "benchmarks/**/*.py",
         "conformance/**/*.py",
         "schemas/**/*.json",
     ]
@@ -169,8 +170,14 @@ def determine_certification_status(
 
 
 def get_environment_info() -> dict[str, Any]:
-    """Collect system, Python, BLAS, and dependency lockfile provenance."""
+    """Collect system, Python, BLAS, backend versions, and dependency lockfile provenance."""
+    import importlib.metadata
+
     import numpy as np
+    import pydantic
+    import yaml
+
+    import ewm_engine
 
     uv_lock_path = REPO_ROOT / "uv.lock"
     lock_hash = (
@@ -187,6 +194,18 @@ def get_environment_info() -> dict[str, Any]:
     except Exception:
         blas_info = "standard"
 
+    backend_versions: dict[str, str] = {
+        "ewm_engine": str(ewm_engine.__version__),
+        "numpy": str(np.__version__),
+        "pydantic": str(pydantic.__version__),
+        "pyyaml": str(getattr(yaml, "__version__", "unknown")),
+    }
+    for opt_pkg in ("scipy", "jax", "torch", "cupy"):
+        try:
+            backend_versions[opt_pkg] = importlib.metadata.version(opt_pkg)
+        except Exception:
+            backend_versions[opt_pkg] = "not_installed"
+
     return {
         "platform": platform.platform(),
         "system": platform.system(),
@@ -196,9 +215,295 @@ def get_environment_info() -> dict[str, Any]:
         "python_version": sys.version.split()[0],
         "python_implementation": platform.python_implementation(),
         "numpy_version": np.__version__,
+        "backend_versions": backend_versions,
         "uv_lock_sha256": lock_hash,
         "blas_config_summary": blas_info.strip(),
     }
+
+
+CARD_MARKDOWN_MAP: dict[str, str] = {
+    "seir": "docs/results/seir-outbreak.md",
+    "beer_game": "docs/results/beer-game-bullwhip.md",
+    "world3": "docs/results/world3-resource-depletion.md",
+    "calibrated_posterior": "docs/results/calibrated-posterior-s04.md",
+    "counterfactual_scm": "docs/results/counterfactual-scm-s01.md",
+    "decision_discovery": "docs/results/decision-discovery-s02.md",
+    "induction_validation": "docs/results/induction-validation-s09.md",
+}
+
+
+def sync_result_card_markdown_blocks(
+    card_results: dict[str, Any],
+    repo_root: Path = REPO_ROOT,
+) -> None:
+    """Synchronize embedded JSON scorecard blocks in docs/results/*.md with card_results."""
+    import re
+
+    from ewm_engine.cards.models import validate_result_card_dict
+
+    json_block_re = re.compile(r"(```json\r?\n)\{.*?\}(\r?\n```)", flags=re.DOTALL)
+    for card_key, rel_md in CARD_MARKDOWN_MAP.items():
+        payload = card_results.get(card_key)
+        if not isinstance(payload, dict) or "card" not in payload:
+            continue
+        validate_result_card_dict(payload, strict=True)
+        md_path = repo_root / rel_md
+        if not md_path.exists():
+            continue
+        md_text = md_path.read_text(encoding="utf-8")
+        formatted_json = json.dumps(payload, indent=2)
+        updated_text, count = json_block_re.subn(
+            lambda m, fj=formatted_json: f"{m.group(1)}{fj}{m.group(2)}",
+            md_text,
+            count=1,
+        )
+        if count == 1 and updated_text != md_text:
+            md_path.write_text(updated_text, encoding="utf-8")
+
+
+def reproduce_adr_053_054_layer(
+    repo_root: Path = REPO_ROOT,
+) -> tuple[dict[str, Any], dict[str, dict[str, str]], bool]:
+    """Verify and fingerprint ADR-053/054 enterprise suite, flagship, comparative ladder, and validity limits."""
+    from ewm_engine.flagship.fraud_cascade import FraudCascadeParameters
+    from ewm_engine.flagship.validity_limits import (
+        run_adversarial_adaptation_scenario,
+        run_performativity_endogeneity_scenario,
+    )
+
+    layer_results: dict[str, Any] = {}
+    canonical_artifacts: dict[str, dict[str, str]] = {}
+    all_ok = True
+
+    # 1. Enterprise Benchmark Suite (A-L, ADR-054)
+    suite_path = repo_root / "docs" / "results" / "artifacts" / "enterprise_benchmark_suite.json"
+    heatmap_path = repo_root / "docs" / "results" / "artifacts" / "enterprise_benchmark_heatmap.svg"
+    shift_svg_path = repo_root / "docs" / "results" / "artifacts" / "enterprise_shift_recovery.svg"
+    if suite_path.exists():
+        suite_bytes = suite_path.read_bytes()
+        suite_sha = hashlib.sha256(suite_bytes).hexdigest()
+        suite_data = json.loads(suite_bytes.decode("utf-8"))
+        families = suite_data.get("families", [])
+        suite_fp = str(suite_data.get("suite_fingerprint", ""))
+        leakage_ok = len(families) == 12 and all(
+            bool(f.get("leakage_certificate", {}).get("passed", False)) for f in families
+        )
+        # Extract Family D deployment-shift recovery summary
+        fam_d = next((f for f in families if f.get("family_code") == "D"), {})
+        ctx_hybrid_d = next(
+            (
+                b
+                for b in fam_d.get("baselines", [])
+                if b.get("paradigm") == "hybrid + runtime context discovery"
+            ),
+            {},
+        )
+        shift_prot_d = ctx_hybrid_d.get("shift_protocol", {}) or {}
+        suite_passed = (
+            len(families) == 12
+            and len(suite_fp) == 64
+            and leakage_ok
+            and bool(shift_prot_d.get("recovered_within_budget", False))
+        )
+        if not suite_passed:
+            all_ok = False
+        layer_results["enterprise_benchmark_suite"] = {
+            "suite_name": suite_data.get(
+                "suite_name", "EWM_Enterprise_World_Model_Benchmark_Suite"
+            ),
+            "benchmark_spec_version": suite_data.get("benchmark_spec_version", "2.0.0"),
+            "master_seed": int(suite_data.get("master_seed", 42)),
+            "families_evaluated": len(families),
+            "family_codes": [str(f.get("family_code", "")) for f in families],
+            "all_leakage_certificates_passed": leakage_ok,
+            "deployment_shift_family_d": {
+                "audit_discovery_delay_steps": shift_prot_d.get("audit_discovery_delay_steps"),
+                "pre_shift_mae": shift_prot_d.get("pre_shift_mae"),
+                "peak_post_shift_mae": shift_prot_d.get("peak_post_shift_mae"),
+                "steady_state_post_shift_mae": shift_prot_d.get("steady_state_post_shift_mae"),
+                "steps_until_recovery": shift_prot_d.get("steps_until_recovery"),
+                "recovered_within_budget": shift_prot_d.get("recovered_within_budget"),
+            },
+            "suite_fingerprint": suite_fp,
+            "artifact_sha256": suite_sha,
+            "status": "PASSED" if suite_passed else "FAILED",
+        }
+        canonical_artifacts["docs/results/artifacts/enterprise_benchmark_suite.json"] = {
+            "file_sha256": suite_sha,
+            "semantic_fingerprint": suite_fp,
+        }
+        if heatmap_path.exists():
+            hm_sha = hashlib.sha256(heatmap_path.read_bytes()).hexdigest()
+            canonical_artifacts["docs/results/artifacts/enterprise_benchmark_heatmap.svg"] = {
+                "file_sha256": hm_sha,
+                "semantic_fingerprint": suite_fp,
+            }
+        if shift_svg_path.exists():
+            sr_sha = hashlib.sha256(shift_svg_path.read_bytes()).hexdigest()
+            canonical_artifacts["docs/results/artifacts/enterprise_shift_recovery.svg"] = {
+                "file_sha256": sr_sha,
+                "semantic_fingerprint": suite_fp,
+            }
+    else:
+        all_ok = False
+        layer_results["enterprise_benchmark_suite"] = {"status": "FAILED", "error": "Missing file"}
+
+    # 2. Flagship Fraud -> Declines -> Call-Center Cascade
+    flagship_path = repo_root / "docs" / "results" / "artifacts" / "fraud_cascade_flagship.json"
+    if flagship_path.exists():
+        flagship_bytes = flagship_path.read_bytes()
+        flagship_sha = hashlib.sha256(flagship_bytes).hexdigest()
+        flagship_data = json.loads(flagship_bytes.decode("utf-8"))
+        repro_blk = flagship_data.get("reproducibility", {})
+        scen_fp = str(repro_blk.get("scenario_fingerprint", ""))
+        out_fp = str(repro_blk.get("output_fingerprint", ""))
+        live_param_fp = FraudCascadeParameters().fingerprint
+        mech_ok = bool(flagship_data.get("mechanism_recovery_checks", {}).get("all_passed", False))
+        bitemp_ok = bool(
+            flagship_data.get("bitemporal_audit", {}).get(
+                "leakage_guard_triggered_on_future_read", False
+            )
+        )
+        leak_ok = bool(
+            flagship_data.get("four_queries", {})
+            .get("leakage_certificate", {})
+            .get("passed", False)
+        )
+        flagship_passed = (
+            scen_fp == live_param_fp and len(out_fp) == 64 and mech_ok and bitemp_ok and leak_ok
+        )
+        if not flagship_passed:
+            all_ok = False
+        planning_q = flagship_data.get("four_queries", {}).get("planning", {})
+        layer_results["fraud_cascade_flagship"] = {
+            "scenario_id": flagship_data.get(
+                "scenario_id", "fraud_declines_call_center_cascade_v1"
+            ),
+            "epistemic_label": flagship_data.get("epistemic_label"),
+            "master_seed": int(repro_blk.get("master_seed", 42)),
+            "train_seed": int(repro_blk.get("train_seed", 101)),
+            "eval_seed": int(repro_blk.get("eval_seed", 202)),
+            "mechanism_recovery_all_passed": mech_ok,
+            "bitemporal_leakage_blocked": bitemp_ok,
+            "leakage_certificate_passed": leak_ok,
+            "myopic_decision_regret_usd": planning_q.get("myopic_decision_regret"),
+            "cascade_ewm_decision_regret_usd": planning_q.get("cascade_ewm_decision_regret"),
+            "scenario_fingerprint": scen_fp,
+            "output_fingerprint": out_fp,
+            "artifact_sha256": flagship_sha,
+            "status": "PASSED" if flagship_passed else "FAILED",
+        }
+        canonical_artifacts["docs/results/artifacts/fraud_cascade_flagship.json"] = {
+            "file_sha256": flagship_sha,
+            "semantic_fingerprint": out_fp,
+        }
+    else:
+        all_ok = False
+        layer_results["fraud_cascade_flagship"] = {"status": "FAILED", "error": "Missing file"}
+
+    # 3. Decision-First Comparative Evaluation Ladder
+    comp_path = repo_root / "docs" / "results" / "artifacts" / "comparative_evaluation_ladder.json"
+    prereg_path = (
+        repo_root / "docs" / "results" / "artifacts" / "pre_registration_comparative_ladder.json"
+    )
+    if comp_path.exists() and prereg_path.exists():
+        comp_bytes = comp_path.read_bytes()
+        comp_sha = hashlib.sha256(comp_bytes).hexdigest()
+        comp_data = json.loads(comp_bytes.decode("utf-8"))
+        prereg_bytes = prereg_path.read_bytes()
+        prereg_sha = hashlib.sha256(prereg_bytes).hexdigest()
+        prereg_data = json.loads(prereg_bytes.decode("utf-8"))
+
+        comp_fp = str(comp_data.get("report_fingerprint", ""))
+        prereg_id = str(comp_data.get("pre_registration_id", ""))
+        rungs = comp_data.get("ladder_rungs", [])
+        arch_bases = comp_data.get("architectural_baselines", [])
+        ablations = comp_data.get("ablations", [])
+        neg_res = comp_data.get("negative_results", [])
+        comp_leak_ok = bool(comp_data.get("leakage_certificate", {}).get("passed", False))
+        comp_passed = (
+            len(comp_fp) == 64
+            and prereg_id == prereg_data.get("pre_registration_id")
+            and len(rungs) == 5
+            and len(arch_bases) == 4
+            and len(ablations) == 6
+            and len(neg_res) == 4
+            and all(bool(n.get("confirmed", False)) for n in neg_res)
+            and comp_leak_ok
+        )
+        if not comp_passed:
+            all_ok = False
+        gap = comp_data.get("prediction_vs_decision_gap", {})
+        layer_results["comparative_evaluation_ladder"] = {
+            "pre_registration_id": prereg_id,
+            "epistemic_label": comp_data.get("epistemic_label"),
+            "master_seed": int(comp_data.get("master_seed", 42)),
+            "evaluated_seeds": comp_data.get("evaluated_seeds", []),
+            "rungs_evaluated": len(rungs),
+            "architectural_baselines_evaluated": len(arch_bases),
+            "ablations_evaluated": len(ablations),
+            "negative_results_confirmed": sum(1 for n in neg_res if n.get("confirmed")),
+            "leakage_certificate_passed": comp_leak_ok,
+            "rung1_to_rung3_mae_reduction_pct": gap.get("rung1_to_rung3_mae_reduction_pct"),
+            "rung1_to_rung3_regret_reduction_usd": gap.get("rung1_to_rung3_regret_reduction_usd"),
+            "rung5_decision_regret_usd": gap.get("rung5_decision_regret_usd"),
+            "report_fingerprint": comp_fp,
+            "artifact_sha256": comp_sha,
+            "pre_registration_sha256": prereg_sha,
+            "status": "PASSED" if comp_passed else "FAILED",
+        }
+        canonical_artifacts["docs/results/artifacts/comparative_evaluation_ladder.json"] = {
+            "file_sha256": comp_sha,
+            "semantic_fingerprint": comp_fp,
+        }
+        canonical_artifacts["docs/results/artifacts/pre_registration_comparative_ladder.json"] = {
+            "file_sha256": prereg_sha,
+            "semantic_fingerprint": prereg_id,
+        }
+    else:
+        all_ok = False
+        layer_results["comparative_evaluation_ladder"] = {
+            "status": "FAILED",
+            "error": "Missing comparative evaluation or pre-registration artifact",
+        }
+
+    # 4. Validity Limits: Performativity, Endogeneity & Stylized Adversarial Adaptation
+    perf_rep = run_performativity_endogeneity_scenario(seed=42)
+    adv_rep = run_adversarial_adaptation_scenario(seed=42)
+    val_passed = (
+        perf_rep.plan_invalidation_audit.is_self_invalidating
+        and perf_rep.time_to_forecast_invalidation_steps == 2
+        and perf_rep.time_to_sla_breach_steps == 11
+        and len(perf_rep.fingerprint) == 64
+        and len(adv_rep.fingerprint) == 64
+    )
+    if not val_passed:
+        all_ok = False
+    layer_results["validity_limits_evaluation"] = {
+        "performativity_epistemic_label": perf_rep.epistemic_label,
+        "adversarial_epistemic_label": adv_rep.epistemic_label,
+        "seed": 42,
+        "plan_self_invalidating_detected": perf_rep.plan_invalidation_audit.is_self_invalidating,
+        "time_to_forecast_invalidation_steps": perf_rep.time_to_forecast_invalidation_steps,
+        "time_to_sla_breach_steps": perf_rep.time_to_sla_breach_steps,
+        "performative_utility_erosion_usd": round(perf_rep.performative_utility_erosion_usd, 2),
+        "performative_regret_usd": round(perf_rep.performative_policy_regret_usd, 2),
+        "performativity_report_fingerprint": perf_rep.fingerprint,
+        "adversarial_report_fingerprint": adv_rep.fingerprint,
+        "status": "PASSED" if val_passed else "FAILED",
+    }
+
+    # 5. Mutation Baseline Artifact
+    mut_path = repo_root / "benchmarks" / "mutation_baseline.json"
+    if mut_path.exists():
+        mut_bytes = mut_path.read_bytes()
+        mut_sha = hashlib.sha256(mut_bytes).hexdigest()
+        canonical_artifacts["benchmarks/mutation_baseline.json"] = {
+            "file_sha256": mut_sha,
+            "semantic_fingerprint": mut_sha,
+        }
+
+    return layer_results, canonical_artifacts, all_ok
 
 
 def generate_svg_artifacts(artifacts_dir: Path) -> dict[str, str]:
@@ -430,10 +735,27 @@ def reproduce_all() -> dict[str, Any]:
     print("\n[PHASE 4] Regenerating Visual Gallery Artifacts...")
     artifacts_dir = REPO_ROOT / "docs" / "results" / "artifacts"
     svg_hashes = generate_svg_artifacts(artifacts_dir)
-    print(f"  Generated {len(svg_hashes)} vector SVG artifacts in {artifacts_dir}")
+    for extra_svg_key, extra_svg_name in (
+        ("enterprise_benchmark_heatmap", "enterprise_benchmark_heatmap.svg"),
+        ("enterprise_shift_recovery", "enterprise_shift_recovery.svg"),
+    ):
+        extra_svg_path = artifacts_dir / extra_svg_name
+        if extra_svg_path.exists():
+            svg_hashes[extra_svg_key] = hashlib.sha256(extra_svg_path.read_bytes()).hexdigest()
+    print(f"  Verified {len(svg_hashes)} vector SVG artifacts in {artifacts_dir}")
+
+    # 5. ADR-053 / ADR-054 Enterprise Suite, Flagship Cascade, Comparative Ladder & Validity Limits
+    print(
+        "\n[PHASE 5] Verifying ADR-053/054 Enterprise Suite, Flagship Cascade & Comparative Evaluation..."
+    )
+    sync_result_card_markdown_blocks(card_results, REPO_ROOT)
+    adr_layer_results, canonical_artifacts, adr_layer_ok = reproduce_adr_053_054_layer(REPO_ROOT)
+    for layer_key, layer_val in adr_layer_results.items():
+        st = layer_val.get("status", "UNKNOWN")
+        print(f"  [{'PASS' if st == 'PASSED' else 'FAIL'}] Layer '{layer_key}': {st}")
 
     end_time = datetime.datetime.now(datetime.UTC).isoformat()
-    all_clean = cards_passed and conformance_passed and tensor_bit_identical
+    all_clean = cards_passed and conformance_passed and tensor_bit_identical and adr_layer_ok
     cert_status, cert_reason = determine_certification_status(all_clean, git_info)
     observed_seir_drift = float(
         card_results.get("seir", {}).get("max_mass_balance_drift", 0.0)
@@ -443,7 +765,7 @@ def reproduce_all() -> dict[str, Any]:
 
     # Compile Run Manifest
     manifest: dict[str, Any] = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "title": "EWM Engine Universal Scientific Reproduction Manifest",
         "timestamp_start": start_time,
         "timestamp_end": end_time,
@@ -464,6 +786,10 @@ def reproduce_all() -> dict[str, Any]:
                     "ref_seed_trivial": 42,
                     "ref_closed_form_stochastic": 1337,
                     "ref_constraint_stress": 999,
+                    "enterprise_benchmark_suite": 42,
+                    "fraud_cascade_flagship": 42,
+                    "comparative_evaluation_ladder": 42,
+                    "validity_limits_evaluation": 42,
                 },
                 "numerical_tolerances": {
                     "seir_mass_balance_tolerance": 1e-12,
@@ -472,6 +798,11 @@ def reproduce_all() -> dict[str, Any]:
                     "prim_density_min": 0.90,
                     "prim_coverage_min": 0.80,
                     "soa_state_fingerprint": "bit_exact_sha256",
+                    "enterprise_suite_conservation_tolerance": 1e-12,
+                    "fraud_cascade_cohort_conservation_tolerance": 1e-9,
+                    "comparative_ladder_leakage_overlap_max": 0,
+                    "performativity_forecast_invalidation_call_mae_threshold": 12.0,
+                    "adversarial_degradation_relative_drop_threshold": 0.15,
                 },
             },
         },
@@ -482,7 +813,9 @@ def reproduce_all() -> dict[str, Any]:
                 "tensor_roundtrip_bit_identical": tensor_bit_identical,
                 "verified_state_fingerprint": state.fingerprint,
             },
+            "adr_053_054_evidence_layer": adr_layer_results,
         },
+        "canonical_artifacts": canonical_artifacts,
         "visual_artifacts": svg_hashes,
     }
 
