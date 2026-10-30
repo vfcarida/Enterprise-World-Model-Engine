@@ -2,7 +2,11 @@
 
 **Author:** Vinícius Caridá  
 **Ingestion Modules:** `ewm_engine.aiops.data.PrometheusCollector`, `ewm_engine.aiops.data.JaegerCollector`, `ewm_engine.aiops.data.LogParser`  
+**Maturity Tier:** **Experimental (`Synthetic Telemetry Schema & Collectors`)**  
 **License:** Apache-2.0
+
+> [!WARNING]
+> **Scope & Data Availability Notice (`EWM-007` Audit):** This card documents the telemetry schema consumed by `ewm_engine.aiops.data`. Live production Prometheus/Jaeger scraping is disabled in repository test suites; all tests run offline against deterministic synthetic microservice failure traces.
 
 ---
 

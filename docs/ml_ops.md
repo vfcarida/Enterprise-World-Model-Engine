@@ -16,6 +16,9 @@ if confidence_interval > threshold:
 
 ```mermaid
 flowchart LR
+    accTitle: Calibrated Learned Dynamics and Abstention Pipeline
+    accDescr: Flowchart illustrating structural pre-rules, Mahalanobis OOD check, ensemble variance check, conformal interval check, AbstainException structural fallback, and post-rules verification.
+
     S["WorldState(t), Action(t)"] --> PRE["1. Structural Pre-Rules\n& Baseline S_{t+1}^{struct}"]
     PRE --> OOD["2A. Mahalanobis OOD\nD_M(x) <= ood_threshold"]
     OOD --> ENS["2B. Ensemble Variance\nVar(mu) <= variance_threshold"]

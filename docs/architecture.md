@@ -8,6 +8,9 @@ The Enterprise World Model Engine separates hard structural compliance rules fro
 
 ```mermaid
 flowchart LR
+    accTitle: Hybrid Transition Router Three-Stage Pipeline
+    accDescr: Flowchart showing Stage 1 Pre-Rules action validation and do() graph surgery, Stage 2 learned ML residual inference with NaN/Inf safeguard, and Stage 3 Post-Rules constraint and bounds verification.
+
     ST["Immutable State S_t + Action A_t"] --> PRE["Stage 1: Pre-Rules\n(Action Validation & do(X_t=x) Graph Surgery)"]
     PRE -->|"Invalid Action"| REJ_PRE["Reject Action\n(Preserve Invariants)"]
     PRE -->|"Accepted Action + Severed Inbound Edges"| STRUCT["Structural Baseline\nS_{t+1}^{struct} = f_struct(PA_Y(t), A_t, U_t)"]
@@ -28,6 +31,9 @@ For a structural causal system $Y_{t+1} = f(X_t, Z_t, U_t)$ where an observation
 
 ```mermaid
 flowchart TD
+    accTitle: Pearlian do() Causal Graph Surgery
+    accDescr: Comparison of observational graph G with confounding edges versus mutilated interventional graph G_do(X_t=x) where inbound edges to X_t are severed while causal edge X_t to Y_{t+1} is preserved.
+
     subgraph Observational["Observational Graph G"]
         Z1["Confounder Z_t"] -->|"Confounding Edge"| X1["Treatment X_t"]
         UX1["Exogenous Noise U_X"] -->|"Inbound Edge"| X1

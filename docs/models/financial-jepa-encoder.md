@@ -2,7 +2,11 @@
 
 **Author:** Vinícius Caridá  
 **Module:** `ewm_engine.financial.models` (`FinancialJEPAEncoder`, `FinancialJEPAPair`, `FinancialTransitionPredictor`, `FinancialWorldModel`)  
+**Maturity Tier:** **Experimental (`Synthetic Research Prototype`)**  
 **License:** Apache-2.0
+
+> [!WARNING]
+> **Scope & Maturity Notice (`EWM-007` Audit):** `ewm_engine.financial.models` is an **Experimental** research prototype verified on synthetic in-memory tensor generators (`Market1TLoader` / `EDGARLoader` synthetic fixtures). No pre-trained production equity weights or proprietary live limit-order-book feeds are bundled in this repository. For **Supported (`Stable 1.x`)** financial world modeling with exact `decimal.Decimal` double-entry accounting invariants ($\sum \text{Assets} - \sum \text{Liabilities} - \sum \text{Equity} == \text{Decimal('0.00')}$) and deterministic liquidity stress testing, use [`ewm_engine.domains.finance`](../../domains/finance/README.md) (`EWM-004`).
 
 ---
 

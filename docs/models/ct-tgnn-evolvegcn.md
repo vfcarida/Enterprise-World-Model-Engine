@@ -2,7 +2,11 @@
 
 **Author:** Vinícius Caridá  
 **Module:** `ewm_engine.graph` (`ContinuousGraphRegistry`, `GCNConv`, `EvolveGCNLayer`, `EvolveGCN`, `EvolveGCNTrainer`)  
+**Maturity Tier:** **Experimental (`Synthetic Research Prototype`)**  
 **License:** Apache-2.0
+
+> [!WARNING]
+> **Scope & Maturity Notice (`EWM-007` Audit):** `ewm_engine.graph` is an **Experimental** temporal GNN research module verified on synthetic in-memory graph topologies. For **Supported (`Stable 1.x`)** deterministic DAG dependency enforcement ($O(V+E)$ cycle detection, bounded graph capacity $\le 10{,}000$ nodes, and topological merge gating), use [`ewm_engine.domains.swe`](../../domains/swe/README.md) (`EWM-005`).
 
 ---
 

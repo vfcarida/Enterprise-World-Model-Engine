@@ -2,7 +2,11 @@
 
 **Author:** Vinícius Caridá  
 **Ingestion Module:** `ewm_engine.financial.data.Market1TLoader`  
+**Maturity Tier:** **Experimental (`Synthetic Schema & Generator`)**  
 **License:** Apache-2.0
+
+> [!WARNING]
+> **Scope & Data Availability Notice (`EWM-007` Audit):** This card documents the schema and synthetic in-memory data generator used by `ewm_engine.financial.data.Market1TLoader`. Proprietary multi-terabyte live US equity limit-order-book Parquet archives are **not** bundled in this repository; all repository tests execute on deterministic seeded synthetic LOB fixtures.
 
 ---
 

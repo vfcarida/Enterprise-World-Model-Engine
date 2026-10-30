@@ -2,7 +2,11 @@
 
 **Author:** Vinícius Caridá  
 **Ingestion Modules:** `ewm_engine.financial.data.EDGARLoader`, `ewm_engine.financial.data.BitemporalSynchronizer`  
+**Maturity Tier:** **Experimental (`Synthetic Schema & Point-in-Time Synchronizer`)**  
 **License:** Apache-2.0
+
+> [!WARNING]
+> **Scope & Data Availability Notice (`EWM-007` Audit):** This card documents the point-in-time bitemporal schema enforced by `EDGARLoader` and `BitemporalSynchronizer`. Full historical SEC EDGAR bulk mirrors are **not** bundled in this repository; all automated tests run offline against deterministic synthetic `10-Q`/`10-K` filing fixtures.
 
 ---
 

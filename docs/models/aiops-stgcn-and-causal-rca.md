@@ -2,7 +2,11 @@
 
 **Author:** Vinícius Caridá  
 **Module:** `ewm_engine.aiops` (`STGCNEncoder`, `CascadeFailurePredictor`, `AIOpsWorldModel`, `CausalRCA`)  
+**Maturity Tier:** **Experimental (`Synthetic Research Prototype`)**  
 **License:** Apache-2.0
+
+> [!WARNING]
+> **Scope & Maturity Notice (`EWM-007` Audit):** `ewm_engine.aiops` is an **Experimental** research prototype verified against synthetic microservice telemetry fixtures and mock OPA/ChaosMesh policy harnesses. It does not connect to live Kubernetes clusters or production Prometheus/Jaeger endpoints out of the box. For **Supported (`Stable 1.x`)** software engineering workflow, CI/CD runner capacity, and dependency DAG simulation, use [`ewm_engine.domains.swe`](../../domains/swe/README.md) (`EWM-005`).
 
 ---
 

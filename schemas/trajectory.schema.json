@@ -678,7 +678,7 @@
     },
     "WorldState": {
       "additionalProperties": false,
-      "description": "Canonical representation of the enterprise or ecosystem state at a point in time.\n\nFormal Conceptual Representation:\n    S_t = (G_t, R_t, M_t, \\Gamma_t, C_t)\nwhere:\n    G_t = Entities and typed relationships\n    R_t = Measurable finite resources and capacities\n    M_t = Temporal memory and operational history\n    \\Gamma_t = Active operational rules and policy parameters\n    C_t = Exogenous and environmental context\n\nWorldState is immutable (frozen=True), branchable, serializable, and auditable.",
+      "description": "Canonical representation of the enterprise or ecosystem state at a point in time.\n\nFormal Conceptual Representation:\n    S_t = (G_t, R_t, M_t, \\Gamma_t, C_t)\nwhere:\n    G_t = Entities and typed relationships\n    R_t = Measurable finite resources and capacities\n    M_t = Temporal memory and operational history\n    \\Gamma_t = Active operational rules and policy parameters\n    C_t = Exogenous and environmental context\n\nWorldState is deeply immutable (`frozen=True`), branchable, serializable, and auditable.",
       "properties": {
         "active_rules": {
           "additionalProperties": true,
@@ -730,7 +730,8 @@
         },
         "step": {
           "default": 0,
-          "description": "Discrete simulation step index.",
+          "description": "Discrete simulation step index t in N_0 (t >= 0).",
+          "minimum": 0,
           "title": "Step",
           "type": "integer"
         },
