@@ -1,0 +1,17 @@
+Category,Subcategory,Description,Hours,Hourly_Rate_USD,Cost_or_Benefit_USD,Baseline_Excel_USD,Baseline_Rules_USD,Baseline_ML_USD,Notes
+Cost: Modeling Effort,Scenario Design,Causal boundary and multi-layer mechanism design,40,100.00,4000.00,2400.00,1600.00,3200.00,Senior Data Scientist + Domain Expert
+Cost: Modeling Effort,Schema Definition,WorldState entities resources and BitemporalLedger schema,16,100.00,1600.00,0.00,0.00,0.00,Typed Pydantic state contracts
+Cost: Modeling Effort,Constraint Specification,PRE_ACTION and POST_TRANSITION hard/soft invariants,24,100.00,2400.00,0.00,0.00,0.00,Conservation and SLA capacity bounds
+Cost: Modeling Effort,Dynamics Calibration,Structural rules f_known and projected residual g_theta,32,100.00,3200.00,0.00,0.00,2400.00,Calibrated against point-in-time history
+Cost: Modeling Effort,Testing & Validation,Unit property metamorphic and leakage-certificate tests,24,100.00,2400.00,800.00,800.00,1600.00,Automated CI verification suite
+Cost: Data Preparation,Historical Extraction,Extract transaction fraud and queue event logs,16,100.00,1600.00,0.00,0.00,1600.00,Source system queries
+Cost: Data Preparation,Log Cleaning & Alignment,Point-in-time BitemporalLedger alignment,8,100.00,800.00,0.00,0.00,800.00,Eliminates lookahead leakage
+Cost: Data Preparation,Pipeline Setup,Automated ingestion and schema validation,16,100.00,1600.00,0.00,0.00,800.00,Reusable across scenarios
+Cost: Compute Resources,Development & Production Runs,Deterministic CPU rollouts (1050 runs/yr x 2m x $0.05/CPU-hr),0,0.00,2.00,0.00,0.00,50.00,CPU core requires no GPU or LLM tokens
+Cost: Maintenance,Quarterly Recalibration,4 quarterly drift audits and parameter updates (8h/quarter),32,100.00,3200.00,1600.00,1600.00,3200.00,Ongoing operational hygiene
+Summary: Total Cost,Total First-Year Cost (TCO_1),Sum of Modeling + Data + Compute + Maintenance,208,100.00,20802.00,4800.00,4000.00,13650.00,First-year Total Cost of Ownership
+Benefit: Decision Improvement,Quarterly Counterfactual Policy Optimization (Conservative),4 quarterly decisions x $113864.26 regret reduction,0,0.00,455456.00,0.00,0.00,0.00,Evaluated under P_model (synthetic benchmark)
+Benefit: Decision Improvement,Quarterly Counterfactual Policy Optimization (10-Seed Mean),4 quarterly decisions x $124283.57 regret reduction,0,0.00,497134.28,0.00,0.00,0.00,Canonical comparative_evaluation_ladder.json
+Summary: Net Value,Net First-Year Value (Conservative),Annual Benefit minus Total First-Year Cost,0,0.00,434654.00,-4800.00,-4000.00,-13650.00,Positive value indicates net economic gain
+Summary: ROI,First-Year ROI % (Conservative),((Annual Benefit - Total Cost) / Total Cost) * 100,0,0.00,2089.48,0.00,0.00,0.00,Payback period = 0.05 years (18 days)
+Summary: ROI,First-Year ROI % (10-Seed Mean),((Annual Benefit - Total Cost) / Total Cost) * 100,0,0.00,2289.84,0.00,0.00,0.00,Payback period = 0.04 years (15 days)
