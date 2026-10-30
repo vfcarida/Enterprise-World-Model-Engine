@@ -13,7 +13,6 @@ Implements `DoubleEntryConstraint` in the `EWM-002` structural rules layer, enfo
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from decimal import Decimal
 from typing import Any
 
 from ewm_engine.constraints.results import (

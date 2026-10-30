@@ -501,7 +501,7 @@ class FinancialState(BaseModel):
                 name=str(acc_dict["name"]),
                 category=AccountCategory(str(acc_dict["category"])),
                 balance=Decimal(str(acc_dict["balance"])),
-                min_balance=None if raw_min is None else str(raw_min),
+                min_balance=None if raw_min is None else Decimal(str(raw_min)),
                 is_liquid=bool(acc_dict.get("is_liquid", False)),
             )
 
