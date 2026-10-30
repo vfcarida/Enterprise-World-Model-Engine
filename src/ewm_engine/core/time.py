@@ -16,6 +16,7 @@ Formal Temporal Guarantees
 from __future__ import annotations
 
 import hashlib
+import math
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -103,6 +104,10 @@ class EventLog:
             raise TemporalMonotonicityError(
                 f"Initial state step must be in N_0 (step >= 0), got {initial_state.step}."
             )
+        if not math.isfinite(initial_state.timestamp):
+            raise TemporalMonotonicityError(
+                f"Initial state timestamp must be finite, got {initial_state.timestamp!r}."
+            )
         self._branch_id: str = branch_id
         self._full_hashes: bool = full_canonical_hashes
         root_clone = initial_state.clone()
@@ -179,9 +184,9 @@ class EventLog:
                 f"Non-monotonic step transition on branch '{self._branch_id}': "
                 f"next_state.step={next_state.step} must be strictly greater than current head step={head.step}."
             )
-        if next_state.timestamp < head.timestamp:
+        if not math.isfinite(next_state.timestamp) or next_state.timestamp < head.timestamp:
             raise TemporalMonotonicityError(
-                f"Retrograde timestamp on branch '{self._branch_id}': "
+                f"Retrograde or non-finite timestamp on branch '{self._branch_id}': "
                 f"next_state.timestamp={next_state.timestamp} < current head timestamp={head.timestamp}."
             )
 

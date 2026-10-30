@@ -118,6 +118,13 @@ class WorldState(BaseModel):
             return copy.deepcopy(val)
         return val
 
+    @field_validator("timestamp")
+    @classmethod
+    def _validate_finite_timestamp(cls, v: float) -> float:
+        if not math.isfinite(v):
+            raise ValueError(f"WorldState.timestamp must be finite, got {v!r}.")
+        return float(v)
+
     @field_validator("entities", mode="before")
     @classmethod
     def _coerce_entities(cls, v: Any) -> dict[EntityId, Entity]:
@@ -327,14 +334,17 @@ class WorldState(BaseModel):
 
     def advance_time(self, delta_t: float = 1.0, steps: int = 1) -> WorldState:
         """Return a new WorldState with strictly monotonic advanced step and timestamp."""
-        if steps < 1 or delta_t < 0.0:
+        if steps < 1 or not math.isfinite(delta_t) or delta_t < 0.0:
             raise ValueError(
-                f"Temporal transitions must be strictly monotonic (steps={steps} >= 1, delta_t={delta_t} >= 0.0)."
+                f"Temporal transitions must be strictly monotonic and finite (steps={steps} >= 1, delta_t={delta_t} >= 0.0)."
             )
+        next_ts = self.timestamp + delta_t
+        if not math.isfinite(next_ts):
+            raise ValueError(f"Advanced timestamp overflowed to non-finite value: {next_ts!r}.")
         return self.model_copy(
             update={
                 "step": self.step + steps,
-                "timestamp": self.timestamp + delta_t,
+                "timestamp": next_ts,
             }
         )
 

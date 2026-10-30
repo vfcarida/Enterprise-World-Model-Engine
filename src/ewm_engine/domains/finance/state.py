@@ -139,7 +139,7 @@ class LedgerAccount(BaseModel):
         if v is None:
             return None
         deprecated_float_api_guard(v, api_name="LedgerAccount.min_balance")
-        if isinstance(v, Decimal) and not v.is_finite():
+        if isinstance(v, Decimal) and v.is_infinite() and v.is_signed():
             return None
         if isinstance(v, str) and v.strip().lower() in ("none", "-inf", "-infinity"):
             return None

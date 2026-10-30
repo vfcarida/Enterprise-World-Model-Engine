@@ -413,8 +413,19 @@ class MahalanobisOODAndDriftDetector:
                 f"got {vec.shape[0]}"
             )
         diff = vec - self._mean
-        quad = float(diff.T @ self._precision @ diff)
-        dist = math.sqrt(max(0.0, quad))
+        max_abs = float(np.max(np.abs(diff))) if diff.size > 0 else 0.0
+        if max_abs == 0.0:
+            dist = 0.0
+        else:
+            u = diff / max_abs
+            quad_u = float(u.T @ self._precision @ u)
+            if not math.isfinite(quad_u) or quad_u <= 0.0:
+                unit_dist = float(np.linalg.norm(u))
+            else:
+                unit_dist = math.sqrt(quad_u)
+            dist = max_abs * unit_dist
+            if not math.isfinite(dist):
+                dist = float("inf")
         self._recent_scores.append(dist)
         return dist
 
@@ -823,21 +834,43 @@ class ConformalPredictorWrapper:
             If `ConfidenceInterval > threshold` (or OOD/variance threshold exceeded),
             raises `AbstainException`.
         """
-        # 1. Compute OOD Mahalanobis score
+        # 1. Compute OOD Mahalanobis score and effective thresholds
         ood_score = 0.0
         if self.ood_detector is not None and self.ood_detector.is_fitted:
             ood_score = self.ood_detector.mahalanobis_distance(state, actions)
 
-        # 2. Evaluate ensemble mean and exact variance Var(mu) = (1/N) sum (mu_i - mu_bar)^2
-        means, variances, avg_stds = self._predict_raw_ensemble(
-            state=state,
-            actions=actions,
-            structural_state=structural_state,
+        eff_ood_thresh = (
+            min(self.ood_threshold, self.ood_detector.ood_threshold)
+            if self.ood_detector is not None
+            else self.ood_threshold
         )
+        eff_var_thresh = (
+            min(self.variance_threshold, self.ood_detector.variance_threshold)
+            if self.ood_detector is not None
+            else self.variance_threshold
+        )
+
+        # 2. Evaluate ensemble mean and exact variance Var(mu) = (1/N) sum (mu_i - mu_bar)^2
+        try:
+            means, variances, avg_stds = self._predict_raw_ensemble(
+                state=state,
+                actions=actions,
+                structural_state=structural_state,
+            )
+        except (NumericalInstabilityError, OverflowError) as exc:
+            if not math.isinf(eff_ood_thresh) and ood_score > eff_ood_thresh:
+                raise AbstainException(
+                    f"OOD abstention triggered prior to numerical overflow: "
+                    f"Mahalanobis distance {ood_score:.4f} > ood_threshold {eff_ood_thresh:.4f}",
+                    ood_score=ood_score,
+                    threshold=eff_ood_thresh,
+                    trigger="ood_mahalanobis_threshold",
+                ) from exc
+            raise
 
         z_crit = _normal_ppf_two_sided(self.nominal_coverage)
         ood_inflation = (
-            math.sqrt(1.0 + self.ood_uncertainty_scale * (ood_score**2))
+            math.hypot(1.0, math.sqrt(max(0.0, self.ood_uncertainty_scale)) * ood_score)
             if ood_score > 0.0
             else 1.0
         )
@@ -855,13 +888,22 @@ class ConformalPredictorWrapper:
 
             if self._is_calibrated and rid in self._conformal_quantiles:
                 base_hw = self._conformal_quantiles[rid]
-                # Combine split-conformal quantile with epistemic ensemble disagreement & OOD inflation
-                hw = (base_hw + z_crit * epistemic_std) * (
-                    ood_inflation if not math.isinf(self.ood_threshold) or not math.isinf(self.threshold) else 1.0
+                inflate_active = not math.isinf(self.ood_threshold) or not math.isinf(
+                    self.threshold
                 )
+                eff_scale = ood_inflation if inflate_active else 1.0
+                base_radius = base_hw + z_crit * epistemic_std
+                if eff_scale > 1.0 and base_radius == 0.0:
+                    base_radius = max(self.default_half_width * 1e-6, 1e-6)
+                hw = base_radius * eff_scale
             else:
-                combined_std = math.sqrt(epistemic_std**2 + max(aleatoric_std, self.default_half_width) ** 2)
+                combined_std = math.hypot(
+                    epistemic_std, max(aleatoric_std, self.default_half_width, 1e-6)
+                )
                 hw = z_crit * combined_std * ood_inflation
+
+            if math.isnan(hw) or hw < 0.0:
+                hw = float("inf")
 
             half_width_map[rid] = float(hw)
             width_map[rid] = float(2.0 * hw)
@@ -894,16 +936,6 @@ class ConformalPredictorWrapper:
         )
 
         # 3. Check abstention gates (thresholds default to +inf so legacy behavior is preserved)
-        eff_ood_thresh = (
-            min(self.ood_threshold, self.ood_detector.ood_threshold)
-            if self.ood_detector is not None
-            else self.ood_threshold
-        )
-        eff_var_thresh = (
-            min(self.variance_threshold, self.ood_detector.variance_threshold)
-            if self.ood_detector is not None
-            else self.variance_threshold
-        )
 
         if not math.isinf(eff_ood_thresh) and ood_score > eff_ood_thresh:
             raise AbstainException(

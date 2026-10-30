@@ -1064,12 +1064,13 @@ class EWM_Evaluator:
                     or not pre_check.satisfied
                     or not post_check.satisfied
                 )
-                # Apply realized stochastic demand noise within structural bounds
+                # Apply identical realized stochastic demand shock (realized_demand - true_expected_demand)
+                exogenous_demand_shock = realized_demand - true_expected_demand
                 true_inv = max(
                     self.env_spec.min_inventory,
                     min(
                         self.env_spec.max_inventory,
-                        executed_state.resources["inventory"].current - 0.15 * demand_noise,
+                        executed_state.resources["inventory"].current - exogenous_demand_shock,
                     ),
                 )
                 true_cash = executed_state.resources["cash_reserve"].current
