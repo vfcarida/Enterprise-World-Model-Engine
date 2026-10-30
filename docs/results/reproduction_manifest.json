@@ -1,21 +1,21 @@
 {
   "schema_version": "1.2.0",
   "title": "EWM Engine Universal Scientific Reproduction Manifest",
-  "timestamp_start": "2026-10-30T17:59:56.370776+00:00",
-  "timestamp_end": "2026-10-30T18:00:00.046663+00:00",
+  "timestamp_start": "2026-10-30T18:24:41.657074+00:00",
+  "timestamp_end": "2026-10-30T18:24:42.821538+00:00",
   "verification_checks_passed": true,
   "certification_status": "CERTIFIED_RELEASE",
   "certification_reason": "All verification checks passed on a clean working tree at an immutable Git commit.",
   "overall_status": "CERTIFIED_RELEASE",
   "provenance": {
     "git": {
-      "commit": "1d4a102d8b2d71e5496659d453a3cfaa987da6c6",
+      "commit": "7dd158b3c0f4a2e48b71899dec88a7cb02304aaa",
       "branch": "main",
       "dirty": false,
       "dirty_files_count": 0,
       "modified_or_untracked": [],
-      "source_tree_sha256": "b9d11f85e85b751498eacd1377be9429db0016395eadef156a344bdf8990e5c6",
-      "files_hashed_count": 287
+      "source_tree_sha256": "341ca11c2da2a2a90ed8ee785c92e345eff1f71c80243e7d7f570a7e942c9957",
+      "files_hashed_count": 292
     },
     "environment": {
       "platform": "Windows-11-10.0.26300-SP0",
@@ -348,5 +348,5 @@
     "enterprise_benchmark_heatmap": "29390b53f960fc312aa18bf2988aeca6f2bc8fab66fabafed5e745b976fac37d",
     "enterprise_shift_recovery": "a5412085aa8a7cba590b7d747d87aec757b09a49bce3d1cd4a9fd3d9f37344a1"
   },
-  "reproduction_fingerprint": "618142f9eab6b9e04bad9f3903313fd12525672f9844ea82f9d05d9bdcc160c6"
+  "reproduction_fingerprint": "9f670f67c92446845759edaf844b48641085da39bd1f1f93b27e26aad69cd5e1"
 }
