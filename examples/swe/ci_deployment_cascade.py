@@ -60,7 +60,7 @@ def run_swe_deployment_application(
     )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     summary = run_swe_deployment_application()
     print(f"Static dependents of auth_lib:    {summary.static_dependents_of_auth_lib}")
     print(f"Dynamic impacted under burst:     {summary.dynamic_impacted_under_burst}")

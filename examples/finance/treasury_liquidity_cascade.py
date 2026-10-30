@@ -113,7 +113,7 @@ def run_treasury_liquidity_cascade(
     )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     summary = run_treasury_liquidity_cascade()
     print(f"Initial ledger total:         ${summary.initial_total_ledger_usd:,.2f}")
     print(f"Baseline operating cash:      ${summary.baseline_final_operating_cash_usd:,.2f}")

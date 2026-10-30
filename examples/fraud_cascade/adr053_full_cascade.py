@@ -253,7 +253,7 @@ def run_adr053_fraud_cascade_showcase(horizon: int = 12) -> ADR053FraudCascadeSh
     )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     res = run_adr053_fraud_cascade_showcase()
     print(f"Steps simulated (6-part ADR-053): {res.steps_simulated}")
     print(f"Myopic do(tau=0.40) regret:       ${res.myopic_regret_usd:,.2f}")
