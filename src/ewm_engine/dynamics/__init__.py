@@ -12,6 +12,18 @@ from ewm_engine.dynamics.base import (
     TransitionResult,
     ValidityDomain,
 )
+from ewm_engine.dynamics.calibration import (
+    AbstainException,
+    CalibrationEvaluationReport,
+    ConfidenceInterval,
+    ConformalPredictorWrapper,
+    DriftStatusReport,
+    LearnedModelRegistry,
+    MahalanobisOODAndDriftDetector,
+    Predictor,
+    compute_ensemble_variance,
+    compute_expected_calibration_error,
+)
 from ewm_engine.dynamics.composite import CompositeDynamics
 from ewm_engine.dynamics.deterministic import (
     DeterministicDemandDynamics,
@@ -43,24 +55,32 @@ from ewm_engine.experimental.grey_box import (
 )
 
 __all__ = [
+    "AbstainException",
     "CalibratedPrediction",
     "CalibratedStateDistribution",
+    "CalibrationEvaluationReport",
     "CompositeDynamics",
+    "ConfidenceInterval",
+    "ConformalPredictorWrapper",
     "ContextualDynamicsModel",
     "DeterministicDemandDynamics",
     "DeterministicDynamics",
     "DeterministicTransferDynamics",
+    "DriftStatusReport",
     "DynamicsModel",
     "GreyBoxDynamics",
     "HybridDynamics",
     "HybridTransitionRouter",
     "InfeasibleResidualPolicy",
     "LearnedDynamics",
+    "LearnedModelRegistry",
     "LearnedPredictorProtocol",
     "LinearResidualDynamics",
+    "MahalanobisOODAndDriftDetector",
     "MechanismKind",
     "MechanismProvenance",
     "NumericalInstabilityError",
+    "Predictor",
     "ResidualEstimator",
     "ResidualFeasibilityRecord",
     "StochasticDemandDynamics",
@@ -71,5 +91,7 @@ __all__ = [
     "TransitionStepOutcome",
     "ValidityDomain",
     "ZeroResidualEstimator",
+    "compute_ensemble_variance",
+    "compute_expected_calibration_error",
     "validate_learned_prediction_no_nan",
 ]

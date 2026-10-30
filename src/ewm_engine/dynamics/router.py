@@ -319,6 +319,32 @@ class TransitionStepOutcome(BaseModel):
     transition_result: TransitionResult = Field(
         description="Underlying TransitionResult for compatibility with DynamicsModel consumers."
     )
+    abstained: bool = Field(
+        default=False,
+        description="True if the learned predictor abstained due to OOD or ConfidenceInterval > threshold.",
+    )
+    abstention_reason: str | None = Field(
+        default=None,
+        description="Diagnostic reason when abstained is True.",
+    )
+    confidence_interval: Any | None = Field(
+        default=None,
+        description="ConfidenceInterval emitted by the learned predictor, if available.",
+    )
+    fallback_executed: bool = Field(
+        default=False,
+        description="True if fallback structural rules executed upon abstention.",
+    )
+    fallback_retry_depth: int = Field(
+        default=0,
+        ge=0,
+        le=1,
+        description="Number of fallback retries executed (strictly bounded by max_retry_depth = 1).",
+    )
+    fallback_failed: bool = Field(
+        default=False,
+        description="True if the custom fallback structural handler failed after max_retry_depth = 1.",
+    )
 
 
 class HybridTransitionRouter:
@@ -329,9 +355,11 @@ class HybridTransitionRouter:
        custom `pre_rules`), rejecting invalid enterprise actions before state evolution, and
        computes the deterministic structural state $S_{t+1}^{\\text{struct}}$ over the causal DAG
        while respecting `do(X_t = x)` edge severing and `Intervention` context managers.
-    2. **ML Inference & NaN Safeguard**: When a learned module is present, executes prediction
-       and immediately inspects all numeric outputs for `NaN`/`Inf` *before* structural
-       `Post-rules` evaluation (`NumericalInstabilityError`).
+    2. **ML Inference, Calibration & OOD Abstention**: When a learned module is present, executes
+       prediction, inspects all numeric outputs for `NaN`/`Inf` *before* structural `Post-rules`
+       evaluation (`NumericalInstabilityError`), and evaluates `ConfidenceInterval > threshold`
+       and OOD / variance bounds (`AbstainException`). Upon abstention, executes safe structural
+       fallback with maximum retry depth = 1.
     3. **Post-rules & 100% Rollback**: Evaluates resource bounds `[min_value, max_value]`,
        `ConstraintPhase.POST_TRANSITION` constraints, ML-hallucinated actions, and custom
        `post_rules`. Any out-of-bounds or invalid ML prediction is 100% rejected and rolled
@@ -346,7 +374,7 @@ class HybridTransitionRouter:
         ml_predictor: (
             LearnedPredictorProtocol
             | DynamicsModel
-            | Callable[[WorldState, Sequence[Action], WorldState], CalibratedPrediction | Mapping[str, float]]
+            | Callable[[WorldState, Sequence[Action], WorldState], Any]
             | Any
             | None
         ) = None,
@@ -356,6 +384,14 @@ class HybridTransitionRouter:
         causal_graph: CausalGraph | None = None,
         default_std: float = 0.05,
         calibration_temperature: float = 1.0,
+        threshold: float = float("inf"),
+        ood_threshold: float = float("inf"),
+        variance_threshold: float = float("inf"),
+        fallback_structural_fn: (
+            Callable[[WorldState, Sequence[Action]], WorldState] | DynamicsModel | None
+        ) = None,
+        max_fallback_retries: int = 1,
+        raise_on_abstain: bool = False,
         raise_on_nan: bool = False,
         raise_on_pre_rule_violation: bool = False,
         delta_t: float = 1.0,
@@ -386,6 +422,13 @@ class HybridTransitionRouter:
         )
         self.default_std = float(default_std)
         self.calibration_temperature = float(calibration_temperature)
+        self.threshold = float(threshold)
+        self.ood_threshold = float(ood_threshold)
+        self.variance_threshold = float(variance_threshold)
+        self.fallback_structural_fn = fallback_structural_fn
+        # Operational Safeguard (EWM-003 Section 11): Prevent infinite loops; max retry depth = 1
+        self.max_fallback_retries = min(max(0, int(max_fallback_retries)), 1)
+        self.raise_on_abstain = bool(raise_on_abstain)
         self.raise_on_nan = bool(raise_on_nan)
         self.raise_on_pre_rule_violation = bool(raise_on_pre_rule_violation)
         self.delta_t = float(delta_t)
@@ -430,6 +473,12 @@ class HybridTransitionRouter:
             ),
             default_std=self.default_std,
             calibration_temperature=self.calibration_temperature,
+            threshold=self.threshold,
+            ood_threshold=self.ood_threshold,
+            variance_threshold=self.variance_threshold,
+            fallback_structural_fn=self.fallback_structural_fn,
+            max_fallback_retries=self.max_fallback_retries,
+            raise_on_abstain=self.raise_on_abstain,
             raise_on_nan=self.raise_on_nan,
             raise_on_pre_rule_violation=self.raise_on_pre_rule_violation,
             delta_t=self.delta_t,
@@ -680,17 +729,29 @@ class HybridTransitionRouter:
         structural_state: WorldState,
         exogenous_events: Sequence[ExogenousEvent],
         rng: RandomGenerator,
-    ) -> CalibratedPrediction:
-        """Query the configured ML predictor and validate against NaN/Inf before Post-rules."""
+    ) -> tuple[CalibratedPrediction, Any]:
+        """Query the configured ML predictor, validate against NaN/Inf, and enforce OOD/CI abstention."""
+        from ewm_engine.dynamics.calibration import (
+            AbstainException,
+            ConfidenceInterval,
+        )
+
         assert self.ml_predictor is not None
-        raw_pred: Any
-        if isinstance(self.ml_predictor, LearnedPredictorProtocol):
-            raw_pred = self.ml_predictor.predict(state, accepted_actions, structural_state)
+        raw_out: Any
+        if hasattr(self.ml_predictor, "predict") and callable(self.ml_predictor.predict):
+            pred_fn: Any = self.ml_predictor.predict
+            try:
+                raw_out = pred_fn(state, accepted_actions, structural_state)
+            except TypeError:
+                try:
+                    raw_out = pred_fn(state, accepted_actions)
+                except TypeError:
+                    raw_out = pred_fn(state)
         elif hasattr(self.ml_predictor, "predict_residual") and callable(
             self.ml_predictor.predict_residual
         ):
             fn_res: Any = self.ml_predictor.predict_residual
-            raw_pred = fn_res(state, accepted_actions, exogenous_events, structural_state)
+            raw_out = fn_res(state, accepted_actions, exogenous_events, structural_state)
         elif isinstance(self.ml_predictor, DynamicsModel):
             trans_res = self.ml_predictor.transition(
                 state=structural_state,
@@ -705,19 +766,136 @@ class HybridTransitionRouter:
                 deltas[rid] = r_next.current - base_val
             std_val = float(getattr(self.ml_predictor, "residual_std", self.default_std))
             stds = {rid: max(1e-6, std_val) for rid in deltas}
-            raw_pred = CalibratedPrediction(
+            raw_out = CalibratedPrediction(
                 mean_deltas=deltas,
                 std_deltas=stds,
                 calibration_temperature=self.calibration_temperature,
             )
         elif callable(self.ml_predictor):
-            raw_pred = self.ml_predictor(state, accepted_actions, structural_state)
+            fn_pred: Any = self.ml_predictor
+            try:
+                raw_out = fn_pred(state, accepted_actions, structural_state)
+            except TypeError:
+                raw_out = fn_pred(state)
         else:
             raise TypeError(
                 f"Unsupported ml_predictor type: {type(self.ml_predictor).__name__}"
             )
 
-        return validate_learned_prediction_no_nan(raw_pred)
+        ci_obj: ConfidenceInterval | None = None
+        if isinstance(raw_out, tuple) and len(raw_out) == 2:
+            raw_pred, second_elem = raw_out
+            if isinstance(second_elem, ConfidenceInterval):
+                ci_obj = second_elem
+        else:
+            raw_pred = raw_out
+
+        calibrated_pred = validate_learned_prediction_no_nan(raw_pred)
+
+        if ci_obj is None:
+            z_90 = 1.6448536269514722
+            hw_map = {
+                rid: z_90 * calibrated_pred.std_deltas.get(rid, self.default_std)
+                for rid in calibrated_pred.mean_deltas
+            }
+            w_map = {rid: 2.0 * hw for rid, hw in hw_map.items()}
+            lo_map = {
+                rid: mu - hw_map[rid]
+                for rid, mu in calibrated_pred.mean_deltas.items()
+            }
+            hi_map = {
+                rid: mu + hw_map[rid]
+                for rid, mu in calibrated_pred.mean_deltas.items()
+            }
+            ci_obj = ConfidenceInterval(
+                lower=lo_map,
+                upper=hi_map,
+                half_width=hw_map,
+                width=w_map,
+                max_width=max(w_map.values(), default=0.0),
+                max_half_width=max(hw_map.values(), default=0.0),
+                ensemble_variance=dict.fromkeys(calibrated_pred.mean_deltas, 0.0),
+                max_ensemble_variance=0.0,
+                ood_score=0.0,
+                nominal_coverage=0.90,
+            )
+
+        if not math.isinf(self.ood_threshold) and ci_obj.ood_score > self.ood_threshold:
+            raise AbstainException(
+                f"Router OOD threshold exceeded: ood_score={ci_obj.ood_score:.4f} > "
+                f"ood_threshold={self.ood_threshold:.4f}",
+                confidence_interval=ci_obj,
+                ood_score=ci_obj.ood_score,
+                ensemble_variance=ci_obj.max_ensemble_variance,
+                threshold=self.ood_threshold,
+                trigger="router_ood_threshold",
+            )
+        if (
+            not math.isinf(self.variance_threshold)
+            and ci_obj.max_ensemble_variance > self.variance_threshold
+        ):
+            raise AbstainException(
+                f"Router ensemble variance threshold exceeded: "
+                f"Var(mu)={ci_obj.max_ensemble_variance:.4f} > "
+                f"variance_threshold={self.variance_threshold:.4f}",
+                confidence_interval=ci_obj,
+                ood_score=ci_obj.ood_score,
+                ensemble_variance=ci_obj.max_ensemble_variance,
+                threshold=self.variance_threshold,
+                trigger="router_variance_threshold",
+            )
+        if ci_obj > self.threshold:
+            raise AbstainException(
+                f"Router ConfidenceInterval threshold exceeded: "
+                f"effective_uncertainty={ci_obj.effective_uncertainty:.4f} > "
+                f"threshold={self.threshold:.4f}",
+                confidence_interval=ci_obj,
+                ood_score=ci_obj.ood_score,
+                ensemble_variance=ci_obj.max_ensemble_variance,
+                threshold=self.threshold,
+                trigger="router_confidence_interval_threshold",
+            )
+
+        return calibrated_pred, ci_obj
+
+    def _execute_fallback_with_retry_guard(
+        self,
+        state: WorldState,
+        accepted_actions: Sequence[Action],
+        structural_state: WorldState,
+        exogenous_events: Sequence[ExogenousEvent],
+        rng: RandomGenerator,
+    ) -> tuple[WorldState, int, bool]:
+        """Execute safe structural fallback upon `AbstainException` with max retry depth = 1.
+
+        Operational Safeguard (EWM-003 Section 11):
+            Prevents infinite loops if the fallback structural handler also fails.
+            Maximum retry depth is strictly capped at 1 (`0` initial attempt + at most `1` retry).
+        """
+        if self.fallback_structural_fn is None:
+            return structural_state, 0, False
+
+        max_retries = min(max(0, self.max_fallback_retries), 1)
+        retry_depth = 0
+        for attempt in range(max_retries + 1):
+            retry_depth = attempt
+            try:
+                if isinstance(self.fallback_structural_fn, DynamicsModel):
+                    res = self.fallback_structural_fn.transition(
+                        state=state,
+                        actions=accepted_actions,
+                        exogenous_events=exogenous_events,
+                        rng=rng,
+                    )
+                    return res.next_state, retry_depth, False
+                if callable(self.fallback_structural_fn):
+                    fb_state = self.fallback_structural_fn(state, accepted_actions)
+                    return fb_state, retry_depth, False
+            except Exception:
+                if attempt >= max_retries:
+                    return structural_state, retry_depth, True
+
+        return structural_state, retry_depth, True
 
     def _build_calibrated_distribution(
         self,
@@ -936,21 +1114,54 @@ class HybridTransitionRouter:
             )
 
         # =====================================================================
-        # PHASE 2: ML INFERENCE & OPERATIONAL NaN/Inf SAFEGUARD
+        # PHASE 2: ML INFERENCE, NaN/Inf SAFEGUARD & OOD/CI ABSTENTION GATE
         # =====================================================================
+        from ewm_engine.dynamics.calibration import AbstainException
+
         nan_caught = False
+        abstained = False
+        abstention_reason: str | None = None
+        ci_obj: Any = None
+        fallback_executed = False
+        fallback_retry_depth = 0
+        fallback_failed = False
         post_violations: list[str] = []
         ml_rejected = False
         post_rule_rejected = False
         rolled_back = False
 
         try:
-            calibrated_pred = self._invoke_ml_predictor(
+            calibrated_pred, ci_obj = self._invoke_ml_predictor(
                 state=state,
                 accepted_actions=accepted_actions,
                 structural_state=structural_state,
                 exogenous_events=exogenous_events,
                 rng=active_rng,
+            )
+        except AbstainException as exc:
+            abstained = True
+            abstention_reason = exc.reason
+            ci_obj = exc.confidence_interval
+            ml_rejected = True
+            rolled_back = True
+            fallback_executed = True
+            post_violations.append(f"abstain:{exc.reason}")
+            if self.raise_on_abstain:
+                raise
+            structural_state, fallback_retry_depth, fallback_failed = (
+                self._execute_fallback_with_retry_guard(
+                    state=state,
+                    accepted_actions=accepted_actions,
+                    structural_state=structural_state,
+                    exogenous_events=exogenous_events,
+                    rng=active_rng,
+                )
+            )
+            calibrated_pred = CalibratedPrediction(
+                mean_deltas={},
+                std_deltas={},
+                proposed_actions=(),
+                calibration_temperature=self.calibration_temperature,
             )
         except NumericalInstabilityError as exc:
             nan_caught = True
@@ -970,7 +1181,7 @@ class HybridTransitionRouter:
         # PHASE 3: POST-RULES (Structural Post-Constraints & Hallucination Rollback)
         # =====================================================================
         raw_ml_deltas: dict[str, float] = {}
-        if not nan_caught:
+        if not nan_caught and not abstained:
             # 3A. Validate any actions proposed/hallucinated by the ML module
             if calibrated_pred.proposed_actions:
                 ml_acc, ml_pre_res = self.constraints.validate_actions(
@@ -1090,8 +1301,12 @@ class HybridTransitionRouter:
         )
         feasibility = ResidualFeasibilityRecord(
             is_feasible=not ml_rejected,
-            policy=InfeasibleResidualPolicy.REJECT,
-            action_taken="rejected" if ml_rejected else "accepted",
+            policy=(
+                InfeasibleResidualPolicy.ABSTAIN
+                if abstained
+                else InfeasibleResidualPolicy.REJECT
+            ),
+            action_taken="abstained" if abstained else ("rejected" if ml_rejected else "accepted"),
             raw_deltas=raw_ml_deltas,
             applied_deltas=applied_deltas,
             l2_projection_distance=l2_dist,
@@ -1105,7 +1320,9 @@ class HybridTransitionRouter:
             temperature=calibrated_pred.calibration_temperature,
         )
         ev_level = (
-            EvidenceLevel.INTERVENTIONAL if forced_nodes else EvidenceLevel.PREDICTIVE
+            EvidenceLevel.INTERVENTIONAL
+            if forced_nodes
+            else (EvidenceLevel.STRUCTURAL if abstained else EvidenceLevel.PREDICTIVE)
         )
         tr = TransitionResult(
             next_state=final_next_state,
@@ -1113,6 +1330,7 @@ class HybridTransitionRouter:
                 "raw_ml_deltas": raw_ml_deltas,
                 "applied_ml_deltas": applied_deltas,
                 "ml_rejected": ml_rejected,
+                "abstained": abstained,
                 "rolled_back": rolled_back,
                 "forced_interventions": forced_nodes,
             },
@@ -1122,6 +1340,11 @@ class HybridTransitionRouter:
                 "pre_rule_rejected": pre_rule_rejected,
                 "post_rule_rejected": post_rule_rejected,
                 "ml_rejected": ml_rejected,
+                "abstained": abstained,
+                "abstention_reason": abstention_reason,
+                "fallback_executed": fallback_executed,
+                "fallback_retry_depth": fallback_retry_depth,
+                "fallback_failed": fallback_failed,
                 "rolled_back": rolled_back,
                 "nan_caught_before_post_rules": nan_caught,
                 "residual_feasibility": feasibility.model_dump(mode="json"),
@@ -1150,6 +1373,12 @@ class HybridTransitionRouter:
             evidence_level=ev_level,
             causal_log_entry=causal_log,
             transition_result=tr,
+            abstained=abstained,
+            abstention_reason=abstention_reason,
+            confidence_interval=ci_obj,
+            fallback_executed=fallback_executed,
+            fallback_retry_depth=fallback_retry_depth,
+            fallback_failed=fallback_failed,
         )
 
     def transition(
@@ -1202,6 +1431,14 @@ class TransitionEngine:
         constraints: ConstraintRegistry | Sequence[Constraint] | None = None,
         pre_rules: Sequence[StructuralPreRuleFn] = (),
         post_rules: Sequence[StructuralPostRuleFn] = (),
+        threshold: float = float("inf"),
+        ood_threshold: float = float("inf"),
+        variance_threshold: float = float("inf"),
+        fallback_structural_fn: (
+            Callable[[WorldState, Sequence[Action]], WorldState] | DynamicsModel | None
+        ) = None,
+        max_fallback_retries: int = 1,
+        raise_on_abstain: bool = False,
         raise_on_nan: bool = False,
         branch_id: str = "main",
     ) -> None:
@@ -1221,6 +1458,12 @@ class TransitionEngine:
                 pre_rules=pre_rules,
                 post_rules=post_rules,
                 causal_graph=causal_graph,
+                threshold=threshold,
+                ood_threshold=ood_threshold,
+                variance_threshold=variance_threshold,
+                fallback_structural_fn=fallback_structural_fn,
+                max_fallback_retries=max_fallback_retries,
+                raise_on_abstain=raise_on_abstain,
                 raise_on_nan=raise_on_nan,
             )
 

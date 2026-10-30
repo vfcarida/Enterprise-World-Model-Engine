@@ -369,15 +369,25 @@ class LinearResidualDynamics:
         version: str = "1.0.0",
         infeasible_policy: InfeasibleResidualPolicy = InfeasibleResidualPolicy.PROJECT,
         seed: int = 42,
+        threshold: float = float("inf"),
+        ood_threshold: float = float("inf"),
+        nominal_coverage: float = 0.90,
     ) -> None:
         self.target_resource = target_resource
         self.action_type = action_type
         self.name = name
         self.version = version
         self.seed = seed
+        self.threshold = float(threshold)
+        self.ood_threshold = float(ood_threshold)
+        self.nominal_coverage = float(nominal_coverage)
         self.action_weight: float = 1.0
         self.bias: float = 0.0
         self.residual_std: float = 0.0
+        self.state_mean: float = 0.0
+        self.state_std: float = 1.0
+        self.action_mean: float = 0.0
+        self.action_std: float = 1.0
         self.is_fitted: bool = False
         self.infeasible_policy = infeasible_policy
         self.training_dataset_fingerprint: str | None = None
@@ -439,6 +449,7 @@ class LinearResidualDynamics:
 
         deltas: list[float] = []
         action_vals: list[float] = []
+        state_vals: list[float] = []
 
         for sample in dataset:
             if (
@@ -457,16 +468,22 @@ class LinearResidualDynamics:
 
             deltas.append(delta)
             action_vals.append(act_val)
+            state_vals.append(curr_val)
 
         if not deltas:
             return
 
         x = np.array(action_vals, dtype=float)
         y = np.array(deltas, dtype=float)
+        s_arr = np.array(state_vals, dtype=float)
 
         x_mean = float(np.mean(x))
         y_mean = float(np.mean(y))
         x_var = float(np.var(x))
+        self.action_mean = x_mean
+        self.action_std = max(1e-6, float(np.std(x)))
+        self.state_mean = float(np.mean(s_arr))
+        self.state_std = max(1e-6, float(np.std(s_arr)))
 
         if x_var > 1e-12:
             cov_xy = float(np.mean((x - x_mean) * (y - y_mean)))
@@ -726,3 +743,87 @@ class LinearResidualDynamics:
             diagnostics=diag,
             model_name=self.name,
         )
+
+    def predict(
+        self,
+        state: WorldState,
+        actions: Sequence[Action] = (),
+        structural_state: WorldState | None = None,
+    ) -> tuple[Any, Any]:
+        """Predict `(CalibratedPrediction, ConfidenceInterval)` and enforce `AbstainException`."""
+        from ewm_engine.dynamics.calibration import (
+            AbstainException,
+            ConfidenceInterval,
+            _normal_ppf_two_sided,
+        )
+        from ewm_engine.dynamics.router import (
+            CalibratedPrediction,
+            NumericalInstabilityError,
+        )
+
+        act_val = 0.0
+        for act in actions:
+            if act.type == self.action_type:
+                act_val += float(act.get("value", 1.0))
+
+        predicted_delta = (self.action_weight * act_val) + self.bias
+        if math.isnan(predicted_delta) or math.isinf(predicted_delta):
+            raise NumericalInstabilityError(
+                f"Numerical instability detected in LinearResidualDynamics.predict for "
+                f"{self.target_resource!r}: {predicted_delta}"
+            )
+
+        base_state = structural_state if structural_state is not None else state
+        res = base_state.resources.get(self.target_resource)
+        curr_val = float(res.current) if res is not None else 0.0
+        if math.isnan(curr_val) or math.isinf(curr_val):
+            raise NumericalInstabilityError(
+                f"Non-finite resource value for {self.target_resource!r}: {curr_val}"
+            )
+
+        z_state = abs(curr_val - self.state_mean) / max(1e-6, self.state_std) if self.is_fitted else 0.0
+        z_act = abs(act_val - self.action_mean) / max(1e-6, self.action_std) if self.is_fitted else 0.0
+        ood_score = math.sqrt(z_state**2 + z_act**2)
+
+        z_crit = _normal_ppf_two_sided(self.nominal_coverage)
+        sigma = max(1e-6, self.residual_std) * math.sqrt(1.0 + 0.1 * (ood_score**2))
+        hw = z_crit * sigma
+        width = 2.0 * hw
+
+        ci = ConfidenceInterval(
+            lower={self.target_resource: predicted_delta - hw},
+            upper={self.target_resource: predicted_delta + hw},
+            half_width={self.target_resource: hw},
+            width={self.target_resource: width},
+            max_width=width,
+            max_half_width=hw,
+            ensemble_variance={self.target_resource: 0.0},
+            max_ensemble_variance=0.0,
+            ood_score=ood_score,
+            nominal_coverage=self.nominal_coverage,
+        )
+        pred = CalibratedPrediction(
+            mean_deltas={self.target_resource: predicted_delta},
+            std_deltas={self.target_resource: sigma},
+            proposed_actions=(),
+            calibration_temperature=1.0,
+        )
+
+        if not math.isinf(self.ood_threshold) and ood_score > self.ood_threshold:
+            raise AbstainException(
+                f"OOD score {ood_score:.4f} exceeds ood_threshold {self.ood_threshold:.4f}",
+                confidence_interval=ci,
+                ood_score=ood_score,
+                threshold=self.ood_threshold,
+                trigger="ood_mahalanobis_threshold",
+            )
+        if ci > self.threshold:
+            raise AbstainException(
+                f"ConfidenceInterval {ci.effective_uncertainty:.4f} exceeds threshold {self.threshold:.4f}",
+                confidence_interval=ci,
+                ood_score=ood_score,
+                threshold=self.threshold,
+                trigger="confidence_interval_threshold",
+            )
+
+        return pred, ci
