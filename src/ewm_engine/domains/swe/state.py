@@ -362,7 +362,7 @@ class SWEState(BaseModel):
         for dependent, targets in sorted(self.dependencies.items()):
             for target in targets:
                 dag.add_edge(dependent, target)
-        return dag  # type: ignore[no-any-return]
+        return dag
 
     @classmethod
     def from_networkx_dag(

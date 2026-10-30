@@ -418,7 +418,7 @@ def test_cycle_4_clean_environment_quickstart_and_hygiene_sweep(tmp_path: Path) 
     assert fallback_dag.number_of_nodes() == 2
     assert fallback_dag.number_of_edges() == 1
     assert fallback_dag.has_edge("a.py", "b.py")
-    reconstructed = SWEState.from_networkx_dag(fallback_dag)  # type: ignore[arg-type]
+    reconstructed = SWEState.from_networkx_dag(fallback_dag)
     assert reconstructed.files["a.py"].revision == 2
     assert reconstructed.dependencies["a.py"] == ("b.py",)
 
