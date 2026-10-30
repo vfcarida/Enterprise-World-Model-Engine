@@ -427,8 +427,24 @@ module = [
     "pytest_socket",
     "pytest_benchmark",
     "pytest_codspeed",
+    "torch",
+    "transformers",
+    "transformers.*",
+    "litellm",
+    "litellm.*",
+    "huggingface_hub",
+    "huggingface_hub.*",
+    "fastapi",
+    "fastapi.*",
+    "scipy",
+    "scipy.*",
+    "sklearn",
+    "sklearn.*",
+    "sec_edgar_downloader",
+    "sec_edgar_downloader.*",
 ]
 ignore_missing_imports = true
+follow_imports = "skip"
 
 [[tool.mypy.overrides]]
 module = ["ewm_engine.serialization.yaml"]
@@ -438,6 +454,10 @@ disallow_untyped_calls = false
 [[tool.mypy.overrides]]
 module = ["tests.packaging.test_runtime_typing"]
 disallow_untyped_decorators = false
+
+[[tool.mypy.overrides]]
+module = ["ewm_engine.graph.*", "ewm_engine.financial.*"]
+disallow_subclassing_any = false
 
 [tool.pytest.ini_options]
 minversion = "8.0"
