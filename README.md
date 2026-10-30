@@ -189,7 +189,7 @@ All empirical claims are verified by committed, machine-readable benchmark artif
 | **Amortized SBI & TARP** | Empirical posterior coverage across 200 synthetic holdout simulations | Mean TARP calibration error $= 0.0283 \le 0.05$ threshold | `CALIBRATED` — `python scripts/reproduce.py` |
 | **Counterfactual SCM & Induction Gate** | Abducted-noise twin rollout & fail-closed refusal under unobserved confounding | Coupled net treatment effect $= +35.0$ units; `0` unidentifiable causal strings emitted | `BENCHMARKED` — `python scripts/reproduce.py` |
 
-All benchmark metrics are computed at runtime from simulation outputs; see [`benchmarks/measurement_classification.md`](benchmarks/measurement_classification.md) for verification.
+All benchmark metrics are computed at runtime from simulation outputs; see [`benchmarks/measurement_classification.md`](benchmarks/measurement_classification.md) for verification. Execution verified on clean `v1.5.0` checkout (`CERTIFIED_RELEASE`); see [`docs/results/execution_verification_report.md`](docs/results/execution_verification_report.md).
 
 [^1]: Marked as scenario design assertion; see [`benchmarks/measurement_classification.md`](benchmarks/measurement_classification.md) for details.
 
