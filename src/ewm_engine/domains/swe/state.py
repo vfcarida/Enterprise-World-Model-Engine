@@ -10,13 +10,55 @@ from __future__ import annotations
 from collections import deque
 from collections.abc import Iterable, Mapping, Sequence
 from enum import StrEnum
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
-import networkx as nx
 from pydantic import BaseModel, ConfigDict, Field
 
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import Entity, Resource, WorldState
+
+if TYPE_CHECKING:
+    import networkx as nx
+else:
+    try:
+        import networkx as nx
+    except ImportError:
+        nx = None
+
+
+class _FallbackDiGraph:
+    """Lightweight pure-Python directed graph fallback when optional ``networkx`` extra is absent."""
+
+    def __init__(self) -> None:
+        self._nodes: dict[str, dict[str, Any]] = {}
+        self._adj: dict[str, set[str]] = {}
+
+    def add_node(self, node_for_adding: str, **attr: Any) -> None:
+        self._nodes.setdefault(str(node_for_adding), {}).update(attr)
+        self._adj.setdefault(str(node_for_adding), set())
+
+    def add_edge(self, u_of_edge: str, v_of_edge: str) -> None:
+        u, v = str(u_of_edge), str(v_of_edge)
+        self.add_node(u)
+        self.add_node(v)
+        self._adj[u].add(v)
+
+    def number_of_nodes(self) -> int:
+        return len(self._nodes)
+
+    def number_of_edges(self) -> int:
+        return sum(len(targets) for targets in self._adj.values())
+
+    def has_edge(self, u: str, v: str) -> bool:
+        return str(v) in self._adj.get(str(u), set())
+
+    def nodes(self, data: bool = False) -> list[Any]:
+        if data:
+            return [(k, dict(v)) for k, v in self._nodes.items()]
+        return list(self._nodes.keys())
+
+    def edges(self) -> list[tuple[str, str]]:
+        return [(u, v) for u, targets in self._adj.items() for v in sorted(targets)]
 
 MAX_SWE_GRAPH_NODES: Final[int] = 2000
 SWE_REPO_ENTITY_ID: Final[str] = "swe_repository"
@@ -305,9 +347,10 @@ class SWEState(BaseModel):
         """Build a fresh ``networkx.DiGraph`` representing the repository dependency DAG.
 
         Returns a new graph instance on every access so external callers cannot
-        mutate ``SWEState`` in place.
+        mutate ``SWEState`` in place. Falls back to ``_FallbackDiGraph`` if the
+        optional ``networkx`` extra is not installed.
         """
-        dag: nx.DiGraph = nx.DiGraph()
+        dag: Any = nx.DiGraph() if nx is not None else _FallbackDiGraph()
         for fpath, node in sorted(self.files.items()):
             dag.add_node(
                 fpath,
@@ -319,7 +362,7 @@ class SWEState(BaseModel):
         for dependent, targets in sorted(self.dependencies.items()):
             for target in targets:
                 dag.add_edge(dependent, target)
-        return dag
+        return dag  # type: ignore[no-any-return]
 
     @classmethod
     def from_networkx_dag(

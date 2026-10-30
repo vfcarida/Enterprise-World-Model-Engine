@@ -58,6 +58,7 @@ from ewm_engine.domains.swe import (
     create_default_swe_repository_state,
     run_concurrent_agent_intervention_scenario,
 )
+from ewm_engine.domains.swe.state import _FallbackDiGraph
 from ewm_engine.dynamics.calibration import (
     AbstainException,
     MahalanobisOODAndDriftDetector,
@@ -407,9 +408,19 @@ def test_cycle_3_scientific_and_independent_oracle() -> None:
 
 def test_cycle_4_clean_environment_quickstart_and_hygiene_sweep(tmp_path: Path) -> None:
     """Cycle 4: Execute README quickstart in an isolated temporary directory and sweep for artifact residue."""
-    # 1. Verify installed package metadata
+    # 1. Verify installed package metadata and pure-Python SWE DAG fallback (C4-01)
     dist_version = importlib.metadata.version("ewm-engine")
     assert dist_version == "1.0.0"
+
+    fallback_dag = _FallbackDiGraph()
+    fallback_dag.add_node("a.py", revision=2)
+    fallback_dag.add_edge("a.py", "b.py")
+    assert fallback_dag.number_of_nodes() == 2
+    assert fallback_dag.number_of_edges() == 1
+    assert fallback_dag.has_edge("a.py", "b.py")
+    reconstructed = SWEState.from_networkx_dag(fallback_dag)  # type: ignore[arg-type]
+    assert reconstructed.files["a.py"].revision == 2
+    assert reconstructed.dependencies["a.py"] == ("b.py",)
 
     # 2. Execute README quickstart script with cwd set to an isolated clean temporary directory
     (tmp_path / "README.md").write_text(
