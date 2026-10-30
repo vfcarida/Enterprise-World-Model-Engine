@@ -10,11 +10,11 @@ if _REPO_ROOT not in sys.path:  # pragma: no cover
     sys.path.insert(0, _REPO_ROOT)
 
 from examples.fraud_cascade.adr053_full_cascade import (  # noqa: E402
-    ADR053FraudCascadeResult,
+    ADR053FraudCascadeShowcaseResult,
     run_adr053_fraud_cascade_showcase,
 )
 
-__all__ = ["ADR053FraudCascadeResult", "run_adr053_fraud_cascade_showcase"]
+__all__ = ["ADR053FraudCascadeShowcaseResult", "run_adr053_fraud_cascade_showcase"]
 
 if __name__ == "__main__":  # pragma: no cover
     summary = run_adr053_fraud_cascade_showcase()
