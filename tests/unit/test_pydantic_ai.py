@@ -125,18 +125,20 @@ def test_create_ewm_agent_without_pydantic_ai() -> None:
         assert "pip install ewm-engine[agents]" in str(exc_info.value)
 
 
-def test_create_ewm_agent_with_mocked_pydantic_ai() -> None:
+def test_create_ewm_agent_with_mocked_pydantic_ai(monkeypatch: pytest.MonkeyPatch) -> None:
     """Verify create_ewm_agent wiring when pydantic_ai is present."""
+    import sys
+
     mock_agent_class = MagicMock()
     mock_module = MagicMock()
     mock_module.Agent = mock_agent_class
 
     with patch("ewm_engine.integrations.pydantic_ai.is_pydantic_ai_available", return_value=True):
-        with patch.dict("sys.modules", {"pydantic_ai": mock_module}):
-            create_ewm_agent(model="test-model", provenance_strict=True)
+        monkeypatch.setitem(sys.modules, "pydantic_ai", mock_module)
+        create_ewm_agent(model="test-model", provenance_strict=True)
 
-            mock_agent_class.assert_called_once()
-            _, kwargs = mock_agent_class.call_args
-            assert kwargs["model"] == "test-model"
-            assert len(kwargs["tools"]) == 5
-            assert "Enterprise World Model Engine" in kwargs["system_prompt"]
+        mock_agent_class.assert_called_once()
+        _, kwargs = mock_agent_class.call_args
+        assert kwargs["model"] == "test-model"
+        assert len(kwargs["tools"]) == 5
+        assert "Enterprise World Model Engine" in kwargs["system_prompt"]
