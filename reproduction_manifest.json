@@ -1,20 +1,20 @@
 {
   "schema_version": "1.2.0",
   "title": "EWM Engine Universal Scientific Reproduction Manifest",
-  "timestamp_start": "2026-10-30T22:46:47.118150+00:00",
-  "timestamp_end": "2026-10-30T22:46:48.771518+00:00",
+  "timestamp_start": "2026-10-30T22:50:14.327685+00:00",
+  "timestamp_end": "2026-10-30T22:50:15.850377+00:00",
   "verification_checks_passed": true,
   "certification_status": "CERTIFIED_RELEASE",
   "certification_reason": "All verification checks passed on a clean working tree at an immutable Git commit.",
   "overall_status": "CERTIFIED_RELEASE",
   "provenance": {
     "git": {
-      "commit": "f4f5c5af555d489df5ca9ad0d65182e0f6baeab6",
+      "commit": "7df7bd0b6cb9c6d3da90bfc46ae0a1af49f03732",
       "branch": "main",
       "dirty": false,
       "dirty_files_count": 0,
       "modified_or_untracked": [],
-      "source_tree_sha256": "72fe630bb749781b68c798920adf0e13b207650176ac4f77868c47db0bc7bb05",
+      "source_tree_sha256": "de0de364af8ec139684ea253f644b7762ef6462117e6da1bfa90657630b78e63",
       "files_hashed_count": 309
     },
     "environment": {
@@ -27,7 +27,7 @@
       "python_implementation": "CPython",
       "numpy_version": "2.5.3",
       "backend_versions": {
-        "ewm_engine": "1.5.1.dev73",
+        "ewm_engine": "1.5.1.dev77",
         "numpy": "2.5.3",
         "pydantic": "2.13.5",
         "pyyaml": "6.0.3",
@@ -348,5 +348,5 @@
     "enterprise_benchmark_heatmap": "29390b53f960fc312aa18bf2988aeca6f2bc8fab66fabafed5e745b976fac37d",
     "enterprise_shift_recovery": "a5412085aa8a7cba590b7d747d87aec757b09a49bce3d1cd4a9fd3d9f37344a1"
   },
-  "reproduction_fingerprint": "8623beef5c31bc8bd43ccced4d8d337de8bf775632b4162d5850e189e8e668d7"
+  "reproduction_fingerprint": "25a9ddb84a62462404ff2873f97fb2a502bf8e35a386655949645ab864e3a8ad"
 }
