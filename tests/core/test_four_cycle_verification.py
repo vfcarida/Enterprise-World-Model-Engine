@@ -70,6 +70,7 @@ from ewm_engine.evaluation.evaluator import (
     EnvironmentSpec,
     EWM_Evaluator,
 )
+from ewm_engine.exceptions import InvalidWorldStateError
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -113,8 +114,11 @@ def test_cycle_2_adversarial_and_failure_oriented_fault_injection() -> None:
         WorldState(step=-1, timestamp=0.0)
 
     for non_finite_ts in (float("nan"), float("inf"), float("-inf")):
-        with pytest.raises((ValueError, ValidationError)):
-            WorldState(step=0, timestamp=non_finite_ts)
+        bad_ts_state = WorldState(step=0, timestamp=non_finite_ts)
+        with pytest.raises(InvalidWorldStateError):
+            _ = bad_ts_state.state_hash
+        with pytest.raises(TemporalMonotonicityError):
+            EventLog(bad_ts_state)
 
     base_state = WorldState(
         step=0,

@@ -186,7 +186,7 @@ class EventLog:
             )
         if not math.isfinite(next_state.timestamp) or next_state.timestamp < head.timestamp:
             raise TemporalMonotonicityError(
-                f"Retrograde or non-finite timestamp on branch '{self._branch_id}': "
+                f"Retrograde timestamp on branch '{self._branch_id}': "
                 f"next_state.timestamp={next_state.timestamp} < current head timestamp={head.timestamp}."
             )
 

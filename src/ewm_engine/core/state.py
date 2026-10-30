@@ -118,13 +118,6 @@ class WorldState(BaseModel):
             return copy.deepcopy(val)
         return val
 
-    @field_validator("timestamp")
-    @classmethod
-    def _validate_finite_timestamp(cls, v: float) -> float:
-        if not math.isfinite(v):
-            raise ValueError(f"WorldState.timestamp must be finite, got {v!r}.")
-        return float(v)
-
     @field_validator("entities", mode="before")
     @classmethod
     def _coerce_entities(cls, v: Any) -> dict[EntityId, Entity]:
