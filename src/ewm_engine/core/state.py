@@ -1,9 +1,24 @@
-"""Canonical immutable WorldState representation for enterprise dynamics."""
+"""Canonical immutable WorldState representation for enterprise dynamics.
+
+Immutability & Temporal Semantics Contract (EWM-001)
+----------------------------------------------------
+1. **Deep Immutability (`frozen=True`)**: `WorldState` (aliased as `State`) is strictly immutable.
+   All nested containers (`entities`, `resources`, `relationships`, `memory`, `active_rules`,
+   `context`) are defensively deep-copied on construction, on attribute access, and across all
+   copy-on-write transition helpers (`with_entity`, `with_relationship`, `update_resource`,
+   `with_memory`, `with_context`, `advance_time`).
+2. **Discrete Monotonic Time ($t \\in \\mathbb{N}_0$)**: `step` is a non-negative integer ($t \\ge 0$).
+   Time transitions `State(t) + Action -> State(t+1)` advance `step` strictly monotonically and
+   never mutate historical states $t' < t$.
+3. **Zero Cross-Branch Reference Leakage**: Parallel simulation branches spawned via `clone()` or
+   `BranchManager` share zero mutable references (`id()` disjointness across all container fields).
+"""
 
 from __future__ import annotations
 
 import copy
 import math
+import warnings
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -15,7 +30,7 @@ from ewm_engine.core.resources import Resource
 from ewm_engine.core.types import EntityId, ResourceId
 from ewm_engine.exceptions import InvalidWorldStateError
 
-__all__ = ["Entity", "Relationship", "Resource", "WorldState"]
+__all__ = ["Entity", "Relationship", "Resource", "State", "WorldState"]
 
 
 class WorldState(BaseModel):
@@ -30,7 +45,7 @@ class WorldState(BaseModel):
         \Gamma_t = Active operational rules and policy parameters
         C_t = Exogenous and environmental context
 
-    WorldState is immutable (frozen=True), branchable, serializable, and auditable.
+    WorldState is deeply immutable (`frozen=True`), branchable, serializable, and auditable.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -61,7 +76,11 @@ class WorldState(BaseModel):
         description="Environmental, economic, or meteorological context variables.",
     )
     timestamp: float = Field(default=0.0, description="Continuous simulation time.")
-    step: int = Field(default=0, description="Discrete simulation step index.")
+    step: int = Field(
+        default=0,
+        ge=0,
+        description="Discrete simulation step index t in N_0 (t >= 0).",
+    )
 
     def __init__(
         self,
@@ -143,13 +162,25 @@ class WorldState(BaseModel):
     @property
     def state_hash(self) -> str:
         """Deterministic cryptographic SHA-256 fingerprint of the normalized state."""
+        raw_entities: dict[EntityId, Entity] = object.__getattribute__(self, "entities")
+        raw_relationships: tuple[Relationship, ...] = object.__getattribute__(
+            self, "relationships"
+        )
+        raw_resources: dict[ResourceId, Resource] = object.__getattribute__(self, "resources")
+        raw_memory: dict[str, Any] = object.__getattribute__(self, "memory")
+        raw_rules: dict[str, Any] = object.__getattribute__(self, "active_rules")
+        raw_context: dict[str, Any] = object.__getattribute__(self, "context")
         canonical_dict = {
             "step": self.step,
             "timestamp": self.timestamp,
             "entities": sorted(
                 [
-                    {"id": e.id, "type": e.type, "attributes": e.attributes}
-                    for e in self.entities.values()
+                    {
+                        "id": e.id,
+                        "type": e.type,
+                        "attributes": object.__getattribute__(e, "attributes"),
+                    }
+                    for e in raw_entities.values()
                 ],
                 key=lambda x: str(x["id"]),
             ),
@@ -159,9 +190,9 @@ class WorldState(BaseModel):
                         "source": r.source,
                         "target": r.target,
                         "type": r.type,
-                        "attributes": r.attributes,
+                        "attributes": object.__getattribute__(r, "attributes"),
                     }
-                    for r in self.relationships
+                    for r in raw_relationships
                 ],
                 key=lambda x: (str(x["source"]), str(x["target"]), str(x["type"])),
             ),
@@ -173,13 +204,13 @@ class WorldState(BaseModel):
                         "min": r.min_value,
                         "max": None if math.isinf(r.max_value) else r.max_value,
                     }
-                    for r in self.resources.values()
+                    for r in raw_resources.values()
                 ],
                 key=lambda x: str(x["id"]),
             ),
-            "memory": self.memory,
-            "active_rules": self.active_rules,
-            "context": self.context,
+            "memory": raw_memory,
+            "active_rules": raw_rules,
+            "context": raw_context,
         }
         return canonical_sha256(canonical_dict)
 
@@ -195,30 +226,34 @@ class WorldState(BaseModel):
 
     def to_ontic_state(self) -> WorldState:
         """Return a pure ontic WorldState with any epistemic scratch keys (_epistemic_*) removed."""
-        ontic_mem = {k: v for k, v in self.memory.items() if not str(k).startswith("_epistemic_")}
-        ontic_ctx = {k: v for k, v in self.context.items() if not str(k).startswith("_epistemic_")}
-        if len(ontic_mem) == len(self.memory) and len(ontic_ctx) == len(self.context):
+        raw_memory: dict[str, Any] = object.__getattribute__(self, "memory")
+        raw_context: dict[str, Any] = object.__getattribute__(self, "context")
+        ontic_mem = {k: v for k, v in raw_memory.items() if not str(k).startswith("_epistemic_")}
+        ontic_ctx = {k: v for k, v in raw_context.items() if not str(k).startswith("_epistemic_")}
+        if len(ontic_mem) == len(raw_memory) and len(ontic_ctx) == len(raw_context):
             return self.clone()
         return self.model_copy(
-            update={"memory": ontic_mem, "context": ontic_ctx},
+            update={"memory": copy.deepcopy(ontic_mem), "context": copy.deepcopy(ontic_ctx)},
             deep=True,
         )
 
     def clone(self) -> WorldState:
-        """Return a deep immutable copy of this WorldState."""
+        """Return a deep immutable copy of this WorldState with disjoint container IDs."""
         return self.model_copy(deep=True)
 
     def get_entity(self, entity_id: EntityId) -> Entity:
         """Fetch an entity by ID or raise InvalidWorldStateError."""
-        if entity_id not in self.entities:
+        raw_entities: dict[EntityId, Entity] = object.__getattribute__(self, "entities")
+        if entity_id not in raw_entities:
             raise InvalidWorldStateError(f"Entity '{entity_id}' not found in WorldState.")
-        return self.entities[entity_id]
+        return copy.deepcopy(raw_entities[entity_id])
 
     def get_resource(self, resource_id: ResourceId) -> Resource:
         """Fetch a resource by ID or raise InvalidWorldStateError."""
-        if resource_id not in self.resources:
+        raw_resources: dict[ResourceId, Resource] = object.__getattribute__(self, "resources")
+        if resource_id not in raw_resources:
             raise InvalidWorldStateError(f"Resource '{resource_id}' not found in WorldState.")
-        return self.resources[resource_id]
+        return copy.deepcopy(raw_resources[resource_id])
 
     def get_relationships(
         self,
@@ -246,8 +281,11 @@ class WorldState(BaseModel):
         clamp: bool = False,
         enforce_bounds: bool = False,
     ) -> WorldState:
-        """Produce an updated WorldState with a modified resource level."""
-        current_res = self.get_resource(resource_id)
+        """Produce an updated WorldState with a modified resource level using structural sharing."""
+        raw_resources: dict[ResourceId, Resource] = object.__getattribute__(self, "resources")
+        if resource_id not in raw_resources:
+            raise InvalidWorldStateError(f"Resource '{resource_id}' not found in WorldState.")
+        current_res = raw_resources[resource_id]
         if new_value is not None:
             updated_res = current_res.with_value(
                 new_value, clamp=clamp, enforce_bounds=enforce_bounds
@@ -255,40 +293,75 @@ class WorldState(BaseModel):
         else:
             updated_res = current_res.with_delta(delta, clamp=clamp, enforce_bounds=enforce_bounds)
 
-        new_resources = dict(self.resources)
+        new_resources = dict(raw_resources)
         new_resources[resource_id] = updated_res
         return self.model_copy(update={"resources": new_resources})
 
     def with_entity(self, entity: Entity) -> WorldState:
-        """Return a new WorldState with an added or updated entity."""
-        new_entities = dict(self.entities)
-        new_entities[entity.id] = entity
+        """Return a new WorldState with an added or updated entity (deep-copied input, structural sharing)."""
+        raw_entities: dict[EntityId, Entity] = object.__getattribute__(self, "entities")
+        new_entities = dict(raw_entities)
+        new_entities[entity.id] = copy.deepcopy(entity)
         return self.model_copy(update={"entities": new_entities})
 
     def with_relationship(self, relationship: Relationship) -> WorldState:
-        """Return a new WorldState with an added relationship."""
-        return self.model_copy(update={"relationships": (*self.relationships, relationship)})
+        """Return a new WorldState with an added relationship (deep-copied input, structural sharing)."""
+        raw_rels: tuple[Relationship, ...] = object.__getattribute__(self, "relationships")
+        return self.model_copy(
+            update={"relationships": (*raw_rels, copy.deepcopy(relationship))},
+        )
 
     def with_memory(self, key: str, value: Any) -> WorldState:
-        """Return a new WorldState with an updated memory entry."""
-        new_mem = dict(self.memory)
-        new_mem[key] = value
+        """Return a new WorldState with an updated memory entry (deep-copied input, structural sharing)."""
+        raw_mem: dict[str, Any] = object.__getattribute__(self, "memory")
+        new_mem = dict(raw_mem)
+        new_mem[key] = copy.deepcopy(value)
         return self.model_copy(update={"memory": new_mem})
 
     def with_context(self, key: str, value: Any) -> WorldState:
-        """Return a new WorldState with an updated context variable."""
-        new_ctx = dict(self.context)
-        new_ctx[key] = value
+        """Return a new WorldState with an updated context variable (deep-copied input, structural sharing)."""
+        raw_ctx: dict[str, Any] = object.__getattribute__(self, "context")
+        new_ctx = dict(raw_ctx)
+        new_ctx[key] = copy.deepcopy(value)
         return self.model_copy(update={"context": new_ctx})
 
-    def advance_time(self, delta_t: float = 1.0) -> WorldState:
-        """Return a new WorldState with advanced step and timestamp."""
+    def advance_time(self, delta_t: float = 1.0, steps: int = 1) -> WorldState:
+        """Return a new WorldState with strictly monotonic advanced step and timestamp."""
+        if steps < 1 or delta_t < 0.0:
+            raise ValueError(
+                f"Temporal transitions must be strictly monotonic (steps={steps} >= 1, delta_t={delta_t} >= 0.0)."
+            )
         return self.model_copy(
             update={
-                "step": self.step + 1,
+                "step": self.step + steps,
                 "timestamp": self.timestamp + delta_t,
             }
         )
+
+    def legacy_update(self, **changes: Any) -> WorldState:
+        """Compatibility shim kept for 1 version: returns a new immutable WorldState with changes applied."""
+        warnings.warn(
+            "WorldState.legacy_update() is deprecated and will be removed in v2.0.0; "
+            "use immutable transition helpers (with_memory, with_context, update_resource, advance_time) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if "step" in changes and int(changes["step"]) < self.step:
+            raise ValueError(
+                f"Cannot retroactively decrease WorldState.step from {self.step} to {changes['step']}."
+            )
+        safe_changes = {k: copy.deepcopy(v) for k, v in changes.items()}
+        return self.model_copy(update=safe_changes, deep=True)
+
+    def update(self, **changes: Any) -> WorldState:
+        """Deprecated mutable-style update entrypoint; delegates to immutable legacy_update()."""
+        warnings.warn(
+            "WorldState.update() is deprecated because WorldState is strictly immutable; "
+            "use immutable transition methods or legacy_update() (returns a new WorldState).",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.legacy_update(**changes)
 
     def to_dict(self) -> dict[str, Any]:
         """Convert state to a standard JSON-compatible dictionary."""
@@ -362,3 +435,6 @@ class WorldState(BaseModel):
             f"{res_table}"
             f"</div>"
         )
+
+
+State = WorldState

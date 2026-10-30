@@ -7,6 +7,7 @@ from ewm_engine.core._canonical import (
     fast_canonical_sha256,
     is_native_accel_available,
 )
+from ewm_engine.core.action import StateTransitionFn, apply_action
 from ewm_engine.core.actions import Action, Intervention
 from ewm_engine.core.bitemporal import (
     GRANULARITY_WINDOW_STEPS,
@@ -78,7 +79,15 @@ from ewm_engine.core.spec import (
     WorldSpec,
     WorldSpecification,
 )
-from ewm_engine.core.state import WorldState
+from ewm_engine.core.state import State, WorldState
+from ewm_engine.core.time import (
+    BranchManager,
+    BranchMetadata,
+    EventLog,
+    EventRecord,
+    TemporalMonotonicityError,
+    collect_mutable_container_ids,
+)
 from ewm_engine.core.trust import (
     EVIDENCE_LEVEL_TO_NATURE,
     EVIDENCE_NATURE_TO_DEFAULT_LEVEL,
@@ -146,6 +155,8 @@ __all__ = [
     "BitemporalLeakageError",
     "BitemporalLedger",
     "BitemporalRecord",
+    "BranchManager",
+    "BranchMetadata",
     "CausalGraph",
     "ComponentRegistry",
     "ComponentSpec",
@@ -167,6 +178,8 @@ __all__ = [
     "EntitySpec",
     "EpistemicState",
     "EventId",
+    "EventLog",
+    "EventRecord",
     "EvidenceGateDecision",
     "EvidenceLevel",
     "EvidenceNature",
@@ -199,9 +212,12 @@ __all__ = [
     "ScenarioForecastResult",
     "ScenarioId",
     "ServiceEndpointConfig",
+    "State",
+    "StateTransitionFn",
     "StructuralAssignment",
     "StructuralCausalModel",
     "TemporalGranularity",
+    "TemporalMonotonicityError",
     "TrajectoryId",
     "UncertaintyRequiredError",
     "UnqualifiedCausalClaimError",
@@ -213,8 +229,10 @@ __all__ = [
     "WorldSpec",
     "WorldSpecification",
     "WorldState",
+    "apply_action",
     "canonical_sha256",
     "check_plan_performative_validity",
+    "collect_mutable_container_ids",
     "deprecate",
     "deprecated",
     "detect_world_drift",
