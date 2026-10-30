@@ -1,0 +1,26 @@
+................                                                         [100%]Running teardown with pytest sessionfinish...
+
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.12.10-final-0 _______________
+
+Name                                             Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------------------
+examples\finance\__init__.py                         3      0      0      0   100%
+examples\finance\test_finance_application.py         3      0      0      0   100%
+examples\finance\treasury_liquidity_cascade.py      36      0      4      0   100%
+examples\fraud_cascade\__init__.py                   3      0      0      0   100%
+examples\fraud_cascade\adr053_full_cascade.py       71      1      8      1    97%   193
+examples\fraud_cascade\main.py                       3      3      0      0     0%   3-10
+examples\fraud_cascade\test_fraud_cascade.py         3      0      0      0   100%
+examples\swe\__init__.py                             3      0      0      0   100%
+examples\swe\ci_deployment_cascade.py               19      0      0      0   100%
+examples\swe\test_swe_application.py                 3      0      0      0   100%
+src\ewm_engine\connectors\__init__.py                6      0      0      0   100%
+src\ewm_engine\connectors\base.py                   66      1      8      1    97%   104
+src\ewm_engine\connectors\salesforce.py             52      0      8      2    97%   41->44, 115->88
+src\ewm_engine\connectors\sap.py                    55      0     12      1    99%   112->89
+src\ewm_engine\connectors\servicenow.py             53      0     12      3    95%   105->84, 107->113, 114->84
+--------------------------------------------------------------------------------------------
+TOTAL                                              379      5     52      8    97%
+Required test coverage of 85% reached. Total coverage: 96.98%
+16 passed in 1.67s
