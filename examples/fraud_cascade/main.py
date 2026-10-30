@@ -1,8 +1,15 @@
-"""Main entrypoint for the ADR-053 Fraud Cascade Flagship Showcase."""
+"""Main entrypoint for the ADR-053 Fraud Cascade Flagship Showcase (`examples/fraud_cascade/main.py`)."""
 
 from __future__ import annotations
 
-from examples.fraud_cascade.adr053_full_cascade import (
+from pathlib import Path
+import sys
+
+_REPO_ROOT = str(Path(__file__).resolve().parents[2])
+if _REPO_ROOT not in sys.path:  # pragma: no cover
+    sys.path.insert(0, _REPO_ROOT)
+
+from examples.fraud_cascade.adr053_full_cascade import (  # noqa: E402
     ADR053FraudCascadeResult,
     run_adr053_fraud_cascade_showcase,
 )

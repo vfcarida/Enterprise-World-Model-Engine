@@ -2,7 +2,19 @@
 
 from __future__ import annotations
 
-from examples.deployment_shift_walkthrough import run_deployment_shift_walkthrough
+from pathlib import Path
+import sys
+
+_REPO_ROOT = str(Path(__file__).resolve().parents[2])
+if _REPO_ROOT not in sys.path:  # pragma: no cover
+    sys.path.insert(0, _REPO_ROOT)
+
+from examples.deployment_shift_walkthrough import (  # noqa: E402
+    DeploymentShiftWalkthroughSummary,
+    run_deployment_shift_walkthrough,
+)
+
+__all__ = ["DeploymentShiftWalkthroughSummary", "run_deployment_shift_walkthrough"]
 
 if __name__ == "__main__":  # pragma: no cover
     summary = run_deployment_shift_walkthrough()
