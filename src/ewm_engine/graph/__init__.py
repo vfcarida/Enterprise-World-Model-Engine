@@ -8,9 +8,16 @@ from __future__ import annotations
 
 from ewm_engine.graph.aiops_features import AIOpsNodeFeatures
 from ewm_engine.graph.continuous_registry import ContinuousGraphRegistry, Edge, Node
-from ewm_engine.graph.evolvegcn import EvolveGCN, EvolveGCNLayer, GCNConv
 from ewm_engine.graph.financial_features import FinancialNodeFeatures
-from ewm_engine.graph.training_pipeline import EvolveGCNTrainer
+
+try:
+    from ewm_engine.graph.evolvegcn import EvolveGCN, EvolveGCNLayer, GCNConv
+    from ewm_engine.graph.training_pipeline import EvolveGCNTrainer
+except ImportError:  # pragma: no cover - optional [ml] extra (torch)
+    EvolveGCN = None  # type: ignore[assignment,misc]
+    EvolveGCNLayer = None  # type: ignore[assignment,misc]
+    GCNConv = None  # type: ignore[assignment,misc]
+    EvolveGCNTrainer = None  # type: ignore[assignment,misc]
 
 __all__ = [
     "AIOpsNodeFeatures",

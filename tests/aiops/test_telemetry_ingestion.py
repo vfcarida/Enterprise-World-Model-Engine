@@ -1,4 +1,5 @@
 """Unit and property-based tests for AIOps telemetry ingestion pipelines."""
+# ruff: noqa: E402
 
 from __future__ import annotations
 
@@ -7,10 +8,11 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import numpy as np
-import pandas as pd
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
+
+pd = pytest.importorskip("pandas")
 
 from ewm_engine.aiops.data.jaeger_collector import JaegerCollector
 from ewm_engine.aiops.data.log_parser import LogParser

@@ -1,4 +1,5 @@
 """End-to-end integration and comparative backtesting tests for the Financial World Model."""
+# ruff: noqa: E402
 
 from __future__ import annotations
 
@@ -6,8 +7,10 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import pytest
+
+pd = pytest.importorskip("pandas")
+pytest.importorskip("torch")
 
 from ewm_engine.financial.data import BitemporalSynchronizer, EDGARLoader, Market1TLoader
 from ewm_engine.financial.evaluation import (

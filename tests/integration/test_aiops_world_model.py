@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import pytest
 
+pytest.importorskip("pandas")
+pytest.importorskip("torch")
+
 from ewm_engine.aiops.evaluation.evaluator import AIOpsWorldModelEvaluator
 
 

@@ -1,10 +1,12 @@
 """Unit tests for STGCN, CascadeFailurePredictor, CausalRCA, Remediation, OPA, and Chaos Mesh."""
+# ruff: noqa: E402
 
 from __future__ import annotations
 
-import pandas as pd
 import pytest
-import torch
+
+pd = pytest.importorskip("pandas")
+torch = pytest.importorskip("torch")
 
 from ewm_engine.aiops.chaos.harness import ChaosMeshHarness
 from ewm_engine.aiops.evaluation.evaluator import build_microservice_incident_episode

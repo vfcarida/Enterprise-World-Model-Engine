@@ -8,7 +8,6 @@ FastAPI gateway for Financial and AIOps World Models.
 from __future__ import annotations
 
 from ewm_engine.routing.deterministic_engine import DeterministicRuleEngine
-from ewm_engine.routing.gateway import app, ingest_aiops_event, ingest_financial_event
 from ewm_engine.routing.llm_arbitrator import FrontierLLMArbitrator
 from ewm_engine.routing.schemas import (
     AIOpsEventInput,
@@ -17,7 +16,19 @@ from ewm_engine.routing.schemas import (
     FinancialEventInput,
     RoutingDecision,
 )
-from ewm_engine.routing.semantic_router import SemanticVectorRouter, compute_rankme
+
+try:
+    from ewm_engine.routing.gateway import app, ingest_aiops_event, ingest_financial_event
+except ImportError:  # pragma: no cover - optional [serve] extra (fastapi)
+    app = None
+    ingest_aiops_event = None  # type: ignore[assignment]
+    ingest_financial_event = None  # type: ignore[assignment]
+
+try:
+    from ewm_engine.routing.semantic_router import SemanticVectorRouter, compute_rankme
+except ImportError:  # pragma: no cover - optional [ml] extra (torch)
+    SemanticVectorRouter = None  # type: ignore[assignment,misc]
+    compute_rankme = None  # type: ignore[assignment]
 
 __all__ = [
     "AIOpsEventInput",

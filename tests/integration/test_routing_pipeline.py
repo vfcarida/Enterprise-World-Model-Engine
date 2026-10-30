@@ -11,6 +11,9 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
+
+pytest.importorskip("fastapi")
+pytest.importorskip("torch")
 from fastapi.testclient import TestClient
 
 import ewm_engine.routing.gateway as gateway_mod

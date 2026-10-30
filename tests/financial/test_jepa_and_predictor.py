@@ -1,4 +1,5 @@
 """Unit and property tests for FinancialJEPAEncoder, VICReg, TransitionPredictor, and Decoder."""
+# ruff: noqa: E402
 
 from __future__ import annotations
 
@@ -6,9 +7,10 @@ from dataclasses import dataclass
 from unittest.mock import MagicMock, patch
 
 import pytest
-import torch
 from hypothesis import given
 from hypothesis import strategies as st
+
+torch = pytest.importorskip("torch")
 
 from ewm_engine.financial.models import (
     FinancialJEPAEncoder,

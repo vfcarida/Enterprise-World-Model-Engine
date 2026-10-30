@@ -1,14 +1,16 @@
 """Unit and property tests for Market-1T, SEC EDGAR, and BitemporalSynchronizer pipelines."""
+# ruff: noqa: E402
 
 from __future__ import annotations
 
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import pandas as pd
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
+
+pd = pytest.importorskip("pandas")
 
 from ewm_engine.financial.data import (
     FUNDAMENTAL_METRICS,

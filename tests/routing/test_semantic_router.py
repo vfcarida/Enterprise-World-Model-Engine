@@ -1,4 +1,5 @@
 """Unit and benchmark tests for the Semantic Vector Router."""
+# ruff: noqa: E402
 
 from __future__ import annotations
 
@@ -8,7 +9,8 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-import torch
+
+torch = pytest.importorskip("torch")
 
 from ewm_engine.routing.semantic_router import SemanticVectorRouter, compute_rankme
 

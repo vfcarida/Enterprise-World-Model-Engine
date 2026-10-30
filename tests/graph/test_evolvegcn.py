@@ -1,4 +1,5 @@
 """Unit, property, and benchmark tests for EvolveGCN and EvolveGCNLayer."""
+# ruff: noqa: E402
 
 from __future__ import annotations
 
@@ -6,10 +7,11 @@ import time
 from typing import Any
 
 import pytest
-import torch
-import torch.nn.functional as F
 from hypothesis import given
 from hypothesis import strategies as st
+
+torch = pytest.importorskip("torch")
+import torch.nn.functional as F
 
 from ewm_engine.graph.evolvegcn import EvolveGCN, EvolveGCNLayer
 

@@ -1,9 +1,11 @@
 """End-to-end integration tests for ContinuousGraphRegistry -> EvolveGCNTrainer pipeline."""
+# ruff: noqa: E402
 
 from __future__ import annotations
 
 import pytest
-import torch
+
+torch = pytest.importorskip("torch")
 
 from ewm_engine.graph.aiops_features import AIOpsNodeFeatures
 from ewm_engine.graph.continuous_registry import ContinuousGraphRegistry, Edge, Node
