@@ -1,4 +1,4 @@
-"""Unit tests for the Software Engineering Progressive-Delivery application (PROMPT-14)."""
+"""Unit tests for the Software Engineering Progressive-Delivery application."""
 
 from __future__ import annotations
 

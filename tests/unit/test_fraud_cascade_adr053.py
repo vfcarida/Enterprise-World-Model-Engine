@@ -1,4 +1,4 @@
-"""Unit tests for PROMPT-08 (Deployment-Shift Walkthrough) and PROMPT-09 (Fraud Cascade ADR-053 Integration)."""
+"""Unit tests for the Deployment-Shift Walkthrough and Fraud Cascade ADR-053 Integration."""
 
 from __future__ import annotations
 

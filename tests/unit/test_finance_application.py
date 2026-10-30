@@ -1,4 +1,4 @@
-"""Unit tests for the Corporate Treasury & Liquidity Cascade application (PROMPT-13)."""
+"""Unit tests for the Corporate Treasury & Liquidity Cascade application."""
 
 from __future__ import annotations
 
