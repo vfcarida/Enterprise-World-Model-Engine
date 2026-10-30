@@ -1,20 +1,20 @@
 {
   "schema_version": "1.2.0",
   "title": "EWM Engine Universal Scientific Reproduction Manifest",
-  "timestamp_start": "2026-10-30T21:48:16.986594+00:00",
-  "timestamp_end": "2026-10-30T21:48:17.989088+00:00",
+  "timestamp_start": "2026-10-30T22:07:26.391757+00:00",
+  "timestamp_end": "2026-10-30T22:07:27.726433+00:00",
   "verification_checks_passed": true,
   "certification_status": "CERTIFIED_RELEASE",
   "certification_reason": "All verification checks passed on a clean working tree at an immutable Git commit.",
   "overall_status": "CERTIFIED_RELEASE",
   "provenance": {
     "git": {
-      "commit": "883348f9f20930c1845ff8f548f2ff3b6b3749b3",
+      "commit": "05f6810f74b85ca66b57bb1f503115f30f2992b3",
       "branch": "main",
       "dirty": false,
       "dirty_files_count": 0,
       "modified_or_untracked": [],
-      "source_tree_sha256": "47ef70ba23cee0fd15f81699f89f455094017d287c1993f7e04dfa6bda37fda3",
+      "source_tree_sha256": "3b24d8da211943a8880b9ca31abf59abb96ae119b2e241b525ea4f2d435a56ce",
       "files_hashed_count": 309
     },
     "environment": {
@@ -25,19 +25,19 @@
       "processor": "Intel64 Family 6 Model 142 Stepping 10, GenuineIntel",
       "python_version": "3.12.10",
       "python_implementation": "CPython",
-      "numpy_version": "2.5.2",
+      "numpy_version": "2.5.3",
       "backend_versions": {
-        "ewm_engine": "1.5.0",
-        "numpy": "2.5.2",
-        "pydantic": "2.13.4",
+        "ewm_engine": "1.5.1.dev67",
+        "numpy": "2.5.3",
+        "pydantic": "2.13.5",
         "pyyaml": "6.0.3",
-        "scipy": "1.18.0",
+        "scipy": "not_installed",
         "jax": "not_installed",
-        "torch": "2.13.0",
+        "torch": "not_installed",
         "cupy": "not_installed"
       },
-      "uv_lock_sha256": "e7f9c755d9cffca66771676793bb6970ecc5d4dddd0a977d5f6387f479e37543",
-      "blas_config_summary": "{\"Compilers\": {\"c\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}, \"cython\": {\"name\": \"cython\", \"linker\": \"cython\", \"version\": \"3.2.9\", \"commands\": \"cython\"}, \"c++\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}}, \"Machine Information"
+      "uv_lock_sha256": "7ace4c338b0742d969c32550d357b94be35a31c7fff951a2d7e2fa1ecce6201b",
+      "blas_config_summary": "{\"Compilers\": {\"c\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}, \"cython\": {\"name\": \"cython\", \"linker\": \"cython\", \"version\": \"3.3.0\", \"commands\": \"cython\"}, \"c++\": {\"name\": \"msvc\", \"linker\": \"link\", \"version\": \"19.44.35228\", \"commands\": \"cl\"}}, \"Machine Information"
     },
     "reproducibility_protocol": {
       "rng_seeds": {
@@ -348,5 +348,5 @@
     "enterprise_benchmark_heatmap": "29390b53f960fc312aa18bf2988aeca6f2bc8fab66fabafed5e745b976fac37d",
     "enterprise_shift_recovery": "a5412085aa8a7cba590b7d747d87aec757b09a49bce3d1cd4a9fd3d9f37344a1"
   },
-  "reproduction_fingerprint": "a1f147a18c6d6ce993887d90423797974d926575aa034269aea77412b0043b7b"
+  "reproduction_fingerprint": "a8d4c36f281ac76ef543a1580457ac295f0731aeeab319489c8892f7fb1f730b"
 }
