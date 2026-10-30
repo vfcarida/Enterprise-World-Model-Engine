@@ -75,6 +75,8 @@ nav:
       - "Results Gallery": results/index.md
       - "Decision-First Comparative Evaluation": results/decision-first-comparative-evaluation.md
       - "Reproducible Benchmarks": results/benchmarks.md
+      - "Execution Verification Report": results/execution_verification_report.md
+      - "Fraud Cascade TCO Analysis": results/fraud_cascade_tco.md
       - "SEIR Epidemic Outbreak": results/seir-outbreak.md
       - "Beer Game Bullwhip": results/beer-game-bullwhip.md
       - "WORLD3 Resource Depletion": results/world3-resource-depletion.md
@@ -140,10 +142,16 @@ nav:
       - "Minimal Warehouse Fixture": examples/minimal-warehouse.md
       - "Minimal Supply World": examples/minimal-world.md
       - "Flagship: Fraud → Declines → Call-Center Cascade": tutorials/fraud-call-center-cascade.md
+      - "ADR-053 Deployment-Shift Walkthrough": tutorials/deployment_shift_walkthrough.md
+      - "Enterprise Data Connectors Tutorial": tutorials/connectors.md
+      - "Corporate Treasury & Liquidity Tutorial": tutorials/finance_tutorial.md
+      - "SWE Progressive-Delivery Tutorial": tutorials/swe_tutorial.md
       - "Flagship: CivicFlow Disaster Response": examples/civicflow.md
       - "Agent Policy Evaluation": examples/agent-evaluation.md
 
   - How-To Guides:
+      - "Enterprise Data Connectors Guide": guides/enterprise-data-connectors.md
+      - "Pilot Program Protocol": pilots/pilot_program_protocol.md
       - "Counterfactual Twin-Rollouts": guides/counterfactual-twin-rollouts.md
       - "Scenario Discovery with PRIM": guides/scenario-discovery-prim.md
       - "Enforcing Conservation Layers": guides/conservation-layers.md
@@ -197,6 +205,9 @@ nav:
           - Reproducibility Cards: reference/api/cards.md
       - "CLI Command Reference": reference/cli.md
       - "Flagship Scenario: Fraud Cascade Reference": reference/fraud-cascade-scenario.md
+      - "ADR-053 Fraud Cascade Showcase": showcase/fraud_cascade.md
+      - "Cost-Benefit & TCO Protocol": methodology/cost_benefit_protocol.md
+      - "Architecture Reconciliation Report": architecture/reconciliation_report.md
       - "JSON Schemas Reference": reference/schemas.md
       - "Enterprise Data Connectors": reference/connectors.md
       - "Verified Bibliography & References": REFERENCES.md
@@ -283,6 +294,7 @@ nav:
       - "Open-Source Governance (ADR-038)": adr/ADR-038-open-source-governance-community-health-and-rfc-process.md
 
   - Explanation:
+      - "When to Use / Not Use EWM": positioning/when_to_use_ewm.md
       - "What Is an EWM? (Scientific Demarcation)": explanation/what-is-an-ewm.md
       - "Research Agenda & Falsifiable Hypotheses": explanation/research-agenda.md
       - "What is a World Model?": concepts/world-models.md
