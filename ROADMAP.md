@@ -152,3 +152,8 @@ See [Frontier Architecture & Causal Roadmap](docs/architecture/frontier-roadmap.
 - **Core Graduation Target**: Counterfactual SCM kernel and grey-box residual/conservation contract targeted for Stable graduation in the `2.0.0` release tag.
 - **Capstone Deliverables**: CI-reproducible `docs/results/` gallery with SHA-256 fingerprints, companion methods manuscript draft (NeurIPS D&B checklist), reproducible competitive comparison harness, and launch assets.
 - **Relational GNNs & World Specification Language**: Heterogeneous relational graph state & GNN dynamics adapters (`FEAT-003`, `ADR-022`), declarative safe WSL language with zero-dependency fallback parser (`ADR-023`), and WMIF interchange format with conformance test suite.
+
+### v2.1+ Future Vertical Milestones — Financial & AIOps World Models [PLANNED — Future Release]
+- **Mechanistic Router (`[PLANNED]` — Future v2.0+ Milestone)**: Three-tier compute routing hierarchy (`<100ms` deterministic rules, semantic BGE embeddings, and frontier LLM arbitrator) for multimodal shock ingestion.
+- **Financial World Model Vertical (`[PLANNED]` — Future v2.0+ Milestone)**: Planned future vertical for Market-1T 1Hz limit order book and SEC EDGAR bitemporal ingestion, JEPA latent state encoders (`VICReg`/`SIGReg`), and EvolveGCN systemic contagion forecasting (`VaR`/`CVaR`).
+- **AIOps World Model Vertical (`[PLANNED]` — Future v2.0+ Milestone)**: Planned future vertical for Prometheus/Jaeger telemetry ingestion, `STGCNEncoder` cascade failure forecasting, `CausalRCA` root cause isolation, OPA policy validation, and Chaos Mesh shadow validation.
