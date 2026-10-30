@@ -5,7 +5,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from ewm_engine.core.actions import Action, Intervention, StateMutator
+from ewm_engine.core.actions import (
+    Action,
+    Intervention,
+    StateMutator,
+    get_active_interventions,
+)
 
 if TYPE_CHECKING:
     from ewm_engine.core.state import WorldState
@@ -18,6 +23,7 @@ __all__ = [
     "StateMutator",
     "StateTransitionFn",
     "apply_action",
+    "get_active_interventions",
 ]
 
 

@@ -5,7 +5,8 @@ from __future__ import annotations
 import copy
 import uuid
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Annotated, Any
+from contextvars import ContextVar, Token
+from typing import TYPE_CHECKING, Annotated, Any, Self
 
 from pydantic import BaseModel, ConfigDict, Field, GetCoreSchemaHandler, GetJsonSchemaHandler
 from pydantic_core import CoreSchema, core_schema
@@ -14,6 +15,16 @@ from ewm_engine.core.types import ActionId, ActorId
 
 if TYPE_CHECKING:
     from ewm_engine.core.state import WorldState
+
+_ACTIVE_INTERVENTIONS: ContextVar[tuple[Intervention, ...]] = ContextVar(
+    "_ACTIVE_INTERVENTIONS", default=()
+)
+_INTERVENTION_TOKENS: dict[int, list[Token[tuple[Intervention, ...]]]] = {}
+
+
+def get_active_interventions() -> tuple[Intervention, ...]:
+    """Return the tuple of currently active context-managed Interventions."""
+    return _ACTIVE_INTERVENTIONS.get()
 
 
 class _StateMutatorAnnotation:
@@ -115,6 +126,69 @@ class Intervention(BaseModel):
         description="Optional callable modifying world state when intervention is applied.",
     )
 
+    def forced_nodes(self) -> dict[str, Any]:
+        """Return mapping of state node identifiers to forced values."""
+        raw = super().__getattribute__("parameters")
+        if not isinstance(raw, dict):
+            return {}
+        return {
+            str(k): copy.deepcopy(v)
+            for k, v in raw.items()
+            if not str(k).startswith("_")
+        }
+
+    @property
+    def is_active(self) -> bool:
+        """Return True if this Intervention is currently active in a context manager block."""
+        return any(iv is self or iv.id == self.id for iv in _ACTIVE_INTERVENTIONS.get())
+
+    def __enter__(self) -> Self:
+        """Enter an active Intervention context forcing specified state nodes and overriding dynamics."""
+        current = _ACTIVE_INTERVENTIONS.get()
+        token = _ACTIVE_INTERVENTIONS.set((*current, self))
+        _INTERVENTION_TOKENS.setdefault(id(self), []).append(token)
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: Any,
+    ) -> None:
+        """Exit the active Intervention context and restore standard dynamics."""
+        tokens = _INTERVENTION_TOKENS.get(id(self))
+        if tokens:
+            token = tokens.pop()
+            if not tokens:
+                _INTERVENTION_TOKENS.pop(id(self), None)
+            _ACTIVE_INTERVENTIONS.reset(token)
+
+    def apply_forced_nodes(self, state: WorldState) -> WorldState:
+        """Force specific state nodes (resources, entity attributes, memory) on a WorldState."""
+        new_state = state
+        for key, val in self.forced_nodes().items():
+            clean_key = key.split(":", 1)[1] if key.startswith("resource:") else key
+            if clean_key in new_state.resources and isinstance(val, (int, float)):
+                new_state = new_state.update_resource(
+                    clean_key,
+                    new_value=float(val),
+                    clamp=False,
+                    enforce_bounds=True,
+                )
+            elif key.startswith("entity:"):
+                parts = key.split(":", 2)
+                if len(parts) == 3 and parts[1] in new_state.entities:
+                    ent = new_state.get_entity(parts[1])
+                    updated_attrs = dict(ent.attributes)
+                    updated_attrs[parts[2]] = val
+                    new_state = new_state.with_entity(
+                        ent.model_copy(update={"attributes": updated_attrs})
+                    )
+            else:
+                mem_key = key.split(":", 1)[1] if key.startswith("memory:") else key
+                new_state = new_state.with_memory(mem_key, val)
+        return new_state
+
     def apply(self, state: WorldState) -> WorldState:
         """Apply this intervention to a WorldState, yielding a counterfactual initial state."""
         # 1. Update active rules with intervention parameters if applicable
@@ -123,7 +197,11 @@ class Intervention(BaseModel):
 
         new_state = state.model_copy(update={"active_rules": updated_rules})
 
-        # 2. Execute custom state mutator if defined
+        # 2. If target_type indicates state/node override, force state nodes directly
+        if self.target_type in ("state_override", "node_override", "do"):
+            new_state = self.apply_forced_nodes(new_state)
+
+        # 3. Execute custom state mutator if defined
         if self.state_mutator is not None:
             new_state = self.state_mutator(new_state)
 

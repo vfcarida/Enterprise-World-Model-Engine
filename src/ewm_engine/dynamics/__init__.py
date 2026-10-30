@@ -24,6 +24,16 @@ from ewm_engine.dynamics.learned import (
     TransitionDataset,
     TransitionSample,
 )
+from ewm_engine.dynamics.router import (
+    CalibratedPrediction,
+    CalibratedStateDistribution,
+    HybridTransitionRouter,
+    LearnedPredictorProtocol,
+    NumericalInstabilityError,
+    TransitionEngine,
+    TransitionStepOutcome,
+    validate_learned_prediction_no_nan,
+)
 from ewm_engine.dynamics.stochastic import StochasticDemandDynamics
 from ewm_engine.experimental.grey_box import (
     GreyBoxDynamics,
@@ -33,6 +43,8 @@ from ewm_engine.experimental.grey_box import (
 )
 
 __all__ = [
+    "CalibratedPrediction",
+    "CalibratedStateDistribution",
     "CompositeDynamics",
     "ContextualDynamicsModel",
     "DeterministicDemandDynamics",
@@ -41,17 +53,23 @@ __all__ = [
     "DynamicsModel",
     "GreyBoxDynamics",
     "HybridDynamics",
+    "HybridTransitionRouter",
     "InfeasibleResidualPolicy",
     "LearnedDynamics",
+    "LearnedPredictorProtocol",
     "LinearResidualDynamics",
     "MechanismKind",
     "MechanismProvenance",
+    "NumericalInstabilityError",
     "ResidualEstimator",
     "ResidualFeasibilityRecord",
     "StochasticDemandDynamics",
     "TransitionDataset",
+    "TransitionEngine",
     "TransitionResult",
     "TransitionSample",
+    "TransitionStepOutcome",
     "ValidityDomain",
     "ZeroResidualEstimator",
+    "validate_learned_prediction_no_nan",
 ]

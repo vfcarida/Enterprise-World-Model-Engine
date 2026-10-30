@@ -7,6 +7,7 @@ See ewm_engine.experimental for experimental re-exports.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterator, Sequence
 from typing import Any, Protocol, runtime_checkable
 
@@ -632,6 +633,13 @@ class LinearResidualDynamics:
                 act_val += float(act.get("value", 1.0))
 
         predicted_delta = (self.action_weight * act_val) + self.bias
+        if math.isnan(predicted_delta) or math.isinf(predicted_delta):
+            from ewm_engine.dynamics.router import NumericalInstabilityError
+
+            raise NumericalInstabilityError(
+                f"Numerical instability detected in LinearResidualDynamics for "
+                f"{self.target_resource!r} before structural evaluation: {predicted_delta}"
+            )
         res = state.get_resource(self.target_resource)
         proposed_val = res.current + predicted_delta
         is_feasible = res.min_value <= proposed_val <= res.max_value

@@ -35,6 +35,21 @@ where:
 
 - **Normative Constraint Gates (`src/ewm_engine/constraints/`):** `PRE_ACTION` gates reject invalid interventions before execution; `POST_TRANSITION` gates mark conservation-violating trajectories `INVALID` without silent state clamping (`AC-006`–`AC-008`).
 - **Grey-Box Residual Projection (`src/ewm_engine/dynamics/`, `src/ewm_engine/experimental/conservation.py`):** Combines known structural rules $f_{\text{known}}$ with empirical residuals $\mathcal{P}_{\mathcal{C}}(g_\theta)$ via KKT nullspace projection (`ConservationProjectionLayer`) preserving conservation laws within $\le 10^{-12}$.
+- **Hybrid Transition Router (`src/ewm_engine/dynamics/router.py`, `src/ewm_engine/causal/`):** Implements the strict `Pre-rules -> ML -> Post-rules` pipeline, pre-structural `NaN`/`Inf` safeguard, 100% rollback of out-of-bounds ML predictions, and `engine.branch().do(action)` causal graph surgery.
+
+```mermaid
+flowchart LR
+    ST["Immutable State S_t + Action A_t"] --> PRE["Stage 1: Pre-Rules\n(Action Validation & do(X_t=x) Graph Surgery)"]
+    PRE -->|"Invalid Action"| REJ_PRE["Reject Action\n(Preserve Invariants)"]
+    PRE -->|"Accepted Action + Severed Inbound Edges"| STRUCT["Structural Baseline\nS_{t+1}^{struct} = f_struct(PA_Y(t), A_t, U_t)"]
+    STRUCT -->|"No ML Configured"| DET["Deterministic Outcome\n(is_deterministic = True)"]
+    STRUCT -->|"ML Predictor Active"| ML["Stage 2: Learned ML Inference\n(Predict Residual Mean & Std)"]
+    ML --> NAN_GATE{"Operational Safeguard:\nNaN / Inf Check"}
+    NAN_GATE -->|"NaN / Inf Detected"| ROLLBACK_NAN["Catch Before Post-Rules\n(Rollback to S_{t+1}^{struct})"]
+    NAN_GATE -->|"Finite Proposal"| POST["Stage 3: Post-Rules\n(Resource Bounds, Constraints & Hallucination Gate)"]
+    POST -->|"Out-of-Bounds or Invalid Action"| ROLLBACK_POST["100% Reject & Rollback\nto S_{t+1}^{struct}"]
+    POST -->|"All Post-Rules Satisfied"| CAL["Calibrated Distribution Outcome\n(CalibratedStateDistribution at t+1)"]
+```
 
 ### 4. Scenario Evaluation, Uncertainty & Provenance Suite [IMPLEMENTED] (v1.5.0 STABLE)
 

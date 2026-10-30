@@ -29,3 +29,18 @@ ewm_engine/
    - **Pre-transition**: Checks proposed actions before dynamics execute (rejects invalid operations).
    - **Post-transition**: Verifies that the resulting state conforms to operational invariants (detects capacity breaches and penalties).
 4. **Counterfactual Branching**: Calling `world.branch()` clones the model state and registries without mutating the parent world, enabling side-by-side rollout comparisons.
+5. **Hybrid Transition Router (`Pre-rules -> ML -> Post-rules`)**: Separates structural compliance rules from uncertain learned predictions, intercepts numerical `NaN`/`Inf` before structural evaluation, rejects 100% of out-of-bounds ML hallucinations, and supports `engine.branch().do(action)` causal graph surgery (see [`docs/architecture.md`](../architecture.md)).
+
+```mermaid
+flowchart LR
+    ST["Immutable State S_t + Action A_t"] --> PRE["Stage 1: Pre-Rules\n(Action Validation & do(X_t=x) Graph Surgery)"]
+    PRE -->|"Invalid Action"| REJ_PRE["Reject Action"]
+    PRE -->|"Accepted Action"| STRUCT["Structural Baseline S_{t+1}^{struct}"]
+    STRUCT -->|"No ML"| DET["Deterministic Outcome"]
+    STRUCT -->|"ML Active"| ML["Stage 2: Learned ML Inference"]
+    ML --> NAN{"NaN / Inf Check"}
+    NAN -->|"NaN / Inf"| ROLLBACK_NAN["Rollback Before Post-Rules"]
+    NAN -->|"Finite"| POST["Stage 3: Post-Rules"]
+    POST -->|"Out-of-Bounds / Invalid"| ROLLBACK_POST["100% Reject & Rollback"]
+    POST -->|"Valid"| CAL["Calibrated Distribution Outcome"]
+```

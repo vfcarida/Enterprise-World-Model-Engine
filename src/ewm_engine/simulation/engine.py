@@ -11,8 +11,8 @@ Reproducibility Contract (AC-004):
 from __future__ import annotations
 
 import time
-from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Mapping, Sequence
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -328,4 +328,37 @@ class SimulationEngine:
             trace=trace,
             scenario=scenario,
             on_constraint_eval=on_constraint_eval,
+        )
+
+    def branch(self, branch_id: str | None = None) -> Any:
+        """Spawn an isolated `TransitionEngine` branch supporting `.do(action)`."""
+        from ewm_engine.dynamics.router import TransitionEngine
+
+        router = getattr(self, "_router", None)
+        return TransitionEngine(router=router, branch_id=branch_id or "sim_branch")
+
+    def do(self, action: Any) -> Any:
+        """Apply Pearl's `do(action)` operator on a branched `TransitionEngine`."""
+        return self.branch().do(action)
+
+    def step(
+        self,
+        state: WorldState,
+        action: Any = None,
+        *,
+        u_noise: Mapping[str, float] | None = None,
+        rng: np.random.Generator | None = None,
+    ) -> Any:
+        """Execute a single step through `HybridTransitionRouter`."""
+        from ewm_engine.dynamics.router import HybridTransitionRouter
+
+        router = getattr(self, "_router", None)
+        if not isinstance(router, HybridTransitionRouter):
+            router = HybridTransitionRouter()
+            self._router = router
+        return router.step(
+            state=state,
+            action=action,
+            u_noise=u_noise,
+            rng=rng,
         )

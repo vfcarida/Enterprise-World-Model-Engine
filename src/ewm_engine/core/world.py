@@ -251,3 +251,44 @@ class World:
             horizon=horizon,
             seed=seed,
         )
+
+    def do(
+        self,
+        action: Action | Intervention | Mapping[str, Any],
+    ) -> World:
+        """Apply Pearl's `do(X_t = x)` intervention on this branched `World`."""
+        from ewm_engine.causal.intervention import parse_intervention_targets
+
+        targets = parse_intervention_targets(action)
+        iv = Intervention(
+            id="world_do_intervention",
+            description="Pearl do(action) intervention on World",
+            target_type="do",
+            parameters=targets,
+        )
+        self.initial_state = iv.apply_forced_nodes(self.initial_state)
+        self._active_do_targets = dict(getattr(self, "_active_do_targets", {}), **targets)
+        return self
+
+    def step(
+        self,
+        state: WorldState | None = None,
+        action: Action | Sequence[Action] | None = None,
+    ) -> Any:
+        """Execute a single transition step on this `World` via `HybridTransitionRouter`."""
+        from ewm_engine.dynamics.router import HybridTransitionRouter
+
+        router = HybridTransitionRouter(
+            structural_model=self.dynamics,
+            constraints=self.constraints,
+            causal_graph=self.as_scm(horizon=1).causal_graph,
+        )
+        active_do = getattr(self, "_active_do_targets", None)
+        outcome = router.step(
+            state=state if state is not None else self.initial_state,
+            action=action,
+            active_do_interventions=active_do,
+            runtime_context=self.runtime_context,
+        )
+        self.initial_state = outcome.next_state
+        return outcome

@@ -401,6 +401,17 @@ class GreyBoxDynamics:
             known_next_state=known_result.next_state,
         )
 
+        # Operational safeguard: catch numerical NaN/Inf from learned module before structural evaluation
+        for rid, delta in raw_residuals.items():
+            f_delta = float(delta)
+            if math.isnan(f_delta) or math.isinf(f_delta):
+                from ewm_engine.dynamics.router import NumericalInstabilityError
+
+                raise NumericalInstabilityError(
+                    f"Numerical instability detected in learned residual for {rid!r} "
+                    f"before structural evaluation: {f_delta}"
+                )
+
         # Filter to target resources present in state with non-zero delta
         non_zero_residuals = {
             rid: float(delta)
