@@ -47,8 +47,9 @@ class CausalInterventionEmbedder(nn.Module):
             nn.LayerNorm(action_dim),
             nn.Linear(action_dim, action_dim),
         )
-        # Per-node perturbation projection from [target_indicator, sentiment_shock, magnitude, contagion_in]
-        self.node_shock_proj = nn.Linear(4, node_feature_dim)
+        # Per-node perturbation projection from 7 causal shock features
+        self.node_shock_proj = nn.Linear(7, node_feature_dim)
+        self.ticker_emb = nn.Parameter(torch.zeros(num_tickers, node_feature_dim))
 
     def encode_intervention(
         self,
@@ -73,8 +74,8 @@ class CausalInterventionEmbedder(nn.Module):
             raw_vec = torch.zeros(
                 (batch_size, 4 + 2 * n_tickers), dtype=torch.float32, device=device
             )
-            node_raw = torch.zeros((n_tickers, 4), dtype=torch.float32, device=device)
-            return self.global_proj(raw_vec), self.node_shock_proj(node_raw), []
+            node_raw = torch.zeros((n_tickers, 7), dtype=torch.float32, device=device)
+            return self.global_proj(raw_vec), self.node_shock_proj(node_raw) + self.ticker_emb, []
 
         sentiment = float(intervention.directional_sentiment)
         magnitude = float(intervention.magnitude)
@@ -86,6 +87,7 @@ class CausalInterventionEmbedder(nn.Module):
                 target_mask[ticker_to_idx[entity]] = 1.0
 
         contagion_in = torch.zeros(n_tickers, dtype=torch.float32, device=device)
+        contagion_out = torch.zeros(n_tickers, dtype=torch.float32, device=device)
         extra_edges: list[tuple[int, int, float]] = []
         for pathway in intervention.contagion_pathways:
             src_name = str(pathway.get("source", ""))
@@ -96,6 +98,7 @@ class CausalInterventionEmbedder(nn.Module):
                 contagion_in[t_idx] += weight * magnitude * abs(sentiment)
                 if src_name in ticker_to_idx:
                     s_idx = ticker_to_idx[src_name]
+                    contagion_out[s_idx] += weight * magnitude * abs(sentiment)
                     extra_edges.append((s_idx, t_idx, weight))
 
         if registry is not None:
@@ -106,7 +109,9 @@ class CausalInterventionEmbedder(nn.Module):
                     s_idx = ticker_to_idx[src_id]
                     t_idx = ticker_to_idx[tgt_id]
                     if s_idx != t_idx and base_shock[s_idx] > 0:
-                        topo_contagion[t_idx] += float(edge.weight) * base_shock[s_idx] * 0.5
+                        flow = float(edge.weight) * base_shock[s_idx] * 0.5
+                        topo_contagion[t_idx] += flow
+                        contagion_out[s_idx] += flow * 0.5
             contagion_in = contagion_in + topo_contagion
 
         scalars = torch.tensor(
@@ -115,16 +120,30 @@ class CausalInterventionEmbedder(nn.Module):
         single_raw = torch.cat([scalars, target_mask, contagion_in], dim=0)
         batch_raw = single_raw.unsqueeze(0).expand(batch_size, -1)
 
+        global_signed = torch.full(
+            (n_tickers,), sentiment * magnitude, dtype=torch.float32, device=device
+        )
+        global_unsigned = torch.full(
+            (n_tickers,), magnitude * confidence, dtype=torch.float32, device=device
+        )
+
         node_raw = torch.stack(
             [
                 target_mask * magnitude * confidence,
                 target_mask * sentiment * magnitude,
                 contagion_in,
                 contagion_in * sentiment,
+                contagion_out,
+                global_signed,
+                global_unsigned,
             ],
             dim=-1,
         )
-        return self.global_proj(batch_raw), self.node_shock_proj(node_raw), extra_edges
+        return (
+            self.global_proj(batch_raw),
+            self.node_shock_proj(node_raw) + self.ticker_emb,
+            extra_edges,
+        )
 
 
 class FinancialTransitionPredictor(nn.Module):
@@ -257,7 +276,9 @@ class FinancialTransitionPredictor(nn.Module):
         for b_idx in range(b_sz):
             h_nodes = self.evolvegcn(perturbed_nodes[b_idx], edge_index)
             propagated_list.append(h_nodes)
-        propagated_nodes = perturbed_nodes + 0.5 * torch.stack(propagated_list, dim=0)  # (B, N, node_dim)
+        propagated_nodes = perturbed_nodes + 0.5 * torch.stack(
+            propagated_list, dim=0
+        )  # (B, N, node_dim)
 
         a_token = self.action_to_latent(action_emb)
         g_token = self.graph_to_latent(propagated_nodes.reshape(b_sz, -1))
@@ -354,8 +375,8 @@ class FinancialWorldModel(nn.Module):
         spread_loss = nn.functional.l1_loss(decoded.predicted_spread_change_bps, target_spread_bps)
         # Interval calibration loss (pinball / coverage width alignment)
         err_vol = torch.abs(target_volatility - decoded.predicted_volatility).detach()
-        width_vol = (decoded.volatility_upper_bound - decoded.volatility_lower_bound) * 0.5
-        calib_loss = nn.functional.mse_loss(width_vol, err_vol * 2.2 + 0.06)
+        width_vol = decoded.volatility_upper_bound - decoded.predicted_volatility
+        calib_loss = nn.functional.mse_loss(width_vol, err_vol * 1.8 + 0.05)
 
         total_loss = (
             0.05 * vicreg_components.total_loss

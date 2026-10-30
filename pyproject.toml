@@ -442,6 +442,19 @@ module = [
     "sklearn.*",
     "sec_edgar_downloader",
     "sec_edgar_downloader.*",
+    "prometheus_api_client",
+    "prometheus_api_client.*",
+    "jaeger_client",
+    "jaeger_client.*",
+    "pgmpy",
+    "pgmpy.*",
+    "kubernetes",
+    "kubernetes.*",
+    "requests",
+    "requests.*",
+    "networkx",
+    "networkx.*",
+    "yaml",
 ]
 ignore_missing_imports = true
 follow_imports = "skip"
@@ -456,7 +469,7 @@ module = ["tests.packaging.test_runtime_typing"]
 disallow_untyped_decorators = false
 
 [[tool.mypy.overrides]]
-module = ["ewm_engine.graph.*", "ewm_engine.financial.*"]
+module = ["ewm_engine.graph.*", "ewm_engine.financial.*", "ewm_engine.aiops.*"]
 disallow_subclassing_any = false
 
 [tool.pytest.ini_options]

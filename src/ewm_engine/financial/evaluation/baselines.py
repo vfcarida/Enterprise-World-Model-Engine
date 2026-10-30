@@ -347,9 +347,9 @@ class FullFWMBaseline:
         if not episodes:
             return
         self.fwm.tickers = list(episodes[0].tickers)
-        optimizer = torch.optim.Adam(self.fwm.parameters(), lr=0.005)
+        optimizer = torch.optim.Adam(self.fwm.parameters(), lr=0.008)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=max(1, num_epochs), eta_min=1e-4
+            optimizer, T_max=max(1, num_epochs), eta_min=5e-4
         )
         self.fwm.train()
 
@@ -357,8 +357,6 @@ class FullFWMBaseline:
             optimizer.zero_grad()
             for ep_idx, ep in enumerate(episodes):
                 self.fwm.tickers = list(ep.tickers)
-                # Pair counterfactual intervention with rotated pre-shock state window
-                # so the model learns causal effect of (A_t, registry) rather than memorizing x_t noise
                 state_ep = episodes[(ep_idx + epoch_idx) % len(episodes)]
                 x_t = torch.from_numpy(state_ep.x_window).unsqueeze(0)
                 x_t1 = torch.from_numpy(ep.next_x_window).unsqueeze(0)

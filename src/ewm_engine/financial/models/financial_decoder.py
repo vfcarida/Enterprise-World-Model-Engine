@@ -54,6 +54,7 @@ class FinancialMetricsDecoder(nn.Module):
         self.ticker_mlp = nn.Sequential(
             nn.Linear(combined_ticker_dim, hidden_dim),
             nn.GELU(),
+            nn.LayerNorm(hidden_dim),
             nn.Linear(hidden_dim, hidden_dim),
             nn.GELU(),
         )
@@ -104,12 +105,7 @@ class FinancialMetricsDecoder(nn.Module):
         hidden = self.ticker_mlp(combined)
         raw_out = self.ticker_head(hidden) + self.ticker_residual(combined)  # (B, N, 5)
 
-        raw_vol = raw_out[:, :, 0]
-        pred_vol = torch.where(
-            raw_vol >= -0.25,
-            raw_vol + 0.35,
-            0.10 * torch.exp(torch.clamp(raw_vol + 0.25, min=-10.0)),
-        )
+        pred_vol = F.softplus(raw_out[:, :, 0]) + 1e-4
         pred_spread = raw_out[:, :, 1]
         pred_ret = torch.tanh(raw_out[:, :, 2])
 

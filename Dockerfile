@@ -1,5 +1,5 @@
 # Pinned deterministic reproduction container for Enterprise World Model Engine
-FROM python:3.11-slim-bookworm
+FROM python:3.11-slim-bookworm@sha256:42c394b2d56e9898f92ef39b3ff6f61f1aa70c69f6df8f3c6818a91900202e9f
 
 LABEL org.opencontainers.image.title="Enterprise World Model Engine" \
       org.opencontainers.image.description="Reproducible scientific world model kernel with certified uncertainty" \
