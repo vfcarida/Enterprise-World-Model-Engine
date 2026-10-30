@@ -1,15 +1,15 @@
 {
   "schema_version": "1.2.0",
   "title": "EWM Engine Universal Scientific Reproduction Manifest",
-  "timestamp_start": "2026-10-30T18:34:22.613795+00:00",
-  "timestamp_end": "2026-10-30T18:34:24.441203+00:00",
+  "timestamp_start": "2026-10-30T18:36:18.162400+00:00",
+  "timestamp_end": "2026-10-30T18:36:19.888107+00:00",
   "verification_checks_passed": true,
   "certification_status": "REPRODUCIBLE_DIRTY_WORKTREE",
   "certification_reason": "All functional, numerical, and fingerprint checks passed, but working tree has uncommitted changes. Refusing CERTIFIED_RELEASE status until committed to a clean tree.",
   "overall_status": "REPRODUCIBLE_DIRTY_WORKTREE",
   "provenance": {
     "git": {
-      "commit": "aced6db353f6af11dd02fd272878bf257a903608",
+      "commit": "3475b624c1d4f42f87ca7725bdebbe7134dc8a21",
       "branch": "main",
       "dirty": true,
       "dirty_files_count": 2,
@@ -351,5 +351,5 @@
     "enterprise_benchmark_heatmap": "29390b53f960fc312aa18bf2988aeca6f2bc8fab66fabafed5e745b976fac37d",
     "enterprise_shift_recovery": "a5412085aa8a7cba590b7d747d87aec757b09a49bce3d1cd4a9fd3d9f37344a1"
   },
-  "reproduction_fingerprint": "f91eb22e5f6b2b0c520dcb8daf50c3f322960aa098f7c427b5a99d4805d58157"
+  "reproduction_fingerprint": "f98f57fb4880b2ff7e65e7fbcfc569bd3d71ddc1c327d64139731e6edec21d0b"
 }
