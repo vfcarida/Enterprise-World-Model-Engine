@@ -1,0 +1,29 @@
+{
+  "title": "Enterprise World Model Engine (ewm-engine) v1.5.0 — Certified Scientific Reproduction Package",
+  "version": "1.5.0",
+  "upload_type": "software",
+  "publication_date": "2026-10-30",
+  "creators": [
+    {
+      "name": "Caridá, Vinicius",
+      "affiliation": "Enterprise World Model Engine Project"
+    }
+  ],
+  "license": "Apache-2.0",
+  "description": "Deterministic simulation and counterfactual decision-evaluation engine for socio-technical systems. Includes pre-registered 5-rung comparative evaluation ladder (EWME-PREREG-20261023-LADDER), 12-family Enterprise Benchmark Suite (A-L), 7 scientific validation cards, and CERTIFIED_RELEASE reproduction manifest.",
+  "keywords": [
+    "enterprise world model",
+    "counterfactual simulation",
+    "structural causal model",
+    "bitemporal ledger",
+    "decision regret",
+    "reproducible research"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/vfcarida/Enterprise-World-Model-Engine",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

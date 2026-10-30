@@ -1,0 +1,26 @@
+# Hermetic Scientific Reproduction Image for Enterprise World Model Engine v1.5.0
+FROM python:3.11-slim-bookworm@sha256:42c394b2d56e9898f92ef39b3ff6f61f1aa70c69f6df8f3c6818a91900202e9f
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    PYTHONHASHSEED=0
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -r ewmrepro && useradd -r -g ewmrepro -m -d /home/ewmrepro ewmrepro
+
+WORKDIR /workspace
+COPY --chown=ewmrepro:ewmrepro . /workspace
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -e .
+
+USER ewmrepro
+
+CMD ["python", "scripts/reproduce.py", "--require-clean"]

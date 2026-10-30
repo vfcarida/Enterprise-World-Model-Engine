@@ -95,3 +95,14 @@ To preserve intellectual honesty and architectural focus, EWM Engine is **not**:
 - **Scoped to typed socio-technical state** (entities, ledgers, queues, and policy context $K_t$), occupying a distinct problem domain from pixel, video, or 3D rigid-body physics simulators.
 - **Not an assumption-free causal discovery oracle** (`ewm induce causal` emits Markov Equivalence Classes and fails closed under unmeasured confounding).
 - **One optional, modular capability inside a larger AI-systems architecture** (cf. Sculley et al., 2015)—not a standalone end-to-end data platform.
+
+---
+
+## Diátaxis Documentation Map
+
+| Mode | Focus | Entry Points |
+| :--- | :--- | :--- |
+| **Tutorials** | Step-by-step hands-on learning | [Getting Started](getting-started.md) · [Flagship Cascade](tutorials/fraud-call-center-cascade.md) · [Deployment-Shift Walkthrough](tutorials/deployment_shift_walkthrough.md) · [Treasury Liquidity](tutorials/finance.md) · [Progressive-Delivery SWE](tutorials/swe.md) · [The Whole Game in 10 Minutes](tutorials/whole-game-in-ten-minutes.md) |
+| **How-To Guides** | Operational & integration recipes | [Enterprise Data Connectors](guides/enterprise-data-connectors.md) · [Pilot Program Protocol](pilots/pilot_program_protocol.md) · [Counterfactual Twin-Rollouts](guides/counterfactual-twin-rollouts.md) · [Scenario Discovery with PRIM](guides/scenario-discovery-prim.md) · [Enforcing Conservation Layers](guides/conservation-layers.md) |
+| **Reference** | Schemas, APIs, TCO, and architecture | [API Reference](reference/api/index.md) · [Architecture Reconciliation](architecture/reconciliation_report.md) · [Cost-Benefit TCO Protocol](methodology/cost_benefit_protocol.md) · [Fraud Cascade TCO Analysis](results/fraud_cascade_tco.md) · [ADR-053 Showcase](showcase/fraud_cascade_adr053.md) · [Execution Verification Report](results/execution_verification_report.md) |
+| **Explanation** | Theory, positioning, and benchmarks | [When to Use EWM](positioning/when_to_use_ewm.md) · [What Is an EWM?](explanation/what-is-an-ewm.md) · [Decision-First Comparative Evaluation](results/decision-first-comparative-evaluation.md) · [Enterprise Benchmark Suite (A–L)](research/enterprise-benchmark-suite.md) |
