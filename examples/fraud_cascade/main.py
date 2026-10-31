@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 _REPO_ROOT = str(Path(__file__).resolve().parents[2])
 if _REPO_ROOT not in sys.path:  # pragma: no cover
     sys.path.insert(0, _REPO_ROOT)
 
-from examples.fraud_cascade.adr053_full_cascade import (  # noqa: E402
+from examples.fraud_cascade.adr053_full_cascade import (
     ADR053FraudCascadeShowcaseResult,
     run_adr053_fraud_cascade_showcase,
 )

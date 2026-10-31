@@ -218,7 +218,11 @@ class DoubleEntryLedgerDynamics:
             # If cash would drop below min_cash + buffer and T-bills are available, liquidate T-bills first:
             # Debit cash (+Asset), Credit treasury_bills (-Asset)
             projected_cash = cash_bal - outflow_amt
-            if self.auto_liquidate_tbills and projected_cash < min_cash and tbill_bal > ZERO_DECIMAL:
+            if (
+                self.auto_liquidate_tbills
+                and projected_cash < min_cash
+                and tbill_bal > ZERO_DECIMAL
+            ):
                 needed = min(tbill_bal, (min_cash - projected_cash) + Decimal("250000.00"))
                 if needed > ZERO_DECIMAL:
                     tbill_entry = JournalEntry(
@@ -227,7 +231,9 @@ class DoubleEntryLedgerDynamics:
                         description="Automatic T-bill collateral liquidation into cash",
                         lines=(
                             JournalLine(account_id="cash", debit=needed, credit=ZERO_DECIMAL),
-                            JournalLine(account_id="treasury_bills", debit=ZERO_DECIMAL, credit=needed),
+                            JournalLine(
+                                account_id="treasury_bills", debit=ZERO_DECIMAL, credit=needed
+                            ),
                         ),
                     )
                     fin_state = fin_state.apply_journal_entry(tbill_entry)

@@ -65,7 +65,9 @@ def test_hypothesis_nested_dictionary_mutation_fails_to_corrupt_state(
 
     # 2. Mutating caller's nested dicts after passing to with_memory / with_context must not affect state_1
     external_payload: dict[str, Any] = {"deep": {"list": [1, 2, 3], "flag": True}}
-    state_1 = state_0.with_memory("payload", external_payload).with_context("ctx_payload", external_payload)
+    state_1 = state_0.with_memory("payload", external_payload).with_context(
+        "ctx_payload", external_payload
+    )
     fp_1 = state_1.fingerprint
 
     external_payload["deep"]["list"].append(999)
@@ -84,7 +86,10 @@ def test_world_state_validators_and_query_methods_full_coverage() -> None:
     # Coerce from dicts as well as non-dict/non-list fallbacks
     state_from_dicts = WorldState(
         entities={"e1": {"id": "e1", "type": "warehouse"}, "e2": Entity(id="e2", type="store")},  # type: ignore[dict-item]
-        resources={"r1": {"id": "r1", "current": 80.0, "min_value": 0.0, "max_value": 100.0}, "r2": Resource(id="r2", current=96.0, min_value=0.0, max_value=100.0)},  # type: ignore[dict-item]
+        resources={
+            "r1": {"id": "r1", "current": 80.0, "min_value": 0.0, "max_value": 100.0},  # type: ignore[dict-item]
+            "r2": Resource(id="r2", current=96.0, min_value=0.0, max_value=100.0),
+        },
         relationships=[
             {"source": "e1", "target": "e2", "type": "supplies"},  # type: ignore[list-item]
             Relationship(source="e2", target="e1", type="returns"),
@@ -286,7 +291,9 @@ def test_temporal_branch_isolation_and_monotonic_event_log() -> None:
     assert branch_b_root.step == 2
     assert branch_b_root.memory["_fork_action_id"] == "fork_act"
 
-    branch_c_root = manager.spawn_branch("branch_c", parent_branch_id="main", at_step=1, intervention=None)
+    branch_c_root = manager.spawn_branch(
+        "branch_c", parent_branch_id="main", at_step=1, intervention=None
+    )
     assert branch_c_root.step == 1
 
     # Mutate Branch A via transition and mutate returned dictionary objects

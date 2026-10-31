@@ -34,7 +34,7 @@ def test_evolvegcn_100_node_forward_and_10_step_sequence(recurrent_type: str) ->
     dst = (src + 1) % num_nodes
     edge_index = torch.stack([src, dst], dim=0)
 
-    weight_snapshots: list[torch.Tensor] = []
+    weight_snapshots: list[Any] = []
     for step in range(10):
         x = torch.randn(num_nodes, 5) + float(step) * 0.1
         embeddings = model(x, edge_index)
@@ -108,7 +108,7 @@ def test_evolvegcn_1000_node_forward_under_50ms(benchmark: Any) -> None:
     )
     edge_index = torch.stack([src, dst], dim=0)
 
-    def _forward_step() -> torch.Tensor:
+    def _forward_step() -> Any:
         with torch.no_grad():
             model.reset_hidden_states()
             return model(x, edge_index)

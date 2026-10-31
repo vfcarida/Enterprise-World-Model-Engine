@@ -60,6 +60,7 @@ class _FallbackDiGraph:
     def edges(self) -> list[tuple[str, str]]:
         return [(u, v) for u, targets in self._adj.items() for v in sorted(targets)]
 
+
 MAX_SWE_GRAPH_NODES: Final[int] = 2000
 SWE_REPO_ENTITY_ID: Final[str] = "swe_repository"
 
@@ -332,9 +333,7 @@ class SWEState(BaseModel):
 
         missing_files = all_nodes - set(self.files.keys())
         if missing_files:
-            raise ValueError(
-                f"Dependencies reference untracked files: {sorted(missing_files)}"
-            )
+            raise ValueError(f"Dependencies reference untracked files: {sorted(missing_files)}")
 
         cycle = detect_cycle_iterative_o_v_plus_e(self.dependencies, all_nodes)
         if cycle is not None:
@@ -467,19 +466,16 @@ class SWEState(BaseModel):
         swe_payload: dict[str, Any] = {
             "repository_id": self.repository_id,
             "files": {
-                fpath: node.model_dump(mode="python")
-                for fpath, node in sorted(self.files.items())
+                fpath: node.model_dump(mode="python") for fpath, node in sorted(self.files.items())
             },
             "dependencies": {
-                fpath: list(targets)
-                for fpath, targets in sorted(self.dependencies.items())
+                fpath: list(targets) for fpath, targets in sorted(self.dependencies.items())
             },
             "merge_queue": [item.model_dump(mode="python") for item in self.merge_queue],
             "merged_prs": list(self.merged_prs),
             "build_queue": list(self.build_queue),
             "agent_observations": {
-                agent: dict(revs)
-                for agent, revs in sorted(self.agent_observations.items())
+                agent: dict(revs) for agent, revs in sorted(self.agent_observations.items())
             },
             "stale_observations": [
                 rec.model_dump(mode="python") for rec in self.stale_observations
@@ -533,9 +529,7 @@ class SWEState(BaseModel):
         """Reconstruct a validated ``SWEState`` from a core ``WorldState``."""
         raw_payload = world_state.memory.get(repository_id)
         if not isinstance(raw_payload, Mapping):
-            raise KeyError(
-                f"WorldState memory does not contain SWE repository '{repository_id}'"
-            )
+            raise KeyError(f"WorldState memory does not contain SWE repository '{repository_id}'")
 
         raw_files: Mapping[str, Any] = raw_payload.get("files", {})
         raw_deps: Mapping[str, Any] = raw_payload.get("dependencies", {})
@@ -559,9 +553,7 @@ class SWEState(BaseModel):
             for fpath, targets in raw_deps.items()
         }
         merge_queue = tuple(
-            item
-            if isinstance(item, MergeQueueItem)
-            else MergeQueueItem.model_validate(item)
+            item if isinstance(item, MergeQueueItem) else MergeQueueItem.model_validate(item)
             for item in raw_queue
         )
         stale_observations = tuple(

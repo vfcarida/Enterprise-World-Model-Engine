@@ -51,9 +51,9 @@ def test_readme_structure_and_factual_hygiene() -> None:
     for header in required_sections:
         assert header in readme_text, f"Missing required section header in README.md: {header}"
         positions.append(readme_text.index(header))
-    assert positions == sorted(
-        positions
-    ), "README.md sections are not in the required chronological order"
+    assert positions == sorted(positions), (
+        "README.md sections are not in the required chronological order"
+    )
 
     # Unverified 2026 citations must be removed from README.md
     assert "Business World Model" not in readme_text
@@ -69,9 +69,9 @@ def test_readme_structure_and_factual_hygiene() -> None:
         "exchangeability",
         "EXTERNALLY_REPRODUCED = 0",
     ):
-        assert (
-            causal_term in readme_text
-        ), f"Missing causal limitation term in README.md: {causal_term}"
+        assert causal_term in readme_text, (
+            f"Missing causal limitation term in README.md: {causal_term}"
+        )
 
 
 def test_all_readme_python_blocks_execute_cleanly() -> None:
@@ -122,9 +122,9 @@ def test_model_and_dataset_cards_clarify_experimental_scope() -> None:
     for df in dataset_files:
         text = df.read_text(encoding="utf-8")
         assert "Experimental" in text, f"Missing Experimental tier notice in {df}"
-        assert (
-            "Scope & Data Availability Notice" in text
-        ), f"Missing Scope & Data Availability Notice in {df}"
+        assert "Scope & Data Availability Notice" in text, (
+            f"Missing Scope & Data Availability Notice in {df}"
+        )
 
     refs_text = (REPO_ROOT / "docs" / "REFERENCES.md").read_text(encoding="utf-8")
     assert "REF-42" in refs_text

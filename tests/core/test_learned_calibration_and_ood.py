@@ -354,9 +354,7 @@ def test_abstain_exception_triggers_structural_fallback_and_enforces_max_retry_d
     # 2. Custom fallback handler that fails on initial attempt (0) and succeeds on retry 1
     transient_attempts: list[int] = []
 
-    def transient_failing_fallback(
-        state: WorldState, actions: Sequence[Action]
-    ) -> WorldState:
+    def transient_failing_fallback(state: WorldState, actions: Sequence[Action]) -> WorldState:
         transient_attempts.append(len(transient_attempts))
         if len(transient_attempts) == 1:
             raise RuntimeError("Transient fallback failure on attempt 0")
@@ -379,9 +377,7 @@ def test_abstain_exception_triggers_structural_fallback_and_enforces_max_retry_d
     # 3. Operational Safeguard (Section 11): Always-failing fallback caps at max_retry_depth = 1
     always_fail_calls: list[int] = []
 
-    def always_failing_fallback(
-        state: WorldState, actions: Sequence[Action]
-    ) -> WorldState:
+    def always_failing_fallback(state: WorldState, actions: Sequence[Action]) -> WorldState:
         always_fail_calls.append(len(always_fail_calls))
         raise RuntimeError("Permanent fallback failure")
 

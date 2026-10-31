@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -71,7 +72,7 @@ def test_financial_jepa_encoder_with_mocked_vit_pretrained() -> None:
 
     @dataclass
     class _DummyViTOut:
-        last_hidden_state: torch.Tensor
+        last_hidden_state: Any
 
     mock_vit = MagicMock()
     mock_vit.config = MagicMock(hidden_size=768)

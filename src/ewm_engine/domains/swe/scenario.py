@@ -138,9 +138,7 @@ class SWERepositoryDynamics:
                     "content_hash": f"sha256:{src}:v{src_node.revision + 1}",
                 }
             )
-            affected = find_downstream_dependents_iterative(
-                dependencies, (src,), files.keys()
-            )
+            affected = find_downstream_dependents_iterative(dependencies, (src,), files.keys())
             for af in affected:
                 files[af] = files[af].model_copy(update={"needs_rebuild": True})
             build_queue = _merge_build_queues(build_queue, affected)
@@ -160,9 +158,7 @@ class SWERepositoryDynamics:
                 base_revs = dict(agent_observations[default_agent])
             else:
                 closure = swe_state.relevant_dependency_closure(mod_files)
-                base_revs = {
-                    fp: files[fp].revision for fp in closure if fp in files
-                }
+                base_revs = {fp: files[fp].revision for fp in closure if fp in files}
 
             pr_item = MergeQueueItem(
                 pr_id=pr_id,
@@ -291,14 +287,10 @@ class SWERepositoryDynamics:
                     )
                 for src, dst in pr_item.added_dependencies:
                     if src not in files:
-                        files[src] = CodeFileNode(
-                            file_path=src, last_modified_by=pr_item.agent_id
-                        )
+                        files[src] = CodeFileNode(file_path=src, last_modified_by=pr_item.agent_id)
                         dependencies.setdefault(src, ())
                     if dst not in files:
-                        files[dst] = CodeFileNode(
-                            file_path=dst, last_modified_by=pr_item.agent_id
-                        )
+                        files[dst] = CodeFileNode(file_path=dst, last_modified_by=pr_item.agent_id)
                         dependencies.setdefault(dst, ())
                     cur_targets = set(dependencies.get(src, ()))
                     cur_targets.add(dst)
@@ -587,9 +579,7 @@ def run_concurrent_agent_intervention_scenario() -> ConcurrencyInterventionTrace
     )
 
     # Branch 1: Agent A merges PR-101 first, then Agent B modifies File Y (src/core/schema.py)
-    branch_a = base_engine.branch("branch_agent_a_merges_first").do(
-        {"agent_a_merge_pr_x": 1}
-    )
+    branch_a = base_engine.branch("branch_agent_a_merges_first").do({"agent_a_merge_pr_x": 1})
     severed_a = branch_a.causal_execution_log[-1].severed_inbound_edges
     res_a1 = branch_a.step(action=action_merge_pr_x)
     res_a2 = branch_a.step(action=action_modify_file_y)
@@ -609,9 +599,7 @@ def run_concurrent_agent_intervention_scenario() -> ConcurrencyInterventionTrace
     )
 
     # Branch 2: Agent B modifies dependent File Y first, then Agent A attempts to merge PR-101
-    branch_b = base_engine.branch("branch_agent_b_modifies_first").do(
-        {"agent_b_modify_file_y": 1}
-    )
+    branch_b = base_engine.branch("branch_agent_b_modifies_first").do({"agent_b_modify_file_y": 1})
     severed_b = branch_b.causal_execution_log[-1].severed_inbound_edges
     res_b1 = branch_b.step(action=action_modify_file_y)
     res_b2 = branch_b.step(action=action_merge_pr_x)

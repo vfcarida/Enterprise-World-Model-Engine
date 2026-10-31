@@ -77,7 +77,9 @@ def compute_ensemble_variance(
     variances: dict[str, float] = {}
 
     for key in keys:
-        vals = np.array([float(pred.get(key, 0.0)) for pred in member_predictions], dtype=np.float64)
+        vals = np.array(
+            [float(pred.get(key, 0.0)) for pred in member_predictions], dtype=np.float64
+        )
         if not np.all(np.isfinite(vals)):
             raise NumericalInstabilityError(
                 f"Ensemble member emitted NaN or Inf for target {key!r}: {vals.tolist()}"
@@ -236,9 +238,7 @@ class DriftStatusReport(BaseModel):
     window_ood_rate: float = Field(
         description="Fraction of recent inputs in the sliding window exceeding ood_threshold."
     )
-    sample_count: int = Field(
-        description="Number of recent samples in the drift window."
-    )
+    sample_count: int = Field(description="Number of recent samples in the drift window.")
 
 
 class MahalanobisOODAndDriftDetector:
@@ -317,7 +317,9 @@ class MahalanobisOODAndDriftDetector:
                     feats.append(act_sum)
             vec = np.array(feats, dtype=np.float64)
         else:
-            raise TypeError(f"Unsupported state input for OOD feature extraction: {type(state).__name__}")
+            raise TypeError(
+                f"Unsupported state input for OOD feature extraction: {type(state).__name__}"
+            )
 
         if not np.all(np.isfinite(vec)):
             raise NumericalInstabilityError(
@@ -755,9 +757,7 @@ class ConformalPredictorWrapper:
         if not samples:
             raise ValueError("Cannot calibrate ConformalPredictorWrapper on an empty dataset.")
 
-        target_cov = (
-            1.0 - float(alpha) if alpha is not None else float(self.nominal_coverage)
-        )
+        target_cov = 1.0 - float(alpha) if alpha is not None else float(self.nominal_coverage)
         if not (0.0 < target_cov < 1.0):
             raise ValueError(f"Nominal coverage (1 - alpha) must be in (0, 1), got {target_cov}")
         self.nominal_coverage = target_cov
@@ -782,9 +782,7 @@ class ConformalPredictorWrapper:
         raw_signed_by_res: dict[str, list[tuple[float, float]]] = {}
 
         for sample in samples:
-            means, variances, avg_stds = self._predict_raw_ensemble(
-                sample.state, sample.actions
-            )
+            means, variances, avg_stds = self._predict_raw_ensemble(sample.state, sample.actions)
             for rid, pred_delta in means.items():
                 if rid not in sample.state.resources or rid not in sample.next_state.resources:
                     continue
@@ -793,7 +791,9 @@ class ConformalPredictorWrapper:
                     - sample.state.get_resource(rid).current
                 )
                 abs_err = abs(true_delta - pred_delta)
-                scale = math.sqrt(max(variances.get(rid, 0.0), 0.0) + max(avg_stds.get(rid, 0.0), 1e-6) ** 2)
+                scale = math.sqrt(
+                    max(variances.get(rid, 0.0), 0.0) + max(avg_stds.get(rid, 0.0), 1e-6) ** 2
+                )
                 abs_residuals_by_res.setdefault(rid, []).append(abs_err)
                 norm_residuals_by_res.setdefault(rid, []).append(abs_err / max(scale, 1e-6))
                 raw_signed_by_res.setdefault(rid, []).append((true_delta - pred_delta, scale))
@@ -1018,7 +1018,9 @@ class ConformalPredictorWrapper:
                     )
                     err = abs(true_delta - pred_delta)
                     abs_errors.append(err)
-                    base_stds.append(max(1e-6, self._residual_stds.get(rid, self.default_half_width)))
+                    base_stds.append(
+                        max(1e-6, self._residual_stds.get(rid, self.default_half_width))
+                    )
                     lo = ci.lower.get(rid, pred_delta)
                     hi = ci.upper.get(rid, pred_delta)
                     covered_at_target.append(bool(lo <= true_delta <= hi))

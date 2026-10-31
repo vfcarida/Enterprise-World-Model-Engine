@@ -121,7 +121,10 @@ def run_deployment_shift_walkthrough(
                 DriftSignal(
                     kind=DriftKind.STRUCTURAL_MECHANISM_CHANGE,
                     magnitude=abs(true_mult - 1.0),
-                    affected_keys=("feature_flags.aggressive_retry", "parameters.routing_multiplier"),
+                    affected_keys=(
+                        "feature_flags.aggressive_retry",
+                        "parameters.routing_multiplier",
+                    ),
                     baseline_version=k_nominal.version,
                     candidate_version=k_shifted.version,
                     details=f"Silent deployment flag aggressive_retry=True ({DriftOrigin.EXOGENOUS}).",

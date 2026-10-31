@@ -2,7 +2,7 @@
 
 ## 1. Overview & Purpose
 
-To prevent claiming world-model effectiveness solely from unchallenged self-designed rollouts, `EWM-006` provides a reproducible **Scientific Evaluation Framework** ([`EWM_Evaluator`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/evaluation/evaluator.py)) that benchmarks the **Enterprise World Model (`EWMPolicyAgent`)** head-to-head against naive and heuristic baselines under identical, cryptographically derived exogenous noise streams (Common Random Numbers).
+To prevent claiming world-model effectiveness solely from unchallenged self-designed rollouts, `EWM-006` provides a reproducible **Scientific Evaluation Framework** ([`EWM_Evaluator`](../src/ewm_engine/evaluation/evaluator.py)) that benchmarks the **Enterprise World Model (`EWMPolicyAgent`)** head-to-head against naive and heuristic baselines under identical, cryptographically derived exogenous noise streams (Common Random Numbers).
 
 The framework adheres to the statistical evaluation methodology of **Agarwal et al. (2021)** (*"Deep Reinforcement Learning at the Edge of the Statistical Precipice"*, NeurIPS 2021).
 
@@ -12,9 +12,9 @@ The framework adheres to the statistical evaluation methodology of **Agarwal et 
 
 | Agent Class | Paradigm | Decision & Prediction Mechanism |
 | :--- | :--- | :--- |
-| [`RandomAgent`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/evaluation/evaluator.py) | `random_walk` | Samples uniform replenishment actions across the raw action space and predicts next-step state via an unconstrained Gaussian random walk $\hat{S}_{t+1} = S_t + \mathcal{N}(0, \sigma^2)$. |
-| [`StaticRuleAgent`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/evaluation/evaluator.py) | `static_rule` | Executes fixed threshold heuristics (`if inventory < threshold: order fixed_qty`) and predicts next-step state assuming static pre-shift demand without regime-shift or liquidity-floor awareness. |
-| [`EWMPolicyAgent`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/evaluation/evaluator.py) | `ewm_hybrid` | Evaluates candidate actions across isolated counterfactual branches (`engine.branch().do()`), enforces hard `Pre-rules -> ML -> Post-rules` via `HybridTransitionRouter`, and combines structural conservation laws with calibrated residual predictions. |
+| [`RandomAgent`](../src/ewm_engine/evaluation/evaluator.py) | `random_walk` | Samples uniform replenishment actions across the raw action space and predicts next-step state via an unconstrained Gaussian random walk $\hat{S}_{t+1} = S_t + \mathcal{N}(0, \sigma^2)$. |
+| [`StaticRuleAgent`](../src/ewm_engine/evaluation/evaluator.py) | `static_rule` | Executes fixed threshold heuristics (`if inventory < threshold: order fixed_qty`) and predicts next-step state assuming static pre-shift demand without regime-shift or liquidity-floor awareness. |
+| [`EWMPolicyAgent`](../src/ewm_engine/evaluation/evaluator.py) | `ewm_hybrid` | Evaluates candidate actions across isolated counterfactual branches (`engine.branch().do()`), enforces hard `Pre-rules -> ML -> Post-rules` via `HybridTransitionRouter`, and combines structural conservation laws with calibrated residual predictions. |
 
 ---
 
@@ -47,7 +47,7 @@ Following **Agarwal et al. (2021)**:
 
 ## 5. Operational Timeout Safeguard
 
-`EWM_Evaluator` enforces a hard wall-clock deadline (`timeout_seconds`, default `30.0s`) checked before every seed and every simulation step. If execution exceeds `timeout_seconds`, [`BenchmarkTimeoutError`](file:///c:/Users/vinicius/Documents/GeminiCodes/Enterprise-World-Model-Engine/src/ewm_engine/evaluation/evaluator.py) is raised immediately to prevent hanging CI pipelines.
+`EWM_Evaluator` enforces a hard wall-clock deadline (`timeout_seconds`, default `30.0s`) checked before every seed and every simulation step. If execution exceeds `timeout_seconds`, [`BenchmarkTimeoutError`](../src/ewm_engine/evaluation/evaluator.py) is raised immediately to prevent hanging CI pipelines.
 
 ---
 

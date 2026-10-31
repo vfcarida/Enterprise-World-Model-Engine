@@ -65,9 +65,7 @@ def detect_stale_observations_for_action(
         actual_node = swe_state.files[fpath]
         if actual_node.revision != expected_rev:
             conflict_kind = (
-                "direct_file_conflict"
-                if fpath in modified_set
-                else "dependency_revision_drift"
+                "direct_file_conflict" if fpath in modified_set else "dependency_revision_drift"
             )
             reason = (
                 f"{conflict_kind}: agent '{agent_id}' observed '{fpath}' at "
@@ -97,11 +95,7 @@ def _preview_dependencies_with_edges(
     """Build a candidate adjacency map after applying edge additions and removals."""
     removed_set = {(str(u), str(v)) for u, v in removed_edges}
     adj: dict[str, set[str]] = {
-        str(src): {
-            str(dst)
-            for dst in targets
-            if (str(src), str(dst)) not in removed_set
-        }
+        str(src): {str(dst) for dst in targets if (str(src), str(dst)) not in removed_set}
         for src, targets in current_dependencies.items()
     }
     for u, v in added_edges:
@@ -243,9 +237,7 @@ class AcyclicDependencyConstraint:
                     added_edges.append((u, v))
                     new_files.update((u, v))
 
-            strict_stale = bool(
-                params.get("strict_stale_check", self._reject_stale_observations)
-            )
+            strict_stale = bool(params.get("strict_stale_check", self._reject_stale_observations))
             if strict_stale and target_file:
                 agent_id = str(params.get("agent_id", "agent_unknown"))
                 raw_base = params.get("base_revisions")
@@ -303,9 +295,7 @@ class AcyclicDependencyConstraint:
         raw_files: Mapping[str, Any] = raw_payload.get("files", {})
         raw_deps: Mapping[str, Any] = raw_payload.get("dependencies", {})
 
-        all_nodes: set[str] = {str(k) for k in raw_files.keys()} | {
-            str(k) for k in raw_deps.keys()
-        }
+        all_nodes: set[str] = {str(k) for k in raw_files.keys()} | {str(k) for k in raw_deps.keys()}
         deps_map: dict[str, tuple[str, ...]] = {}
         for src, targets in raw_deps.items():
             target_tuple = tuple(str(dst) for dst in targets)
@@ -350,9 +340,7 @@ class AcyclicDependencyConstraint:
         """Evaluate O(V + E) DAG acyclicity and stale observation constraints."""
         if phase == ConstraintPhase.PRE_ACTION:
             try:
-                swe_state = SWEState.from_world_state(
-                    state, repository_id=self._repository_id
-                )
+                swe_state = SWEState.from_world_state(state, repository_id=self._repository_id)
             except Exception as exc:
                 return ConstraintResult(
                     satisfied=False,

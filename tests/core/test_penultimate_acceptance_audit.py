@@ -148,7 +148,9 @@ def test_audit_checklist_2_causal_do_severs_structural_graph_edges() -> None:
         causal_graph=graph,
         structural_equations={
             "X": lambda parents, actions, u: 2.0 * parents.get("Z", 0.0) + u.get("U_X", 0.0),
-            "Y": lambda parents, actions, u: 1.5 * parents.get("X", 0.0) + 0.5 * parents.get("Z", 0.0),
+            "Y": lambda parents, actions, u: (
+                1.5 * parents.get("X", 0.0) + 0.5 * parents.get("Z", 0.0)
+            ),
         },
     )
 
@@ -212,7 +214,9 @@ def test_audit_checklist_3_neural_models_fallback_and_abstain_on_ood() -> None:
         ml_predictor=predictor,
         max_fallback_retries=1,
     )
-    step_out = engine.step(ood_state, Action(id="act_ood", type="rebalance", parameters={"value": 0.5}))
+    step_out = engine.step(
+        ood_state, Action(id="act_ood", type="rebalance", parameters={"value": 0.5})
+    )
     assert step_out.abstained is True
     assert step_out.fallback_executed is True
     assert step_out.next_state.get_resource("liq").current == pytest.approx(50002.0)
@@ -245,7 +249,10 @@ def test_audit_checklist_4_finance_invariant_and_decimal_unit_correctness() -> N
     )
     assert bad_outcome.pre_rule_rejected is True
     assert bad_outcome.rolled_back is True
-    assert FinancialState.from_world_state(bad_outcome.next_state).accounting_discrepancy == ZERO_DECIMAL
+    assert (
+        FinancialState.from_world_state(bad_outcome.next_state).accounting_discrepancy
+        == ZERO_DECIMAL
+    )
 
     stress = run_liquidity_drain_stress_test(steps=5)
     assert stress.all_steps_balanced is True
@@ -348,7 +355,9 @@ def test_audit_checklist_7_readme_code_blocks_are_runnable() -> None:
     assert res.returncode == 0, f"README code block execution failed:\n{res.stdout}\n{res.stderr}"
 
 
-def test_audit_checklist_8_hygiene_no_secrets_prompt_leakage_or_unqualified_causal_discovery() -> None:
+def test_audit_checklist_8_hygiene_no_secrets_prompt_leakage_or_unqualified_causal_discovery() -> (
+    None
+):
     """[x] No sensitive data, prompt leakage, fabricated citations, or unqualified causal discovery claims."""
     # 1. Zero .bak, .tmp, .orig, or scratch files in repository
     bad_ext_files = [
@@ -368,7 +377,11 @@ def test_audit_checklist_8_hygiene_no_secrets_prompt_leakage_or_unqualified_caus
     prompt_leak_pattern = re.compile(r"Action Required by AI:|<USER_REQUEST>")
 
     for scan_dir in (REPO_ROOT / "src", REPO_ROOT / "docs", REPO_ROOT / "README.md"):
-        files = [scan_dir] if scan_dir.is_file() else list(scan_dir.rglob("*.py")) + list(scan_dir.rglob("*.md"))
+        files = (
+            [scan_dir]
+            if scan_dir.is_file()
+            else list(scan_dir.rglob("*.py")) + list(scan_dir.rglob("*.md"))
+        )
         for fp in files:
             if fp.name == "README_legacy.md":
                 continue
@@ -395,7 +408,10 @@ def test_audit_checklist_8_hygiene_no_secrets_prompt_leakage_or_unqualified_caus
 
     # 3. Verify Section 8 Scientific Requirement: causal discovery is strictly qualified
     readme_text = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-    assert "Not an Assumption-Free Causal Discovery Oracle" in readme_text or "Markov Equivalence Class" in readme_text
+    assert (
+        "Not an Assumption-Free Causal Discovery Oracle" in readme_text
+        or "Markov Equivalence Class" in readme_text
+    )
     assert "CPDAG" in readme_text and "PAG" in readme_text
 
 
@@ -419,6 +435,7 @@ def test_audit_section_11_sandboxed_memory_limited_integration_subprocess() -> N
         "TMP": os.environ.get("TMP", ""),
         "USERPROFILE": os.environ.get("USERPROFILE", ""),
         "PYTHONNOUSERSITE": "1",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
         "PYTHONDONTWRITEBYTECODE": "1",
         "OMP_NUM_THREADS": "1",
         "PYTHONPATH": f"{REPO_ROOT / 'src'}{os.pathsep}{REPO_ROOT}",

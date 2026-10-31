@@ -119,9 +119,7 @@ def test_swe_state_rejects_cycles_missing_files_and_node_capacity_overflow() -> 
 
     with pytest.raises(SWEGraphCapacityError):
         SWEState(
-            files={
-                f"f_{i}.py": CodeFileNode(file_path=f"f_{i}.py") for i in range(12)
-            },
+            files={f"f_{i}.py": CodeFileNode(file_path=f"f_{i}.py") for i in range(12)},
             dependencies={f"f_{i}.py": () for i in range(12)},
             max_graph_nodes=10,
         )
@@ -165,9 +163,7 @@ def test_100_percent_structural_rejection_of_cyclic_dependency_injections() -> N
                 parameters={
                     "pr_id": "PR-CYCLE",
                     "modified_files": ["src/core/schema.py"],
-                    "added_dependencies": [
-                        ["src/core/schema.py", "src/services/OrderService.py"]
-                    ],
+                    "added_dependencies": [["src/core/schema.py", "src/services/OrderService.py"]],
                 },
             ),
         )
@@ -182,9 +178,7 @@ def test_100_percent_structural_rejection_of_cyclic_dependency_injections() -> N
                 actor_id="agent_x",
                 parameters={
                     "file_path": "src/core/schema.py",
-                    "added_dependencies": [
-                        ["src/core/schema.py", "src/api/OrderController.py"]
-                    ],
+                    "added_dependencies": [["src/core/schema.py", "src/api/OrderController.py"]],
                 },
             ),
         )
@@ -194,10 +188,7 @@ def test_100_percent_structural_rejection_of_cyclic_dependency_injections() -> N
     total_trials = 100
     for trial in range(total_trials):
         ring_size = 4 + (trial % 15)
-        files = {
-            f"pkg/m_{i}.py": CodeFileNode(file_path=f"pkg/m_{i}.py")
-            for i in range(ring_size)
-        }
+        files = {f"pkg/m_{i}.py": CodeFileNode(file_path=f"pkg/m_{i}.py") for i in range(ring_size)}
         deps: dict[str, tuple[str, ...]] = {
             f"pkg/m_{i}.py": (f"pkg/m_{i + 1}.py",) for i in range(ring_size - 1)
         }
@@ -611,7 +602,9 @@ def test_swe_constraint_and_dynamics_exhaustive_edge_cases() -> None:
                 "pr_id": "PR-NEW",
                 "modified_files": ["src/brand_new.py"],
                 "added_dependencies": [["src/brand_new.py", "src/brand_new_dep.py"]],
-                "removed_dependencies": [["src/api/OrderController.py", "src/services/OrderService.py"]],
+                "removed_dependencies": [
+                    ["src/api/OrderController.py", "src/services/OrderService.py"]
+                ],
                 "base_revisions": {"src/core/schema.py": 2},
             },
         ),
@@ -657,4 +650,3 @@ def test_swe_constraint_and_dynamics_exhaustive_edge_cases() -> None:
             swe4,
             build_swe_action("bad_type", "UNKNOWN_OP"),
         )
-

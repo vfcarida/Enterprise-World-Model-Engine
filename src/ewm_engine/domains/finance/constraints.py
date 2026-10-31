@@ -200,7 +200,11 @@ class DoubleEntryConstraint:
                         details,
                     )
 
-        return True, "Accounting identity and liquidity constraints satisfied (0.00 discrepancy).", details
+        return (
+            True,
+            "Accounting identity and liquidity constraints satisfied (0.00 discrepancy).",
+            details,
+        )
 
     def evaluate(
         self,

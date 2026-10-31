@@ -53,14 +53,10 @@ def to_exact_decimal(value: Any, *, field_name: str = "monetary_value") -> Decim
             "Use exact decimal.Decimal, str, or int to guarantee zero floating-point drift."
         )
     if isinstance(value, bool):
-        raise TypeError(
-            f"Boolean values are not valid monetary amounts ({field_name}={value!r})."
-        )
+        raise TypeError(f"Boolean values are not valid monetary amounts ({field_name}={value!r}).")
     if isinstance(value, Decimal):
         if not value.is_finite():
-            raise ValueError(
-                f"Non-finite Decimal value is prohibited ({field_name}={value!r})."
-            )
+            raise ValueError(f"Non-finite Decimal value is prohibited ({field_name}={value!r}).")
         return value
     if isinstance(value, int):
         return Decimal(value)
@@ -68,13 +64,9 @@ def to_exact_decimal(value: Any, *, field_name: str = "monetary_value") -> Decim
         try:
             dec = Decimal(value.strip())
         except InvalidOperation as exc:
-            raise ValueError(
-                f"Invalid Decimal string for {field_name}: {value!r}"
-            ) from exc
+            raise ValueError(f"Invalid Decimal string for {field_name}: {value!r}") from exc
         if not dec.is_finite():
-            raise ValueError(
-                f"Non-finite Decimal string is prohibited ({field_name}={value!r})."
-            )
+            raise ValueError(f"Non-finite Decimal string is prohibited ({field_name}={value!r}).")
         return dec
     raise TypeError(
         f"Unsupported monetary type for {field_name}: {type(value).__name__}. "
@@ -333,11 +325,7 @@ class FinancialState(BaseModel):
         """Return exact $\\sum_{l \\in \\text{Liabilities}} l.\\text{balance}$."""
         ensure_corporate_decimal_context()
         return sum(
-            (
-                a.balance
-                for a in self.accounts.values()
-                if a.category == AccountCategory.LIABILITY
-            ),
+            (a.balance for a in self.accounts.values() if a.category == AccountCategory.LIABILITY),
             start=ZERO_DECIMAL,
         )
 
@@ -396,7 +384,9 @@ class FinancialState(BaseModel):
         updated_accounts = dict(self.accounts)
         for line in entry.lines:
             if line.account_id not in updated_accounts:
-                raise KeyError(f"Unknown ledger account {line.account_id!r} in journal entry {entry.entry_id!r}")
+                raise KeyError(
+                    f"Unknown ledger account {line.account_id!r} in journal entry {entry.entry_id!r}"
+                )
             acc = updated_accounts[line.account_id]
             updated_accounts[line.account_id] = acc.apply_debit_credit(
                 debit=line.debit,

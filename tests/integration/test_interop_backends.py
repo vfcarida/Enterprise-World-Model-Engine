@@ -246,6 +246,8 @@ def test_fastapi_simulation_service() -> None:
     assert job_res.status_code == 200
     assert job_res.json()["job_id"] == data["job_id"]
 
+    if hasattr(client, "close"):
+        client.close()
     runner.shutdown(wait=True)
 
 

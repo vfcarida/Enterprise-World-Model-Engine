@@ -150,9 +150,7 @@ def _build_causal_state() -> WorldState:
     return WorldState(
         step=0,
         timestamp=0.0,
-        entities={
-            "ent_1": Entity(id="ent_1", type="service", attributes={"mode": "auto"})
-        },
+        entities={"ent_1": Entity(id="ent_1", type="service", attributes={"mode": "auto"})},
         resources={
             "Z": Resource(id="Z", current=10.0, min_value=0.0, max_value=500.0),
             "X": Resource(id="X", current=20.0, min_value=0.0, max_value=200.0),
@@ -182,7 +180,9 @@ def test_deterministic_vs_calibrated_distribution_contract() -> None:
 
     structural_eqs = {
         "X": lambda parents, actions, u: 2.0 * parents.get("Z", 0.0) + u.get("U_X", 0.0),
-        "Y": lambda parents, actions, u: 1.5 * parents.get("X", 0.0) + 0.5 * parents.get("Z", 0.0) + u.get("U_Y", 0.0),
+        "Y": lambda parents, actions, u: (
+            1.5 * parents.get("X", 0.0) + 0.5 * parents.get("Z", 0.0) + u.get("U_Y", 0.0)
+        ),
         "W": lambda parents, actions, u: parents.get("W", 0.0) + 1.0 + u.get("U_W", 0.0),
     }
 
@@ -239,7 +239,9 @@ def test_causal_do_severs_inbound_edges_and_negative_control() -> None:
 
     structural_eqs = {
         "X": lambda parents, actions, u: 2.0 * parents.get("Z", 0.0) + u.get("U_X", 0.0),
-        "Y": lambda parents, actions, u: 1.5 * parents.get("X", 0.0) + 0.5 * parents.get("Z", 0.0) + u.get("U_Y", 0.0),
+        "Y": lambda parents, actions, u: (
+            1.5 * parents.get("X", 0.0) + 0.5 * parents.get("Z", 0.0) + u.get("U_Y", 0.0)
+        ),
         "W": lambda parents, actions, u: parents.get("W", 0.0) + 2.0 + u.get("U_W", 0.0),
     }
 
@@ -280,16 +282,12 @@ def test_causal_do_severs_inbound_edges_and_negative_control() -> None:
     assert cf_outcome.confounding_disabled is True
 
     # 2. Negative Control: Intervening on independent variable W must NOT affect target Y
-    baseline_outcome = engine.branch("baseline").step(
-        u_noise={"U_X": 3.0, "U_Y": 1.0, "U_W": 0.0}
-    )
+    baseline_outcome = engine.branch("baseline").step(u_noise={"U_X": 3.0, "U_Y": 1.0, "U_W": 0.0})
     branched_do_w = engine.branch("negative_control_do_W").do(
         Action(id="act_do_w", type="do", parameters={"W": 777.0})
     )
     assert ("U_W", "W") not in branched_do_w.causal_graph.edges
-    neg_ctrl_outcome = branched_do_w.step(
-        u_noise={"U_X": 3.0, "U_Y": 1.0, "U_W": 0.0}
-    )
+    neg_ctrl_outcome = branched_do_w.step(u_noise={"U_X": 3.0, "U_Y": 1.0, "U_W": 0.0})
 
     assert neg_ctrl_outcome.next_state.get_resource("W").current == pytest.approx(777.0)
     # Target Y and treatment X are completely unaffected by intervening on independent W
@@ -325,7 +323,10 @@ def test_router_rejects_100_percent_of_out_of_bounds_and_hallucinated_ml_predict
 
         router = HybridTransitionRouter(
             ml_predictor=_make_oob_predictor(oob_delta),
-            constraints=[_MaxDeltaActionConstraint(max_delta=50.0), _MinimumReservePostConstraint(min_reserve=10.0)],
+            constraints=[
+                _MaxDeltaActionConstraint(max_delta=50.0),
+                _MinimumReservePostConstraint(min_reserve=10.0),
+            ],
         )
         outcome = router.step(state, Action(id=f"act_{i}", type="noop"))
         if outcome.post_rule_rejected and outcome.ml_rejected and outcome.rolled_back:
@@ -478,14 +479,21 @@ def test_pre_rules_and_backwards_compatibility_surfaces() -> None:
     )
     bad_actions = [
         Action(id="bad_flag", type="op", parameters={"invalid": True}),
-        Action(id="bad_target", type="op", parameters={"resource_id": "NON_EXISTENT", "delta": 5.0}),
+        Action(
+            id="bad_target", type="op", parameters={"resource_id": "NON_EXISTENT", "delta": 5.0}
+        ),
         Action(id="bad_nan", type="op", parameters={"resource_id": "X", "delta": float("nan")}),
         Action(id="bad_bounds", type="op", parameters={"resource_id": "X", "delta": 999.0}),
     ]
     pre_rej_outcome = router.step(state, bad_actions)
     assert pre_rej_outcome.pre_rule_rejected is True
     assert pre_rej_outcome.rolled_back is True
-    assert set(pre_rej_outcome.rejected_actions) == {"bad_flag", "bad_target", "bad_nan", "bad_bounds"}
+    assert set(pre_rej_outcome.rejected_actions) == {
+        "bad_flag",
+        "bad_target",
+        "bad_nan",
+        "bad_bounds",
+    }
 
     # Custom pre_rule function & raise_on_pre_rule_violation
     strict_pre_router = HybridTransitionRouter(
@@ -522,12 +530,16 @@ def test_pre_rules_and_backwards_compatibility_surfaces() -> None:
     sim_branch = sim_engine.branch().do({"X": 88.0})
     sim_outcome = sim_branch.step(state)
     assert sim_outcome.next_state.get_resource("X").current == pytest.approx(88.0)
-    sim_direct = sim_engine.step(state, Action(id="s_act", type="adjust", parameters={"resource_id": "X", "delta": 2.0}))
+    sim_direct = sim_engine.step(
+        state, Action(id="s_act", type="adjust", parameters={"resource_id": "X", "delta": 2.0})
+    )
     assert sim_direct.next_state.get_resource("X").current == pytest.approx(22.0)
 
     # 4. Additional helper and validation branches for 100% coverage
     assert parse_intervention_targets(
-        Action(id="a_t", type="do", parameters={"target": "X", "value": 12.0, "targets": {"Y": 34.0}})
+        Action(
+            id="a_t", type="do", parameters={"target": "X", "value": 12.0, "targets": {"Y": 34.0}}
+        )
     ) == {"X": 12.0, "Y": 34.0}
     assert parse_intervention_targets(
         Action(id="a_t2", type="do", parameters={"targets": {"X": 15.0}})
@@ -539,7 +551,9 @@ def test_pre_rules_and_backwards_compatibility_surfaces() -> None:
     assert normalize_node_name("X", g_prefixed) == "resource:X"
     assert normalize_node_name("resource:X", g_prefixed) == "resource:X"
     assert normalize_node_name("X", None) == "X"
-    assert parse_intervention_targets(Intervention(id="iv_p", description="d", parameters={"X": 9.0})) == {"X": 9.0}
+    assert parse_intervention_targets(
+        Intervention(id="iv_p", description="d", parameters={"X": 9.0})
+    ) == {"X": 9.0}
 
     # 5. Exercise LearnedPredictorProtocol, ResidualEstimator, DynamicsModel ml_predictor, and error guards
     import ewm_engine.causal as causal_pkg
@@ -575,9 +589,7 @@ def test_pre_rules_and_backwards_compatibility_surfaces() -> None:
     )
     assert dict_pred.mean_deltas["X"] == 2.0
     with pytest.raises(NumericalInstabilityError, match="negative std"):
-        validate_learned_prediction_no_nan(
-            {"mean_deltas": {"X": 1.0}, "std_deltas": {"X": -1.0}}
-        )
+        validate_learned_prediction_no_nan({"mean_deltas": {"X": 1.0}, "std_deltas": {"X": -1.0}})
     with pytest.raises(TypeError, match="Unsupported learned prediction type"):
         validate_learned_prediction_no_nan(123)  # type: ignore[arg-type]
 
@@ -626,10 +638,14 @@ def test_pre_rules_and_backwards_compatibility_surfaces() -> None:
         bad_ml_router.step(state)
 
     # Standalone InterventionContext without engine and TransitionEngine properties
-    with InterventionContext(Intervention(id="standalone_iv", description="d", parameters={"X": 5.0})) as s_ctx:
+    with InterventionContext(
+        Intervention(id="standalone_iv", description="d", parameters={"X": 5.0})
+    ) as s_ctx:
         assert s_ctx.forced_nodes == {"X": 5.0}
 
-    empty_engine = TransitionEngine(router=proto_router, causal_graph=_build_confounded_causal_graph())
+    empty_engine = TransitionEngine(
+        router=proto_router, causal_graph=_build_confounded_causal_graph()
+    )
     assert empty_engine.current_state is None
     assert empty_engine.current_step == 0
     with pytest.raises(ValueError, match="requires a `state` argument"):
@@ -639,4 +655,3 @@ def test_pre_rules_and_backwards_compatibility_surfaces() -> None:
     assert empty_engine.active_do_interventions["X"] == 11.0
     step_with_mem = empty_engine.step(state.with_memory("m_key", 1.0))
     assert step_with_mem.next_state.memory["m_key"] == 7.0
-

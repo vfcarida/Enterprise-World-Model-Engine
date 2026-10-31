@@ -95,7 +95,7 @@ Git: 1d4a102d8b (main) | Python: 3.12.10 | OS: Windows
   [PASS] SoA State Tensor Bit-Identity: 89534de1e5536adc...
 
 [PHASE 4] Regenerating Visual Gallery Artifacts...
-  Verified 5 vector SVG artifacts in C:\Users\vinicius\Documents\GeminiCodes\Enterprise-World-Model-Engine\docs\results\artifacts
+  Verified 5 vector SVG artifacts in docs/results/artifacts
 
 [PHASE 5] Verifying ADR-053/054 Enterprise Suite, Flagship Cascade & Comparative Evaluation...
   [PASS] Layer 'enterprise_benchmark_suite': PASSED
@@ -110,8 +110,8 @@ Certification Status:           CERTIFIED_RELEASE
 Certification Reason:           All verification checks passed on a clean working tree at an immutable Git commit.
 ================================================================================
 
-Manifest written to: C:\Users\vinicius\Documents\GeminiCodes\Enterprise-World-Model-Engine\reproduction_manifest.json
-Docs copy synced to:  C:\Users\vinicius\Documents\GeminiCodes\Enterprise-World-Model-Engine\docs\results\reproduction_manifest.json
+Manifest written to: reproduction_manifest.json
+Docs copy synced to:  docs/results/reproduction_manifest.json
 ```
 
 ---

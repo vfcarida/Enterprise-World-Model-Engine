@@ -492,6 +492,7 @@ filterwarnings = [
     "ignore:.*Swig.*:DeprecationWarning",
     "ignore:.*datetime.datetime.utcnow.*:DeprecationWarning",
     "ignore:.*unclosed event loop.*:ResourceWarning",
+    "ignore:.*unclosed <socket\\.socket.*:ResourceWarning",
     "ignore:.*A test tried to use socket\\.socket.*:UserWarning",
 ]
 markers = [

@@ -20,7 +20,7 @@ import platform
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 # Ensure repo root is on sys.path
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -253,7 +253,7 @@ def sync_result_card_markdown_blocks(
         md_text = md_path.read_text(encoding="utf-8")
         formatted_json = json.dumps(payload, indent=2)
         updated_text, count = json_block_re.subn(
-            lambda m, fj=formatted_json: f"{m.group(1)}{fj}{m.group(2)}",
+            cast(Any, lambda m, fj=formatted_json: f"{m.group(1)}{fj}{m.group(2)}"),
             md_text,
             count=1,
         )
@@ -289,8 +289,8 @@ def reproduce_adr_053_054_layer(
             bool(f.get("leakage_certificate", {}).get("passed", False)) for f in families
         )
         # Extract Family D deployment-shift recovery summary
-        fam_d = next((f for f in families if f.get("family_code") == "D"), {})
-        ctx_hybrid_d = next(
+        fam_d: dict[str, Any] = next((f for f in families if f.get("family_code") == "D"), {})
+        ctx_hybrid_d: dict[str, Any] = next(
             (
                 b
                 for b in fam_d.get("baselines", [])

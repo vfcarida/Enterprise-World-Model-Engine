@@ -99,17 +99,9 @@ def parse_intervention_targets(
                 for k, v in params["targets"].items()
                 if not str(k).startswith("_")
             }
-        return {
-            str(k): copy.deepcopy(v)
-            for k, v in params.items()
-            if not str(k).startswith("_")
-        }
+        return {str(k): copy.deepcopy(v) for k, v in params.items() if not str(k).startswith("_")}
     if isinstance(spec, Mapping):
-        return {
-            str(k): copy.deepcopy(v)
-            for k, v in spec.items()
-            if not str(k).startswith("_")
-        }
+        return {str(k): copy.deepcopy(v) for k, v in spec.items() if not str(k).startswith("_")}
     raise TypeError(
         f"Expected Action, Intervention, or Mapping for do() intervention, got {type(spec).__name__}."
     )
@@ -121,7 +113,9 @@ def sever_inbound_edges(
     *,
     step: int = 0,
     forced_values: Mapping[str, Any] | None = None,
-    operation: Literal["do_surgery", "step_execution", "context_enter", "context_exit"] = "do_surgery",
+    operation: Literal[
+        "do_surgery", "step_execution", "context_enter", "context_exit"
+    ] = "do_surgery",
     notes: str = "",
 ) -> tuple[CausalGraph, CausalExecutionLogEntry]:
     """Perform Pearl's causal surgery $\\text{do}(X_t = x)$ by severing all inbound edges to `targets`.

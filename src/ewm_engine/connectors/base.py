@@ -54,9 +54,7 @@ class ConnectorAuthConfig(BaseModel):
         if self.auth_mode == ConnectorAuthMode.OAUTH2_CLIENT_CREDENTIALS and (
             not self.client_id or self.client_secret is None
         ):
-            raise ValueError(
-                "OAUTH2_CLIENT_CREDENTIALS requires both client_id and client_secret."
-            )
+            raise ValueError("OAUTH2_CLIENT_CREDENTIALS requires both client_id and client_secret.")
         if self.auth_mode == ConnectorAuthMode.BEARER_TOKEN and self.bearer_token is None:
             raise ValueError("BEARER_TOKEN mode requires bearer_token.")
         return self

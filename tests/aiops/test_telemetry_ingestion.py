@@ -190,7 +190,7 @@ def test_log_parser_regex_prefilter_and_llm_extraction() -> None:
 def test_property_telemetry_tensor_assembly(num_steps: int, num_services: int) -> None:
     """Property: build_telemetry_tensor always outputs finite (T, N, 5) float32 arrays."""
     services = [f"svc-{i}" for i in range(num_services)]
-    metrics_by_node: dict[str, dict[str, pd.DataFrame]] = {}
+    metrics_by_node: dict[str, dict[str, Any]] = {}
     for svc in services:
         metrics_by_node[svc] = {
             "cpu": pd.DataFrame({"value": np.linspace(0.2, 0.7, num_steps)}),

@@ -183,13 +183,9 @@ def validate_learned_prediction_no_nan(
                     f"Learned module returned negative std for {k!r}: {sval}"
                 )
             clean_stds[str(k)] = sval
-        temp = _check_finite_number(
-            prediction.calibration_temperature, "calibration_temperature"
-        )
+        temp = _check_finite_number(prediction.calibration_temperature, "calibration_temperature")
         if temp <= 0.0:
-            raise NumericalInstabilityError(
-                f"calibration_temperature must be > 0, got {temp}"
-            )
+            raise NumericalInstabilityError(f"calibration_temperature must be > 0, got {temp}")
         for act in prediction.proposed_actions:
             for pk, pv in act.parameters.items():
                 if isinstance(pv, (int, float)):
@@ -242,9 +238,7 @@ def validate_learned_prediction_no_nan(
             calibration_temperature=temp_val,
         )
 
-    raise TypeError(
-        f"Unsupported learned prediction type: {type(prediction).__name__}"
-    )
+    raise TypeError(f"Unsupported learned prediction type: {type(prediction).__name__}")
 
 
 class TransitionStepOutcome(BaseModel):
@@ -252,9 +246,7 @@ class TransitionStepOutcome(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    next_state: WorldState = Field(
-        description="The resulting immutable WorldState at step t+1."
-    )
+    next_state: WorldState = Field(description="The resulting immutable WorldState at step t+1.")
     structural_state: WorldState = Field(
         description="The deterministic structural state prior to ML residual application."
     )
@@ -438,7 +430,9 @@ class HybridTransitionRouter:
         self._provenance = MechanismProvenance(
             mechanism_id=name,
             version=version,
-            kind=MechanismKind.KNOWN_DETERMINISTIC if ml_predictor is None else MechanismKind.HYBRID,
+            kind=MechanismKind.KNOWN_DETERMINISTIC
+            if ml_predictor is None
+            else MechanismKind.HYBRID,
             evidence_level=(
                 EvidenceLevel.STRUCTURAL if ml_predictor is None else EvidenceLevel.PREDICTIVE
             ),
@@ -511,9 +505,7 @@ class HybridTransitionRouter:
             for r in reg_results
             if not r.satisfied and r.severity == ConstraintSeverity.HARD
         ]
-        rejected_ids: list[str] = [
-            a.id for a in proposed_actions if a not in accepted_actions
-        ]
+        rejected_ids: list[str] = [a.id for a in proposed_actions if a not in accepted_actions]
 
         # Built-in structural enterprise action hygiene checks & custom pre_rules
         filtered_accepted: list[Action] = []
@@ -525,9 +517,7 @@ class HybridTransitionRouter:
             target_res = act.parameters.get("resource_id") or act.parameters.get("target_resource")
             if isinstance(target_res, str) and target_res not in state.resources:
                 act_ok = False
-                violations.append(
-                    f"pre_rule:unknown_target_resource:{act.id}({target_res!r})"
-                )
+                violations.append(f"pre_rule:unknown_target_resource:{act.id}({target_res!r})")
             delta_param = act.parameters.get("delta")
             if isinstance(delta_param, (int, float)):
                 if math.isnan(float(delta_param)) or math.isinf(float(delta_param)):
@@ -616,9 +606,7 @@ class HybridTransitionRouter:
                 list(self.structural_equations.keys()), active_graph
             )
             for target in ordered_targets:
-                clean_target = (
-                    target.split(":", 1)[1] if target.startswith("resource:") else target
-                )
+                clean_target = target.split(":", 1)[1] if target.startswith("resource:") else target
                 norm_target = normalize_node_name(target, active_graph)
                 if (
                     target in forced_nodes
@@ -778,9 +766,7 @@ class HybridTransitionRouter:
             except TypeError:
                 raw_out = fn_pred(state)
         else:
-            raise TypeError(
-                f"Unsupported ml_predictor type: {type(self.ml_predictor).__name__}"
-            )
+            raise TypeError(f"Unsupported ml_predictor type: {type(self.ml_predictor).__name__}")
 
         ci_obj: ConfidenceInterval | None = None
         if isinstance(raw_out, tuple) and len(raw_out) == 2:
@@ -799,14 +785,8 @@ class HybridTransitionRouter:
                 for rid in calibrated_pred.mean_deltas
             }
             w_map = {rid: 2.0 * hw for rid, hw in hw_map.items()}
-            lo_map = {
-                rid: mu - hw_map[rid]
-                for rid, mu in calibrated_pred.mean_deltas.items()
-            }
-            hi_map = {
-                rid: mu + hw_map[rid]
-                for rid, mu in calibrated_pred.mean_deltas.items()
-            }
+            lo_map = {rid: mu - hw_map[rid] for rid, mu in calibrated_pred.mean_deltas.items()}
+            hi_map = {rid: mu + hw_map[rid] for rid, mu in calibrated_pred.mean_deltas.items()}
             ci_obj = ConfidenceInterval(
                 lower=lo_map,
                 upper=hi_map,
@@ -1075,9 +1055,7 @@ class HybridTransitionRouter:
         # If no ML predictor is configured, return deterministic structural outcome
         if self.ml_predictor is None:
             final_state = structural_state.advance_time(delta_t=self.delta_t, steps=1)
-            ev_level = (
-                EvidenceLevel.INTERVENTIONAL if forced_nodes else EvidenceLevel.STRUCTURAL
-            )
+            ev_level = EvidenceLevel.INTERVENTIONAL if forced_nodes else EvidenceLevel.STRUCTURAL
             tr = TransitionResult(
                 next_state=final_state,
                 applied_changes={
@@ -1266,9 +1244,7 @@ class HybridTransitionRouter:
                 )
                 for r in post_constraint_results:
                     if not r.satisfied and r.severity == ConstraintSeverity.HARD:
-                        post_violations.append(
-                            f"post_constraint:{r.constraint_id}:{r.message}"
-                        )
+                        post_violations.append(f"post_constraint:{r.constraint_id}:{r.message}")
                 for post_fn in self.post_rules:
                     ok, msg = post_fn(structural_state, candidate_state, all_acts)
                     if not ok:
@@ -1294,17 +1270,11 @@ class HybridTransitionRouter:
             if ml_rejected
             else {rid: float(d) for rid, d in raw_ml_deltas.items() if abs(float(d)) > 0.0}
         )
-        l2_dist = (
-            math.sqrt(sum(d * d for d in raw_ml_deltas.values()))
-            if ml_rejected
-            else 0.0
-        )
+        l2_dist = math.sqrt(sum(d * d for d in raw_ml_deltas.values())) if ml_rejected else 0.0
         feasibility = ResidualFeasibilityRecord(
             is_feasible=not ml_rejected,
             policy=(
-                InfeasibleResidualPolicy.ABSTAIN
-                if abstained
-                else InfeasibleResidualPolicy.REJECT
+                InfeasibleResidualPolicy.ABSTAIN if abstained else InfeasibleResidualPolicy.REJECT
             ),
             action_taken="abstained" if abstained else ("rejected" if ml_rejected else "accepted"),
             raw_deltas=raw_ml_deltas,
@@ -1424,7 +1394,10 @@ class TransitionEngine:
         ml_predictor: (
             LearnedPredictorProtocol
             | DynamicsModel
-            | Callable[[WorldState, Sequence[Action], WorldState], CalibratedPrediction | Mapping[str, float]]
+            | Callable[
+                [WorldState, Sequence[Action], WorldState],
+                CalibratedPrediction | Mapping[str, float],
+            ]
             | Any
             | None
         ) = None,

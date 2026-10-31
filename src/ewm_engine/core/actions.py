@@ -131,11 +131,7 @@ class Intervention(BaseModel):
         raw = super().__getattribute__("parameters")
         if not isinstance(raw, dict):
             return {}
-        return {
-            str(k): copy.deepcopy(v)
-            for k, v in raw.items()
-            if not str(k).startswith("_")
-        }
+        return {str(k): copy.deepcopy(v) for k, v in raw.items() if not str(k).startswith("_")}
 
     @property
     def is_active(self) -> bool:

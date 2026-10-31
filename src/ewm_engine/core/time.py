@@ -43,13 +43,17 @@ class EventRecord(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    event_index: int = Field(ge=0, description="Monotonic 0-based index within the branch EventLog.")
+    event_index: int = Field(
+        ge=0, description="Monotonic 0-based index within the branch EventLog."
+    )
     branch_id: str = Field(min_length=1, description="Identifier of the timeline branch.")
     step_from: int = Field(ge=0, description="Origin discrete time step t in N_0.")
     step_to: int = Field(ge=1, description="Target discrete time step t' > t in N_0.")
     timestamp_from: float = Field(description="Origin continuous simulation timestamp.")
     timestamp_to: float = Field(description="Target continuous simulation timestamp.")
-    action_id: str | None = Field(default=None, description="Optional Action ID triggering transition.")
+    action_id: str | None = Field(
+        default=None, description="Optional Action ID triggering transition."
+    )
     prior_state_hash: str = Field(description="SHA-256 state hash of S_t.")
     next_state_hash: str = Field(description="SHA-256 state hash of S_{t+1}.")
     prev_event_hash: str = Field(description="Chained SHA-256 hash of the preceding EventRecord.")
@@ -248,7 +252,15 @@ def collect_mutable_container_ids(state: WorldState) -> set[int]:
             for item in obj:
                 _walk(item)
         elif hasattr(obj, "__dict__"):
-            for attr_Name in ("entities", "resources", "relationships", "memory", "active_rules", "context", "attributes"):
+            for attr_Name in (
+                "entities",
+                "resources",
+                "relationships",
+                "memory",
+                "active_rules",
+                "context",
+                "attributes",
+            ):
                 try:
                     val = object.__getattribute__(obj, attr_Name)
                 except AttributeError:

@@ -163,9 +163,7 @@ class WorldState(BaseModel):
     def state_hash(self) -> str:
         """Deterministic cryptographic SHA-256 fingerprint of the normalized state."""
         raw_entities: dict[EntityId, Entity] = object.__getattribute__(self, "entities")
-        raw_relationships: tuple[Relationship, ...] = object.__getattribute__(
-            self, "relationships"
-        )
+        raw_relationships: tuple[Relationship, ...] = object.__getattribute__(self, "relationships")
         raw_resources: dict[ResourceId, Resource] = object.__getattribute__(self, "resources")
         raw_memory: dict[str, Any] = object.__getattribute__(self, "memory")
         raw_rules: dict[str, Any] = object.__getattribute__(self, "active_rules")

@@ -18,7 +18,7 @@ Implements the scientific evaluation scenarios specified in ADR-054:
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import cast
+from typing import cast, overload
 
 import numpy as np
 
@@ -196,6 +196,30 @@ def _compute_abstention_f1(
         return 1.0 if fp == 0 else max(0.0, 1.0 - float(fp) / float(max(1, len(errs))))
     denom = float(2 * tp + fp + fn)
     return float(2 * tp) / denom if denom > 0.0 else 0.0
+
+
+@overload
+def _compute_causal_correctness(
+    cf_errors_or_mae: float,
+    non_descendant_deltas: Sequence[float] = (0.0,),
+    claim_is_gated: bool = True,
+    scale_z: float = 15.0,
+    *,
+    scale: float | None = None,
+    enforces_invariants: bool | None = None,
+) -> float: ...
+
+
+@overload
+def _compute_causal_correctness(
+    cf_errors_or_mae: Sequence[float],
+    non_descendant_deltas: Sequence[float] = (0.0,),
+    claim_is_gated: bool = True,
+    scale_z: float = 15.0,
+    *,
+    scale: float | None = None,
+    enforces_invariants: bool | None = None,
+) -> tuple[float, float, float]: ...
 
 
 def _compute_causal_correctness(

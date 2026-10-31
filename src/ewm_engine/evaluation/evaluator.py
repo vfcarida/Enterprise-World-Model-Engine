@@ -148,9 +148,7 @@ class InventoryLiquidityConstraint:
         inv_res = state.resources.get("inventory")
         cash_res = state.resources.get("cash_reserve")
         inv_val = inv_res.current if inv_res is not None else self._env_spec.initial_inventory
-        cash_val = (
-            cash_res.current if cash_res is not None else self._env_spec.initial_cash_reserve
-        )
+        cash_val = cash_res.current if cash_res is not None else self._env_spec.initial_cash_reserve
 
         if phase == ConstraintPhase.PRE_ACTION:
             for act in actions:
@@ -332,9 +330,7 @@ class EnterpriseInventoryStructuralDynamics:
         safe_cap = min(max_affordable, max_storable)
 
         if not actions:
-            needed_for_floor = max(
-                0.0, (self._env_spec.min_inventory + base_dem + 10.0) - inv
-            )
+            needed_for_floor = max(0.0, (self._env_spec.min_inventory + base_dem + 10.0) - inv)
             order_qty = min(needed_for_floor, safe_cap)
         else:
             order_qty = max(0.0, min(order_qty, safe_cap))
@@ -355,9 +351,7 @@ class EnterpriseInventoryStructuralDynamics:
 
         next_state = state.update_resource(
             "inventory", new_value=next_inv, clamp=True, enforce_bounds=False
-        ).update_resource(
-            "cash_reserve", new_value=next_cash, clamp=True, enforce_bounds=False
-        )
+        ).update_resource("cash_reserve", new_value=next_cash, clamp=True, enforce_bounds=False)
         return TransitionResult(
             next_state=next_state,
             applied_changes={"order_qty": order_qty},
@@ -523,9 +517,7 @@ class EWMPolicyAgent:
         ) -> CalibratedPrediction:
             _ = (accepted_actions, structural_state)
             regime = str(state.memory.get("regime", "nominal"))
-            shift_delta = (
-                env_spec.post_shift_demand_Delta if regime == "shifted" else 0.0
-            )
+            shift_delta = env_spec.post_shift_demand_Delta if regime == "shifted" else 0.0
             # Learned residual captures regime-shift demand acceleration
             return CalibratedPrediction(
                 mean_deltas={
@@ -582,9 +574,7 @@ class EWMPolicyAgent:
                 actor_id=self.agent_id,
                 parameters={"order_qty": qty},
             )
-            branch = engine.branch(f"lookahead_{step_idx}_{int(qty)}").do(
-                {"order_qty": qty}
-            )
+            branch = engine.branch(f"lookahead_{step_idx}_{int(qty)}").do({"order_qty": qty})
             outcome = branch.step(state=state, action=cand_action)
             if outcome.pre_rule_rejected or outcome.post_rule_rejected:
                 continue
@@ -647,7 +637,9 @@ class MetricAggregateStats(BaseModel):
     n_seeds: int = Field(ge=1)
     mean: float
     std: float = Field(ge=0.0)
-    iqm: float = Field(description="Interquartile Mean (25% trimmed mean per Agarwal et al., 2021).")
+    iqm: float = Field(
+        description="Interquartile Mean (25% trimmed mean per Agarwal et al., 2021)."
+    )
     median: float
     ci_lower_95: float
     ci_upper_95: float
@@ -1007,9 +999,7 @@ class EWM_Evaluator:
         state = build_initial_benchmark_world_state(self.env_spec)
         constraint = InventoryLiquidityConstraint(self.env_spec)
         ewm_router = (
-            agent.build_router(self.env_spec)
-            if isinstance(agent, EWMPolicyAgent)
-            else None
+            agent.build_router(self.env_spec) if isinstance(agent, EWMPolicyAgent) else None
         )
 
         horizon = self.env_spec.horizon_steps
@@ -1032,9 +1022,7 @@ class EWM_Evaluator:
             true_expected_demand = self.env_spec.base_demand + (
                 self.env_spec.post_shift_demand_Delta if is_shifted else 0.0
             )
-            demand_noise = float(
-                env_rng.normal(0.0, self.env_spec.demand_volatility)
-            )
+            demand_noise = float(env_rng.normal(0.0, self.env_spec.demand_volatility))
             realized_demand = max(0.0, true_expected_demand + demand_noise)
 
             state = state.with_memory("regime", regime_name).with_memory(
@@ -1052,9 +1040,7 @@ class EWM_Evaluator:
                 # EWM agent executes through the HybridTransitionRouter (Pre -> ML -> Post)
                 outcome = ewm_router.step(state=state, action=action)
                 executed_state = outcome.next_state
-                pre_check = constraint.evaluate(
-                    state, (action,), phase=ConstraintPhase.PRE_ACTION
-                )
+                pre_check = constraint.evaluate(state, (action,), phase=ConstraintPhase.PRE_ACTION)
                 post_check = constraint.evaluate(
                     executed_state, (action,), phase=ConstraintPhase.POST_TRANSITION
                 )
@@ -1079,9 +1065,7 @@ class EWM_Evaluator:
                 )
             else:
                 # Baseline agents execute their raw proposed action directly against the environment
-                pre_check = constraint.evaluate(
-                    state, (action,), phase=ConstraintPhase.PRE_ACTION
-                )
+                pre_check = constraint.evaluate(state, (action,), phase=ConstraintPhase.PRE_ACTION)
                 inv_curr = state.resources["inventory"].current
                 cash_curr = state.resources["cash_reserve"].current
                 order_qty = float(action.parameters.get("order_qty", 0.0))
@@ -1174,9 +1158,7 @@ class EWM_Evaluator:
         seeds = self.derive_evaluation_seeds(master_seed=master_seed, n_seeds=n_seeds)
 
         per_seed_records: list[RolloutSeedMetrics] = []
-        by_agent: dict[str, list[RolloutSeedMetrics]] = {
-            ag.agent_id: [] for ag in self.agents
-        }
+        by_agent: dict[str, list[RolloutSeedMetrics]] = {ag.agent_id: [] for ag in self.agents}
 
         for seed in seeds:
             for ag in self.agents:
@@ -1271,7 +1253,9 @@ class EWM_Evaluator:
                 k: {
                     "predictive_accuracy": v.predictive_accuracy.model_dump(mode="json"),
                     "prediction_mae": v.prediction_mae.model_dump(mode="json"),
-                    "constraint_violation_rate": v.constraint_violation_rate.model_dump(mode="json"),
+                    "constraint_violation_rate": v.constraint_violation_rate.model_dump(
+                        mode="json"
+                    ),
                     "cumulative_reward": v.cumulative_reward.model_dump(mode="json"),
                 }
                 for k, v in sorted(agent_summaries.items())

@@ -781,8 +781,12 @@ class LinearResidualDynamics:
                 f"Non-finite resource value for {self.target_resource!r}: {curr_val}"
             )
 
-        z_state = abs(curr_val - self.state_mean) / max(1e-6, self.state_std) if self.is_fitted else 0.0
-        z_act = abs(act_val - self.action_mean) / max(1e-6, self.action_std) if self.is_fitted else 0.0
+        z_state = (
+            abs(curr_val - self.state_mean) / max(1e-6, self.state_std) if self.is_fitted else 0.0
+        )
+        z_act = (
+            abs(act_val - self.action_mean) / max(1e-6, self.action_std) if self.is_fitted else 0.0
+        )
         ood_score = math.sqrt(z_state**2 + z_act**2)
 
         z_crit = _normal_ppf_two_sided(self.nominal_coverage)

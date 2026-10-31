@@ -59,9 +59,9 @@ def test_hermetic_socket_blocked_on_external_network() -> None:
     disable_socket()
     try:
         with pytest.raises((SocketConnectBlockedError, SocketBlockedError, OSError)):
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(0.1)
-            s.connect(("8.8.8.8", 53))
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.1)
+                s.connect(("8.8.8.8", 53))
     finally:
         enable_socket()
 

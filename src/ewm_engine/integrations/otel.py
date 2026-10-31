@@ -35,8 +35,8 @@ try:
     _HAS_OTEL = True
 except ImportError:
     _HAS_OTEL = False
-    trace = None  # type: ignore[assignment]
-    metrics = None  # type: ignore[assignment]
+    trace = None
+    metrics = None
 
 
 class OpenTelemetryHook:

@@ -6,18 +6,27 @@ generation (<10ms for 1,000-node graphs) for EvolveGCN temporal training.
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
 import numpy as np
 
+_LAST_UTC_MS: int = -1
+_LAST_UTC_DT: datetime = datetime(2026, 1, 1)
+
 
 def _utcnow_naive() -> datetime:
     """Return current UTC timestamp as naive datetime."""
-    return datetime.now(UTC).replace(tzinfo=None)
+    global _LAST_UTC_MS, _LAST_UTC_DT
+    now_ms = int(time.time() * 1000)
+    if now_ms != _LAST_UTC_MS:
+        _LAST_UTC_MS = now_ms
+        _LAST_UTC_DT = datetime.now(UTC).replace(tzinfo=None)
+    return _LAST_UTC_DT
 
 
-@dataclass
+@dataclass(slots=True)
 class Node:
     """Represents a graph node (financial entity or microservice)."""
 
@@ -27,7 +36,7 @@ class Node:
     last_updated: datetime = field(default_factory=_utcnow_naive)
 
 
-@dataclass
+@dataclass(slots=True)
 class Edge:
     """Represents a directed edge (supply-chain link, API call)."""
 

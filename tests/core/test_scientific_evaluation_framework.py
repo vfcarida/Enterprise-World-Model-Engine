@@ -108,8 +108,7 @@ def test_underpowered_n_lt_30_refuses_significance_claims_and_exports_artifacts(
     assert parsed_json["environment_spec"]["horizon_steps"] == 10
     assert parsed_json["environment_spec"]["parameters"] == {"mode": "ci_smoke"}
     assert (
-        parsed_json["agent_summaries"]["EWMPolicyAgent"]["constraint_violation_rate"]["mean"]
-        == 0.0
+        parsed_json["agent_summaries"]["EWMPolicyAgent"]["constraint_violation_rate"]["mean"] == 0.0
     )
 
     csv_rows = list(csv.DictReader(io.StringIO(csv_path.read_text(encoding="utf-8"))))
@@ -172,10 +171,7 @@ def test_statistical_helpers_and_constraint_edge_cases() -> None:
 
     assert compute_probability_of_improvement([], [1.0]) == 0.5
     assert compute_probability_of_improvement([2.0, 2.0], [2.0, 2.0]) == 0.5
-    assert (
-        compute_probability_of_improvement([0.0, 0.0], [0.5, 0.5], higher_is_better=False)
-        == 1.0
-    )
+    assert compute_probability_of_improvement([0.0, 0.0], [0.5, 0.5], higher_is_better=False) == 1.0
 
     spec = EnvironmentSpec()
     constraint = InventoryLiquidityConstraint(spec)

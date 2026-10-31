@@ -116,7 +116,7 @@ def test_semantic_router_with_mocked_huggingface_pretrained() -> None:
 
     @dataclass
     class _DummyOut:
-        last_hidden_state: torch.Tensor
+        last_hidden_state: Any
 
     mock_tok_instance = MagicMock()
     mock_tok_instance.return_value = {
