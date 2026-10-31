@@ -7,6 +7,116 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- towncrier release notes start -->
 
+## [1.6.0](https://github.com/vfcarida/Enterprise-World-Model-Engine/compare/ewm-engine-v1.5.0...ewm-engine-v1.6.0) (2026-10-31)
+
+
+### Features
+
+* add AIOps world model, causal RCA, remediation validation, architecture docs, and DevSecOps hygiene ([3e86516](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/3e86516ca2cb145df2572f6230558cbf3a3e3d38))
+* add enterprise connectors, domain applications, pilot protocol, and reproduction package ([7dd158b](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/7dd158b3c0f4a2e48b71899dec88a7cb02304aaa))
+* add financial world model, dynamic graph pipeline, and intelligent routing subsystems ([b5a0bbf](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/b5a0bbf540cc7ecf5cc1a1f5a69bfa38a28baebd))
+* add zero-dependency scientific fallbacks and promote platform tracks to Stable ([e62c902](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/e62c902e9d467b5fbe45d06a050d995e926a585b))
+* **api:** M1 - reconcile Stable public API surface and experimental namespace ([6b75e15](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/6b75e1590e858ad9f9bdf3944b1bd79a79a8e781))
+* **ci:** CI/CD excellence, Zizmor security gates, repository rulesets, and merge queue (R09) ([8b641dd](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/8b641dd6d5e418f8ce2ca665ac3f6cc52112f6e6))
+* **citation:** academic polish with CITATION.cff, Zenodo DOI, JOSS paper, and reproducibility guide (R06) ([c95194a](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/c95194ab32ddbab75ad32af6efb4d9125ca5f398))
+* **cli:** AUDIT-001 - expand CLI with validate, run, and schema subcommands ([fdaa390](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/fdaa3905b1a4b6fa9c1e2ed5308d9451f92752d0))
+* complete v0.1.0 release of Enterprise World Model Engine (EWM Engine) ([4441090](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/44410900a7ea67506be1047e107f531b91fc8263))
+* complete v2.0 architectural convergence, strict typing, zero-dep WSL parser, and English specification ([c4b5269](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/c4b5269131282a585dce48850c0533c6ab478332))
+* **constraints:** M2 - constraint phase semantics and rollout invalidation ([a2979dd](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/a2979dd30e816af5bdcd3ae40ee62137a8329720))
+* **core:** enforce strict immutability and leak-proof temporal branching ([9ea2798](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/9ea2798bddf709ec2f4e19a837e9dbaa381f873d))
+* **distribution:** harden PyPI release, deploy docs site, and configure discovery metadata (T01) ([1350018](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/1350018d3e643ba2e72131dfc2b7d5f910a830bf))
+* **dx:** 60s quickstart, teaching errors, wasm playground, and launch pack (T03) ([b1810e6](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/b1810e67c8835c4ea35f0026b2527bea97bd3309))
+* **dynamics,causal:** implement HybridTransitionRouter and do() causal fabric (EWM-002) ([e8495ec](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/e8495ec326e7f168af9b5ec8635d773d10edf80e))
+* **dynamics:** implement conformal calibration, OOD abstention, and structural fallback (EWM-003) ([077f528](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/077f528877847e33898c90aba70cbe53d80418a5))
+* **engine:** implement horizons v1.1-v1.5 (P06-P16) with durability, verification, experimentation & interop ([539405b](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/539405be5da6b972f502b3cc3ac504ebef0075e6))
+* **eval:** implement scientific evaluation framework, baselines, and N&gt;=30 statistical guards (EWM-006) ([883348f](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/883348f9f20930c1845ff8f548f2ff3b6b3749b3))
+* **finance:** implement exact Decimal double-entry ledger and liquidity stress test (EWM-004) ([374f1ba](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/374f1ba468103976440df22f21f77104faceaffe))
+* **governance:** M0 - foundation spec adoption, architecture guardrails, and uv standardization ([f46ebbf](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/f46ebbf1c447a645d3547ce6fee38b7932449a64))
+* implement bitemporal state, fraud cascade flagship, SWE composition, and comparative evaluation ladder ([a9ad405](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/a9ad405c201f23e97b85872dd081feb4be2d9e20))
+* implement release truth, formal world model semantics, ML rigor, statistical honesty, and enterprise benchmark suite (P01-P05) ([10b8c05](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/10b8c054525810079d08f781c71141bdff7806dc))
+* **induction:** causal structure, dynamics, and invariant induction (T05) ([e62f2e3](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/e62f2e352e24b28371419aeaa6e1cc99e59e1d4d))
+* **induction:** implement induction honesty, validation, and fail-closed refusal gate (T06) ([71802eb](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/71802eb4c91a7ff75b41b3cef285b807932a5de1))
+* **induction:** world-model induction from schema, OCEL, and DataFrames (T04) ([43f35ff](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/43f35ff81904915482d9fe84b7038d0576625b0a))
+* **integrations:** add Gymnasium RL adapter, OR-Tools optimizer, interactive HTML trace visualizer, and stateful property tests ([a65cd7e](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/a65cd7eb4f974e3694c6abfeedce9a09be84e503))
+* **integrations:** graduate adapters to Beta, add OR planners, and agent evaluation (P01-P05) ([e44199d](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/e44199dbb9112a3bb696b68c3070b995362f3775))
+* **integrations:** implement CallableActorAdapter and Z3ConstraintAdapter with safe optional loading ([c24499f](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/c24499f8c0cd8063335603ecfb4507ddd883d333))
+* **integrations:** implement Gymnasium RL environment adapter (v1.1.0 first version) ([366bdf2](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/366bdf25f809cfef269887e8f4d3a325dfadf4d7))
+* **mcp:** implement MCP server, pydantic-ai toolset, and Concordia arbiter (T02) ([fd81ffc](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/fd81ffc16f9d59814beb39bf2987bc4da5f29bc2))
+* **ml:** ML/AI scientific rigor: provenance, evaluation, UQ, and causal gates (R05) ([76f640c](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/76f640cb0c95eeeed5a41c2eadcf14a9f85e46a3))
+* **packaging:** harden packaging, typing excellence, and universal uv resolution (R08) ([a9f2b51](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/a9f2b51a8618f0929c75cdc1f3eae5c1fccb4128))
+* **packaging:** modernize packaging, Hatchling dynamic versioning, PEP 639, and typing excellence (R08) ([6cb8f7a](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/6cb8f7ae9c1c9bef4c9ccae303e1ee569e6148d2))
+* **perf:** add deterministic performance gates and numerical quality assurance (R04) ([9a662d7](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/9a662d7a43924ebadf02d3504763687a1560de7e))
+* **rai:** implement responsible AI, trust and anti-overclaiming enforcement (ADR-039) ([b7fdc78](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/b7fdc7841d187e9f7d784c880cddba284e365658))
+* **release:** codify stability policy, verify v1 convergence, and cut v1.0.0 ([cb22347](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/cb223472ec8115c772f9172baffd009954d6b508))
+* **release:** version truth reconciliation to v1.5.0, towncrier newsfragments, release automation, and NEP-23 deprecations (R10) ([aeef765](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/aeef765a67103f918da04d2c02c085884be30f43))
+* **round5:** implement transformative capabilities S01–S09 and expanded roadmap ([0515675](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/05156751160775dd9bfa3e871d11a4615b46364e))
+* **scale:** batched structure-of-arrays, cross-backend bit-identity, and distributed reduction (T07) ([330eaa8](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/330eaa82c3fd629bc7656bc670ae9a80f5d2005c))
+* **scientific:** reproduction harness, JOSS/arXiv papers, persistent identifiers, and adoption (T09) ([aa0a2d3](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/aa0a2d36d1164e8340dee9d58e565c6292a717f9))
+* **security:** supply-chain hardening with SLSA L2+, dual SBOMs, pip-audit, and Scorecard (R07) ([6fe9ca5](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/6fe9ca54012367eadf7d12b9c6842ee401bc6111))
+* **simulation:** implement RecedingHorizonSimulator for MPC online re-grounding simulation ([4549db5](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/4549db59d959d1d63501ec0af949d44f5fd1692b))
+* **spec:** implement safe declarative WorldSpecification schema parser for YAML and JSON ([6951568](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/695156845f35c9a1e454b1a6ba5bee223f6dc749))
+* **standards:** WMIF interchange standard, conformance suite, and WSL DSL (T08) ([c9ab91c](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/c9ab91ca8f8a0f94ba64019f1c6103cef25a96cf))
+* **swe:** implement DAG state, merge queues, and concurrency interventions (EWM-005) ([c4de9fb](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/c4de9fb2d83af73efb357d970adaf7de03fc963e))
+* **testing:** world-reference testing rigor, CI gates, metamorphic & stateful testing (ADR-031, R03) ([9b92ec6](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/9b92ec650c1def42d6ba8ca735261908abd9d3ad))
+
+
+### Bug Fixes
+
+* **actors:** defensively handle missing resources in ThresholdReplenishmentActor ([9d36d8a](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/9d36d8aeb7c90b726c812cd5f8cb955d1b3f9701))
+* **branching:** isolate and clone actor and event source instances in World.branch ([a71eb34](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/a71eb34339062829cee8809a38c92a9229ca0b27))
+* **cli:** add ewm-engine script alias and robust examples path discovery ([e1f421a](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/e1f421afc3794c5d95622021fe5419c7dbc6f2e0))
+* **constraints:** accurately attribute post-transition constraint violations in multi-action steps ([d303fe5](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/d303fe5588e77d51891b0198cdd726a19fb91c79))
+* **core:** preserve AC-010 WorldState non-finite serialization contract and retrograde timestamp message ([7df7bd0](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/7df7bd0b6cb9c6d3da90bfc46ae0a1af49f03732))
+* **core:** support initial_state and exogenous_events in World and add simulate alias in SimulationEngine ([e74333e](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/e74333ecf36611091e27df04260b07fd565a3940))
+* **dynamics:** implement robust closed-form OLS parameter estimation in LinearResidualDynamics ([12d2c80](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/12d2c8048ca086b01ecd987d81e9b8972100441d))
+* **examples:** align ADR053FraudCascadeShowcaseResult import in fraud_cascade/main.py ([42018ee](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/42018ee03b105b1ad828b4460a8fd87086a5e053))
+* **examples:** ensure repo root is on sys.path for direct script execution ([67835e3](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/67835e3cb892a618965e0cf1e757a5b6e83484a1))
+* **packaging:** AUDIT-002 - add solvers optional dependency extra to pyproject.toml ([cf6c0ec](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/cf6c0ece7f03613158706cb782c8eccd6cbfdcde))
+* **simulation:** connect systemic trace dependency edges between interventions, actions, transitions, and violations ([1041d30](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/1041d3086f6571ab75b16ced72ba86a8ede0ab7f))
+* **swe:** guard optional networkx import with pure-Python DAG fallback for clean core install ([7b644d9](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/7b644d9191db2aca800b169ed544610870523fa6))
+* **tests:** use monkeypatch.setitem for sys.modules in test_pydantic_ai to prevent cryptography unload ([7494551](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/74945517f9af0eb23274221d7d322410e117b894))
+* update metadata attribution, fix relative links, and format code ([5b3bbab](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/5b3bbab47af1391dbb3af8222e5aec70bd0a6eab))
+* **verification:** harden OOD Mahalanobis scaling, finite timestamps, Decimal min_balance, and benchmark shock parity ([a25043b](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/a25043ba617d6563253ede94830b3081ab083f21))
+
+
+### Performance Improvements
+
+* **benchmarks:** add fallback fixture for benchmark when plugins are absent (R04) ([94fbdf9](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/94fbdf9f48df90b135579e2656bd01883ce718a7))
+
+
+### Documentation
+
+* **a11y:** annotate documentation Mermaid diagrams with accTitle and accDescr (R02) ([cc68a42](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/cc68a42cb7b90dbd807fc4d30a595acc0346de6e))
+* add connectors tutorial, deployment_shift package entrypoint, and mkdocs nav entries ([7907159](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/7907159a5fa6eb2c7bc221498f30ad35263d2a3e))
+* align README, quickstart notebook, and model/dataset cards with EWM-001..006 capabilities (EWM-007) ([05f6810](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/05f6810f74b85ca66b57bb1f503115f30f2992b3))
+* **api:** expand API reference and format markdown code snippets ([ba28ddc](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/ba28ddc8f32509157f990bbf0f88779626c6937d))
+* **architecture:** reconcile ARCHITECTURE.md with v1.5.0 scope and add status labels ([49a86e2](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/49a86e2ee45b749a389e4f801e22a3374b512400))
+* **audit:** add repository-wide acceptance audit report and evidence artifacts ([12ddf4e](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/12ddf4e1ab004451e729f7c1e1b4ce70f67bba12))
+* **audit:** update Repository Audit Report with full completion traceability matrix ([14ba7ff](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/14ba7ffc5dd20457ce908aaa648b38e1a8bd96f1))
+* **benchmarks:** add measurement classification report and synchronize README metrics ([1d4a102](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/1d4a102d8b2d71e5496659d453a3cfaa987da6c6))
+* **changelog:** document Gymnasium RL adapter, OR-Tools optimizer, interactive HTML trace visualizer, and stateful property tests ([08a2282](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/08a22823db9019c61c151af256f32cab144a95f9))
+* consolidate publication-grade documentation, scientific manuscripts, CLI schema fallback, and release truth gates ([7a77d90](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/7a77d9084e97e18b17c08fff1e8732b4295bd0e8))
+* **dx:** AUDIT-004 - include benchmarks directory in ruff and mypy contribution guidelines ([ecb2515](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/ecb2515bb7d32079a859cb430926dd385b7378ed))
+* expand architecture proposal specification with sections A through J ([03ae855](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/03ae8554e386f7d79c89965ea2bc42a61f5651cb))
+* **governance:** implement SPEC 9 governance, CHAOSS health, CoC 2.1, and RFC process (R11) ([ac84f36](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/ac84f36a7df08e01fdb51ff9797ade8b16ba1a53))
+* index ADR-007 and v1 specification contract in navigation ([ed6e426](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/ed6e426b5704fa9b54a498ec428d54bf39250a86))
+* **integrations:** EVO-001 - document Gymnasium, OR-Tools, and interactive HTML visualizer in docs and navigation ([7a27357](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/7a27357efc363fec311fafb9fe0be3cb3dc35cce))
+* **methodology:** add cost-benefit TCO protocol, fraud cascade ROI analysis, and template ([ba2beff](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/ba2beffdcf47cea4d9e86febc59a3650f4389a8a))
+* overhaul README to reference-grade standard and add visual identity (R01) ([fe3b95c](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/fe3b95c171a0d4887a8850cce302ec622e1bc23a))
+* overhaul README to v1.0.0 excellence with comparative matrix and mathematical formalism ([7a9dab9](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/7a9dab999c56e80c8e58bd8cdc5ecaf18fc5ab4e))
+* **pilots:** add comprehensive pilot protocol, case study template, and 3 partner agreements ([9d41e3c](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/9d41e3c6aed35ae7598bf0add6e0cb56ffcdc59d))
+* quarantine unvalidated manuscript drafts and audit documentation links and imports ([0a40d05](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/0a40d050e4bbadd05c801a499b893b7b8ce47b5b))
+* **readme:** polish anchor resolution and link-checker validation (R01) ([3bb37e1](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/3bb37e19c66c419e86646978265dbd1193c25b2d))
+* **reproducibility:** align BibTeX version with reconciled release truth v1.5.0 (R06) ([1c5eea7](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/1c5eea78a38e02291a286d7821c8e40166b8aab3))
+* restructure documentation under Diataxis and automate API reference (R02) ([9ed61f9](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/9ed61f90f3b7fee4fa30a65d1e70ba486cf84525))
+* **results:** add clean execution verification report and certified reproduction manifest ([5c5384d](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/5c5384d7c08ac359eef5f663a2c5f451bfb1856f))
+* **roadmap:** AUDIT-005 - align ROADMAP.md to v1.0.0 Stable Contract ([544cd67](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/544cd670c1ae05ccb151a8c7849790fc23e1d577))
+* sanitize repository, remove meta-prompts, and align documentation ([9e2d623](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/9e2d623d8bda77bc804aab545dd6b856daf95528))
+* **security:** update supported versions table to 1.0.x ([61bfed4](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/61bfed47e8fbf09c81c38492baf3edd91efeb623))
+* **spec:** vendor full authoritative spec-driven-development document ([9240707](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/92407070c7f72dc4fbbd06e21a5dc7340e91ea81))
+* universal repository sanitization, meta-prompt removal, and canonicalization ([d3d9ff6](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/d3d9ff6a1f805327e27691ba6455375302ac5710))
+* **verification:** add 4-cycle iterative verification reports and matrix ([677d29f](https://github.com/vfcarida/Enterprise-World-Model-Engine/commit/677d29f50c76f2edd8e6ff489be3326210a23e64))
+
 ## [1.5.0] - 2026-10-07
 
 ### Added
