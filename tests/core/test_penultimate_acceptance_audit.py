@@ -453,3 +453,28 @@ def test_audit_section_11_sandboxed_memory_limited_integration_subprocess() -> N
         f"Sandboxed memory-limited integration subprocess failed (exit={res.returncode}):\n"
         f"{res.stdout}\n{res.stderr}"
     )
+
+
+def test_audit_checklist_9_repository_ruff_lint_and_format_clean() -> None:
+    """[x] Repository-wide ruff check and ruff format --check pass across all code, docs, and notebooks."""
+    res_check = subprocess.run(
+        [sys.executable, "-m", "ruff", "check", "."],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert res_check.returncode == 0, (
+        f"Repository-wide ruff check failed:\n{res_check.stdout}\n{res_check.stderr}"
+    )
+
+    res_fmt = subprocess.run(
+        [sys.executable, "-m", "ruff", "format", "--check", "."],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert res_fmt.returncode == 0, (
+        f"Repository-wide ruff format --check failed:\n{res_fmt.stdout}\n{res_fmt.stderr}"
+    )

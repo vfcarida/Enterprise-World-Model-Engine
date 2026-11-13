@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import time
+from collections.abc import Iterator
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import patch
@@ -21,9 +22,10 @@ from ewm_engine.routing.gateway import app, extracted_causal_vectors
 
 
 @pytest.fixture(scope="module")
-def client() -> TestClient:
+def client() -> Iterator[TestClient]:
     """FastAPI TestClient fixture for the Mechanistic Router gateway."""
-    return TestClient(app)
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 def _mock_llm_response(payload: dict[str, Any]) -> Any:

@@ -12,17 +12,20 @@ from datetime import UTC, datetime
 
 import numpy as np
 
+_UTC_CALL_COUNT: int = 0
 _LAST_UTC_MS: int = -1
-_LAST_UTC_DT: datetime = datetime(2026, 1, 1)
+_LAST_UTC_DT: datetime = datetime.now(UTC).replace(tzinfo=None)
 
 
 def _utcnow_naive() -> datetime:
     """Return current UTC timestamp as naive datetime."""
-    global _LAST_UTC_MS, _LAST_UTC_DT
-    now_ms = int(time.time() * 1000)
-    if now_ms != _LAST_UTC_MS:
-        _LAST_UTC_MS = now_ms
-        _LAST_UTC_DT = datetime.now(UTC).replace(tzinfo=None)
+    global _UTC_CALL_COUNT, _LAST_UTC_MS, _LAST_UTC_DT
+    if (_UTC_CALL_COUNT & 0xFF) == 0:
+        now_ms = int(time.time() * 1000)
+        if now_ms != _LAST_UTC_MS:
+            _LAST_UTC_MS = now_ms
+            _LAST_UTC_DT = datetime.now(UTC).replace(tzinfo=None)
+    _UTC_CALL_COUNT += 1
     return _LAST_UTC_DT
 
 
@@ -60,25 +63,38 @@ class ContinuousGraphRegistry:
         self.snapshot_history: list[tuple[datetime, np.ndarray, np.ndarray]] = []
         self.max_snapshot_history: int = max_snapshot_history
 
+        # Incremental cache state for O(1)/vectorized snapshot generation
+        self._node_keys_dirty: bool = True
+        self._edges_dirty: bool = True
+        self._sorted_node_ids: list[str] = []
+        self._node_id_to_idx: dict[str, int] = {}
+        self._edge_flat_indices: np.ndarray | None = None
+
     def add_node(self, node: Node) -> None:
         """Add or update a node. O(1) operation."""
-        self.nodes[node.node_id] = node
-        if node.node_id not in self.adjacency_list:
-            self.adjacency_list[node.node_id] = set()
-        if node.node_id not in self._reverse_adjacency_list:
-            self._reverse_adjacency_list[node.node_id] = set()
+        nid = node.node_id
+        if nid not in self.nodes:
+            self.adjacency_list[nid] = set()
+            self._reverse_adjacency_list[nid] = set()
+            self._node_keys_dirty = True
+            self._edges_dirty = True
+        self.nodes[nid] = node
 
     def add_edge(self, edge: Edge) -> None:
         """Add or update an edge. O(1) operation."""
-        if edge.source_id not in self.nodes or edge.target_id not in self.nodes:
-            raise ValueError(
-                f"Cannot add edge: nodes {edge.source_id} or {edge.target_id} not found"
-            )
+        src = edge.source_id
+        tgt = edge.target_id
+        if src not in self.nodes or tgt not in self.nodes:
+            raise ValueError(f"Cannot add edge: nodes {src} or {tgt} not found")
 
-        self.edges[(edge.source_id, edge.target_id)] = edge
-        self.adjacency_list[edge.source_id].add(edge.target_id)
-        self._reverse_adjacency_list[edge.target_id].add(edge.source_id)
-        edge.last_updated = _utcnow_naive()
+        key = (src, tgt)
+        if key in self.edges:
+            edge.last_updated = _utcnow_naive()
+        else:
+            self._edges_dirty = True
+        self.edges[key] = edge
+        self.adjacency_list[src].add(tgt)
+        self._reverse_adjacency_list[tgt].add(src)
 
     def remove_edge(self, source_id: str, target_id: str) -> None:
         """Remove an edge. O(1) operation."""
@@ -89,6 +105,7 @@ class ContinuousGraphRegistry:
                 self.adjacency_list[source_id].discard(target_id)
             if target_id in self._reverse_adjacency_list:
                 self._reverse_adjacency_list[target_id].discard(source_id)
+            self._edges_dirty = True
 
     def remove_node(self, node_id: str) -> None:
         """Remove a node and all its incident edges. O(degree) operation."""
@@ -106,6 +123,8 @@ class ContinuousGraphRegistry:
         del self.nodes[node_id]
         self.adjacency_list.pop(node_id, None)
         self._reverse_adjacency_list.pop(node_id, None)
+        self._node_keys_dirty = True
+        self._edges_dirty = True
 
     def take_snapshot(self) -> tuple[np.ndarray, np.ndarray]:
         """Generate snapshot for EvolveGCN training.
@@ -115,27 +134,45 @@ class ContinuousGraphRegistry:
                 node_features: (N, F) float32 array where N=num_nodes, F=num_features
                 adjacency_matrix: (N, N) float32 array containing edge weights
         """
-        node_ids = sorted(self.nodes.keys())
+        if self._node_keys_dirty:
+            self._sorted_node_ids = sorted(self.nodes.keys())
+            self._node_id_to_idx = {nid: idx for idx, nid in enumerate(self._sorted_node_ids)}
+            self._node_keys_dirty = False
+            self._edges_dirty = True
+
+        node_ids = self._sorted_node_ids
         num_nodes = len(node_ids)
-        node_id_to_idx = {nid: idx for idx, nid in enumerate(node_ids)}
+        nodes_dict = self.nodes
 
-        feature_keys = sorted(self.nodes[node_ids[0]].features.keys()) if num_nodes > 0 else []
+        feature_keys = sorted(nodes_dict[node_ids[0]].features.keys()) if num_nodes > 0 else []
         num_features = len(feature_keys)
-
         if num_features > 0 and num_nodes > 0:
-            node_features = np.array(
-                [[self.nodes[nid].features.get(k, 0.0) for k in feature_keys] for nid in node_ids],
+            flat_feats = np.fromiter(
+                (nodes_dict[nid].features.get(k, 0.0) for nid in node_ids for k in feature_keys),
                 dtype=np.float32,
+                count=num_nodes * num_features,
             )
+            node_features = flat_feats.reshape((num_nodes, num_features))
         else:
             node_features = np.zeros((num_nodes, num_features), dtype=np.float32)
 
         adjacency_matrix = np.zeros((num_nodes, num_nodes), dtype=np.float32)
-        if self.edges:
-            src_indices = [node_id_to_idx[s] for (s, _) in self.edges]
-            tgt_indices = [node_id_to_idx[t] for (_, t) in self.edges]
-            weights = [e.weight for e in self.edges.values()]
-            adjacency_matrix[src_indices, tgt_indices] = np.asarray(weights, dtype=np.float32)
+        n_edges = len(self.edges)
+        if n_edges > 0 and num_nodes > 0:
+            if self._edges_dirty or self._edge_flat_indices is None:
+                idx_map = self._node_id_to_idx
+                self._edge_flat_indices = np.fromiter(
+                    (idx_map[s] * num_nodes + idx_map[t] for (s, t) in self.edges),
+                    dtype=np.intp,
+                    count=n_edges,
+                )
+                self._edges_dirty = False
+            weights = np.fromiter(
+                (e.weight for e in self.edges.values()),
+                dtype=np.float32,
+                count=n_edges,
+            )
+            adjacency_matrix.ravel()[self._edge_flat_indices] = weights
 
         timestamp = _utcnow_naive()
         self.snapshot_history.append((timestamp, node_features, adjacency_matrix))

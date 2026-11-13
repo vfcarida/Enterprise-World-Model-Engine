@@ -232,9 +232,17 @@ class SemanticVectorRouter:
                 vocab_size=8192, hidden_size=self.embedding_dim
             ).to(device)
             self.model.eval()
+        self._embed_cache: dict[tuple[str, str], torch.Tensor] = {}
 
     def embed_text(self, text: str) -> torch.Tensor:
         """Generate L2-normalized dense embedding for input text."""
+        is_det_offline = isinstance(
+            self.tokenizer, _DeterministicModernBertTokenizer
+        ) and isinstance(self.model, _DeterministicModernBertModel)
+        cache_key = (text, str(self.device))
+        if is_det_offline and cache_key in self._embed_cache:
+            return self._embed_cache[cache_key].clone()
+
         with torch.no_grad():
             raw_inputs = self.tokenizer(
                 text,
@@ -247,6 +255,10 @@ class SemanticVectorRouter:
             outputs = self.model(**inputs)
             embeddings: torch.Tensor = outputs.last_hidden_state.mean(dim=1)
             normalized: torch.Tensor = F.normalize(embeddings, p=2, dim=1)
+            if is_det_offline:
+                if len(self._embed_cache) >= 512:
+                    self._embed_cache.clear()
+                self._embed_cache[cache_key] = normalized.clone()
             return normalized
 
     @staticmethod

@@ -94,6 +94,15 @@ def test_continuous_registry_crud_and_snapshot_operations() -> None:
         registry.take_snapshot()
     assert len(registry.snapshot_history) == 3
 
+    # Verify returned snapshot arrays are defensive copies (mutating caller array does not corrupt cache)
+    x_snap1, a_snap1 = registry.take_snapshot()
+    orig_val = float(x_snap1[0, 0])
+    x_snap1[0, 0] = -999999.0
+    a_snap1[0, 0] = -999999.0
+    x_snap2, a_snap2 = registry.take_snapshot()
+    assert float(x_snap2[0, 0]) == pytest.approx(orig_val)
+    assert float(a_snap2[0, 0]) == pytest.approx(0.0)
+
 
 @pytest.mark.unit
 def test_registry_10k_nodes_50k_edges_under_1_second() -> None:

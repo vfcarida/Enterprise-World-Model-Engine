@@ -300,7 +300,10 @@ assert structural_rejected is True
 # 3. Compare concurrent counterfactual branches ("Agent A merges PR-101 first" vs. "Agent B modifies schema.py first")
 trace = run_concurrent_agent_intervention_scenario()
 assert trace.branch_agent_a_merges_first.pr_statuses["PR-101"] == PullRequestStatus.MERGED.value
-assert trace.branch_agent_b_modifies_first.pr_statuses["PR-101"] == PullRequestStatus.CONFLICT_STALE.value
+assert (
+    trace.branch_agent_b_modifies_first.pr_statuses["PR-101"]
+    == PullRequestStatus.CONFLICT_STALE.value
+)
 assert trace.cyclic_injection_rejected is True
 ```
 

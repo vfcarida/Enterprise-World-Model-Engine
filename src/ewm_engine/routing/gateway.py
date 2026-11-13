@@ -65,6 +65,8 @@ def _start_span(name: str, attributes: dict[str, Any] | None = None) -> Abstract
 
 def _log_ingested_event(domain: str, event: FinancialEventInput | AIOpsEventInput) -> None:
     """Emit structured JSON log entry for every validated input event."""
+    if not logger.isEnabledFor(logging.INFO):
+        return
     payload = {
         "log_type": "event_ingested",
         "domain": domain,
@@ -80,6 +82,8 @@ def _log_ingested_event(domain: str, event: FinancialEventInput | AIOpsEventInpu
 
 def _log_routing_decision(decision: RoutingDecision) -> None:
     """Emit structured JSON log entry for every routing decision."""
+    if not logger.isEnabledFor(logging.INFO):
+        return
     payload = {
         "log_type": "routing_decision",
         "event_id": decision.event_id,
