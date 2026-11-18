@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from ewm_engine.core.actions import Action, Intervention
 from ewm_engine.core.context import ContextSnapshot
@@ -30,15 +30,15 @@ class World:
 
     def __init__(
         self,
-        state: WorldState | None = None,
-        dynamics: DynamicsModel | None = None,
+        state: Optional[WorldState] = None,
+        dynamics: Optional[DynamicsModel] = None,
         constraints: ConstraintRegistry | Sequence[Constraint] | None = None,
-        event_sources: Sequence[ExogenousEventSource] | None = None,
-        actors: Sequence[Actor] | None = None,
+        event_sources: Optional[Sequence[ExogenousEventSource]] = None,
+        actors: Optional[Sequence[Actor]] = None,
         *,
-        initial_state: WorldState | None = None,
-        exogenous_events: Sequence[ExogenousEventSource] | None = None,
-        runtime_context: ContextSnapshot | None = None,
+        initial_state: Optional[WorldState] = None,
+        exogenous_events: Optional[Sequence[ExogenousEventSource]] = None,
+        runtime_context: Optional[ContextSnapshot] = None,
         observation_spec: ObservationSpec | Mapping[str, ObservationSpec] | None = None,
     ) -> None:
         from ewm_engine.constraints.registry import ConstraintRegistry
@@ -61,9 +61,9 @@ class World:
             self.constraints = ConstraintRegistry(list(constraints))
 
         resolved_events = event_sources if event_sources is not None else exogenous_events
-        self.event_sources: list[ExogenousEventSource] = list(resolved_events or [])
-        self.actors: list[Actor] = list(actors or [])
-        self.runtime_context: ContextSnapshot | None = runtime_context
+        self.event_sources: List[ExogenousEventSource] = list(resolved_events or [])
+        self.actors: List[Actor] = list(actors or [])
+        self.runtime_context: Optional[ContextSnapshot] = runtime_context
         self.observation_spec: ObservationSpec | Mapping[str, ObservationSpec] | None = (
             observation_spec
         )

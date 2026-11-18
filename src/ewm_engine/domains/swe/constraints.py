@@ -16,6 +16,7 @@ from ewm_engine.constraints.results import (
 )
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import WorldState
+from ewm_engine.core.types import EngineError
 from ewm_engine.domains.swe.state import (
     MAX_SWE_GRAPH_NODES,
     SWE_REPO_ENTITY_ID,
@@ -26,7 +27,7 @@ from ewm_engine.domains.swe.state import (
 )
 
 
-class StructuralViolationError(ValueError):
+class StructuralViolationError(EngineError, ValueError):
     """Raised when an SWE action violates a hard structural constraint (cycle, capacity, or stale check)."""
 
 

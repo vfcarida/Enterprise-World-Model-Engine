@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
@@ -32,11 +32,11 @@ class GraphNode(BaseModel):
 
     id: EntityId = Field(description="Unique entity identifier.")
     type: str = Field(description="Categorical entity classification.")
-    attributes: dict[str, Any] = Field(
+    attributes: Dict[str, Any] = Field(
         default_factory=dict,
         description="Immutable node attributes.",
     )
-    resources: dict[ResourceId, float] = Field(
+    resources: Dict[ResourceId, float] = Field(
         default_factory=dict,
         description="Current values of measurable resources attached to this entity.",
     )
@@ -44,11 +44,11 @@ class GraphNode(BaseModel):
         default_factory=tuple,
         description="Categorical entity tags.",
     )
-    temporal_valid_from: float | None = Field(
+    temporal_valid_from: Optional[float] = Field(
         default=None,
         description="Optional simulation timestamp when this node becomes active.",
     )
-    temporal_valid_until: float | None = Field(
+    temporal_valid_until: Optional[float] = Field(
         default=None,
         description="Optional simulation timestamp when this node expires.",
     )
@@ -108,15 +108,15 @@ class HeterogeneousGraphView(BaseModel):
     step: int = Field(default=0, description="Simulation discrete step index.")
     timestamp: float = Field(default=0.0, description="Continuous simulation time.")
     schema_version: str = Field(default="2.0.0", description="Graph representation schema version.")
-    nodes_by_type: dict[str, dict[EntityId, GraphNode]] = Field(
+    nodes_by_type: Dict[str, Dict[EntityId, GraphNode]] = Field(
         default_factory=dict,
         description="Entity nodes partitioned by categorical node type.",
     )
-    edges_by_type: dict[str, list[GraphEdge]] = Field(
+    edges_by_type: Dict[str, List[GraphEdge]] = Field(
         default_factory=dict,
         description="Directed relational edges keyed by canonical relation key: 'src_type__rel_type__dst_type'.",
     )
-    global_attributes: dict[str, Any] = Field(
+    global_attributes: Dict[str, Any] = Field(
         default_factory=dict,
         description="Global state attributes (memory, active rules, context).",
     )

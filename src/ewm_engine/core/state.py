@@ -20,17 +20,45 @@ import copy
 import math
 import warnings
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import Any, Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ewm_engine.core._canonical import canonical_sha256
 from ewm_engine.core.entities import Entity, Relationship
+from ewm_engine.core.ocel import (
+    OCEL2_BASE_TABLES,
+    FlatLogParser,
+    OcelEventRecord,
+    OcelObjectRelation,
+    OcelObjectTarget,
+    StateEncoder,
+    StateEncodingError,
+    parse_flat_event_log,
+    read_ocel2_sqlite,
+    validate_ocel2_sqlite,
+)
 from ewm_engine.core.resources import Resource
 from ewm_engine.core.types import EntityId, ResourceId
 from ewm_engine.exceptions import InvalidWorldStateError
 
-__all__ = ["Entity", "Relationship", "Resource", "State", "WorldState"]
+__all__ = [
+    "OCEL2_BASE_TABLES",
+    "Entity",
+    "FlatLogParser",
+    "OcelEventRecord",
+    "OcelObjectRelation",
+    "OcelObjectTarget",
+    "Relationship",
+    "Resource",
+    "State",
+    "StateEncoder",
+    "StateEncodingError",
+    "WorldState",
+    "parse_flat_event_log",
+    "read_ocel2_sqlite",
+    "validate_ocel2_sqlite",
+]
 
 
 class WorldState(BaseModel):
@@ -51,27 +79,27 @@ class WorldState(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     schema_version: str = Field(default="1.0.0", description="Semantic schema version.")
-    entities: dict[EntityId, Entity] = Field(
+    entities: Dict[EntityId, Entity] = Field(
         default_factory=dict,
         description="Active participating entities keyed by EntityId.",
     )
-    relationships: tuple[Relationship, ...] = Field(
+    relationships: Tuple[Relationship, ...] = Field(
         default_factory=tuple,
         description="Immutable sequence of directed relational edges between entities.",
     )
-    resources: dict[ResourceId, Resource] = Field(
+    resources: Dict[ResourceId, Resource] = Field(
         default_factory=dict,
         description="Finite or measurable resources keyed by ResourceId.",
     )
-    memory: dict[str, Any] = Field(
+    memory: Dict[str, Any] = Field(
         default_factory=dict,
         description="Relevant temporal memory, running statistics, or history lags.",
     )
-    active_rules: dict[str, Any] = Field(
+    active_rules: Dict[str, Any] = Field(
         default_factory=dict,
         description="Active policy parameters, operational thresholds, and rule flags.",
     )
-    context: dict[str, Any] = Field(
+    context: Dict[str, Any] = Field(
         default_factory=dict,
         description="Environmental, economic, or meteorological context variables.",
     )
@@ -87,9 +115,9 @@ class WorldState(BaseModel):
         entities: Sequence[Entity] | Mapping[EntityId, Entity] = (),
         relationships: Sequence[Relationship] = (),
         resources: Sequence[Resource] | Mapping[ResourceId, Resource] = (),
-        memory: Mapping[str, Any] | None = None,
-        active_rules: Mapping[str, Any] | None = None,
-        context: Mapping[str, Any] | None = None,
+        memory: Optional[Mapping[str, Any]] = None,
+        active_rules: Optional[Mapping[str, Any]] = None,
+        context: Optional[Mapping[str, Any]] = None,
         timestamp: float = 0.0,
         step: int = 0,
         schema_version: str = "1.0.0",
@@ -255,12 +283,12 @@ class WorldState(BaseModel):
 
     def get_relationships(
         self,
-        source: EntityId | None = None,
-        target: EntityId | None = None,
-        type: str | None = None,
-    ) -> list[Relationship]:
+        source: Optional[EntityId] = None,
+        target: Optional[EntityId] = None,
+        type: Optional[str] = None,
+    ) -> List[Relationship]:
         """Query relational edges matching source, target, and/or type filters."""
-        matches: list[Relationship] = []
+        matches: List[Relationship] = []
         for rel in self.relationships:
             if source is not None and rel.source != source:
                 continue
@@ -364,12 +392,12 @@ class WorldState(BaseModel):
         )
         return self.legacy_update(**changes)
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert state to a standard JSON-compatible dictionary."""
         return self.model_dump(mode="json")
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> WorldState:
+    def from_dict(cls, data: Dict[str, Any]) -> WorldState:
         """Reconstruct WorldState from a dictionary."""
         return cls.model_validate(data)
 

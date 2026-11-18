@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import copy
-from typing import Any
+from typing import Any, Dict, Union
 
 from ewm_engine.core.state import WorldState
 from ewm_engine.exceptions import InvalidWorldStateError
 
 
-def migrate_v1_to_v2(source: WorldState | dict[str, Any]) -> WorldState:
+def migrate_v1_to_v2(source: Union[WorldState, Dict[str, Any]]) -> WorldState:
     """Migrate a v1.x WorldState (schema_version='1.0.0') to v2.0 (schema_version='2.0.0').
 
     Ensures heterogeneous entity tagging, relation weight normalization, and schema version bump.
@@ -49,7 +49,7 @@ def migrate_v1_to_v2(source: WorldState | dict[str, Any]) -> WorldState:
     return WorldState.from_dict(data)
 
 
-def migrate_v2_to_v1(source: WorldState | dict[str, Any]) -> WorldState:
+def migrate_v2_to_v1(source: Union[WorldState, Dict[str, Any]]) -> WorldState:
     """Down-migrate a v2.0 WorldState (schema_version='2.0.0') to legacy v1.x (schema_version='1.0.0').
 
     Strips v2-specific graph metadata while preserving exact state values, resources, and topology.

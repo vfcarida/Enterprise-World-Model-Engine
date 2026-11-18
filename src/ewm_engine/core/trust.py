@@ -11,10 +11,11 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ewm_engine.core.types import EngineError
 from ewm_engine.provenance.evidence import (
     EVIDENCE_LEVEL_TO_NATURE,
     EVIDENCE_NATURE_TO_DEFAULT_LEVEL,
@@ -88,18 +89,18 @@ class BarePointEstimateWarning(ResponsibleAIWarning):
     """Emitted when a user accesses a bare point estimate without acknowledging uncertainty."""
 
 
-class UnqualifiedCausalClaimError(ValueError):
+class UnqualifiedCausalClaimError(EngineError, ValueError):
     """Raised when code or configuration attempts to emit an unqualified causal claim."""
 
 
-class UncertaintyRequiredError(RuntimeError):
+class UncertaintyRequiredError(EngineError, RuntimeError):
     """Raised when an operation attempts to output a point estimate without mandatory uncertainty."""
 
 
-class DecisionBlockedError(RuntimeError):
+class DecisionBlockedError(EngineError, RuntimeError):
     """Raised when a ResponsibleAIGate blocks a downstream decision pipeline on safety criteria."""
 
-    def __init__(self, message: str, reasons: list[str]) -> None:
+    def __init__(self, message: str, reasons: List[str]) -> None:
         super().__init__(message)
         self.reasons = reasons
 
@@ -112,7 +113,7 @@ class InductionRefusalError(DecisionBlockedError):
 # 2. Epistemic Ladder & Evidence Ranking for Induction
 # ==============================================================================
 
-INDUCTION_EVIDENCE_LADDER: tuple[EvidenceLevel, ...] = (
+INDUCTION_EVIDENCE_LADDER: Tuple[EvidenceLevel, ...] = (
     EvidenceLevel.ASSERTED,
     EvidenceLevel.PROVISIONAL,
     EvidenceLevel.DIRECTIONAL_UNCERTAIN,
@@ -120,7 +121,7 @@ INDUCTION_EVIDENCE_LADDER: tuple[EvidenceLevel, ...] = (
     EvidenceLevel.CONFOUNDED,
 )
 
-_INDUCTION_LADDER_RANKS: dict[EvidenceLevel, int] = {
+_INDUCTION_LADDER_RANKS: Dict[EvidenceLevel, int] = {
     EvidenceLevel.ASSERTED: 5,
     EvidenceLevel.PROVISIONAL: 4,
     EvidenceLevel.DIRECTIONAL_UNCERTAIN: 3,
@@ -248,8 +249,8 @@ class EvidenceGateDecision(BaseModel):
     downgraded: bool = False
     is_identifiable: bool = False
     overlap_satisfied: bool = True
-    identification_provenance: str | None = None
-    refusal_reasons: tuple[str, ...] = Field(default_factory=tuple)
+    identification_provenance: Optional[str] = None
+    refusal_reasons: Tuple[str, ...] = Field(default_factory=tuple)
 
 
 def evaluate_evidence_nature_gate(

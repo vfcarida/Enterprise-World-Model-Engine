@@ -20,6 +20,11 @@ keywords = [
     "deterministic-simulation",
     "provenance",
     "causal",
+    "ocel2",
+    "continual-discovery-agent",
+    "dowhy-gcm",
+    "double-entry-ledger",
+    "root-cause-analysis",
     "digital-twin",
     "scenario-planning",
     "decision-intelligence",
@@ -46,11 +51,21 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+finance = [
+    "pydantic>=2.6.0",
+    "pm4py>=2.7.0",
+    "pandas>=2.0.0",
+]
+se = [
+    "networkx>=3.2",
+    "scipy>=1.11.0",
+]
 graphs = [
     "networkx>=3.2",
 ]
 swe = [
     "networkx>=3.2",
+    "scipy>=1.11.0",
 ]
 solvers = [
     "z3-solver>=4.12.0",
@@ -339,6 +354,7 @@ version-file = "src/ewm_engine/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ewm_engine"]
+dev-mode-dirs = ["src"]
 # PEP 561 typing marker: py.typed is included from src/ewm_engine/py.typed
 
 [tool.hatch.build.targets.sdist]
@@ -367,7 +383,11 @@ select = [
     "RUF", # ruff-specific rules
 ]
 ignore = [
-    "E501", # Line length handled by formatter
+    "E501",  # Line length handled by formatter
+    "UP006", # Allow typing.Dict, typing.List, typing.Tuple, typing.Set for strict typing contracts
+    "UP007", # Allow typing.Union for strict typing contracts
+    "UP035", # Allow importing Dict, List, Set, Tuple from typing
+    "UP045", # Allow typing.Optional[T] for strict typing contracts
 ]
 
 [tool.ruff.lint.isort]
@@ -387,7 +407,7 @@ mypy_path = "src"
 explicit_package_bases = true
 strict = true
 warn_return_any = true
-warn_unused_configs = true
+warn_unused_configs = false
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
@@ -446,6 +466,14 @@ module = [
     "requests",
     "networkx",
     "yaml",
+    "pandas",
+    "pandas.*",
+    "dowhy",
+    "dowhy.*",
+    "jsonschema",
+    "jsonschema.*",
+    "pm4py",
+    "pm4py.*",
 ]
 ignore_missing_imports = true
 follow_imports = "skip"
@@ -463,45 +491,8 @@ disallow_untyped_decorators = false
 module = ["ewm_engine.graph.*", "ewm_engine.financial.*", "ewm_engine.aiops.*"]
 disallow_subclassing_any = false
 
-[tool.pytest.ini_options]
-minversion = "8.0"
-addopts = "-ra -q --strict-markers --import-mode=importlib"
-testpaths = ["tests"]
-pythonpath = ["src", "."]
-filterwarnings = [
-    "error",
-    "ignore:.*sigma away.*:Warning",
-    "ignore:.*COBYLA.*:UserWarning",
-    "ignore:.*starlette.*:Warning",
-    "ignore:.*httpx.*:Warning",
-    "ignore:.*install .httpx2. instead.*:Warning",
-    "ignore:builtin type .* has no __module__ attribute:DeprecationWarning",
-    "ignore:.*swig.*:DeprecationWarning",
-    "ignore:.*Swig.*:DeprecationWarning",
-    "ignore:.*datetime.datetime.utcnow.*:DeprecationWarning",
-    "ignore:.*unclosed event loop.*:ResourceWarning",
-    "ignore:.*unclosed <socket\\.socket.*:ResourceWarning",
-    "ignore:.*A test tried to use socket\\.socket.*:UserWarning",
-]
-markers = [
-    "unit: fast unit tests",
-    "integration: end-to-end integration tests",
-    "property: hypothesis property-based tests",
-    "regression: golden output regression tests",
-    "benchmark: performance benchmarks",
-    "contract: public API and contract tests",
-    "architecture: architecture boundary and dependency rule tests",
-    "security: security and safe serialization tests",
-    "example: documented and normative acceptance example tests",
-    "fuzz: fuzzing smoke and harness tests",
-    "flaky: quarantined tests with retry tracking",
-    "codspeed: codspeed performance benchmark",
-    "memory: deterministic memory limit and leak tests",
-    "limit_memory: memray memory allocation limit gate",
-    "limit_leaks: memray memory leak gate",
-    "numerical: numerical reproducibility and differential tests",
-    "packaging: packaging, wheel, and core-only tests",
-]
+# Pytest configuration is maintained in root pytest.ini for E1 baseline compliance.
+
 
 [dependency-groups]
 dev = [

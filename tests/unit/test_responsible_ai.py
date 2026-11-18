@@ -214,7 +214,7 @@ def test_simulation_result_get_forecast_and_extrapolation_flag() -> None:
     )
 
     sim = SimulationResult(
-        scenario=Scenario(scenario_id="test_scen", name="test"),
+        scenario=Scenario(scenario_id="test_scen", name="test", seed=42),
         trajectories=[traj1, traj2],
         provenance=Provenance(),
     )
@@ -419,7 +419,7 @@ def test_cards_populate_from_simulation_result() -> None:
         status=TrajectoryStatus.COMPLETED,
     )
     sim = SimulationResult(
-        scenario=Scenario(scenario_id="s1", name="test"),
+        scenario=Scenario(scenario_id="s1", name="test", seed=42),
         trajectories=[traj],
         provenance=Provenance(),
     )

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -20,7 +21,7 @@ class Resource(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     id: ResourceId = Field(description="Unique identifier for the resource.")
-    entity_id: EntityId | None = Field(
+    entity_id: Optional[EntityId] = Field(
         default=None,
         description="Optional entity ID owning or hosting this resource.",
     )

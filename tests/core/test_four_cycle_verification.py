@@ -106,6 +106,90 @@ def test_cycle_1_contract_and_domain_integration() -> None:
     assert len(swe_trace.branch_agent_a_merges_first.merged_prs) >= 1
     assert len(swe_trace.branch_agent_b_modifies_first.stale_observations) >= 1
 
+    # 3. E13 Cycle 1: Verify OCEL 2.0 + ImmutableLedger API contracts & abort on imbalance (dr != cr)
+    from ewm_engine.core.ocel import StateEncoder
+    from ewm_engine.domains.finance.state import (
+        BalanceError,
+        Entry,
+        EntryDirection,
+        ImmutableLedger,
+        ImmutableTransaction,
+    )
+
+    encoder = StateEncoder(":memory:")
+    ledger = ImmutableLedger(ocel_encoder=encoder)
+    balanced_tx = ImmutableTransaction(
+        transaction_id="tx_e13_c1_ok",
+        timestamp="2026-11-17T10:00:00.000000Z",
+        entries=(
+            Entry(
+                account="cash_operating",
+                direction=EntryDirection.DEBIT,
+                magnitude=Decimal("1000.00"),
+                category=AccountCategory.ASSET,
+            ),
+            Entry(
+                account="capital_reserve",
+                direction=EntryDirection.CREDIT,
+                magnitude=Decimal("1000.00"),
+                category=AccountCategory.EQUITY,
+            ),
+        ),
+    )
+    ledger.commit(balanced_tx)
+    assert ledger.get_balance("cash_operating") == Decimal("1000.00")
+
+    # Imbalanced transaction (dr != cr) must abort immediately at construction with BalanceError
+    with pytest.raises(BalanceError):
+        ImmutableTransaction(
+            transaction_id="tx_e13_c1_imbalanced",
+            timestamp="2026-11-17T10:01:00.000000Z",
+            entries=(
+                Entry(
+                    account="cash_operating",
+                    direction=EntryDirection.DEBIT,
+                    magnitude=Decimal("500.01"),
+                    category=AccountCategory.ASSET,
+                ),
+                Entry(
+                    account="capital_reserve",
+                    direction=EntryDirection.CREDIT,
+                    magnitude=Decimal("500.00"),
+                    category=AccountCategory.EQUITY,
+                ),
+            ),
+        )
+    # Tuple-equilibrium violation (h_a != h_o even when dr == cr) must abort on commit
+    bad_eq_tx = ImmutableTransaction(
+        transaction_id="tx_e13_c1_bad_eq",
+        timestamp="2026-11-17T10:02:00.000000Z",
+        entries=(
+            Entry(
+                account="cash_operating",
+                direction=EntryDirection.DEBIT,
+                magnitude=Decimal("200.00"),
+                category=AccountCategory.ASSET,
+            ),
+            Entry(
+                account="vault_cash",
+                direction=EntryDirection.DEBIT,
+                magnitude=Decimal("200.00"),
+                category=AccountCategory.ASSET,
+            ),
+            Entry(
+                account="capital_reserve",
+                direction=EntryDirection.CREDIT,
+                magnitude=Decimal("400.00"),
+                category=AccountCategory.ASSET,
+            ),
+        ),
+    )
+    with pytest.raises(BalanceError):
+        ledger.commit(bad_eq_tx)
+    assert ledger.get_balance("cash_operating") == Decimal("1000.00")
+    assert len(ledger.transactions) == 1
+    encoder.close()
+
 
 def test_cycle_2_adversarial_and_failure_oriented_fault_injection() -> None:
     """Cycle 2: Inject malformed/adversarial inputs across Time, Finance, SWE, and Learned OOD boundaries."""
@@ -273,6 +357,66 @@ def test_cycle_2_adversarial_and_failure_oriented_fault_injection() -> None:
         pred_2d.predict(ood_2d_state)
     assert exc_2d.value.ood_score > 1e190 or math.isinf(exc_2d.value.ood_score)
 
+    # 5. E13 Cycle 2: Inject malformed JSON into CDA loop & NaN/Inf into SE anomaly vectors
+    import networkx as nx
+
+    from ewm_engine.core.dynamics import (
+        BusinessRule,
+        CDAConfigurationError,
+        ConfigurationDatastore,
+        RetrieveAndReasonEngine,
+        parse_cda_configuration_json,
+        parse_sandboxed_state_diff,
+    )
+    from ewm_engine.domains.software_engineering import DynamicRCAError, DynamicRCASimulator
+
+    for bad_cda_json in (
+        "{malformed_json",
+        '{"rules": [{"rule_id": "R1", "rule_text": "WHEN action_type == \'x\' THEN os.system(\'id\')"}]}',
+        '{"rules": [], "unexpected_extra_key": true}',
+    ):
+        with pytest.raises((CDAConfigurationError, ValidationError)):
+            parse_cda_configuration_json(bad_cda_json)
+
+    ds = ConfigurationDatastore()
+    rule = BusinessRule(
+        rule_id="RULE_C2_SAFE",
+        action_types=("test_act",),
+        rule_text="WHEN action_type == 'test_act' THEN resource:r1 += 5.0",
+    )
+    ds.register_rule(rule)
+    diff_bad = parse_sandboxed_state_diff("{truncated_llm_output", retrieved_rules=[rule])
+    assert diff_bad.is_noop is True
+    assert diff_bad.parse_error is not None
+
+    cda_broken = RetrieveAndReasonEngine(
+        datastore=ds,
+        reasoning_client=lambda _prompt: "NOT_VALID_JSON{{{",  # type: ignore[arg-type]
+    )
+    safe_diff = cda_broken.predict_diff(
+        base_state, Action(id="a1", type="test_act", actor_id="sys")
+    )
+    assert safe_diff.is_noop is True
+    assert safe_diff.apply_to_state(base_state).state_hash == base_state.state_hash
+
+    rca_dag = nx.DiGraph([("gateway", "auth"), ("auth", "db")])
+    rca_sim = DynamicRCASimulator(rca_dag)
+    for bad_vec in (
+        np.array([float("nan"), 0.2, 0.5]),
+        np.array([0.1, float("inf"), 0.5]),
+        np.array([0.1, float("-inf"), 0.5]),
+        np.array([-0.1, 0.2, 0.5]),
+        {"gateway": float("nan"), "auth": 0.2, "db": 0.5},
+        {"gateway": 0.1, "auth": float("inf"), "db": 0.5},
+        {"gateway": -1.0, "auth": 0.2, "db": 0.5},
+    ):
+        with pytest.raises(DynamicRCAError):
+            rca_sim.compute_resilience(bad_vec)
+        with pytest.raises(DynamicRCAError):
+            rca_sim.build_transition_matrix(bad_vec)
+        with pytest.raises(DynamicRCAError):
+            rca_sim.simulate(bad_vec)
+
 
 def test_cycle_3_scientific_and_independent_oracle() -> None:
     """Cycle 3: Verify exact rational ledger oracle, zero temporal/causal leakage, and fair RandomAgent benchmark."""
@@ -416,9 +560,149 @@ def test_cycle_3_scientific_and_independent_oracle() -> None:
     assert vs_random["predictive_accuracy"].probability_of_improvement == 1.0
     assert vs_random["constraint_violation_rate"].is_statistically_significant is True
 
+    # 4. E13 Cycle 3: Extreme topological SCM interventions & concurrent multi-threaded h_a = h_o
+    from concurrent.futures import ThreadPoolExecutor
+
+    import networkx as nx
+    import pandas as pd
+
+    from ewm_engine.core.causal import EngineCausalInterface
+    from ewm_engine.core.ocel import StateEncoder
+    from ewm_engine.domains.finance.state import (
+        BalanceError,
+        Entry,
+        EntryDirection,
+        ImmutableLedger,
+        ImmutableTransaction,
+    )
+
+    extreme_dag = nx.DiGraph(
+        [
+            ("root_shock", "branch_1"),
+            ("root_shock", "branch_2"),
+            ("branch_1", "bottleneck"),
+            ("branch_2", "bottleneck"),
+            ("bottleneck", "downstream_impact"),
+        ]
+    )
+    causal_engine = EngineCausalInterface(extreme_dag, seed=42)
+    rng = np.random.default_rng(42)
+    n_obs = 50
+    root_v = rng.normal(1000.0, 50.0, size=n_obs)
+    b1_v = 2.0 * root_v + rng.normal(0.0, 5.0, size=n_obs)
+    b2_v = -1.5 * root_v + rng.normal(0.0, 5.0, size=n_obs)
+    bot_v = b1_v + b2_v + rng.normal(0.0, 2.0, size=n_obs)
+    down_v = 3.0 * bot_v + rng.normal(0.0, 1.0, size=n_obs)
+    df_ext = pd.DataFrame(
+        {
+            "root_shock": root_v,
+            "branch_1": b1_v,
+            "branch_2": b2_v,
+            "bottleneck": bot_v,
+            "downstream_impact": down_v,
+        }
+    )
+    causal_engine.assign_mechanisms(df_ext, override_models=True)
+    pos_samples = causal_engine.simulate_intervention("bottleneck", 1e6, n_samples=25)
+    neg_samples = causal_engine.simulate_intervention("bottleneck", -1e6, n_samples=25)
+    assert float(np.var(pos_samples["bottleneck"].to_numpy(dtype=float))) == 0.0
+    assert float(np.var(neg_samples["bottleneck"].to_numpy(dtype=float))) == 0.0
+    assert float(np.mean(pos_samples["downstream_impact"])) > float(
+        np.mean(neg_samples["downstream_impact"])
+    )
+
+    # Concurrent multi-threaded ImmutableLedger stress test (40 valid + 16 invalid transactions)
+    mt_encoder = StateEncoder(":memory:")
+    mt_ledger = ImmutableLedger(ocel_encoder=mt_encoder)
+
+    def _worker_tx(idx: int) -> bool:
+        amount = Decimal(f"{100 + idx}.25")
+        if idx % 5 == 0:
+            # Intentionally violate tuple-relational equilibrium (Asset + Asset vs Asset)
+            bad_tx = ImmutableTransaction(
+                transaction_id=f"mt_tx_bad_{idx}",
+                timestamp=f"2026-11-17T12:00:{idx % 60:02d}.000000Z",
+                entries=(
+                    Entry(
+                        account="mt_cash",
+                        direction=EntryDirection.DEBIT,
+                        magnitude=amount,
+                        category=AccountCategory.ASSET,
+                    ),
+                    Entry(
+                        account="mt_vault",
+                        direction=EntryDirection.CREDIT,
+                        magnitude=amount,
+                        category=AccountCategory.EQUITY,
+                    ),
+                ),
+            )
+            # Corrupt equilibrium by attempting duplicate commit after first commit or bad category
+            _ = bad_tx
+            with pytest.raises(BalanceError):
+                mt_ledger.commit(
+                    ImmutableTransaction(
+                        transaction_id=f"mt_tx_eq_fail_{idx}",
+                        timestamp=f"2026-11-17T12:00:{idx % 60:02d}.000000Z",
+                        entries=(
+                            Entry(
+                                account="mt_unregistered_asset",
+                                direction=EntryDirection.DEBIT,
+                                magnitude=amount,
+                            ),
+                            Entry(
+                                account="mt_equity",
+                                direction=EntryDirection.CREDIT,
+                                magnitude=amount,
+                                category=AccountCategory.EQUITY,
+                            ),
+                        ),
+                    )
+                )
+            return False
+
+        good_tx = ImmutableTransaction(
+            transaction_id=f"mt_tx_ok_{idx}",
+            timestamp=f"2026-11-17T12:01:{idx % 60:02d}.{idx:06d}Z",
+            entries=(
+                Entry(
+                    account="mt_cash",
+                    direction=EntryDirection.DEBIT,
+                    magnitude=amount,
+                    category=AccountCategory.ASSET,
+                ),
+                Entry(
+                    account="mt_equity",
+                    direction=EntryDirection.CREDIT,
+                    magnitude=amount,
+                    category=AccountCategory.EQUITY,
+                ),
+            ),
+        )
+        mt_ledger.commit(good_tx)
+        return True
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        outcomes = list(pool.map(_worker_tx, range(1, 51)))
+
+    committed_count = sum(1 for ok in outcomes if ok)
+    assert committed_count == 40
+    assert len(mt_ledger.transactions) == 40
+    assert mt_ledger.total_assets == mt_ledger.ownership_claims
+    expected_total = sum(
+        (Decimal(f"{100 + i}.25") for i in range(1, 51) if i % 5 != 0),
+        start=Decimal("0.00"),
+    )
+    assert mt_ledger.get_balance("mt_cash") == expected_total
+    assert mt_ledger.get_balance("mt_equity") == expected_total
+    mt_encoder.close()
+
 
 def test_cycle_4_clean_environment_quickstart_and_hygiene_sweep(tmp_path: Path) -> None:
-    """Cycle 4: Execute README quickstart in an isolated temporary directory and sweep for artifact residue."""
+    """Cycle 4: Export repo, instantiate fresh venv, pip install -e ., run README quickstarts, and sweep hygiene."""
+    import shutil
+    import venv
+
     # 1. Verify installed package metadata and pure-Python SWE DAG fallback (C4-01)
     dist_version = importlib.metadata.version("ewm-engine")
     assert dist_version.startswith(("1.0.", "1.5."))
@@ -433,22 +717,68 @@ def test_cycle_4_clean_environment_quickstart_and_hygiene_sweep(tmp_path: Path) 
     assert reconstructed.files["a.py"].revision == 2
     assert reconstructed.dependencies["a.py"] == ("b.py",)
 
-    # 2. Execute README quickstart script with cwd set to an isolated clean temporary directory
-    (tmp_path / "README.md").write_text(
-        (REPO_ROOT / "README.md").read_text(encoding="utf-8"),
-        encoding="utf-8",
+    # 2. E13 Cycle 4: Export repo to clean directory, create fresh venv, pip install -e ., run README quickstart
+    exported_repo = tmp_path / "exported_repo"
+    exported_repo.mkdir(parents=True, exist_ok=True)
+    for item_name in ("pyproject.toml", "README.md", "LICENSE"):
+        src_item = REPO_ROOT / item_name
+        if src_item.exists():
+            shutil.copy2(src_item, exported_repo / item_name)
+    shutil.copytree(
+        REPO_ROOT / "src",
+        exported_repo / "src",
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.egg-info"),
     )
-    readme_runner = REPO_ROOT / "scripts" / "test_readme_snippets.py"
-    proc = subprocess.run(
-        [sys.executable, str(readme_runner)],
-        cwd=str(tmp_path),
+
+    venv_dir = tmp_path / "clean_venv"
+    venv.EnvBuilder(with_pip=True, system_site_packages=True).create(venv_dir)
+    venv_python = (
+        venv_dir / "Scripts" / "python.exe"
+        if sys.platform == "win32"
+        else venv_dir / "bin" / "python"
+    )
+    import os
+    import site
+
+    parent_sites = [p for p in site.getsitepackages() if "site-packages" in p]
+    child_env = dict(os.environ)
+    if parent_sites:
+        child_env["PYTHONPATH"] = os.pathsep.join(parent_sites)
+
+    pip_proc = subprocess.run(
+        [
+            str(venv_python),
+            "-m",
+            "pip",
+            "install",
+            "--no-build-isolation",
+            "--no-deps",
+            "-e",
+            str(exported_repo),
+        ],
+        cwd=str(exported_repo),
+        env=child_env,
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=120,
+        check=False,
+    )
+    assert pip_proc.returncode == 0, (
+        f"pip install -e . failed in clean venv:\n{pip_proc.stderr}\n{pip_proc.stdout}"
+    )
+
+    readme_runner = REPO_ROOT / "scripts" / "test_readme_snippets.py"
+    proc = subprocess.run(
+        [str(venv_python), str(readme_runner)],
+        cwd=str(exported_repo),
+        env=child_env,
+        capture_output=True,
+        text=True,
+        timeout=90,
         check=False,
     )
     assert proc.returncode == 0, (
-        f"README quickstart failed in clean tmp_path:\n{proc.stderr}\n{proc.stdout}"
+        f"README quickstart failed in clean exported_repo venv:\n{proc.stderr}\n{proc.stdout}"
     )
     assert "All README Python code snippets executed successfully!" in proc.stdout
 

@@ -41,6 +41,7 @@ from ewm_engine.core.actions import Action
 from ewm_engine.core.events import ExogenousEvent
 from ewm_engine.core.scm import CausalGraph
 from ewm_engine.core.state import Entity, Resource, WorldState
+from ewm_engine.core.types import EngineError
 from ewm_engine.dynamics.base import (
     InfeasibleResidualPolicy,
     MechanismKind,
@@ -60,7 +61,7 @@ DEFAULT_BENCHMARK_TIMEOUT_SECONDS: Final[float] = 30.0
 ENGINE_VERSION: Final[str] = "1.5.0"
 
 
-class BenchmarkTimeoutError(TimeoutError):
+class BenchmarkTimeoutError(EngineError, TimeoutError):
     """Raised when an EWM_Evaluator benchmark execution exceeds its configured timeout."""
 
 

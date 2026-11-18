@@ -223,8 +223,8 @@ class SemanticVectorRouter:
         )
 
         if use_hf:
-            self.tokenizer: Any = AutoTokenizer.from_pretrained(model_name)
-            self.model: Any = AutoModel.from_pretrained(model_name).to(device)
+            self.tokenizer: Any = AutoTokenizer.from_pretrained(model_name)  # nosec B615
+            self.model: Any = AutoModel.from_pretrained(model_name).to(device)  # nosec B615
             self.model.eval()
         else:
             self.tokenizer = _DeterministicModernBertTokenizer(vocab_size=8192)

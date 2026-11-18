@@ -1,10 +1,22 @@
-# Hybrid Dynamics Router & Causal Fabric Architecture (`EWM-002`)
+# Realigned Core & Domain Architecture: OCEL 2.0, CDA Dynamics, and DoWhy-GCM Causality
 
-The Enterprise World Model Engine separates hard structural compliance rules from uncertain machine-learning predictions through the **`HybridTransitionRouter`** (`Pre-rules -> ML -> Post-rules`) and enforces Pearl's $\text{do}(X_t = x)$ causal graph surgery via **`TransitionEngine.branch().do(action)`** and **`Intervention`** context managers.
+The **Enterprise World Model Engine (EWM Engine)** strictly separates its domain-neutral **Core Engine** (`ewm_engine.core`) from domain-specific **Application Packs** (`ewm_engine.domains.finance` and `ewm_engine.domains.software_engineering`). Historical documentation prior to the E1–E10 realignment is archived under [`docs/legacy/`](legacy/architecture_legacy.md).
 
 ---
 
-## 1. Hybrid Transition Router Pipeline (`Pre-rules -> ML -> Post-rules`)
+## 1. Core Engine vs. Domain Packs Delineation
+
+| Architectural Layer | Module Path | Responsibility & Mathematical Contract |
+| :--- | :--- | :--- |
+| **Core State (OCEL 2.0)** | `ewm_engine.core.ocel` | Relational SQLite Object-Centric Event Log (`StateEncoder`, $N:M$ `event_object` E2O and `object_object` O2O mappings) with PM4Py JSON/XML/CSV/XES interoperability. |
+| **Core Dynamics (CDA)** | `ewm_engine.core.dynamics` | Continual Discovery Agent (`RetrieveAndReasonEngine`) modeling $s_{t+1} \sim P(s_{t+1} \mid s_t, a_t, c)$ with explicit `RuleAttribution` to retrieved `BusinessRule` configs $c$. |
+| **Core Causality (DoWhy-GCM)** | `ewm_engine.core.causal` | Graphical Structural Causal Models (`EngineCausalInterface`) enforcing strict DAG acyclicity and modular graph surgery $do(V_s = v_s)$. |
+| **Finance Domain Pack (E6)** | `ewm_engine.domains.finance` | Arbitrary-precision `Decimal` double-entry ledgers (`ImmutableLedger`, `ImmutableTransaction`, `Entry`) enforcing $dr - cr = 0$ and $h_a = h_o$. |
+| **Software Engineering Pack (E7)** | `ewm_engine.domains.software_engineering` | Sparse eIRWR + DynaCausal microservice incident cascade simulator (`DynamicRCASimulator`) with anomaly-conditioned resilience $R_i = R_{\text{base}} \exp(-\beta \hat{s}_i)$ and backward retry edges ($\rho$). |
+
+---
+
+## 2. Hybrid Transition Router Pipeline (`Pre-rules -> ML -> Post-rules`)
 
 ```mermaid
 flowchart LR

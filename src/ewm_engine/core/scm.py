@@ -16,7 +16,7 @@ import warnings
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -76,15 +76,15 @@ class CausalGraph:
 
     def find_all_undirected_paths(
         self, start: str, end: str, max_depth: int = 6
-    ) -> list[list[str]]:
+    ) -> List[List[str]]:
         """Find all undirected paths between start and end (ignoring edge direction)."""
-        adjacency: dict[str, set[str]] = {n: set() for n in self.nodes}
+        adjacency: Dict[str, set[str]] = {n: set() for n in self.nodes}
         for u, v in self.edges:
             adjacency[u].add(v)
             adjacency[v].add(u)
 
-        paths: list[list[str]] = []
-        queue: list[list[str]] = [[start]]
+        paths: List[List[str]] = []
+        queue: List[List[str]] = [[start]]
 
         while queue:
             path = queue.pop(0)
@@ -187,7 +187,7 @@ class StructuralAssignment(BaseModel):
         default_factory=tuple,
         description="Direct parent endogenous variables PA_i in the structural causal DAG.",
     )
-    exogenous_id: str | None = Field(
+    exogenous_id: Optional[str] = Field(
         default=None,
         description="Identifier of the coupled exogenous noise variable U_i, if stochastic.",
     )

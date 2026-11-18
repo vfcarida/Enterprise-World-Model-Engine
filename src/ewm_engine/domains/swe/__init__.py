@@ -12,6 +12,12 @@ from ewm_engine.domains.swe.constraints import (
     StructuralViolationError,
     detect_stale_observations_for_action,
 )
+from ewm_engine.domains.swe.dynamic_rca import (
+    MAX_EIRWR_ITERATIONS,
+    DynamicRCAError,
+    DynamicRCAResult,
+    DynamicRCASimulator,
+)
 from ewm_engine.domains.swe.scenario import (
     BranchExecutionTrace,
     ConcurrencyInterventionTrace,
@@ -37,6 +43,7 @@ from ewm_engine.domains.swe.state import (
 )
 
 __all__ = [
+    "MAX_EIRWR_ITERATIONS",
     "MAX_SWE_GRAPH_NODES",
     "SWE_REPO_ENTITY_ID",
     "AcyclicDependencyConstraint",
@@ -44,6 +51,9 @@ __all__ = [
     "CircularDependencyError",
     "CodeFileNode",
     "ConcurrencyInterventionTrace",
+    "DynamicRCAError",
+    "DynamicRCAResult",
+    "DynamicRCASimulator",
     "MergeQueueItem",
     "PullRequestStatus",
     "SWEGraphCapacityError",

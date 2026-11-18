@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Any
+from typing import Any, Dict, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -31,11 +31,11 @@ class Entity(BaseModel):
     type: str = Field(
         description="Domain-specific entity classification (e.g., 'warehouse', 'hospital')."
     )
-    attributes: dict[str, Any] = Field(
+    attributes: Dict[str, Any] = Field(
         default_factory=dict,
         description="Immutable property map associated with this entity.",
     )
-    tags: tuple[str, ...] = Field(
+    tags: Tuple[str, ...] = Field(
         default_factory=tuple,
         description="Categorical tags for grouping and querying entities.",
     )
@@ -129,9 +129,9 @@ class Relationship(BaseModel):
         self,
         evidence_nature: DependencyEvidenceNature,
         *,
-        is_identifiable: bool | None = None,
-        overlap_satisfied: bool | None = None,
-        identification_provenance: str | None = None,
+        is_identifiable: Optional[bool] = None,
+        overlap_satisfied: Optional[bool] = None,
+        identification_provenance: Optional[str] = None,
     ) -> Relationship:
         """Return a new Relationship with updated evidence-nature metadata in attributes."""
         attrs = self.attributes

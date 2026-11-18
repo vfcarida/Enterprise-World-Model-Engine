@@ -12,11 +12,11 @@ from ewm_engine.constraints.results import (
 )
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import WorldState
-from ewm_engine.core.types import ConstraintId
+from ewm_engine.core.types import ConstraintId, ConstraintInterface
 
 
 @runtime_checkable
-class Constraint(Protocol):
+class Constraint(ConstraintInterface, Protocol):
     """First-class representation of an organizational, physical, or policy rule.
 
     Constraints evaluate whether states and proposed actions conform to

@@ -216,7 +216,7 @@ def test_parameter_space_validation_errors_and_targets() -> None:
             context={"region_code": "us-east"},
         )
     )
-    scenario = Scenario(scenario_id="sc_test", horizon=10, samples=1)
+    scenario = Scenario(scenario_id="sc_test", horizon=10, samples=1, seed=42)
     new_world, new_scenario = context_space.apply_to_world_and_scenario(
         {"region_code": "eu-west", "simulation_horizon": 15}, world, scenario
     )

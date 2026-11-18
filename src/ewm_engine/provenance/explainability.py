@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from ewm_engine.core._canonical import canonical_sha256
+from ewm_engine.core.types import EngineError
 from ewm_engine.provenance.evidence import (
     DependencyEvidenceNature,
     EvidenceLevel,
@@ -81,7 +82,7 @@ _RES_TAG_PATTERN = re.compile(r"\bres:([A-Za-z0-9_.\-]+)")
 _EDGE_TAG_PATTERN = re.compile(r"\bedge:([A-Za-z0-9_.\-]+)->([A-Za-z0-9_.\-]+)")
 
 
-class NarrativeFabricationError(ValueError):
+class NarrativeFabricationError(EngineError, ValueError):
     """Raised when a narrative or LLM explanation asserts mechanisms or claims not in the trace."""
 
     def __init__(self, message: str, violations: Sequence[str] = ()) -> None:

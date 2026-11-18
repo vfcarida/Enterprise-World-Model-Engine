@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -35,12 +35,12 @@ class ComponentSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     type: str = Field(description="Registered type identifier in ComponentRegistry.")
-    parameters: dict[str, Any] = Field(
+    parameters: Dict[str, Any] = Field(
         default_factory=dict,
         description="Configuration parameters passed to the component factory.",
     )
     enabled: bool = Field(default=True, description="Whether this component is active.")
-    id: str | None = Field(default=None, description="Optional unique identifier.")
+    id: Optional[str] = Field(default=None, description="Optional unique identifier.")
 
 
 class EntitySpec(BaseModel):
@@ -50,8 +50,8 @@ class EntitySpec(BaseModel):
 
     id: str
     type: str = "entity"
-    attributes: dict[str, Any] = Field(default_factory=dict)
-    tags: list[str] = Field(default_factory=list)
+    attributes: Dict[str, Any] = Field(default_factory=dict)
+    tags: List[str] = Field(default_factory=list)
 
 
 class RelationshipSpec(BaseModel):
@@ -62,7 +62,7 @@ class RelationshipSpec(BaseModel):
     source: str
     target: str
     type: str
-    attributes: dict[str, Any] = Field(default_factory=dict)
+    attributes: Dict[str, Any] = Field(default_factory=dict)
 
 
 class ResourceSpec(BaseModel):
@@ -75,8 +75,8 @@ class ResourceSpec(BaseModel):
     min_value: float = 0.0
     max_value: float = float("inf")
     unit: str = "units"
-    entity_id: str | None = None
-    tags: list[str] = Field(default_factory=list)
+    entity_id: Optional[str] = None
+    tags: List[str] = Field(default_factory=list)
 
 
 class WorldMetadataSpec(BaseModel):
@@ -88,8 +88,8 @@ class WorldMetadataSpec(BaseModel):
     description: str = ""
     step: int = 0
     timestamp: float = 0.0
-    memory: dict[str, Any] = Field(default_factory=dict)
-    context: dict[str, Any] = Field(default_factory=dict)
+    memory: Dict[str, Any] = Field(default_factory=dict)
+    context: Dict[str, Any] = Field(default_factory=dict)
 
 
 class WorldSpec(BaseModel):
@@ -102,18 +102,18 @@ class WorldSpec(BaseModel):
 
     schema_version: str = Field(default="1.0.0", description="Semantic schema version.")
     world: WorldMetadataSpec = Field(default_factory=WorldMetadataSpec)
-    entities: list[EntitySpec] = Field(default_factory=list)
-    relationships: list[RelationshipSpec] = Field(default_factory=list)
-    resources: list[ResourceSpec] = Field(default_factory=list)
-    dynamics: ComponentSpec | None = Field(
+    entities: List[EntitySpec] = Field(default_factory=list)
+    relationships: List[RelationshipSpec] = Field(default_factory=list)
+    resources: List[ResourceSpec] = Field(default_factory=list)
+    dynamics: Optional[ComponentSpec] = Field(
         default=None,
         description="Active dynamics model component specification.",
     )
-    constraints: list[ComponentSpec] = Field(
+    constraints: List[ComponentSpec] = Field(
         default_factory=list,
         description="Active constraint component specifications.",
     )
-    event_sources: list[ComponentSpec] = Field(
+    event_sources: List[ComponentSpec] = Field(
         default_factory=list,
         description="Active exogenous event sources specifications.",
     )

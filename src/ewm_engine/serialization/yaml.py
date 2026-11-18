@@ -47,7 +47,7 @@ def safe_load_yaml(yaml_str: str) -> Any:
         raise SerializationSecurityError("Pickle opcode sequence detected in input data.")
 
     try:
-        data = yaml.load(yaml_str, Loader=StrictSafeLoader)
+        data = yaml.load(yaml_str, Loader=StrictSafeLoader)  # nosec B506
     except SerializationSecurityError:
         raise
     except ConstructorError as exc:

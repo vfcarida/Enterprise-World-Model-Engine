@@ -7,14 +7,14 @@ import json
 import math
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 from ewm_engine.exceptions import InvalidWorldStateError
 
 CANONICAL_FLOAT_PRECISION = 6
 
 
-def normalize_canonical_value(val: Any) -> Any:
+def normalize_canonical_value(val: Optional[Any]) -> Any:
     """Recursively normalize any Python value into a canonical, deterministic representation.
 
     Rules:
@@ -48,12 +48,13 @@ def normalize_canonical_value(val: Any) -> Any:
     if val is None:
         return None
     if isinstance(val, Mapping):
-        return {
+        mapped: Dict[str, Any] = {
             str(k): normalize_canonical_value(v)
             for k, v in sorted(val.items(), key=lambda item: str(item[0]))
         }
+        return mapped
     if isinstance(val, (set, frozenset)):
-        normalized_items = [normalize_canonical_value(item) for item in val]
+        normalized_items: List[Any] = [normalize_canonical_value(item) for item in val]
         return sorted(normalized_items, key=lambda x: json.dumps(x, sort_keys=True))
     if isinstance(val, Sequence):
         return [normalize_canonical_value(item) for item in val]

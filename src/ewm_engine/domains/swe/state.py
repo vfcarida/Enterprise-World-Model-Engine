@@ -16,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import Entity, Resource, WorldState
+from ewm_engine.core.types import EngineError
 
 if TYPE_CHECKING:
     import networkx as nx
@@ -65,11 +66,11 @@ MAX_SWE_GRAPH_NODES: Final[int] = 2000
 SWE_REPO_ENTITY_ID: Final[str] = "swe_repository"
 
 
-class SWEGraphCapacityError(ValueError):
+class SWEGraphCapacityError(EngineError, ValueError):
     """Raised when a repository dependency graph exceeds MAX_SWE_GRAPH_NODES."""
 
 
-class CircularDependencyError(ValueError):
+class CircularDependencyError(EngineError, ValueError):
     """Raised when a code dependency graph contains a directed cycle."""
 
     def __init__(self, cycle_path: tuple[str, ...]) -> None:
@@ -78,7 +79,7 @@ class CircularDependencyError(ValueError):
         super().__init__(f"Circular dependency detected in SWE graph: {cycle_str}")
 
 
-class StaleObservationError(ValueError):
+class StaleObservationError(EngineError, ValueError):
     """Raised when an agent action is based on an outdated file or dependency revision."""
 
 

@@ -114,6 +114,7 @@ def test_quarantine_lane_rerun_marker() -> None:
     """
     import random
 
-    val = random.random()
+    local_rng = random.Random(42)
+    val = local_rng.random()
     # Pinned to always succeed after initial check, asserting marker mechanics
     assert val >= 0.0

@@ -478,3 +478,165 @@ def test_audit_checklist_9_repository_ruff_lint_and_format_clean() -> None:
     assert res_fmt.returncode == 0, (
         f"Repository-wide ruff format --check failed:\n{res_fmt.stdout}\n{res_fmt.stderr}"
     )
+
+
+def test_audit_e12_requirements_trace_and_domain_isolation() -> None:
+    """[x] E12: Verify zero Finance/SE cross-contamination, scientific invariants, and hygiene."""
+    from decimal import Decimal
+
+    import networkx as nx
+    import numpy as np
+    import pandas as pd
+
+    from ewm_engine.core.causal import EngineCausalInterface
+    from ewm_engine.core.dynamics import (
+        BusinessRule,
+        ConfigurationDatastore,
+        RetrieveAndReasonEngine,
+    )
+    from ewm_engine.core.ocel import StateEncoder
+    from ewm_engine.domains.finance.state import (
+        AccountCategory,
+        Entry,
+        EntryDirection,
+        ImmutableLedger,
+        ImmutableTransaction,
+    )
+    from ewm_engine.domains.software_engineering import DynamicRCASimulator
+
+    # 1. Domain Isolation: Zero cross-imports between Finance and SE domains
+    finance_dir = REPO_ROOT / "src" / "ewm_engine" / "domains" / "finance"
+    swe_dirs = [
+        REPO_ROOT / "src" / "ewm_engine" / "domains" / "swe",
+        REPO_ROOT / "src" / "ewm_engine" / "domains" / "software_engineering",
+    ]
+
+    for py_file in finance_dir.rglob("*.py"):
+        tree = ast.parse(py_file.read_text(encoding="utf-8"), filename=str(py_file))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    assert not alias.name.startswith(
+                        ("ewm_engine.domains.swe", "ewm_engine.domains.software_engineering")
+                    ), f"Cross-domain import in {py_file}: {alias.name}"
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                assert not node.module.startswith(
+                    ("ewm_engine.domains.swe", "ewm_engine.domains.software_engineering")
+                ), f"Cross-domain import in {py_file}: {node.module}"
+
+    for swe_dir in swe_dirs:
+        for py_file in swe_dir.rglob("*.py"):
+            tree = ast.parse(py_file.read_text(encoding="utf-8"), filename=str(py_file))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        assert not alias.name.startswith("ewm_engine.domains.finance"), (
+                            f"Cross-domain import in {py_file}: {alias.name}"
+                        )
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    assert not node.module.startswith("ewm_engine.domains.finance"), (
+                        f"Cross-domain import in {py_file}: {node.module}"
+                    )
+
+    # 2. Scientific Review: OCEL 2.0 + CDA + Finance Double-Entry Invariant
+    encoder = StateEncoder(":memory:")
+    ledger = ImmutableLedger(ocel_encoder=encoder)
+    tx = ImmutableTransaction(
+        transaction_id="tx_e12_audit",
+        timestamp="2026-11-17T12:00:00.000000Z",
+        description="E12 audit double-entry verification",
+        entries=(
+            Entry(
+                account="acc_operating",
+                direction=EntryDirection.DEBIT,
+                magnitude=Decimal("5000.00"),
+                category=AccountCategory.ASSET,
+            ),
+            Entry(
+                account="acc_treasury",
+                direction=EntryDirection.CREDIT,
+                magnitude=Decimal("5000.00"),
+                category=AccountCategory.EQUITY,
+            ),
+        ),
+    )
+    ledger.commit(tx)
+    assert tx.total_debits - tx.total_credits == Decimal("0")
+    assert ledger.total_assets == ledger.ownership_claims
+
+    datastore = ConfigurationDatastore()
+    datastore.register_rule(
+        BusinessRule(
+            rule_id="RULE_E12_AUDIT",
+            action_types=("audit_check",),
+            rule_text="WHEN action_type == 'audit_check' THEN resource:reserve += 100.0",
+            version="1.0.0",
+        )
+    )
+    cda = RetrieveAndReasonEngine(datastore=datastore)
+    state = WorldState(
+        step=0,
+        timestamp=1700000000.0,
+        resources={
+            "reserve": Resource(id="reserve", current=5000.0, min_value=0.0, max_value=10000.0)
+        },
+    )
+    action = Action(id="act-audit-1", type="audit_check", actor_id="auditor")
+    diff = cda.predict_diff(state, action)
+    assert diff.rule_attributions[0].rule_id == "RULE_E12_AUDIT"
+
+    # 3. Scientific Review: SCM topological order and zero-variance intervention
+    dag = nx.DiGraph([("load", "latency"), ("latency", "error_rate")])
+    causal = EngineCausalInterface(dag, seed=42)
+    assert list(causal.topological_nodes) == ["load", "latency", "error_rate"]
+    rng = np.random.default_rng(42)
+    n_obs = 60
+    load_vals = rng.normal(100.0, 10.0, size=n_obs)
+    latency_vals = 2.0 * load_vals + rng.normal(0.0, 1.0, size=n_obs)
+    err_vals = 0.05 * latency_vals + rng.normal(0.0, 0.1, size=n_obs)
+    df = pd.DataFrame({"load": load_vals, "latency": latency_vals, "error_rate": err_vals})
+    causal.assign_mechanisms(df, override_models=True)
+    samples = causal.simulate_intervention("latency", 250.0, n_samples=30)
+    assert float(np.var(samples["latency"].to_numpy(dtype=float))) == 0.0
+
+    # 4. Scientific Review: eIRWR transition matrix row normalization & boundary validation
+    from ewm_engine.core.boundary import validate_numeric_array_boundary
+
+    call_graph = nx.DiGraph([("gateway", "auth"), ("auth", "db")])
+    rca = DynamicRCASimulator(call_graph, r_base=0.85, beta=2.0, rho=0.5)
+    p_mat = rca.build_transition_matrix(np.array([0.1, 0.4, 0.9])).toarray()
+    validated_p = validate_numeric_array_boundary(p_mat, expected_ndim=2, param_name="p_mat")
+    row_sums = np.sum(validated_p, axis=1)
+    assert np.allclose(row_sums, np.ones_like(row_sums), atol=1e-12)
+    with pytest.raises(TypeError):
+        validate_numeric_array_boundary([1.0, 2.0])
+    with pytest.raises(ValueError):
+        validate_numeric_array_boundary(np.array([1.0, 2.0]), expected_ndim=2)
+    with pytest.raises(TypeError):
+        validate_numeric_array_boundary(np.array(["a", "b"]), expected_ndim=1)
+    with pytest.raises(ValueError):
+        validate_numeric_array_boundary(np.array([1.0, np.nan]), expected_ndim=1)
+    with pytest.raises(ValueError):
+        validate_numeric_array_boundary(np.array([1.0, np.inf]), expected_ndim=1)
+
+    assert diff.has_changes is True
+    next_state = diff.apply_to_state(state)
+    assert next_state.resources["reserve"].current == 5100.0
+    assert len(ledger.accounts) == 2
+    assert len(ledger.transactions) == 1
+    assert ledger.get_balance("acc_operating") == Decimal("5000.00")
+    rev_tx = ledger.reverse_transaction("tx_e12_audit", "tx_e12_audit_rev")
+    assert rev_tx.compensates_transaction_id == "tx_e12_audit"
+    assert ledger.get_balance("acc_operating") == Decimal("0.00")
+    encoder.close()
+
+    # 5. Hygiene check: No "prompt ID" or "AI assistant" markers in src/ or docs/
+    forbidden_markers = ("prompt id", "ai assistant")
+    for scan_dir in (REPO_ROOT / "src", REPO_ROOT / "docs"):
+        for file_path in scan_dir.rglob("*"):
+            if file_path.is_file() and file_path.suffix in {".py", ".md"}:
+                text_lower = file_path.read_text(encoding="utf-8", errors="ignore").lower()
+                for marker in forbidden_markers:
+                    assert marker not in text_lower, (
+                        f"Forbidden hygiene marker {marker!r} found in {file_path}"
+                    )

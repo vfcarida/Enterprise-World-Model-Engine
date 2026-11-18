@@ -8,15 +8,30 @@ This domain pack (`ewm_engine.domains.finance`) aligns the Enterprise World Mode
 
 ### 1.1 Exact `Decimal` Representation & `float` Prohibition
 
-All monetary balances, minimum liquidity floors, and journal line amounts use `decimal.Decimal` with corporate precision safeguard (`getcontext().prec >= 38`, [`ensure_corporate_decimal_context`](state.py)). Passing any `float` to [`FinancialState`](state.py), [`LedgerAccount`](state.py), [`JournalLine`](state.py), or [`build_journal_action`](state.py) emits a `DeprecationWarning` and raises `TypeError`.
+All monetary balances, minimum liquidity floors, and transaction entry magnitudes use `decimal.Decimal` with arbitrary-precision safeguard (`getcontext().prec >= 50`, [`ensure_corporate_decimal_context`](state.py)). Passing any `float` to [`Entry`](state.py), [`ImmutableTransaction`](state.py), [`ImmutableLedger`](state.py), [`FinancialState`](state.py), [`LedgerAccount`](state.py), [`JournalLine`](state.py), or [`build_journal_action`](state.py) emits a `DeprecationWarning` and raises `TypeError`.
 
-### 1.2 Transaction Double-Entry Conservation
+### 1.2 Transaction Double-Entry Conservation ($dr - cr = 0$) & Tuple-Relational Equilibrium ($h_a = h_o$)
 
-Every proposed [`JournalEntry`](state.py) or journal `Action` evaluated by [`DoubleEntryConstraint`](constraints.py) must satisfy:
+Every [`ImmutableTransaction`](state.py) consists of an immutable tuple of [`Entry`](state.py) legs `(account, magnitude, direction)` where `direction` $\in \{\text{DEBIT}, \text{CREDIT}\}$ and `magnitude` $\in \mathbb{D}_{> 0}$. Prior to commit, the validation hook enforces exact double-entry conservation:
 
-$$\sum_{i} \Delta \text{Credits}_i - \sum_{i} \Delta \text{Debits}_i = \text{Decimal('0.00')}$$
+$$\sum_{e \in \text{Debits}} dr_e - \sum_{e \in \text{Credits}} cr_e = \text{Decimal('0')}$$
 
-Any transaction unbalanced by even `Decimal('0.01')` (\$0.01) is 100% rejected in the `EWM-002` `HybridTransitionRouter` `Pre-rules` stage before state evolution.
+Any transaction unbalanced by even $10^{-10}$ (or smaller) raises [`BalanceError`](state.py).
+
+Let $\mathcal{A}$ denote **Asset** accounts (debit-normal: $\Delta A = dr - cr$) and $\mathcal{O} = \mathcal{L} \cup \mathcal{E}$ denote **Ownership Claim** accounts (Liabilities and Equity, credit-normal: $\Delta O = cr - dr$). For any transaction $T$, let $h_a$ be the net change to asset classes and $h_o$ be the net change to ownership claims:
+
+$$h_a = \sum_{e \in T_{\mathcal{A}}} (dr_e - cr_e), \qquad h_o = \sum_{e \in T_{\mathcal{O}}} (cr_e - dr_e)$$
+
+Because every entry leg partitions into $\mathcal{A} \sqcup \mathcal{O}$:
+
+$$h_a - h_o = \sum_{e \in T_{\mathcal{A}}} (dr_e - cr_e) - \sum_{e \in T_{\mathcal{O}}} (cr_e - dr_e) = \sum_{e \in T} dr_e - \sum_{e \in T} cr_e = dr - cr = 0 \iff h_a = h_o$$
+
+[`ImmutableLedger.commit`](state.py) explicitly verifies the tuple-relational equilibrium condition $h_a = h_o$ before mutating ledger state.
+
+### 1.3 Append-Only Immutability, Compensating Reversals & OCEL 2.0 Mapping
+
+- **No `UPDATE` or `DELETE` Operations**: [`ImmutableLedger`](state.py) is strictly append-only. Calling `update_transaction`, `delete_transaction`, item assignment, or item deletion raises [`LedgerImmutabilityError`](state.py). Error correction must occur exclusively via [`ImmutableLedger.reverse_transaction`](state.py), which commits a compensating reversal [`ImmutableTransaction`](state.py) with inverted `DEBIT` $\leftrightarrow$ `CREDIT` legs ($h_a^{\text{rev}} = -h_a$, $h_o^{\text{rev}} = -h_o$).
+- **OCEL 2.0 Relational Mapping**: [`ImmutableTransaction.to_ocel_event`](state.py) maps every transaction into an E2 [`OcelEventRecord`](../../core/ocel.py) with explicit E2O object qualifiers `"DebitAccount"` and `"CreditAccount"` on `LedgerAccount` objects and directed O2O `"double_entry_transfer"` relationships.
 
 ### 1.3 Balance-Sheet Identity & Account Sign Conventions
 

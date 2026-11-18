@@ -26,7 +26,7 @@ from __future__ import annotations
 import math
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import Literal
+from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -79,7 +79,7 @@ MODEL_INDUCED_DRIFT_KINDS: frozenset[DriftKind] = frozenset(
     }
 )
 
-DRIFT_KIND_TO_ORIGIN: dict[DriftKind, DriftOrigin] = {
+DRIFT_KIND_TO_ORIGIN: Dict[DriftKind, DriftOrigin] = {
     DriftKind.COVARIATE_SHIFT: DriftOrigin.EXOGENOUS,
     DriftKind.PARAMETER_DRIFT: DriftOrigin.EXOGENOUS,
     DriftKind.STRUCTURAL_MECHANISM_CHANGE: DriftOrigin.EXOGENOUS,
@@ -101,8 +101,8 @@ class DriftSignal(BaseModel):
     magnitude: float = Field(ge=0.0)
     threshold: float = Field(default=0.0, ge=0.0)
     affected_keys: tuple[str, ...] = Field(default_factory=tuple)
-    baseline_version: str | None = None
-    candidate_version: str | None = None
+    baseline_version: Optional[str] = None
+    candidate_version: Optional[str] = None
     details: str = ""
 
     @property
@@ -239,8 +239,8 @@ class PlanInvalidationAudit(BaseModel):
 
 def _changed_rule_keys(
     baseline_rules: Mapping[str, object], candidate_rules: Mapping[str, object]
-) -> list[str]:
-    changed: list[str] = []
+) -> List[str]:
+    changed: List[str] = []
     for rkey in sorted(set(baseline_rules.keys()) | set(candidate_rules.keys())):
         if baseline_rules.get(rkey) != candidate_rules.get(rkey):
             changed.append(f"active_rules.{rkey}")

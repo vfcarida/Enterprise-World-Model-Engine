@@ -32,6 +32,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from ewm_engine.core._canonical import canonical_sha256
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import WorldState
+from ewm_engine.core.types import EngineError
 from ewm_engine.dynamics.base import DynamicsModel
 from ewm_engine.dynamics.learned import TransitionDataset, TransitionSample
 from ewm_engine.dynamics.router import (
@@ -202,7 +203,7 @@ class ConfidenceInterval(BaseModel):
         return NotImplemented
 
 
-class AbstainException(Exception):
+class AbstainException(EngineError):
     """Raised when a learned model abstains due to OOD inputs or `ConfidenceInterval > threshold`."""
 
     def __init__(

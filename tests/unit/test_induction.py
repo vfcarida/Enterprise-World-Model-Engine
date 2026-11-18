@@ -107,27 +107,32 @@ def test_dataframe_connector_arrow_interop() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_sql_connector_sqlite_in_memory() -> None:
-    """Verify WorldSpec.from_sql executes query and builds valid world specification."""
-    con = sqlite3.connect(":memory:")
-    cur = con.cursor()
-    cur.execute("CREATE TABLE inventory (id TEXT, timestamp INT, units REAL, category TEXT);")
-    cur.execute("INSERT INTO inventory VALUES ('inv_1', 1, 150.0, 'raw_materials');")
-    cur.execute("INSERT INTO inventory VALUES ('inv_1', 5, 120.0, 'raw_materials');")
-    cur.execute("INSERT INTO inventory VALUES ('inv_2', 1, 300.0, 'finished_goods');")
-    con.commit()
+def test_sql_connector_sqlite_in_memory(tmp_path: Path) -> None:
+    """Verify WorldSpec.from_sql executes query in an isolated temporary DB and builds valid world specification."""
+    db_path = tmp_path / "inventory_test.db"
+    con = sqlite3.connect(str(db_path))
+    try:
+        cur = con.cursor()
+        cur.execute("CREATE TABLE inventory (id TEXT, timestamp INT, units REAL, category TEXT);")
+        cur.execute("INSERT INTO inventory VALUES ('inv_1', 1, 150.0, 'raw_materials');")
+        cur.execute("INSERT INTO inventory VALUES ('inv_1', 5, 120.0, 'raw_materials');")
+        cur.execute("INSERT INTO inventory VALUES ('inv_2', 1, 300.0, 'finished_goods');")
+        con.commit()
 
-    spec = WorldSpec.from_sql(
-        query="SELECT * FROM inventory",
-        con=con,
-        as_of=3,
-        schema=DataFrameSchemaMapping(
-            entity_id_col="id",
-            timestamp_col="timestamp",
-            resource_cols=["units"],
-        ),
-        name="SqlInducedWorld",
-    )
+        spec = WorldSpec.from_sql(
+            query="SELECT * FROM inventory",
+            con=con,
+            as_of=3,
+            schema=DataFrameSchemaMapping(
+                entity_id_col="id",
+                timestamp_col="timestamp",
+                resource_cols=["units"],
+            ),
+            name="SqlInducedWorld",
+            seed=42,
+        )
+    finally:
+        con.close()
 
     assert len(spec.entities) == 2
     res_map = {r.id: r.current for r in spec.resources}

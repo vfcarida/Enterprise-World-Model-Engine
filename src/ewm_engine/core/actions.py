@@ -6,7 +6,7 @@ import copy
 import uuid
 from collections.abc import Callable
 from contextvars import ContextVar, Token
-from typing import TYPE_CHECKING, Annotated, Any, Self
+from typing import TYPE_CHECKING, Annotated, Any, Dict, List, Optional, Self, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field, GetCoreSchemaHandler, GetJsonSchemaHandler
 from pydantic_core import CoreSchema, core_schema
@@ -16,13 +16,13 @@ from ewm_engine.core.types import ActionId, ActorId
 if TYPE_CHECKING:
     from ewm_engine.core.state import WorldState
 
-_ACTIVE_INTERVENTIONS: ContextVar[tuple[Intervention, ...]] = ContextVar(
+_ACTIVE_INTERVENTIONS: ContextVar[Tuple[Intervention, ...]] = ContextVar(
     "_ACTIVE_INTERVENTIONS", default=()
 )
-_INTERVENTION_TOKENS: dict[int, list[Token[tuple[Intervention, ...]]]] = {}
+_INTERVENTION_TOKENS: Dict[int, List[Token[Tuple[Intervention, ...]]]] = {}
 
 
-def get_active_interventions() -> tuple[Intervention, ...]:
+def get_active_interventions() -> Tuple[Intervention, ...]:
     """Return the tuple of currently active context-managed Interventions."""
     return _ACTIVE_INTERVENTIONS.get()
 
@@ -40,11 +40,11 @@ class _StateMutatorAnnotation:
     @classmethod
     def __get_pydantic_json_schema__(
         cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler
-    ) -> dict[str, Any]:
+    ) -> Dict[str, Any]:
         return {"type": "null", "description": "Runtime callable mutator (not serialized)"}
 
 
-StateMutator = Annotated[Callable[[Any], Any] | None, _StateMutatorAnnotation]
+StateMutator = Annotated[Optional[Callable[[Any], Any]], _StateMutatorAnnotation]
 
 
 class Action(BaseModel):
@@ -62,11 +62,11 @@ class Action(BaseModel):
         description="Unique action instance identifier.",
     )
     type: str = Field(description="Action category or schema type identifier.")
-    actor_id: ActorId | None = Field(
+    actor_id: Optional[ActorId] = Field(
         default=None,
         description="Optional identifier of the actor initiating this action.",
     )
-    parameters: dict[str, Any] = Field(
+    parameters: Dict[str, Any] = Field(
         default_factory=dict,
         description="Action payload containing target entities, quantities, and parameters.",
     )

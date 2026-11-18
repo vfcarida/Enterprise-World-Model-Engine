@@ -36,6 +36,7 @@ from ewm_engine.core.observation import ObservationFilter, ObservationSpec
 from ewm_engine.core.resources import Resource
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.trust import UnqualifiedCausalClaimError, validate_dependency_for_query
+from ewm_engine.core.types import EngineError
 from ewm_engine.dynamics.base import MechanismKind, MechanismProvenance
 from ewm_engine.evaluation.uncertainty import UncertaintyTaxonomyBreakdown
 from ewm_engine.provenance.evidence import (
@@ -80,7 +81,7 @@ COMPOSITION_CANDIDATE_POLICIES: tuple[CompositionPolicySpec, ...] = (
 )
 
 
-class CompositionAssumptionError(ValueError):
+class CompositionAssumptionError(EngineError, ValueError):
     """Raised when a cross-domain boundary exchange violates declared assumptions."""
 
 

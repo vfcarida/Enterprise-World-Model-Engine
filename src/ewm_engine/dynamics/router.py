@@ -38,7 +38,7 @@ from ewm_engine.core.events import ExogenousEvent
 from ewm_engine.core.scm import CausalGraph
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.time import EventLog
-from ewm_engine.core.types import RandomGenerator
+from ewm_engine.core.types import EngineError, RandomGenerator
 from ewm_engine.dynamics.base import (
     DynamicsModel,
     InfeasibleResidualPolicy,
@@ -50,7 +50,7 @@ from ewm_engine.dynamics.base import (
 from ewm_engine.provenance.evidence import EvidenceLevel
 
 
-class NumericalInstabilityError(ValueError):
+class NumericalInstabilityError(EngineError, ValueError):
     """Raised when a learned ML module emits numerical `NaN` or `Inf` before structural evaluation."""
 
 

@@ -13,7 +13,7 @@ from ewm_engine.core.context import ContextSnapshot
 from ewm_engine.core.events import ExogenousEvent
 from ewm_engine.core.state import WorldState
 from ewm_engine.core.trust import UnqualifiedCausalClaimError
-from ewm_engine.core.types import RandomGenerator
+from ewm_engine.core.types import DynamicsInterface, RandomGenerator
 from ewm_engine.provenance.evidence import EvidenceLevel
 
 
@@ -217,7 +217,7 @@ class TransitionResult(BaseModel):
 
 
 @runtime_checkable
-class DynamicsModel(Protocol):
+class DynamicsModel(DynamicsInterface, Protocol):
     """Pluggable interface for defining how a world state evolves over time.
 
     Dynamics models accept the current WorldState, accepted Actions, exogenous shocks,

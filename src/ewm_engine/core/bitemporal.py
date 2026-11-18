@@ -18,14 +18,16 @@ import hashlib
 import json
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import Any
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-ScalarValue = float | int | str | bool
+from ewm_engine.core.types import EngineError
+
+ScalarValue = Union[float, int, str, bool]
 
 
-class BitemporalLeakageError(RuntimeError):
+class BitemporalLeakageError(EngineError, RuntimeError):
     """Raised when a query at decision time t attempts to read data with knowledge_time > t or event_time > t."""
 
 
@@ -37,7 +39,7 @@ class TemporalGranularity(StrEnum):
     DAILY_SUMMARY = "daily_summary"
 
 
-GRANULARITY_WINDOW_STEPS: dict[TemporalGranularity, int] = {
+GRANULARITY_WINDOW_STEPS: Dict[TemporalGranularity, int] = {
     TemporalGranularity.STEP: 1,
     TemporalGranularity.SHIFT_BLOCK: 4,
     TemporalGranularity.DAILY_SUMMARY: 8,
@@ -52,7 +54,7 @@ class MetricDefinitionVersion(BaseModel):
     metric_name: str
     version: str
     effective_from_time: float = 0.0
-    effective_until_time: float | None = None
+    effective_until_time: Optional[float] = None
     formula_description: str = ""
     canonical_scale: float = 1.0
     canonical_offset: float = 0.0
@@ -260,7 +262,7 @@ class BitemporalLedger:
 
     def as_of(self, decision_time: float) -> PointInTimeView:
         """Construct a leak-free PointInTimeView containing only records with knowledge_time <= decision_time."""
-        visible: list[BitemporalRecord] = []
+        visible: List[BitemporalRecord] = []
         withheld_knowledge = 0
         withheld_future_event = 0
 

@@ -99,18 +99,45 @@ Under Pearl (2009), counterfactuals require three algorithmic steps:
 3. **Prediction (Twin-Rollout Noise Coupling)**: Re-run the simulation holding all exogenous noise variables $U$ coupled bit-for-bit to the factual branch.
 
 ```python
-# Native counterfactual execution
-cf_result = world.counterfactual(
-    observed=factual_trajectory,
-    intervention={"warehouse_stock": 350.0},
-    horizon=4,
-)
+import networkx as nx
+import numpy as np
+import pandas as pd
+from ewm_engine.core.causal import EngineCausalInterface
 
-# Inspect divergence metrics and trace diff
-print(cf_result.target_divergences)
-print(cf_result.locality_preserved)
-print(cf_result.trace_diff.to_mermaid())
+rng = np.random.default_rng(42)
+x = rng.normal(10.0, 1.5, size=300)
+y = 2.0 * x + 5.0
+z = 3.0 * y - 4.0
+df = pd.DataFrame({"X": x, "Y": y, "Z": z})
+
+dag = nx.DiGraph([("X", "Y"), ("Y", "Z")])
+engine = EngineCausalInterface(dag=dag, seed=42)
+engine.assign_mechanisms(df)
+
+# Interventional simulation do(Y = 20.0) under the Modularity Assumption
+samples = engine.simulate_intervention("Y", 20.0, n_samples=200)
+assert float(samples["Y"].var(ddof=0)) == 0.0
+assert np.allclose(samples["Z"].to_numpy(), 56.0, atol=1e-5)
 ```
+
+---
+
+## 3.4 Mathematical Boundaries of Causal Identification & Modularity Violations
+
+Evaluating an intervention $do(V_s = v_s)$ via the truncated factorization (Modularity Assumption):
+
+$$P(V_1, \dots, V_d \mid do(V_s = v_s)) = \mathbb{I}(V_s = v_s) \prod_{j \neq s} P(V_j \mid \text{PA}_j)$$
+
+requires strict structural assumptions that must be explicitly verified before interpreting simulated outputs as real-world causal effects:
+
+1. **Unmeasured Confounders Violating Modularity & Causal Sufficiency**:
+   If an unobserved confounder $U$ simultaneously influences both the intervened variable $X$ and a downstream outcome $Y$ ($X \leftarrow U \rightarrow Y$), the observational conditional distribution $P(Y \mid X = x)$ conflates the direct causal effect $X \rightarrow Y$ with the spurious backdoor path $X \leftarrow U \rightarrow Y$. Performing naive graph surgery on an incomplete DAG that omits $U$ violates the modularity assumption because the error terms $U_X$ and $U_Y$ are no longer independent ($U_X \not\perp\!\!\!\perp U_Y$). Under unmeasured confounding without a valid backdoor adjustment set, frontdoor mediator, or instrumental variable, $P(Y \mid do(X = x))$ is **mathematically non-identifiable**.
+2. **Causal Markov Condition & Acyclicity**:
+   Conditioned on its direct parents $\text{PA}_i$, each endogenous variable $V_i$ must be conditionally independent of its non-descendants. Simultaneous feedback loops or cyclic dependencies violate strict DAG acyclicity (`CausalDAGValidationError`) unless unrolled across discrete time steps.
+3. **Faithfulness & Markov Equivalence Classes**:
+   Observational independence tests can only identify a graph up to its **Markov Equivalence Class** (e.g., $X \rightarrow Y \rightarrow Z$, $X \leftarrow Y \leftarrow Z$, and $X \leftarrow Y \rightarrow Z$ encode identical conditional independence relations $X \perp\!\!\!\perp Z \mid Y$). Directionality cannot be learned from passive data without structural domain assumptions or interventional experiments.
+4. **Positivity (Common Support)**:
+   Non-parametric identification requires $0 < P(X = x \mid \text{PA}_X = pa) < 1$ across all covariate strata. Extrapolating $do(X = x)$ outside the empirical support of historical data relies entirely on the parametric form of the fitted structural equations.
 
 ---
 

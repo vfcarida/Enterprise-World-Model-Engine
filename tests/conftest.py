@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+import random
 from datetime import timedelta
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -12,6 +14,7 @@ from hypothesis.database import DirectoryBasedExampleDatabase
 
 from ewm_engine.core.entities import Entity, Relationship
 from ewm_engine.core.resources import Resource
+from ewm_engine.core.seed import seed_everything
 from ewm_engine.core.state import WorldState
 
 # ---------------------------------------------------------------------------
@@ -57,11 +60,29 @@ settings.register_profile(
 _active_profile = os.getenv("HYPOTHESIS_PROFILE", "ci")
 settings.load_profile(_active_profile)
 
+DEFAULT_TEST_SEED = 42
+
+
+@pytest.fixture(autouse=True)
+def seed_deterministic_test_environment() -> None:
+    """Fix global and standard library random seeds before every test for deterministic replay."""
+    random.seed(DEFAULT_TEST_SEED)
+    np.random.seed(DEFAULT_TEST_SEED)
+    seed_everything(DEFAULT_TEST_SEED, deterministic=True, warn_cuda=False)
+
+
+@pytest.fixture
+def isolated_temp_dir(tmp_path: Path) -> Path:
+    """Provide an isolated temporary directory for hermetic test file I/O."""
+    io_dir = tmp_path / "isolated_io"
+    io_dir.mkdir(parents=True, exist_ok=True)
+    return io_dir
+
 
 @pytest.fixture
 def rng() -> np.random.Generator:
     """Deterministic random generator fixture."""
-    return np.random.default_rng(42)
+    return np.random.default_rng(DEFAULT_TEST_SEED)
 
 
 @pytest.fixture

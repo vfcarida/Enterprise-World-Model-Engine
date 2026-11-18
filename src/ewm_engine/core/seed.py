@@ -6,7 +6,7 @@ import os
 import random
 import sys
 import warnings
-from typing import Any
+from typing import Any, Dict
 
 import numpy as np
 
@@ -15,7 +15,7 @@ def seed_everything(
     seed: int,
     deterministic: bool = True,
     warn_cuda: bool = True,
-) -> dict[str, Any]:
+) -> Dict[str, Any]:
     """Seed Python standard library, NumPy, and optional ML frameworks (PyTorch).
 
     Implements the NeurIPS reproducibility checklist standards and AC-004 contract.
@@ -42,7 +42,7 @@ def seed_everything(
     os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
     os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 
-    flags: dict[str, Any] = {
+    flags: Dict[str, Any] = {
         "master_seed": seed,
         "python_hash_seed": str(seed),
         "numpy_seeded": True,
@@ -71,7 +71,7 @@ def _configure_torch(
     seed: int,
     deterministic: bool,
     warn_cuda: bool,
-    flags: dict[str, Any],
+    flags: Dict[str, Any],
 ) -> None:
     """Configure PyTorch seed and algorithmic determinism."""
     import importlib

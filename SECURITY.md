@@ -45,7 +45,7 @@ In compliance with [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116), security 
 
 EWM Engine adheres to strict software safety standards:
 1. **No Arbitrary Code Execution**: World specifications, states, and configurations must never dynamically execute arbitrary code or evaluate untrusted Python expressions (`eval`, `exec`).
-2. **Safe Serialization**: The engine uses strict, typed schema serialization (`Pydantic` and JSON). Python `pickle` or arbitrary unsafe YAML object deserialization is strictly prohibited.
+2. **Safe Serialization & Strict CDA Schema Validation (E9)**: The engine uses strict, typed schema serialization (`Pydantic` and JSON) across all configuration and Continual Discovery Agent (CDA) inputs (`CDAConfigurationPayload`, `CDAInputPayload`, `BusinessRule`). Any embedded OS command injection (`os.system`, `subprocess`, `/bin/sh`, `rm -rf`, command substitution) is caught and rejected with `pydantic.ValidationError`. Python `pickle` or arbitrary unsafe YAML object deserialization is strictly prohibited.
 3. **No Unsolicited Network Calls**: The core engine operates completely offline. It never transmits telemetry, logs, or state snapshots over the network without explicit user instrumentation.
 4. **Zero Embedded Secrets**: Credentials, API tokens, or secrets must never be embedded in the codebase or logged by the simulation engine.
 

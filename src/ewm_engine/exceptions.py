@@ -1,13 +1,17 @@
 """Domain-specific exceptions for Enterprise World Model Engine (EWM Engine).
 
-All exceptions inherit from EWMError to provide a consistent error hierarchy
-across simulation, dynamics, constraints, and state management.
+All exceptions inherit from EngineError (and EWMError) to provide a consistent
+error hierarchy across simulation, dynamics, constraints, and state management.
 """
 
 from __future__ import annotations
 
+from typing import Dict, List, Optional, Tuple, Union
 
-class EWMError(Exception):
+from ewm_engine.core.types import EngineError
+
+
+class EWMError(EngineError):
     """Base class for all Enterprise World Model Engine exceptions."""
 
 
@@ -22,9 +26,9 @@ class ConstraintViolationError(EWMError):
         self,
         message: str,
         constraint_id: str,
-        step: int | None = None,
-        violating_entities: list[str] | None = None,
-        metadata: dict[str, object] | None = None,
+        step: Optional[int] = None,
+        violating_entities: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, object]] = None,
     ) -> None:
         EWMError.__init__(self, message)
         self.constraint_id = constraint_id
@@ -86,8 +90,8 @@ class TeachingError(EWMError):
         self,
         reason: str,
         remediation: str,
-        doc_url: str | None = None,
-        title: str | None = None,
+        doc_url: Optional[str] = None,
+        title: Optional[str] = None,
     ) -> None:
         self.reason = reason
         self.remediation = remediation
@@ -109,8 +113,8 @@ class NonIdentifiableCausalQueryError(TeachingError):
         self,
         treatment: str,
         outcome: str,
-        open_backdoor_paths: list[list[str]] | tuple[tuple[str, ...], ...] | None = None,
-        doc_url: str | None = None,
+        open_backdoor_paths: Optional[Union[List[List[str]], Tuple[Tuple[str, ...], ...]]] = None,
+        doc_url: Optional[str] = None,
     ) -> None:
         path_info = (
             f" via open backdoor path(s): {list(open_backdoor_paths)}"
@@ -142,8 +146,8 @@ class UncertifiedCalibrationError(TeachingError):
         self,
         empirical_coverage: float,
         target_coverage: float,
-        refusal_reason: str | None = None,
-        doc_url: str | None = None,
+        refusal_reason: Optional[str] = None,
+        doc_url: Optional[str] = None,
     ) -> None:
         super().__init__(
             title="Uncertified Calibration Refusal",
@@ -169,12 +173,12 @@ class ConstraintViolationTeachingError(ConstraintViolationError, TeachingError):
     def __init__(
         self,
         constraint_id: str,
-        step: int | None = None,
-        violating_entities: list[str] | None = None,
-        reason: str | None = None,
-        remediation: str | None = None,
-        doc_url: str | None = None,
-        metadata: dict[str, object] | None = None,
+        step: Optional[int] = None,
+        violating_entities: Optional[List[str]] = None,
+        reason: Optional[str] = None,
+        remediation: Optional[str] = None,
+        doc_url: Optional[str] = None,
+        metadata: Optional[Dict[str, object]] = None,
     ) -> None:
         step_str = f" at step {step}" if step is not None else ""
         ent_str = f" for entities {violating_entities}" if violating_entities else ""
@@ -212,8 +216,8 @@ class RefusalToRankError(TeachingError):
 
     def __init__(
         self,
-        disagreements: dict[str, str] | None = None,
-        doc_url: str | None = None,
+        disagreements: Optional[Dict[str, str]] = None,
+        doc_url: Optional[str] = None,
     ) -> None:
         dis_info = f" Conflicting criteria: {disagreements}." if disagreements else ""
         super().__init__(
@@ -230,3 +234,25 @@ class RefusalToRankError(TeachingError):
             or "https://vfcarida.github.io/Enterprise-World-Model-Engine/concepts/decision/",
         )
         self.disagreements = disagreements or {}
+
+
+__all__ = [
+    "BranchingError",
+    "ConstraintViolationError",
+    "ConstraintViolationTeachingError",
+    "DynamicsError",
+    "EWMError",
+    "EngineError",
+    "InvalidActionError",
+    "InvalidWorldStateError",
+    "NonIdentifiableCausalQueryError",
+    "ProvenanceError",
+    "RefusalToRankError",
+    "ResourceBoundsError",
+    "ScenarioError",
+    "SerializationError",
+    "SerializationSecurityError",
+    "SimulationConfigurationError",
+    "TeachingError",
+    "UncertifiedCalibrationError",
+]

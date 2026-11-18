@@ -13,14 +13,14 @@ pip install ewm-engine
 
 ### With Optional Extensions
 ```bash
-# Graph inspection & NetworkX export
-pip install "ewm-engine[graphs]"
+# Finance Domain Pack (Decimal double-entry ledgers & OCEL 2.0 interop)
+pip install "ewm-engine[finance]"
 
-# Learned dynamics & neural transitions
-pip install "ewm-engine[ml]"
+# Software Engineering Domain Pack (NetworkX + SciPy sparse Dynamic RCA)
+pip install "ewm-engine[se]"
 
-# Documentation tools
-pip install "ewm-engine[docs]"
+# Causal Inference (DoWhy-GCM + NetworkX + SciPy)
+pip install "ewm-engine[causal]"
 
 # Full development & test suite
 pip install "ewm-engine[all]"

@@ -17,12 +17,13 @@ from __future__ import annotations
 
 import hashlib
 import math
-from typing import Any
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from ewm_engine.core.action import Action, Intervention, StateTransitionFn, apply_action
 from ewm_engine.core.state import WorldState
+from ewm_engine.core.types import EngineError
 
 __all__ = [
     "BranchManager",
@@ -34,7 +35,7 @@ __all__ = [
 ]
 
 
-class TemporalMonotonicityError(ValueError):
+class TemporalMonotonicityError(EngineError, ValueError):
     """Raised when a state transition violates discrete temporal monotonicity ($t' <= t$)."""
 
 
@@ -115,9 +116,9 @@ class EventLog:
         self._branch_id: str = branch_id
         self._full_hashes: bool = full_canonical_hashes
         root_clone = initial_state.clone()
-        self._states_by_step: dict[int, WorldState] = {root_clone.step: root_clone}
-        self._ordered_steps: list[int] = [root_clone.step]
-        self._events: list[EventRecord] = []
+        self._states_by_step: Dict[int, WorldState] = {root_clone.step: root_clone}
+        self._ordered_steps: List[int] = [root_clone.step]
+        self._events: List[EventRecord] = []
         self._head_hash: str = _fast_state_digest(root_clone, full_hash=full_canonical_hashes)
 
     @property
@@ -141,12 +142,12 @@ class EventLog:
         return self._states_by_step[self._ordered_steps[-1]].clone()
 
     @property
-    def events(self) -> tuple[EventRecord, ...]:
+    def events(self) -> Tuple[EventRecord, ...]:
         """Immutable sequence of transition EventRecords appended to this log."""
         return tuple(self._events)
 
     @property
-    def steps(self) -> tuple[int, ...]:
+    def steps(self) -> Tuple[int, ...]:
         """Immutable sequence of discrete time steps recorded in this log."""
         return tuple(self._ordered_steps)
 
@@ -166,7 +167,7 @@ class EventLog:
     def append(
         self,
         next_state: WorldState,
-        action: Action | None = None,
+        action: Optional[Action] = None,
         *,
         retain_intermediate_states: bool = True,
     ) -> EventRecord:
@@ -231,12 +232,12 @@ class EventLog:
         return record
 
 
-def collect_mutable_container_ids(state: WorldState) -> set[int]:
+def collect_mutable_container_ids(state: WorldState) -> Set[int]:
     """Collect Python `id()` values of all internal mutable containers inside a `WorldState`.
 
     Used to prove zero shared mutable state across parallel simulation branches.
     """
-    ids: set[int] = set()
+    ids: Set[int] = set()
 
     def _walk(obj: Any) -> None:
         if isinstance(obj, dict):

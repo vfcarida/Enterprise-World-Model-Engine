@@ -11,7 +11,7 @@ import copy
 import hashlib
 import json
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -20,7 +20,7 @@ from ewm_engine.core.state import WorldState
 from ewm_engine.provenance.evidence import EvidenceLevel
 from ewm_engine.provenance.trace import SystemicTrace
 
-_EVIDENCE_RANK_ORDER: dict[EvidenceLevel, int] = {
+_EVIDENCE_RANK_ORDER: Dict[EvidenceLevel, int] = {
     EvidenceLevel.CONFOUNDED: 0,
     EvidenceLevel.UNIDENTIFIED: 1,
     EvidenceLevel.HYPOTHETICAL: 2,
@@ -74,11 +74,11 @@ class EpistemicState(BaseModel):
 
     trace: SystemicTrace = Field(default_factory=SystemicTrace)
     effective_evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL
-    mechanism_provenances: tuple[dict[str, Any], ...] = Field(default_factory=tuple)
-    context_versions: tuple[str, ...] = Field(default_factory=tuple)
-    context_fingerprints: tuple[str, ...] = Field(default_factory=tuple)
-    assumptions: tuple[str, ...] = Field(default_factory=tuple)
-    drift_signals: tuple[DriftSignal, ...] = Field(default_factory=tuple)
+    mechanism_provenances: Tuple[Dict[str, Any], ...] = Field(default_factory=tuple)
+    context_versions: Tuple[str, ...] = Field(default_factory=tuple)
+    context_fingerprints: Tuple[str, ...] = Field(default_factory=tuple)
+    assumptions: Tuple[str, ...] = Field(default_factory=tuple)
+    drift_signals: Tuple[DriftSignal, ...] = Field(default_factory=tuple)
 
     @property
     def epistemic_fingerprint(self) -> str:
@@ -92,16 +92,16 @@ class EpistemicState(BaseModel):
         cls,
         state: WorldState,
         *,
-        trace: SystemicTrace | None = None,
+        trace: Optional[SystemicTrace] = None,
         effective_evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL,
-        mechanism_provenances: Sequence[dict[str, Any]] = (),
+        mechanism_provenances: Sequence[Dict[str, Any]] = (),
         context_versions: Sequence[str] = (),
         context_fingerprints: Sequence[str] = (),
         assumptions: Sequence[str] = (),
         drift_signals: Sequence[DriftSignal] = (),
     ) -> EpistemicState:
         """Extract the epistemic state P_t from a WorldState and optional SystemicTrace."""
-        extracted_assumptions: list[str] = list(assumptions)
+        extracted_assumptions: List[str] = list(assumptions)
         for k, v in sorted(state.memory.items()):
             if str(k).startswith("_epistemic_"):
                 extracted_assumptions.append(f"{k}={v}")

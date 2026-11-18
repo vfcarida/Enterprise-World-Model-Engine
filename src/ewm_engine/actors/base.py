@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ewm_engine.core.actions import Action
 from ewm_engine.core.state import WorldState
-from ewm_engine.core.types import ActorId, RandomGenerator
+from ewm_engine.core.types import ActorId, ActorInterface, RandomGenerator
 
 
 class ActorContext(BaseModel):
@@ -31,7 +31,7 @@ class ActorContext(BaseModel):
 
 
 @runtime_checkable
-class Actor(Protocol):
+class Actor(ActorInterface, Protocol):
     """Protocol for entities or policies capable of selecting actions within the world.
 
     An Actor can be heuristic, rule-based, stochastic, optimization-based,

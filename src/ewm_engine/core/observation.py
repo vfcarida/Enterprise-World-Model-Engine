@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Mapping
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -29,13 +29,13 @@ class ObservationSpec(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     actor_id: str = "*"
-    observable_entity_ids: frozenset[str] | None = None
-    observable_entity_types: frozenset[str] | None = None
-    observable_resource_ids: frozenset[str] | None = None
-    observable_relationship_types: frozenset[str] | None = None
-    observable_memory_keys: frozenset[str] | None = None
-    observable_rule_keys: frozenset[str] | None = None
-    observable_context_keys: frozenset[str] | None = None
+    observable_entity_ids: Optional[frozenset[str]] = None
+    observable_entity_types: Optional[frozenset[str]] = None
+    observable_resource_ids: Optional[frozenset[str]] = None
+    observable_relationship_types: Optional[frozenset[str]] = None
+    observable_memory_keys: Optional[frozenset[str]] = None
+    observable_rule_keys: Optional[frozenset[str]] = None
+    observable_context_keys: Optional[frozenset[str]] = None
     allow_dangling_relationships: bool = False
 
     @classmethod
@@ -93,7 +93,7 @@ class ObservationFilter:
         if spec.is_full_observability:
             return state.to_ontic_state()
 
-        visible_entities: dict[str, Entity] = {}
+        visible_entities: Dict[str, Entity] = {}
         for eid, entity in state.entities.items():
             if spec.observable_entity_ids is not None and eid not in spec.observable_entity_ids:
                 continue
@@ -104,7 +104,7 @@ class ObservationFilter:
                 continue
             visible_entities[eid] = copy.deepcopy(entity)
 
-        visible_resources: dict[str, Resource] = {}
+        visible_resources: Dict[str, Resource] = {}
         for rid, resource in state.resources.items():
             if spec.observable_resource_ids is not None and rid not in spec.observable_resource_ids:
                 continue
@@ -117,7 +117,7 @@ class ObservationFilter:
                 continue
             visible_resources[rid] = copy.deepcopy(resource)
 
-        visible_relationships: list[Relationship] = []
+        visible_relationships: List[Relationship] = []
         for rel in state.relationships:
             if (
                 spec.observable_relationship_types is not None
@@ -180,8 +180,8 @@ class BeliefState(BaseModel):
     actor_id: str
     step: int
     observed_state: WorldState
-    estimated_hidden_resources: dict[str, float] = Field(default_factory=dict)
-    epistemic_uncertainty: dict[str, float] = Field(default_factory=dict)
+    estimated_hidden_resources: Dict[str, float] = Field(default_factory=dict)
+    epistemic_uncertainty: Dict[str, float] = Field(default_factory=dict)
     observation_history_digests: tuple[str, ...] = Field(default_factory=tuple)
 
 
@@ -191,7 +191,7 @@ class BeliefUpdater(Protocol):
 
     def update_belief(
         self,
-        prior_belief: BeliefState | None,
+        prior_belief: Optional[BeliefState],
         observation: WorldState,
         actor_id: str,
     ) -> BeliefState:

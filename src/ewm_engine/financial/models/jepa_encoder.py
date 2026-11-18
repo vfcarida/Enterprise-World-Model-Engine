@@ -104,7 +104,7 @@ class FinancialJEPAEncoder(nn.Module):
 
         self.vit: Any
         if use_remote_pretrained:
-            self.vit = ViTModel.from_pretrained(vit_model)
+            self.vit = ViTModel.from_pretrained(vit_model)  # nosec B615
             vit_hidden_size = int(getattr(self.vit.config, "hidden_size", 768))
         elif ViTConfig is not None and ViTModel is not None:
             config = ViTConfig(

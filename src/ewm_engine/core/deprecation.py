@@ -9,7 +9,7 @@ from __future__ import annotations
 import functools
 import warnings
 from collections.abc import Callable
-from typing import Any, TypeVar, cast
+from typing import Any, Optional, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -18,7 +18,7 @@ def deprecate(
     feature: str,
     since: str,
     removed_in: str,
-    alternative: str | None = None,
+    alternative: Optional[str] = None,
     stacklevel: int = 2,
 ) -> None:
     """Emit a standard DeprecationWarning for a deprecated API or parameter.
@@ -46,7 +46,7 @@ def deprecate(
 def deprecated(
     since: str,
     removed_in: str,
-    alternative: str | None = None,
+    alternative: Optional[str] = None,
 ) -> Callable[[F], F]:
     """Decorator to mark a function, method, or class as deprecated.
 

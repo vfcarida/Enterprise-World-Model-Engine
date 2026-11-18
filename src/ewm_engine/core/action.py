@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ewm_engine.core.actions import (
     Action,
@@ -30,7 +30,7 @@ __all__ = [
 def apply_action(
     state: WorldState,
     action: Action,
-    transition_fn: StateTransitionFn | None = None,
+    transition_fn: Optional[StateTransitionFn] = None,
     *,
     delta_t: float = 1.0,
 ) -> WorldState:

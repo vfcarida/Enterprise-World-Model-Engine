@@ -24,11 +24,31 @@ from ewm_engine.dynamics.calibration import (
     compute_ensemble_variance,
     compute_expected_calibration_error,
 )
+from ewm_engine.dynamics.cda import (
+    BusinessRule,
+    CDAConfigurationError,
+    CDAConfigurationPayload,
+    CDAInputPayload,
+    CDAPromptHarness,
+    ConfigurationDatastore,
+    ContextRetrieverProtocol,
+    RetrieveAndReasonEngine,
+    RuleAttribution,
+    RuleGuidedReasoningClient,
+    StateDiff,
+    parse_cda_configuration_json,
+    parse_sandboxed_state_diff,
+)
 from ewm_engine.dynamics.composite import CompositeDynamics
 from ewm_engine.dynamics.deterministic import (
     DeterministicDemandDynamics,
     DeterministicDynamics,
     DeterministicTransferDynamics,
+)
+from ewm_engine.dynamics.latent_dynamics import (
+    LatentRolloutPredictor,
+    LatentStatePredictor,
+    NeuralLatentDynamics,
 )
 from ewm_engine.dynamics.learned import (
     LearnedDynamics,
@@ -56,12 +76,19 @@ from ewm_engine.experimental.grey_box import (
 
 __all__ = [
     "AbstainException",
+    "BusinessRule",
+    "CDAConfigurationError",
+    "CDAConfigurationPayload",
+    "CDAInputPayload",
+    "CDAPromptHarness",
     "CalibratedPrediction",
     "CalibratedStateDistribution",
     "CalibrationEvaluationReport",
     "CompositeDynamics",
     "ConfidenceInterval",
+    "ConfigurationDatastore",
     "ConformalPredictorWrapper",
+    "ContextRetrieverProtocol",
     "ContextualDynamicsModel",
     "DeterministicDemandDynamics",
     "DeterministicDynamics",
@@ -72,6 +99,8 @@ __all__ = [
     "HybridDynamics",
     "HybridTransitionRouter",
     "InfeasibleResidualPolicy",
+    "LatentRolloutPredictor",
+    "LatentStatePredictor",
     "LearnedDynamics",
     "LearnedModelRegistry",
     "LearnedPredictorProtocol",
@@ -79,10 +108,15 @@ __all__ = [
     "MahalanobisOODAndDriftDetector",
     "MechanismKind",
     "MechanismProvenance",
+    "NeuralLatentDynamics",
     "NumericalInstabilityError",
     "Predictor",
     "ResidualEstimator",
     "ResidualFeasibilityRecord",
+    "RetrieveAndReasonEngine",
+    "RuleAttribution",
+    "RuleGuidedReasoningClient",
+    "StateDiff",
     "StochasticDemandDynamics",
     "TransitionDataset",
     "TransitionEngine",
@@ -93,5 +127,7 @@ __all__ = [
     "ZeroResidualEstimator",
     "compute_ensemble_variance",
     "compute_expected_calibration_error",
+    "parse_cda_configuration_json",
+    "parse_sandboxed_state_diff",
     "validate_learned_prediction_no_nan",
 ]

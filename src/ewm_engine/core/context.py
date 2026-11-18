@@ -12,7 +12,7 @@ import hashlib
 import json
 from collections.abc import Mapping, Sequence
 from datetime import datetime
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Dict, Optional, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -32,7 +32,7 @@ class WorkflowConfig(BaseModel):
     max_concurrency: int = Field(default=100, ge=1)
     sla_target_seconds: float = Field(default=3600.0, gt=0.0)
     routing_policy: str = "fifo"
-    parameters: dict[str, ScalarParameter] = Field(default_factory=dict)
+    parameters: Dict[str, ScalarParameter] = Field(default_factory=dict)
 
 
 class AutomationRuleConfig(BaseModel):
@@ -45,7 +45,7 @@ class AutomationRuleConfig(BaseModel):
     enabled: bool = True
     trigger_condition: str = "always"
     priority: int = 0
-    parameters: dict[str, ScalarParameter] = Field(default_factory=dict)
+    parameters: Dict[str, ScalarParameter] = Field(default_factory=dict)
 
 
 class ServiceEndpointConfig(BaseModel):
@@ -85,21 +85,21 @@ class ContextSnapshot(BaseModel):
     version: str = "1.0.0"
     tenant_id: str = "default_tenant"
     environment_regime: str = "nominal"
-    effective_from: datetime | None = None
-    effective_until: datetime | None = None
+    effective_from: Optional[datetime] = None
+    effective_until: Optional[datetime] = None
 
-    workflow_definitions: dict[str, WorkflowConfig] = Field(default_factory=dict)
-    enabled_automations: dict[str, AutomationRuleConfig] = Field(default_factory=dict)
-    policy_versions: dict[str, str] = Field(default_factory=dict)
-    feature_flags: dict[str, bool] = Field(default_factory=dict)
-    topology_config: dict[str, str] = Field(default_factory=dict)
-    external_services: dict[str, ServiceEndpointConfig] = Field(default_factory=dict)
-    active_contracts: dict[str, ContractTermConfig] = Field(default_factory=dict)
-    parameters: dict[str, ScalarParameter] = Field(default_factory=dict)
+    workflow_definitions: Dict[str, WorkflowConfig] = Field(default_factory=dict)
+    enabled_automations: Dict[str, AutomationRuleConfig] = Field(default_factory=dict)
+    policy_versions: Dict[str, str] = Field(default_factory=dict)
+    feature_flags: Dict[str, bool] = Field(default_factory=dict)
+    topology_config: Dict[str, str] = Field(default_factory=dict)
+    external_services: Dict[str, ServiceEndpointConfig] = Field(default_factory=dict)
+    active_contracts: Dict[str, ContractTermConfig] = Field(default_factory=dict)
+    parameters: Dict[str, ScalarParameter] = Field(default_factory=dict)
 
     provenance_source: str = "static_declaration"
     evidence_level: EvidenceLevel = EvidenceLevel.STRUCTURAL
-    parent_version: str | None = None
+    parent_version: Optional[str] = None
 
     @property
     def fingerprint(self) -> str:

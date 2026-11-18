@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Dict, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ewm_engine.core.types import EventId, RandomGenerator
+from ewm_engine.core.types import EventId, EventSourceInterface, RandomGenerator
 
 if TYPE_CHECKING:
     from ewm_engine.core.state import WorldState
@@ -27,7 +27,7 @@ class ExogenousEvent(BaseModel):
     type: str = Field(
         description="Event classification type (e.g., 'rainfall_surge', 'road_closure')."
     )
-    parameters: dict[str, Any] = Field(
+    parameters: Dict[str, Any] = Field(
         default_factory=dict,
         description="Event payload attributes.",
     )
@@ -53,7 +53,8 @@ class ExogenousEvent(BaseModel):
         return self.parameters.get(key, default)
 
 
-class ExogenousEventSource(Protocol):
+@runtime_checkable
+class ExogenousEventSource(EventSourceInterface, Protocol):
     """Protocol for generating exogenous events over simulation steps."""
 
     def sample(

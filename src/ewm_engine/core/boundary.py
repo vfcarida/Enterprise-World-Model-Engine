@@ -6,12 +6,14 @@ pass, eliminating per-element validation overhead in simulation rollout hot path
 
 from __future__ import annotations
 
+from typing import Optional
+
 import numpy as np
 
 
 def validate_numeric_array_boundary(
     arr: object,
-    expected_ndim: int | None = None,
+    expected_ndim: Optional[int] = None,
     allow_nan: bool = False,
     allow_inf: bool = False,
     dtype_kind: str = "fiub",  # float (f), signed int (i), unsigned int (u), bool (b)
