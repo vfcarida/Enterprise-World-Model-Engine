@@ -45,7 +45,7 @@ pytest-rerunfailures==16.7
 pytest-socket==0.8.1
 pytest-split==0.11.0
 pytest-xdist==3.8.0
-pytest-benchmark==5.3.0
+pytest-benchmark==5.3.1
 pytest-codspeed==5.0.3
 hypothesis==6.168.3
 syrupy==6.1.1
