@@ -1,7 +1,7 @@
 # Sequestered Benchmark, Evaluation & External MCP SDK Dependencies (E8)
 mcp==2.3.0
 mcp-types==2.3.0
-starlette==1.8.0
+starlette==1.10.0
 sse-starlette==3.5.0
 uvicorn==0.54.0
 pytest==9.1.1
