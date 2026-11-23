@@ -57,7 +57,7 @@ beartype==0.23.1
 typeguard==4.6.0
 coverage==7.16.2
 diff-cover==10.6.0
-mutmut==3.8.0
+mutmut==3.8.1
 asv==0.6.6
 asv-runner==0.3.1
 build==1.6.1
